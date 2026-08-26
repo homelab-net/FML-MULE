@@ -36,3 +36,14 @@ rules:
   # from a fragment at a glance.
   document-start:
     present: true
+
+  # The four settings below are not preferences. ansible-lint refuses to run
+  # its own YAML rule against a yamllint configuration that disagrees with
+  # them, and disabling ansible-lint's YAML rule to keep a stylistic
+  # preference would be trading a real check for a cosmetic one.
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

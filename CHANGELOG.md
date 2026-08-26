@@ -20,7 +20,7 @@ kind.**
 
 ### Added
 
-**Governance and conventions**
+#### Governance and conventions
 
 - `AGENTS.md`, with `CLAUDE.md` symlinked to it: the operating rules any
   contributor or agent tool reads first. Hard constraints, the two-layer kernel
@@ -33,7 +33,7 @@ kind.**
   landed before any binary. `.editorconfig`, `.gitignore` covering key and
   credential patterns.
 
-**Safety, regulation, and security**
+#### Safety, regulation, and security
 
 - `SAFETY.md`: lithium cell sourcing, protection, charging, quarantine, storage,
   transport and disposal, and the sealed-enclosure thermal problem.
@@ -46,7 +46,7 @@ kind.**
   every authenticated participant, and physical capture as an expected
   condition.
 
-**Design record**
+#### Design record
 
 - The `FML-ADR-###` decision register: identifier rules, status vocabulary,
   template, and nine seed decisions (021, 022, 023, 024, 029, 040, 041, 042,
@@ -62,7 +62,7 @@ kind.**
   placeholders for the CONOPS and architecture controlling documents, which have
   not been transcribed.
 
-**Structure**
+#### Structure
 
 - `regions/` with `us-915` seeded (every value `TBD`) and a `_template`. Region
   is an input to configuration generation, never a constant.
@@ -81,7 +81,7 @@ kind.**
 - `test/`: unit tests, fixtures, stages, results, and a README stating plainly
   that CI has no radios.
 
-**Tooling**
+#### Tooling
 
 - `tools/validate-docs.sh`, `tools/new-adr.sh`, `tools/new-trade.sh`,
   `tools/gen-status.sh`, `tools/gen-traceability.sh`,

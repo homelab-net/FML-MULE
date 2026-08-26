@@ -48,9 +48,6 @@ select = [
   "RUF",  # ruff's own rules
 ]
 ignore = [
-  # Annotating `self` and `cls` adds nothing.
-  "ANN101",
-  "ANN102",
   # This repository documents at module and function level, not in a docstring
   # for every magic method or nested helper. D203/D213 conflict with D211/D212
   # respectively; the pairs cannot both be enabled.

@@ -58,6 +58,11 @@ paths = [
   '''^THREAT_MODEL\.md$''',
   '''^\.gitleaks\.toml$''',
   '''^services/identity/README\.md$''',
+  # The mission validator's own detection patterns. A file that defines what
+  # key material looks like necessarily contains those patterns; it holds no
+  # key material. Two independent checks cover the same rule on purpose, and
+  # neither should flag the other's definition of it.
+  '''^tools/validate-mission\.py$''',
   # The counter-example that proves the publication-rule check works, and the
   # tests that plant violations on purpose. Removing these from the allowlist
   # would make the repository unable to test its own controls.

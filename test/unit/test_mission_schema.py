@@ -112,9 +112,7 @@ def test_invalid_examples_name_the_rule_they_violate(path: Path) -> None:
     file someone got wrong.
     """
     document = json.loads(path.read_text(encoding="utf-8"))
-    assert "_violates" in document, (
-        f"{path.name} does not name the rule it violates"
-    )
+    assert "_violates" in document, f"{path.name} does not name the rule it violates"
     assert document["_violates"].strip(), f"{path.name} has an empty _violates"
 
 
