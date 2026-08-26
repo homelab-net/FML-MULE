@@ -1,0 +1,52 @@
+# Documentation and hardware artifact licence
+
+Everything in this repository that is not source code is licensed under the
+Creative Commons Attribution 4.0 International licence (CC BY 4.0).
+
+This covers, without limitation: Markdown documents, architecture decision
+records, trade studies, diagrams and diagram sources, bills of material,
+mechanical drawings and CAD sources, RF and power documentation, assembly
+guides, acceptance procedures, and regional regulatory profiles.
+
+Source code is licensed separately under the Apache License 2.0. See `LICENSE`.
+Where a file could plausibly fall under either licence, code is anything
+executed by a machine to produce behaviour - shell scripts, Python, Ansible,
+systemd and Quadlet units, and configuration templates consumed by a build.
+
+The licence split is recorded as an architecture decision. See
+`docs/adr/README.md`.
+
+## Human-readable summary
+
+This summary is not a substitute for the licence text.
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate whether changes were made. You may not apply legal terms or
+technological measures that legally restrict others from doing anything the
+licence permits. No warranties are given.
+
+## Full licence text
+
+The canonical legal text is published at:
+
+    https://creativecommons.org/licenses/by/4.0/legalcode
+
+The human-readable deed is at:
+
+    https://creativecommons.org/licenses/by/4.0/
+
+## Attribution
+
+When reusing material from this repository, attribute as:
+
+    Program FERAL MULE (FML), <document title>, <repository URL>,
+    licensed CC BY 4.0.
+
+## Third-party material
+
+Material incorporated from third parties keeps its original licence. Where such
+material appears, the containing directory carries a note identifying the
+source and its terms. Archived vendor datasheets under `docs/evidence/` are
+retained for verifiability under the terms their publishers grant; they are not
+relicensed by their presence here.
