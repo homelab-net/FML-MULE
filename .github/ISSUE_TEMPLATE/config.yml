@@ -1,0 +1,12 @@
+---
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/homelab-net/FML-MULE/security/advisories/new
+    about: >-
+      Report privately, never as a public issue. See SECURITY.md.
+  - name: Safety defect
+    url: https://github.com/homelab-net/FML-MULE/blob/main/SAFETY.md
+    about: >-
+      Safety findings are not embargoed. Use the hardware finding template and
+      say it is a safety defect in the title.

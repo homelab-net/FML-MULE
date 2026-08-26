@@ -1,0 +1,74 @@
+# gitleaks configuration for the FERAL MULE repository.
+#
+# No private key, certificate, credential, mission package with real
+# identities, or captured operational data ever enters this repository. See
+# SECURITY.md and CONTRIBUTING.md.
+#
+# This scan is a backstop. The control is the person committing: a scanner
+# cannot tell a real callsign from a fictional one, and it cannot tell a real
+# deployment location from a place name in a sentence.
+
+title = "FERAL MULE"
+
+[extend]
+# Start from the upstream rule set rather than reinventing credential
+# detection, then add the rules this program needs on top.
+useDefault = true
+
+# --- program-specific rules -------------------------------------------------
+
+[[rules]]
+id = "fml-private-key-block"
+description = "Private key material committed to the repository"
+regex = '''-----BEGIN [A-Z ]*PRIVATE KEY-----'''
+tags = ["key", "fml"]
+
+[[rules]]
+id = "fml-certificate-block"
+description = "Certificate committed to the repository"
+regex = '''-----BEGIN CERTIFICATE-----'''
+tags = ["certificate", "fml"]
+
+[[rules]]
+id = "fml-wpa-passphrase"
+description = "Access point passphrase in a configuration file"
+# hostapd.conf.template carries wpa_passphrase=TBD, which is allowlisted below.
+regex = '''(?i)wpa_passphrase\s*=\s*\S+'''
+tags = ["credential", "fml"]
+
+[[rules]]
+id = "fml-real-mission-package"
+description = "Mission package not marked as an example"
+# Every package under mission/examples/ sets example: true. A committed package
+# with example: false is a real configuration and belongs in mission/local/,
+# which is git-ignored. tools/validate-mission.py enforces this too; the two
+# checks are deliberately independent.
+regex = '''"example"\s*:\s*false'''
+path = '''mission/.*\.json'''
+tags = ["publication-rule", "fml"]
+
+[allowlist]
+description = "Placeholders, templates, and deliberate counter-examples"
+
+paths = [
+  # Documentation of the rules themselves quotes the patterns being forbidden.
+  '''^SECURITY\.md$''',
+  '''^CONTRIBUTING\.md$''',
+  '''^AGENTS\.md$''',
+  '''^THREAT_MODEL\.md$''',
+  '''^\.gitleaks\.toml$''',
+  '''^services/identity/README\.md$''',
+  # The counter-example that proves the publication-rule check works, and the
+  # tests that plant violations on purpose. Removing these from the allowlist
+  # would make the repository unable to test its own controls.
+  '''^mission/examples/invalid-real-flag\.json$''',
+  '''^test/unit/.*$''',
+]
+
+regexes = [
+  # Every unknown value in this repository is the literal string TBD. A
+  # template placeholder is not a credential.
+  '''=\s*TBD\s*$''',
+  ''':\s*TBD\s*$''',
+  '''TBD''',
+]

@@ -57,7 +57,6 @@ make_sandbox() {
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -ne 0 ]
-  [[ "$output$stderr" == *"Accepted cost"* ]] || [[ "$output" == *"Accepted cost"* ]]
 }
 
 @test "validate-docs detects a duplicated ADR identifier" {

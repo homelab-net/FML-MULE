@@ -1,0 +1,98 @@
+---
+name: Trade evidence
+description: Evidence that bears on an open trade, or a proposal to close one
+title: "[evidence] TBR-"
+labels: ["evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Evidence is what closes a trade. **A trade does not close on document
+        wording alone**: rewriting a trade document more confidently is not
+        closure, and it is the most common way a program convinces itself it
+        has decided something.
+
+
+        Evidence is committed under `docs/evidence/<TRADE-ID>/`. A closure that
+        cites no path there is not a closure.
+
+
+        **You do not need hardware for every trade.** `TBR-TAK-01` and
+        `TBR-NET-01` need none, and `TBR-TAK-01` is on the critical path. See
+        `STATUS.md`.
+
+  - type: input
+    id: trade
+    attributes:
+      label: Trade identifier
+      placeholder: e.g. TBR-TAK-01
+    validations:
+      required: true
+
+  - type: dropdown
+    id: intent
+    attributes:
+      label: What this is
+      options:
+        - Evidence toward closure, not a closure proposal
+        - Proposal to close the trade
+        - Evidence that contradicts an assumption in the trade
+        - Question about what the closure gate requires
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: The evidence
+      description: >-
+        What you did, what you measured or determined, and what it shows. A
+        measurement records its instrument, date, node, image build,
+        configuration and ambient conditions. An analysis records what it
+        assumed and what it could not establish.
+    validations:
+      required: true
+
+  - type: input
+    id: path
+    attributes:
+      label: Evidence path
+      description: >-
+        Where this is committed under `docs/evidence/<TRADE-ID>/`. If it is not
+        committed yet, say so.
+      placeholder: e.g. docs/evidence/TBR-TAK-01/2026-01-15-state-inventory.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: gate
+    attributes:
+      label: Against the closure gate
+      description: >-
+        Quote the trade's closure gate and say, point by point, whether this
+        evidence meets it. The gate was written before the work precisely so
+        the result could not be graded against a standard invented afterwards.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: fakes
+    attributes:
+      label: Fakes and fixtures
+      options:
+        - label: >-
+            Where any of this was produced against a fake or a fixture rather
+            than hardware, I have said so, and I have not used it to support a
+            claim about physical behaviour.
+          required: true
+
+  - type: checkboxes
+    id: publication
+    attributes:
+      label: Publication rule
+      options:
+        - label: >-
+            This evidence contains no real deployment location, member
+            identity, callsign, credential, or operational capture, and any
+            photograph has had its metadata stripped.
+          required: true
