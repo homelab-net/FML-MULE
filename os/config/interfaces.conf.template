@@ -1,0 +1,74 @@
+# Interface configuration template - MULE
+#
+# Configures interface bring-up and addressing for every bearer and for the
+# mesh interface batman-adv presents.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node. The final format
+# depends on the network management stack, which is TBD; this file describes
+# what must be configured, not yet how.
+#
+# Trades: TBR-NET-01 (field address prefix and allocation scheme)
+#         TBR-RF-01, TBR-RF-03 (which physical interfaces exist)
+#         TBR-LINUX-01 (interface naming and driver bring-up behaviour)
+#
+# ADDRESSING IS NOT DECIDED
+#
+# TBR-NET-01 is open. Address family, whether the prefix is fixed across all
+# deployments or set per deployment in the mission package, and whether host
+# addresses derive from node identity or are allocated, are all open.
+#
+# One consequence worth flagging here: an address derived from a durable node
+# identifier IS a durable identifier, visible to anyone observing traffic. See
+# THREAT_MODEL.md.
+#
+# The scheme must not collide when two independently built deployments meet at
+# an incident. That is the specific failure TBR-NET-01 exists to prevent, and
+# it becomes more likely the more successful this program is.
+
+# --- Interface inventory ----------------------------------------------------
+# Names are TBD and depend on the selected hardware block and on driver
+# behaviour. Do not hardcode a kernel-assigned name; use a stable naming rule.
+#
+#   Logical function              Interface   Addressing        Trade
+#   ---------------------------   ---------   ---------------   -----------
+#   Sub-GHz HaLow mesh member     TBD         none, member of   TBR-RF-02
+#                                             the batman mesh
+#   High-rate inter-node bearer   TBD         TBD               TBR-RF-01
+#   EUD access point              TBD         TBD               TBR-RF-03
+#   batman-adv mesh interface     TBD         TBD               TBR-NET-01
+#   LoRa plane                    TBD         not IP            n/a
+#
+# Note: interfaces that are members of the batman-adv mesh carry no IP address
+# themselves. The mesh interface does. Configuring an address on a member
+# interface is a common error that produces confusing symptoms.
+#
+# The LoRa plane is not an IP bearer. It carries the independent low-bandwidth
+# degraded-communications plane and does not appear in IP routing at all.
+
+# --- Bring-up ordering ------------------------------------------------------
+# Ordering matters and is a known source of failure:
+#
+#   1. Driver and firmware loaded, radio enumerated.
+#   2. Physical interface up.
+#   3. Association: mesh point or access point.
+#   4. batman-adv routing algorithm set (BEFORE adding interfaces).
+#   5. Interfaces added to the batman-adv mesh.
+#   6. Mesh interface up and addressed.
+#   7. Services started.
+#
+# A mesh interface configured before its driver has finished initialising, or
+# batman-adv attached to an interface that is not yet up, fails in ways that
+# look like a radio fault. Ordering belongs to the systemd unit structure and
+# is TBD, pending TBR-LINUX-01.
+#
+# FML-ADR-023 records that the upstream MANET reference project encodes real
+# knowledge about bring-up ordering. Where its configuration is adopted, cite
+# the source in a comment on the adopting line.
+
+# --- Addressing -------------------------------------------------------------
+# address_family=TBD           # TBR-NET-01
+# prefix_source=TBD            # fixed, or from the mission package
+# host_allocation=TBD          # derived from node identity, or allocated
+# deployment_identifier=TBD    # whether one is embedded in the prefix so that
+#                              # two deployments differ by construction

@@ -1,0 +1,6 @@
+---
+# Handlers for the common role.
+#
+# None yet. The role applies no configuration that requires a service restart,
+# because it applies almost no configuration; see the role README.
+[]

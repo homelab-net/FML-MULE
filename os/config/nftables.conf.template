@@ -1,0 +1,89 @@
+#!/usr/sbin/nft -f
+# nftables configuration template - MULE
+#
+# Configures the host firewall and forwarding policy between the mesh, the EUD
+# access point, and the services running on the node.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node. It is not
+# loadable as written.
+#
+# Trades: TBR-NET-01 (field address prefix and addressing scheme)
+#         TBR-TAK-01 (what the mission-service plane exposes and to whom)
+#         TBR-RF-03 (whether AP and mesh share an interface)
+#
+# THE BOUNDARY THIS FILE DEFENDS
+#
+# The EUD access point admits end user devices that are outside the node's
+# trust boundary. THREAT_MODEL.md records that MULE cannot detect or contain a
+# compromised EUD. This firewall is where that containment is attempted.
+#
+# It does NOT defend against an admitted participant. Peer traffic on a shared
+# operational domain is visible to all authenticated participants by design;
+# that is a stated condition, not a defect.
+#
+# DEFAULT DENY
+#
+# Every chain below defaults to drop. A rule is added because something needs
+# to pass, and the reason is written on the rule. A firewall whose rules nobody
+# can justify line by line is a firewall nobody can tighten later.
+
+table inet filter {
+  # Sets are populated from the region profile and the mission configuration
+  # package at generation time. Never literals here; see TBR-NET-01.
+  #
+  # set mesh_prefix { type ipv6_addr; flags interval; elements = { TBD } }
+  # set eud_prefix  { type ipv6_addr; flags interval; elements = { TBD } }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+
+    # TBD: loopback.
+    # TBD: established and related.
+    # TBD: ICMP, including what is required for path MTU discovery. Dropping
+    #      ICMP on a mesh with varying MTU is a way to create failures that
+    #      appear only for large transfers.
+    # TBD: batman-adv control traffic. Which ethertype and on which
+    #      interfaces depends on TBR-RF-01.
+    # TBD: DHCP and DNS from the EUD access point only. See
+    #      dnsmasq.conf.template.
+    # TBD: mission services, per service, from the mesh and from the EUD
+    #      access point separately. The two are different trust levels and are
+    #      not to be collapsed into one rule. Which services and which ports
+    #      is TBR-TAK-01 and services/catalog/.
+    # TBD: administrative access. Whether any exists on a field node, and over
+    #      which interface, is an open question with THREAT_MODEL.md
+    #      consequences: an administrative path is a capture-time asset.
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+
+    # TBD: whether EUD traffic is forwarded onto the mesh at all, or whether
+    #      an EUD reaches only services on its own node. This is a
+    #      significant architectural question and is not decided. It
+    #      interacts with TBR-TAK-01 and with the ap_isolate setting in
+    #      hostapd.conf.template.
+    # TBD: mesh to mesh forwarding. Note that batman-adv routes at layer 2,
+    #      so much inter-node traffic does not traverse this chain at all.
+    #      Do not assume this chain sees the mesh.
+  }
+
+  chain output {
+    type filter hook output priority filter; policy drop;
+
+    # TBD: default-deny on output is deliberate and unusual. The reason is
+    #      EMCON: a node in an emission-controlled profile must not emit, and
+    #      a service that transmits despite the profile is a safety problem,
+    #      not a bug. See mission/profiles/ and THREAT_MODEL.md.
+    #      Whether this is enforceable here or belongs elsewhere is TBD.
+  }
+}
+
+# --- Notes ------------------------------------------------------------------
+# Rootless Podman (FML-ADR-029) affects how service traffic appears here.
+# Rootless networking and privileged port binding need explicit handling; see
+# services/ingress/.
+#
+# No rule in this file may contain a real address, prefix, or credential. See
+# SECURITY.md.

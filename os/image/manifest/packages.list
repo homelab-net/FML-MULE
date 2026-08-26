@@ -1,0 +1,40 @@
+# Pinned package manifest for the MULE image.
+#
+# STATUS: EMPTY. No package set has been selected, because no userland release
+# and no kernel have been selected. See TBR-LINUX-01 and FML-ADR-022.
+#
+# THE PINNING RULE
+#
+#   Every package is pinned to an exact version. No version ranges, no
+#   "latest", no unpinned transitive dependency. A package that cannot be
+#   pinned does not go in the image.
+#
+# The rule exists because a node in the field is diagnosed by its compatibility
+# set version (FML-ADR-040). If two builds carrying the same set version can
+# contain different package versions, that identifier means nothing and the
+# whole promotion discipline is decorative.
+#
+# CHANGING A PIN
+#
+# A change to any pin in this file creates a NEW CANDIDATE SET, which must pass
+# the full promotion gate in os/release/README.md: rebuild all out-of-tree
+# modules, boot, enumerate every radio, form a mesh, serve the access point,
+# pass a traffic smoke test, survive a reboot, and demonstrate rollback.
+#
+# Dependency update proposals are opened automatically and are NEVER
+# auto-merged. Promotion of a dependency is a decision. A green CI run is not
+# evidence that the set still works, because CI has no radios.
+#
+# FORMAT
+#
+#   <package-name>=<exact-version>    # <why this package is in the image>
+#
+# One package per line. A comment on every line saying why it is here; an image
+# nobody can justify line by line is an image nobody can shrink later.
+#
+# Radio userspace (iw, wpa_supplicant, hostapd, batctl) is pinned here AND
+# recorded in os/kernel/PINS.md, because it is part of the compatibility set.
+# The two must agree. Keeping the human-readable set summary in PINS.md and the
+# machine-readable pins here is deliberate; a mismatch between them is a defect.
+
+# --- No packages selected. ---

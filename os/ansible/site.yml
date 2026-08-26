@@ -1,0 +1,18 @@
+---
+# MULE host provisioning entry point.
+#
+# STATUS: skeleton. Applies the common role and nothing else. Radio, service
+# and identity roles wait on the trades their configuration depends on.
+#
+# Run with:
+#   ansible-playbook -i inventory/example.yml site.yml --check
+#
+# --check runs in CI as a minimum bar. It confirms the playbook parses; it does
+# not confirm anything works. CI has no radios. See test/README.md.
+
+- name: Provision a MULE node
+  hosts: mule_nodes
+  gather_facts: true
+  become: true
+  roles:
+    - role: common

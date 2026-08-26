@@ -1,0 +1,69 @@
+# hostapd configuration template - MULE
+#
+# Configures the EUD access point: the Wi-Fi function that operator phones and
+# tablets associate with.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node.
+#
+# REGION IS A PARAMETER. No channel, band or transmit power appears here. Those
+# come from regions/<region-id>/profile.yml. Some channels are indoor-only in
+# some regions, and some require dynamic frequency selection. See
+# regions/README.md and REGULATORY.md.
+#
+# SEPARATE LOGICAL FUNCTION. FML-ADR-045 decides that the EUD access point and
+# the high-throughput inter-node mesh are separate logical radio functions with
+# independent configuration, channel selection and security parameters.
+# Whether they share a physical radio is TBR-RF-03.
+#
+# Trades: TBR-RF-03 (AP and mesh radio consolidation)
+#         TBR-NET-01 (addressing for associated devices)
+#         TBR-LINUX-01 (driver AP-mode capability)
+
+interface=TBD
+# Physical interface or virtual interface. If TBR-RF-03 closes on
+# consolidation, this is a virtual interface sharing a radio with the mesh, and
+# the airtime consequences in that trade apply.
+
+driver=TBD
+
+# --- Identity ---------------------------------------------------------------
+ssid=TBD
+# From the mission configuration package. Not a fixed value: two independently
+# built deployments meeting at an incident must not collide. See TBR-NET-01.
+
+# --- Radio ------------------------------------------------------------------
+# ALL FROM THE REGION PROFILE. Never literals here.
+hw_mode=TBD
+channel=TBD
+country_code=TBD
+ieee80211d=TBD
+ieee80211h=TBD                 # DFS, where the region requires it
+
+# --- Security ---------------------------------------------------------------
+# TBD. The access point admits end user devices, which are outside the node's
+# trust boundary and may themselves be compromised; THREAT_MODEL.md records
+# that MULE cannot detect or contain a compromised EUD.
+#
+# An open access point is not acceptable: it would put an unauthenticated
+# device on the mission network. The mechanism is TBD and interacts with the
+# admission model in TBR-TAK-01 and TBR-SEC-01.
+wpa=TBD
+wpa_key_mgmt=TBD
+rsn_pairwise=TBD
+# The passphrase is NEVER stored in this repository, in any form, including in
+# an example. It comes from the mission configuration package at generation
+# time. See SECURITY.md, publication rule.
+wpa_passphrase=TBD
+
+# --- Isolation --------------------------------------------------------------
+# Whether associated devices may reach each other directly, or only the node.
+# TBD; feeds THREAT_MODEL.md, which records that peer traffic on a shared
+# operational domain is visible to all authenticated participants.
+ap_isolate=TBD
+
+# --- Notes ------------------------------------------------------------------
+# A client association storm is one of the peak conditions TBR-COMP-01 must
+# measure against. An access point that starves the network plane during a
+# deployment is the failure mode FML-ADR-021 accepted when it put both planes
+# on one host.

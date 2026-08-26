@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: common
+  namespace: fml
+  author: FERAL MULE program
+  description: Base host configuration for a MULE node
+  license: Apache-2.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - system
+dependencies: []

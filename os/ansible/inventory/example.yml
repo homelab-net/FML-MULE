@@ -1,0 +1,29 @@
+---
+# Example inventory for MULE host provisioning.
+#
+# EVERY IDENTITY IN THIS FILE IS FAKE. The hostnames, addresses and user names
+# below are placeholders chosen to be obviously non-real. No real deployment
+# location, member identity, callsign, hostname or address is ever committed to
+# this repository. See SECURITY.md, publication rule.
+#
+# Copy this file to a path under mission/local/ (git-ignored) for real use.
+#
+# Addressing is not decided. TBR-NET-01 is open: address family, prefix source,
+# and host allocation are all TBD. The addresses below are documentation-range
+# placeholders, not a proposed scheme.
+
+mule_nodes:
+  hosts:
+    example-node-01:
+      # RFC 5737 documentation address. Not a real or proposed allocation.
+      ansible_host: 192.0.2.11
+    example-node-02:
+      ansible_host: 192.0.2.12
+  vars:
+    ansible_user: example-operator
+    # Region profile this node is configured for. Region is a parameter, never
+    # a constant. See regions/README.md.
+    mule_region: us-915
+    # Hardware block this node belongs to. No block is qualified; see
+    # TBR-HW-01 and hardware/README.md.
+    mule_block: TBD
