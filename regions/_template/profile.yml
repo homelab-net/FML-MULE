@@ -1,0 +1,67 @@
+---
+# Region profile template.
+#
+# Consumed by configuration generation. Every value here is a regulatory or
+# planning parameter for one region. No file in os/config/ contains a
+# frequency, channel, bandwidth or transmit power; they come from here.
+#
+# Rules:
+#   - Unknown values are the string "TBD". Never a plausible-looking number.
+#   - Every parameter cites the rule it derives from, in `source`.
+#   - Nothing in this file authorises operation or confers compliance.
+#     See REGULATORY.md.
+
+region:
+  id: TBD                     # e.g. us-915. Matches the directory name.
+  name: TBD                   # Human-readable, e.g. "United States, 902-928 MHz"
+  administration: TBD         # e.g. "United States"
+  regulator: TBD              # e.g. "FCC"
+  status: UNVERIFIED          # UNVERIFIED until someone who operates here confirms it
+  verified_by: TBD            # Who confirmed this profile, and when
+
+# Sub-GHz bearer: Wi-Fi HaLow, IEEE 802.11ah.
+halow:
+  permitted: TBD              # true or false. Whether HaLow is permitted at all here.
+  band_low_hz: TBD
+  band_high_hz: TBD
+  channel_widths_hz: []       # e.g. [1000000, 2000000, 4000000]
+  default_channel: TBD        # Trade: TBR-RF-02
+  max_eirp_dbm: TBD
+  max_antenna_gain_dbi: TBD
+  duty_cycle_percent: TBD     # "none" where no duty-cycle limit applies
+  source: TBD                 # Regulation and section, e.g. "47 CFR 15.247"
+
+# Independent low-bandwidth plane: LoRa.
+lora:
+  permitted: TBD
+  band_low_hz: TBD
+  band_high_hz: TBD
+  default_channel: TBD
+  max_eirp_dbm: TBD
+  duty_cycle_percent: TBD
+  source: TBD
+
+# Conventional Wi-Fi: inter-node bearer and EUD access point.
+# These are separate logical radio functions; see FML-ADR-045.
+wifi:
+  permitted_bands: []         # e.g. ["2.4GHz", "5GHz"]
+  mesh_channel: TBD           # Trade: TBR-RF-01
+  ap_channel: TBD             # Trade: TBR-RF-03
+  max_eirp_dbm: TBD
+  indoor_only_channels: []    # Channels restricted to indoor use in this region
+  dfs_required: TBD           # Whether dynamic frequency selection is required
+  source: TBD
+
+# Amateur radio integration is disabled by default everywhere.
+# Enabling it requires a licensed control operator, station identification, and
+# lawful content handling. Encrypted traffic is not permitted on amateur
+# allocations in many jurisdictions. See REGULATORY.md.
+amateur:
+  enabled: false              # Never default this to true in any region profile
+  permitted_in_region: TBD
+  encryption_permitted: TBD
+  source: TBD
+
+# Notes that do not fit a field above. Constraints with design consequences
+# rather than only configuration consequences belong here and in the README.
+notes: TBD
