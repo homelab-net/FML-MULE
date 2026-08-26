@@ -1,0 +1,58 @@
+{
+  // markdownlint configuration for the FERAL MULE repository.
+  //
+  // Rules are adjusted deliberately and with a reason, never disabled
+  // wholesale. See CONTRIBUTING.md.
+  "config": {
+    "default": true,
+
+    // MD013, line length.
+    //
+    // Prose in this repository wraps at 80. The limit here is 100 rather than
+    // 80 because a few unavoidable constructs exceed it: a long file path in
+    // inline code, and a document title that names a full trade filename.
+    //
+    // Tables are exempt entirely. A traceability or trade register table has
+    // six columns and cannot be wrapped without becoming unreadable, and this
+    // repository's tables are its densest information.
+    //
+    // Code blocks are exempt: a container digest, a command line, or a patch
+    // hunk is byte-exact and wrapping it would make it wrong.
+    "MD013": {
+      "line_length": 100,
+      "tables": false,
+      "code_blocks": false,
+      "headings": false
+    },
+
+    // MD024, duplicate headings. Permitted when not siblings: several ADRs
+    // and trades legitimately repeat "## Status" or "## Dependencies" at the
+    // same level within different documents, and within one document the ADR
+    // template's fixed section set is checked by tools/validate-docs.sh.
+    "MD024": { "siblings_only": true },
+
+    // MD033, inline HTML. Permitted for the generated-file marker only.
+    // STATUS.md and the traceability matrix carry an HTML comment saying they
+    // are generated, which is the conventional way to mark that and is
+    // invisible in rendered output.
+    "MD033": { "allowed_elements": ["!--"] },
+
+    // MD025, single top-level heading.
+    //
+    // By default markdownlint treats a "title:" field in YAML frontmatter as
+    // the document's H1, which would make the "# FML-ADR-021 ..." heading in
+    // every ADR and trade a second one. Setting front_matter_title to empty
+    // turns off that detection: in this repository the frontmatter "title" is
+    // structured metadata read by tools/gen-status.sh, not a rendered heading.
+    "MD025": { "front_matter_title": "" },
+
+    // MD041, first line must be a top-level heading. Disabled because files
+    // with YAML frontmatter (every ADR and trade) begin with "---".
+    "MD041": false
+  },
+  "globs": ["**/*.md"],
+  "ignores": [
+    "node_modules/**",
+    ".venv/**"
+  ]
+}

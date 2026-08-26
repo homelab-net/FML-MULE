@@ -207,7 +207,7 @@ Types: `feat`, `fix`, `docs`, `build`, `chore`, `test`.
   requires one review.
 - **Sign-off is required.** Every commit carries a `Signed-off-by` line
   asserting the Developer Certificate of Origin, version 1.1
-  (https://developercertificate.org/). `git commit -s` adds it. By signing off
+  (<https://developercertificate.org/>). `git commit -s` adds it. By signing off
   you certify you have the right to submit the work under this repository's
   licences.
 - **Licensing.** Code is Apache 2.0 (`LICENSE`); documentation and hardware

@@ -1,0 +1,77 @@
+# Python project configuration for the FERAL MULE repository.
+#
+# There is no Python package to build here yet. This file exists to pin the
+# minimum interpreter version and to configure ruff, so that the first Python
+# code to land arrives into working tooling rather than into a promise that
+# tooling will be added.
+
+[project]
+name = "fml-mule-tools"
+version = "0.0.0"
+description = "Repository tooling for Program FERAL MULE"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+# 3.11 is the floor. Chosen because it is what current Debian-family stable
+# releases carry, and the userland is Debian-family (FML-ADR-022). Raising it
+# would mean requiring a Python a builder's own distribution does not ship.
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+# Installed by CI and by anyone running the full check set locally.
+dev = [
+  "jsonschema>=4.0",
+  "pytest>=7.0",
+  "yamllint>=1.30",
+  "ansible-lint>=6.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = [".venv", "node_modules"]
+
+[tool.ruff.lint]
+# Selected deliberately rather than by taking a default. Each family earns its
+# place; anything not listed is not enforced, which is a decision rather than
+# an oversight.
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # import sorting
+  "B",    # bugbear: likely bugs rather than style
+  "UP",   # pyupgrade: keep to modern syntax for the pinned floor
+  "ANN",  # type annotations. CONTRIBUTING.md requires them on public functions
+  "D",    # docstrings
+  "S",    # bandit: security findings
+  "RUF",  # ruff's own rules
+]
+ignore = [
+  # Annotating `self` and `cls` adds nothing.
+  "ANN101",
+  "ANN102",
+  # This repository documents at module and function level, not in a docstring
+  # for every magic method or nested helper. D203/D213 conflict with D211/D212
+  # respectively; the pairs cannot both be enabled.
+  "D203",
+  "D213",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may use assert, which bandit flags (S101), and do not need the full
+# docstring set on every case.
+"test/**/*.py" = ["S101", "D103"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["test/unit"]
+python_files = ["test_*.py"]
+addopts = "-ra"
