@@ -1,0 +1,14 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. See SECURITY.md.",
+  "_purpose": "INVALID example. MUST BE REJECTED.",
+  "_violates": "Omits the required 'profile' field. A package with no mission profile leaves the node's emission posture undefined, which is not a safe default; see mission/profiles/.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-missing-required",
+    "name": "Example missing a required field",
+    "example": true
+  },
+  "network": {
+    "mesh_id": "example-mesh"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/homelab-net/FML-MULE/mission/schema/mission-package.schema.json",
+  "title": "MULE mission configuration package",
+  "description": "Per-deployment configuration for a MULE node. DRAFT SKELETON: several fields depend on trades that have not closed and are constrained loosely on purpose rather than guessed. No real identity, location, callsign or credential ever appears in a package committed to this repository; see SECURITY.md.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mission",
+    "network",
+    "profile"
+  ],
+  "additionalProperties": false,
+  "patternProperties": {
+    "^_": {
+      "description": "Annotation keys beginning with an underscore are permitted at the top level so that every committed example can carry the mandatory header stating that its identities are fake, plus a statement of what it demonstrates or which rule it violates. They are documentation, not configuration, and a node ignores them.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "description": "Package format version. A node states which versions it accepts. A node rolled back to the known-good path may be running an older image that does not understand a newer package; see FML-ADR-041 and TBR-REC-01.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "mission": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "example"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Stable identifier for this mission or deployment.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
+        },
+        "name": {
+          "description": "Human-readable name. Never a real deployment location.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "example": {
+          "description": "True for every package committed to this repository. A package with example=false is a real configuration and belongs in mission/local/, which is git-ignored. See SECURITY.md.",
+          "type": "boolean"
+        },
+        "region": {
+          "description": "Region profile identifier under regions/. Region is an input to configuration generation, never a constant: 902-928 MHz is not permitted in the EU or UK. See regions/README.md and REGULATORY.md.",
+          "type": "string",
+          "pattern": "^[a-z]{2,8}-[a-z0-9]{2,8}$"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "description": "Network identity for this deployment. Values here differ between deployments so that two independently built deployments meeting at an incident do not collide. See TBR-NET-01.",
+      "required": [
+        "mesh_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mesh_id": {
+          "description": "Mesh identifier for the sub-GHz bearer.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "local_domain": {
+          "description": "Local DNS domain, authoritative on the node. A fixed domain across every deployment makes collision certain. See services/ingress/.",
+          "type": "string",
+          "maxLength": 253
+        },
+        "address_prefix": {
+          "description": "TBD. Address family, whether the prefix is fixed or per-deployment, and whether host addresses derive from node identity are all open. TBR-NET-01. Note that an address derived from a durable node identifier IS a durable identifier visible to any observer; see THREAT_MODEL.md.",
+          "type": "string"
+        },
+        "ap_ssid": {
+          "description": "EUD access point SSID. The passphrase is NOT part of this schema and never appears in a committed package; see SECURITY.md.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      }
+    },
+    "profile": {
+      "description": "Mission profile in force. See mission/profiles/. EMCON restricts or ceases emission; what it can actually enforce is TBR-RF-02.",
+      "type": "string",
+      "enum": [
+        "standard",
+        "exercise",
+        "emcon"
+      ]
+    },
+    "services": {
+      "description": "Services enabled for this deployment. Every name must have an entry in services/catalog/. The schema cannot check that; a separate validator will.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
+      },
+      "uniqueItems": true
+    },
+    "trust": {
+      "type": "object",
+      "description": "References to mission trust material. REFERENCES ONLY. No key, certificate, credential or passphrase is ever included in a package, in any form. The supply mechanism is TBD; see TBR-SEC-01 and services/identity/.",
+      "additionalProperties": false,
+      "properties": {
+        "trust_anchor_ref": {
+          "description": "An identifier for trust material supplied out of band. Not the material.",
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "notes": {
+      "description": "Free text. Subject to the publication rule like everything else.",
+      "type": "string",
+      "maxLength": 4096
+    }
+  }
+}

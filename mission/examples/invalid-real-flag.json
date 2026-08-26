@@ -1,0 +1,15 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. See SECURITY.md.",
+  "_purpose": "INVALID example. MUST BE REJECTED.",
+  "_violates": "Sets 'example': false, which marks the package as a real configuration. A real package belongs in mission/local/, which is git-ignored, and is never committed. This example exists so that the check which enforces the publication rule is itself tested.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-real-flag",
+    "name": "Example incorrectly marked as a real configuration",
+    "example": false
+  },
+  "network": {
+    "mesh_id": "example-mesh"
+  },
+  "profile": "exercise"
+}

@@ -1,0 +1,14 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. This is not a real mission configuration and does not describe a real deployment, location, or group. No real mission configuration is ever committed to this repository; a real package belongs in mission/local/, which is git-ignored. See SECURITY.md.",
+  "_purpose": "VALID example: the smallest package the schema accepts.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-minimal",
+    "name": "Example minimal package",
+    "example": true
+  },
+  "network": {
+    "mesh_id": "example-mesh"
+  },
+  "profile": "exercise"
+}

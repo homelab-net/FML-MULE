@@ -1,0 +1,27 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. This is not a real mission configuration and does not describe a real deployment, location, or group. No real mission configuration is ever committed to this repository; a real package belongs in mission/local/, which is git-ignored. See SECURITY.md.",
+  "_purpose": "VALID example: every field populated, including optional ones.",
+  "_note": "address_prefix uses an RFC 3849 documentation prefix. It is not a real or proposed allocation; the addressing scheme is TBR-NET-01 and is not decided.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-full",
+    "name": "Example training exercise, fictional",
+    "example": true,
+    "region": "us-915"
+  },
+  "network": {
+    "mesh_id": "example-mesh-full",
+    "local_domain": "example.invalid",
+    "address_prefix": "2001:db8::/32",
+    "ap_ssid": "example-node-ap"
+  },
+  "profile": "exercise",
+  "services": [
+    "example-service-a",
+    "example-service-b"
+  ],
+  "trust": {
+    "trust_anchor_ref": "example-trust-anchor-reference-not-material"
+  },
+  "notes": "Fictional example package used to exercise the schema. Contains no real identity, location, callsign or credential."
+}

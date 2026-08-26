@@ -1,0 +1,15 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. See SECURITY.md.",
+  "_purpose": "INVALID example. MUST BE REJECTED.",
+  "_violates": "Uses a mission profile outside the permitted set. Profiles are enumerated because an unrecognised profile would leave the node's emission posture undefined, and a node that silently falls back to a permissive default under a profile it did not understand is an EMCON failure; see THREAT_MODEL.md.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-bad-profile",
+    "name": "Example with an unrecognised profile",
+    "example": true
+  },
+  "network": {
+    "mesh_id": "example-mesh"
+  },
+  "profile": "silent-running"
+}
