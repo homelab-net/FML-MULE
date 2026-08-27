@@ -28,14 +28,14 @@ from typing import Literal, Protocol, runtime_checkable
 #: functions whether or not they share a physical radio.
 Bearer = Literal["halow", "wifi_mesh", "wifi_ap", "lora"]
 
-#: Whether retained local time can be trusted for credential validation.
-#: FML-ADR-042: trust validation never fails open on invalid time.
-TimeCredibility = Literal["CREDIBLE", "DEGRADED"]
-
 
 @runtime_checkable
 class RadioState(Protocol):
     """Read-only radio state.
+
+    Narrow means what the node actually reads, not what a driver could report.
+    Methods are added when a consumer exists, never in anticipation of one: a
+    method nothing calls is surface nobody has had to fake honestly.
 
     Deliberately excludes anything that transmits or reconfigures. A node's
     status surface reads; it does not command. FML-ADR-028 keeps network and RF
@@ -51,18 +51,10 @@ class RadioState(Protocol):
         """Whether the bearer has formed its link: mesh peer, or AP serving."""
         ...
 
-    def peer_count(self, bearer: Bearer) -> int:
-        """Peers currently visible on the bearer. Zero for the access point."""
-        ...
-
 
 @runtime_checkable
 class PowerState(Protocol):
     """Read-only power and battery state."""
-
-    def on_external_power(self) -> bool:
-        """Whether an approved external source is supplying the node."""
-        ...
 
     def battery_present(self) -> bool:
         """Whether a protected battery assembly is fitted."""
@@ -100,24 +92,8 @@ class ThermalState(Protocol):
         ...
 
 
-@runtime_checkable
-class TimeState(Protocol):
-    """Retained local time, and whether it can be trusted.
-
-    FML-ADR-042 makes this security-bearing rather than a convenience:
-    certificate validity, credential expiry and revocation freshness all depend
-    on it, and a node that restores a plausible-looking time from its last
-    shutdown is worse than one with no clock, because it looks valid.
-    """
-
-    def credibility(self) -> TimeCredibility:
-        """Whether retained time is plausible enough for trust validation."""
-        ...
-
-    def reason(self) -> str | None:
-        """Why time is not credible, for the operator. None when credible.
-
-        FML-ADR-042 requires the node to report this, so that a refusal to
-        validate is diagnosable rather than mysterious.
-        """
-        ...
+# Time state is deliberately **not** here. It lives in `timekeeping.py`, split
+# into raw `TimeReadings` and an `assess` function that decides what they mean.
+# The other three interfaces above report facts a sensor can state directly; time
+# credibility is a judgement, and a judgement a fake makes on the node's behalf
+# is a judgement nobody has tested. See `FML-ADR-042`.

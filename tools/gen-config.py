@@ -233,6 +233,19 @@ def resolve(region: dict[str, Any], mission: dict[str, Any]) -> dict[str, Any]:
             "id": _get(mission, "mission.id"),
             "example": _get(mission, "mission.example"),
             "profile": _get(mission, "profile"),
+            # Which services a node serves is a deployment choice carried by the
+            # package, never a list compiled into the node. A package that
+            # enables none is a valid package: it describes a node with no
+            # mission services, not a node with default ones.
+            "services": list(mission.get("services", [])),
+        },
+        "network": {
+            "mesh_id": _get(mission, "network.mesh_id"),
+            # Optional in the schema. None means services resolve by bare name;
+            # a fixed domain across every deployment makes collision certain,
+            # which is why there is no default. See services/ingress/.
+            "local_domain": mission.get("network", {}).get("local_domain"),
+            "ap_ssid": mission.get("network", {}).get("ap_ssid"),
         },
         "halow": {
             "channel": _get(region, "halow.default_channel"),
@@ -289,15 +302,19 @@ def validate(resolved_params: dict[str, Any], region: dict[str, Any]) -> list[st
                 f"{resolved_params['region']['id']!r}"
             )
 
+        # The EIRP ceiling must be a number the node can enforce against. It
+        # is deliberately NOT compared to the region's own limit: resolution
+        # copies that value straight from the profile, so such a comparison
+        # can never fail and would read as a regulatory control while being
+        # dead code. Enforcing an *effective* EIRP needs a selected radio and
+        # antenna to compute conducted power plus gain, which is TBR-RF-01,
+        # TBR-RF-02, TBR-RF-03 and TBR-HW-01. Until those close there is no
+        # input to check, and a check with no input is not written.
         eirp = resolved_params[bearer]["max_eirp_dbm"]
-        profile_eirp = region.get(bearer, {}).get("max_eirp_dbm")
-        both_numeric = isinstance(eirp, (int, float)) and isinstance(
-            profile_eirp, (int, float)
-        )
-        if both_numeric and eirp > profile_eirp:
+        if not isinstance(eirp, (int, float)):
             errors.append(
-                f"{bearer}: resolved EIRP {eirp} dBm exceeds the region limit "
-                f"{profile_eirp} dBm"
+                f"{bearer}: EIRP ceiling {eirp!r} is not a number, so no "
+                "transmit limit can be enforced"
             )
 
     # Amateur integration is disabled by default in every region profile.

@@ -150,8 +150,16 @@ bringing up the bus while the payload does not exist yet.
 - **Commits**: Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`,
   `chore:`, `test:`), optional trailer `Refs: FML-ADR-### | TBR-XXX-##`, and a
   `Signed-off-by` line (DCO). Short-lived branches into `main`.
-- **Region is a parameter, not a constant.** Configuration generation takes a
-  region profile from `regions/<region-id>/`. Do not hardcode 902-928 MHz.
+- **Values come from data, not from literals.** Region is a parameter, not a
+  constant: configuration generation takes a region profile from
+  `regions/<region-id>/`, and 902-928 MHz is never hardcoded. That rule
+  generalizes to every value a deployment can vary - service names, domains,
+  addresses, channels, limits, thresholds, timeouts - which are read from the
+  region profile, the mission package or the service catalog. Where a value is
+  genuinely fixed, bind it to a named constant carrying the ADR or trade that
+  set it. A literal buried in a function is a value nobody can find, review or
+  vary. In a test it is worse: a test asserting against a literal that the code
+  under test also hardcodes proves only that the two literals match.
 - **Diagram sources are committed**, not only exports. Mermaid or plain SVG for
   architecture diagrams. Mechanical drawings commit native source and a render.
 
@@ -178,6 +186,9 @@ same change.
   `mission/examples/` carries obviously fake identities only.
 - Never reference an OCI image by mutable tag.
 - Never reuse or renumber an ADR or trade ID.
+- Never hardcode a value the region profile, mission package or catalog
+  supplies, and never let a test assert against a literal the code under test
+  hardcodes too.
 - Never edit `STATUS.md` by hand.
 - Never close a trade without a path under `docs/evidence/`.
 - Never add a binary format to the tree without checking `.gitattributes` LFS

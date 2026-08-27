@@ -31,6 +31,13 @@ someone reading a header:
 | `xx-testfixture/profile.yml` | Fully resolved. Exercises the success path. |
 | `xx-testfixture/profile-out-of-band.yml` | Channel outside its own declared band. Must be rejected. |
 | `xx-testfixture/profile-amateur-enabled.yml` | Amateur integration enabled. Must be rejected. |
+| `xx-testfixture/profile-bearer-not-permitted.yml` | A channel resolved for a bearer the region forbids. Must be rejected. |
+| `xx-testfixture/profile-non-numeric-channel.yml` | Channel is a string, so it cannot be compared to the band. Must be rejected. |
+| `xx-testfixture/profile-non-numeric-eirp.yml` | EIRP ceiling is a string, so no transmit limit can be enforced. Must be rejected. |
+
+Every branch in `validate()` has a fixture that trips it. That is deliberate: a
+regulatory check nobody has ever seen fail is indistinguishable from one that
+cannot fail, and this repository has already carried one of those.
 
 ## The rule these fixtures exist to test
 

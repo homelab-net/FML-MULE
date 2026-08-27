@@ -14,6 +14,76 @@ this program needs them visible:
 
 ## Unreleased
 
+### Red team of the flat-sat, and the fixes it forced
+
+The flat-sat was audited adversarially before anything was baselined against it,
+by mutation testing rather than inspection: sixteen deliberate breaks were
+applied to the node one at a time to see which ones the suite noticed.
+
+**Six survived.** Every one had the same shape - hardcode a healthy answer and
+nothing objects - because every scenario built a healthy node. Line coverage was
+96% at the time, which is the finding worth remembering: coverage measures that
+lines ran, not that anything checked them.
+
+Three defects behind it were worse than the score:
+
+- **The flat-sat claimed more than it did.** Its README said it verified the
+  CONOPS section 82 end user experience. That flow runs power on, connect,
+  authenticate, authorized services appear, operate; the node had no
+  authentication, no authorization and no request path, and `admit()` accepted
+  any string including an empty one. The claim is now replaced by a table naming
+  each uncovered step and the trade blocking it.
+- **`FML-ADR-042` was not tested.** The fake returned `CREDIBLE` or `DEGRADED`
+  directly, so the fail-closed tests asserted that a fixture agreed with itself.
+  No code decided anything.
+- **A regulatory check could not fire.** `validate()` compared a resolved EIRP
+  against the region profile field it had just been copied from. It read as a
+  transmit-power control and was unreachable code.
+
+#### Added
+
+- `test/flatsat/timekeeping.py`: the time credibility **decision**, as
+  production code. The platform supplies raw readings, `assess` judges them, and
+  a fake can stimulate the decision but no longer stands in for it. Eight rules,
+  each with its own operator-readable reason, including the one SAD section
+  24.5.1 asks for: a retained time earlier than the running image's build cannot
+  be believed, however plausible it looks.
+- `tools/mutation-check.py` and `test/flatsat/mutations.yml`: 25 mutations, all
+  caught, run in CI. The mutations are data so they can be reviewed as the
+  specification of what the suite must detect.
+- `test/flatsat/scenarios/test_degraded_states.py` and
+  `test_time_fail_closed.py`: the unhealthy half the suite never had.
+- `test/flatsat/test_integrity.py`: asserts the flat-sat loads the real
+  `tools/gen-config.py` rather than a copy, which rule 1 previously left to an
+  import statement and good intentions.
+- Three region fixtures for validation branches that had no test at all, and an
+  eleventh check in `tools/validate-docs.sh`: every fake must be named in
+  `test/flatsat/README.md`, which was a rule nothing enforced.
+
+#### Changed
+
+- **Services come from the mission package.** The node previously served a
+  hardcoded `portal.field`; it now serves what a package enables, under the
+  domain that package names, and a package enabling none yields none.
+- `FakeRadio` raises `ImpossibleHardwareState` for a bearer linked without being
+  present. A fake free to describe hardware that cannot exist voids the
+  flat-sat's only claim.
+- A node missing a required bearer reports `FAULT`, not `GREEN`. It previously
+  reported a node with no radios at all as healthy and operational.
+- `network_degraded` is derived from which inter-node bearers enumerated rather
+  than from HaLow by name, so the access-point-only v0.0.1 configuration is no
+  longer reported as permanently degraded.
+- The EIRP check now verifies the ceiling is a number the node could enforce
+  against, and says plainly why effective-EIRP enforcement is not possible until
+  a radio and antenna are selected.
+- `RadioState.peer_count` and `PowerState.on_external_power` removed: nothing
+  consumed them. Interfaces carry what the node reads and grow when a consumer
+  exists.
+- `AGENTS.md`: "Region is a parameter, not a constant" generalized to values
+  coming from data rather than literals, with the test-specific corollary that a
+  test asserting against a literal the code under test also hardcodes proves
+  only that the two literals match.
+
 ### The flat-sat, and a vocabulary for what testing means here
 
 All testing in this repository is hypothetical until someone brings hardware to

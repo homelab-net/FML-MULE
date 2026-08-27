@@ -23,6 +23,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
 MISSION = REPO_ROOT / "mission" / "examples" / "valid-minimal.json"
+MISSION_FULL = REPO_ROOT / "mission" / "examples" / "valid-full.json"
 
 
 def _load() -> ModuleType:
@@ -142,6 +143,122 @@ def test_amateur_enabled_profile_is_rejected() -> None:
         gc.generate(str(FIXTURE_REGIONS / "profile-amateur-enabled.yml"), MISSION)
 
     assert "amateur" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    ("profile", "fragment"),
+    [
+        ("profile-bearer-not-permitted.yml", "does not permit this bearer"),
+        ("profile-non-numeric-channel.yml", "is not a frequency"),
+        ("profile-non-numeric-eirp.yml", "is not a number"),
+    ],
+    ids=["bearer-forbidden", "channel-not-a-frequency", "eirp-not-a-number"],
+)
+def test_every_validation_branch_can_actually_fire(profile: str, fragment: str) -> None:
+    """Each check in `validate` has a fixture that trips it.
+
+    A regulatory check nobody has ever seen fail is indistinguishable from one
+    that cannot fail. The EIRP check was exactly that before this: it compared
+    a resolved value against the profile field it had just been copied from,
+    so it read as a transmit-power control while being unreachable code.
+    """
+    with pytest.raises(gc.RegionViolationError) as excinfo:
+        gc.generate(str(FIXTURE_REGIONS / profile), MISSION)
+
+    assert fragment in str(excinfo.value)
+
+
+# --- what the mission package supplies ------------------------------------
+
+
+def test_the_mission_package_supplies_the_service_list() -> None:
+    """Carry the deployment's service list through without supplying one.
+
+    Services are deployment data. The generator never offers a default set.
+    """
+    full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+    minimal = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION)
+
+    assert full["mission"]["services"] == ["example-service-a", "example-service-b"]
+    assert full["network"]["local_domain"] == "example.invalid"
+
+    # The minimal package enables nothing and names no domain. Both are valid.
+    assert minimal["mission"]["services"] == []
+    assert minimal["network"]["local_domain"] is None
+
+
+# --- bad input is refused with a message, not a traceback -----------------
+
+
+@pytest.mark.parametrize(
+    ("loader", "argument", "fragment"),
+    [
+        (lambda p: gc.load_region(str(p)), "missing.yml", "not found"),
+        (lambda p: gc.load_mission(p), "missing.json", "not found"),
+    ],
+    ids=["region-profile-missing", "mission-package-missing"],
+)
+def test_a_missing_file_is_named_in_the_error(
+    tmp_path: Path, loader: object, argument: str, fragment: str
+) -> None:
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        loader(tmp_path / argument)  # type: ignore[operator]
+
+    assert fragment in str(excinfo.value)
+    assert argument in str(excinfo.value)
+
+
+def test_a_profile_that_is_not_a_mapping_is_refused(tmp_path: Path) -> None:
+    """A YAML list or scalar is a file, not a profile.
+
+    Left unchecked this surfaces later as an unrelated attribute error, far
+    from the file that caused it.
+    """
+    bad = tmp_path / "profile.yml"
+    bad.write_text("- not\n- a\n- mapping\n", encoding="utf-8")
+
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        gc.load_region(str(bad))
+
+    assert "not a mapping" in str(excinfo.value)
+
+
+def test_a_package_that_is_not_a_mapping_is_refused(tmp_path: Path) -> None:
+    bad = tmp_path / "mission.json"
+    bad.write_text("[1, 2, 3]", encoding="utf-8")
+
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        gc.load_mission(bad)
+
+    assert "not a mapping" in str(excinfo.value)
+
+
+def test_an_absent_key_names_the_path_it_was_looking_for() -> None:
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        gc._get({"region": {}}, "region.regulator")
+
+    assert "region.regulator" in str(excinfo.value)
+
+
+def test_a_profile_that_cannot_name_its_regulator_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Identity is checked before parameters.
+
+    A profile that does not know which authority it derives from cannot be used
+    to justify a transmission, whatever else it contains.
+    """
+    source = (FIXTURE_REGIONS / "profile.yml").read_text(encoding="utf-8")
+    anonymous = tmp_path / "profile.yml"
+    anonymous.write_text(
+        source.replace('regulator: "None. This is a test fixture."', "regulator: TBD"),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(gc.UnresolvedValueError) as excinfo:
+        gc.generate(str(anonymous), MISSION)
+
+    assert "regulator" in str(excinfo.value)
 
 
 # --- exit codes ----------------------------------------------------------

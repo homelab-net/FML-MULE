@@ -46,6 +46,8 @@ out/
 
 # Python.
 __pycache__/
+.coverage
+htmlcov/
 *.py[cod]
 .venv/
 venv/

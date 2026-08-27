@@ -14,6 +14,7 @@
 #   8. Every patch file in os/kernel/patches/ has an entry in docs/forks/.
 #   9. No OCI image reference anywhere uses a mutable tag.
 #  10. Every open trade appears in the ITEP campaign plan.
+#  11. Every fake in the flat-sat is named in the flat-sat README.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -29,6 +30,8 @@ TRADE_DIR=docs/trades
 FORK_DIR=docs/forks
 PATCH_DIR=os/kernel/patches
 ITEP=docs/verification/FML-MULE-ITEP-v0.1.md
+FAKES=test/flatsat/fakes.py
+FLATSAT_README=test/flatsat/README.md
 
 fail_count=0
 
@@ -329,6 +332,31 @@ if [ -f "$ITEP" ]; then
   info "$itep_count open trades checked against the ITEP"
 else
   info "no ITEP found at $ITEP; coverage not checked"
+fi
+
+# --- 11: every fake is named in the flat-sat README -------------------------
+#
+# AGENTS.md makes this a rule rather than a courtesy: a reader must be able to
+# see exactly which boundary is simulated, and an unlisted fake is how "it works
+# on the flat-sat" becomes a permanent excuse. A rule nothing checks is a
+# suggestion, so this checks it.
+
+if [ -f "$FAKES" ] && [ -f "$FLATSAT_README" ]; then
+  fake_count=0
+  sed -n 's/^class \(Fake[A-Za-z0-9_]*\).*/\1/p' "$FAKES" >/tmp/fml-fakes.$$
+  # Read from a file rather than a pipe: a while loop on the right of a pipe
+  # runs in a subshell, and fake_count would not survive it.
+  while read -r name; do
+    [ -n "$name" ] || continue
+    fake_count=$((fake_count + 1))
+    if ! grep -q "\`$name\`" "$FLATSAT_README"; then
+      fail "$name is defined in $FAKES but not named in $FLATSAT_README."
+    fi
+  done </tmp/fml-fakes.$$
+  rm -f /tmp/fml-fakes.$$
+  info "$fake_count flat-sat fakes checked against the README"
+else
+  info "no flat-sat fakes found; listing not checked"
 fi
 
 # --- result -----------------------------------------------------------------

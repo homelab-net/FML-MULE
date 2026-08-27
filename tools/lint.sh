@@ -119,6 +119,14 @@ else
   skip "validate-mission" python3
 fi
 
+# Mutation check: does the test suite actually notice a broken node? Runs the
+# suite once per mutation, so it is the slowest check here and still seconds.
+if have python3 && python3 -c "import pytest, yaml" 2>/dev/null; then
+  run "mutation-check" python3 tools/mutation-check.py
+else
+  skip "mutation-check" python3
+fi
+
 # --- result -----------------------------------------------------------------
 printf '\n'
 if [ -n "$skipped" ]; then

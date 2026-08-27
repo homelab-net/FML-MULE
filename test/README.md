@@ -17,8 +17,14 @@ radio enumerates, whether a mesh forms, whether the node survives a day on
 battery, or whether it stays cool in an enclosure.
 
 It does say something about whether the **software** is correct and whether the
-**user flow** is coherent, because `test/flatsat/` exercises both end to end.
-That result is worth having and it has its own word.
+part of the user flow the node actually implements is coherent, because
+`test/flatsat/` exercises that end to end. That result is worth having and it
+has its own word.
+
+It does **not** cover the whole of the CONOPS section 82 flow. Authentication,
+authorization and operating a service are absent from the node, and
+`test/flatsat/README.md` names each gap and the trade blocking it. A green
+pipeline is not evidence about any of them.
 
 This is worth stating plainly because a green badge on a repository is read as
 evidence of function, and here it is not. That is also why this repository
@@ -33,11 +39,29 @@ gate in `os/release/README.md`.
 | Directory | Contents |
 | --- | --- |
 | `unit/` | Unit tests. `bats` for shell, `pytest` for Python. Run in CI. |
-| `flatsat/` | The flat-sat: the real node logic end to end, hardware replaced by fakes. |
+| `flatsat/` | The flat-sat: the real node logic end to end, hardware replaced by fakes. Carries `mutations.yml`, the list of defects the suite must detect. |
 | `fixtures/` | Recorded output captured from real hardware, replayed against fakes. |
 | `stages/` | Qualification stage definitions. One directory per stage. |
 | `bench/` | Bench procedures and instrumentation notes. |
 | `results/` | Measured data from stage execution. Structured, currently empty. |
+
+## Can these tests fail?
+
+A passing suite proves the tests agree with the code. It does not prove they
+would notice if the code were wrong, and those are different claims. Line
+coverage does not close the gap: this suite once ran at 96% line coverage on the
+node while failing to notice that battery, network, LoRa and thermal state could
+all be hardcoded to a healthy answer.
+
+`tools/mutation-check.py` checks the second claim directly. It breaks the node
+one specific way at a time and requires the suite to fail each time. It runs in
+CI alongside the linters, and `test/flatsat/mutations.yml` is the list of things
+the suite is required to be able to detect.
+
+**Whenever a check is added, confirm it can fail.** A regulatory or safety check
+nobody has ever seen fire is indistinguishable from one that cannot fire, and
+this repository has already shipped one of those: an EIRP comparison that
+checked a resolved value against the profile field it had just been copied from.
 
 Trade evidence is **not** here. It lives in `docs/evidence/<TRADE-ID>/`. A
 trade closes a question during design; a stage validates a requirement against
