@@ -16,6 +16,7 @@
 #  10. Every open trade appears in the ITEP campaign plan.
 #  11. Every fake in the flat-sat is named in the flat-sat README.
 #  12. Every directory has a README, or is named in its parent's README.
+#  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -395,6 +396,42 @@ while read -r dir; do
 done </tmp/fml-dirs.$$
 rm -f /tmp/fml-dirs.$$
 info "$dir_count directories checked for a README or a parent that names them"
+
+# --- 13: nothing claims HARDWARE-VERIFIED while nothing has met hardware -----
+#
+# AGENTS.md: nothing in this repository is HARDWARE-VERIFIED. That was an
+# honour rule until a review found three places where something looked verified
+# because nobody asked what would have to break for a check to notice.
+#
+# Trade closure is NOT re-checked here; check 7 already refuses a CLOSED trade
+# with an empty evidence directory, and a second check saying the same thing is
+# noise that makes both easier to ignore.
+#
+# The moment real evidence lands this check steps aside, because the claim it
+# guards becomes one somebody can substantiate. It is a stage-appropriate
+# tripwire, not a permanent law, and it says so rather than pretending.
+
+VOCABULARY_FILES="AGENTS.md CHANGELOG.md CONTRIBUTING.md README.md \
+docs/glossary.md docs/verification/README.md test/README.md \
+docs/evidence/README.md"
+
+evidence_files=$(find docs/evidence test/results -type f ! -name README.md 2>/dev/null | wc -l)
+
+if [ "$evidence_files" -eq 0 ]; then
+  grep -rl "HARDWARE-VERIFIED" --include="*.md" --include="*.py" . 2>/dev/null |
+    sed 's|^\./||' | grep -v node_modules >/tmp/fml-hv.$$ || true
+  while read -r claimed; do
+    [ -n "$claimed" ] || continue
+    case " $VOCABULARY_FILES " in
+      *" $claimed "*) continue ;;
+    esac
+    fail "$claimed uses HARDWARE-VERIFIED, but nothing has met hardware. See AGENTS.md."
+  done </tmp/fml-hv.$$
+  rm -f /tmp/fml-hv.$$
+  info "nothing has met hardware, and nothing claims to have"
+else
+  info "$evidence_files evidence file(s) present; hardware claims now need review, not this check"
+fi
 
 # --- result -----------------------------------------------------------------
 printf '\n'

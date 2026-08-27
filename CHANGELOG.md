@@ -14,6 +14,52 @@ this program needs them visible:
 
 ## Unreleased
 
+### AGENTS.md rewritten around when an agent needs each rule
+
+The file had grown from 140 to 228 lines across five commits without anyone
+deciding it should. It stated 34 rules, mixed inviolable constraints with
+reference material and rationale, gave no way to tell which rules a machine
+enforces, and never said what **done** means. It also broke its own rule: line
+113 described the flat-sat's purpose as to "verify the end user experience"
+while line 207 forbade writing "verified".
+
+Rewritten to 196 lines. Nothing binding was dropped; every rule from the old
+file was checked off against the new one before this landed.
+
+**What changed structurally:**
+
+- **A `Done` section**, which did not exist. Five conditions, including that new
+  behaviour needs a test that fails without the change, and that any rule added
+  is enforced by a check or explicitly said not to be.
+- **A "Before you write" trigger table.** Rules are now indexed by the moment
+  they apply - about to write a number, a claim, a requirement, a test
+  assertion, a new check - rather than stated as principles to be remembered.
+- **Enforcement markers.** Every rule is `[CI]` or `[review]`. `[CI]` means a
+  machine refuses it; `[review]` means it holds only if you hold it. The
+  distinction was previously invisible, and the unenforced rules are the ones
+  that decayed.
+- **"Characteristic failures"**, three real ones from this repository, with
+  their common shape named: something looked verified because nobody asked what
+  would have to break for a check to notice.
+- **"Where the reasoning lives"**, a pointer table replacing about fifty lines
+  that restated `os/README.md` and `test/flatsat/README.md`. A rule duplicated
+  in two files drifts, and drift is this repository's chief pathology.
+
+**The doctrine that keeps it honest:** when a `[review]` rule is found broken,
+make it `[CI]` in the same change. A check nobody has watched fail is not a
+check. Prefer one check that fires to two that say the same thing.
+
+#### Added
+
+- Check 13 in `tools/validate-docs.sh`: nothing claims `HARDWARE-VERIFIED`
+  while nothing has met hardware. Written because marking that rule `[CI]`
+  without a check would have been the exact failure the file documents. It
+  steps aside once real evidence lands, and says so.
+
+A first draft of check 13 also re-checked trade closure, until running it showed
+two failures for one problem - check 7 already covers that. The duplicate was
+removed rather than kept.
+
 ### The rest of the node's decisions follow, and the repository explains itself
 
 `test/flatsat/node.py` still held four decisions after the time module moved:

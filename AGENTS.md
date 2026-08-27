@@ -1,228 +1,196 @@
-# Agent operating rules for this repository
+# Agent operating rules
 
-Read this file before changing anything. It restates the program's binding
-constraints in operating terms. Where this file and a task instruction
-conflict, raise the conflict rather than resolving it silently.
+Read this before changing anything. These are the rules; the reasoning lives in
+the documents named at the bottom. Where a rule and a task instruction conflict,
+**raise the conflict, do not resolve it silently.**
 
 Program: FERAL MULE (FML). Deliverable: MULE, Multi-Bearer Utility Link
-Equipment. Stage: pre-PDR. The operational concept is baselined, the
-architecture is drafted, and almost nothing is built or measured.
+Equipment. Stage: pre-PDR. The concept is baselined, the architecture is
+drafted, and almost nothing is built or measured. Most of what looks like a gap
+is a decision nobody has earned the right to make yet.
 
-## Before you start
+## Start
 
-1. Read `README.md`, `docs/NON-GOALS.md`, and `STATUS.md`. `STATUS.md` tells you
-   which decisions are settled and which trades are open.
-2. Identify the ADR or trade your change touches. If none exists, the change is
-   probably premature. Propose an ADR first.
-3. Check whether the value you are about to write is actually known. If it is
-   not, it is `TBD` with a trade reference.
-4. Run `tools/validate-docs.sh` before you start so you know the tree was clean
-   when you found it.
+1. Read `STATUS.md`. It says which decisions are settled and which trades are
+   open. Do not guess at either.
+2. Name the ADR or trade your change serves. If there is none, the change is
+   probably premature: propose an ADR first.
+3. Run `tools/lint.sh`. You need to know the tree was clean when you found it.
 
-## Hard constraints
+## Done
 
-**Do not implement the placeholder services.** `services/status-aggregator/`,
-`services/mission-trust/`, `services/service-controller/`, and
-`services/gateways/` contain a `README.md` and nothing else, by decision. Their
-interfaces depend on trades that have not closed. Adding code there is the most
-likely way to waste weeks of work in this repository. Each README names the
-trade that must close first.
+A change is not done until all five hold. Say which ones you actually ran.
 
-**Do not invent specifications.** The compute module, enclosure, battery,
-antenna, channel plan, power budget, and memory budget are all unselected. Write
-`TBD` and cite the trade that will decide it. A plausible-looking number in a
-scaffold document is worse than a blank, because it gets copied, quoted, and
-eventually believed. Never write a figure you cannot source to a datasheet or a
-measurement.
+1. `tools/lint.sh` passes. It runs every linter, the document checks, the
+   mission schema, and the mutation check.
+2. New behaviour has a test that **fails without the change**. A test that
+   passes either way is decoration.
+3. Any rule you added is enforced by a check, or you have said plainly why it
+   cannot be.
+4. If you touched ADR or trade frontmatter, `STATUS.md` and the traceability
+   matrix are regenerated and committed in the same change.
+5. You can name the evidence for every claim you wrote down.
 
-**Do not claim anything is tested.** No badges, no "verified", no "working", no
-"supported". CI passing means the files parse and the fakes pass; see
-`test/README.md`.
+## The five that waste the most work
 
-**All testing is hypothetical until someone brings hardware to the loop.** That
-is a statement about what the evidence supports, not permission to write
-untested code. Code written now is expected to be correct, exercised end to end
-against fakes, and to work when introduced to real hardware. It just cannot be
-*known* to, and the difference has a vocabulary:
+1. **Implementing the placeholder services.** `services/status-aggregator/`,
+   `mission-trust/`, `service-controller/`, `gateways/` hold a README and
+   nothing else, by decision. Their interfaces depend on open trades. Each
+   README names the trade that must close first. `[review]`
+2. **Inventing a specification.** Compute module, enclosure, battery, antenna,
+   channel plan, power budget, memory budget: all unselected. `[review]`
+3. **Claiming something is verified.** Nothing here has met hardware. The word
+   `HARDWARE-VERIFIED` is machine-checked `[CI]`; every softer claim is on you
+   `[review]`, and softer claims are how this has actually gone wrong.
+4. **Committing anything real.** No key, certificate, credential, callsign,
+   member identity, deployment location, or captured traffic, ever.
+   `mission/examples/` carries obviously fake identities only. `[CI]`
+5. **Reusing or renumbering an identifier.** `FML-ADR-###` and `TBR-XXX-##` are
+   permanent. A changed decision gets a new ID and supersedes the old one; it
+   never edits it. Use `tools/new-adr.sh`. `[CI]`
+
+## Before you write
+
+| You are about to write | Do this first |
+| --- | --- |
+| A number, capacity, range, current draw or duration | Source it to a datasheet or a measurement. If you cannot, write `TBD` and cite the trade that will decide it. |
+| A claim about what works | Name the evidence. If the evidence is a fake, the claim is `SIMULATED` and says nothing about physical behaviour. |
+| A value a deployment could vary | Read it from the region profile, mission package or service catalog. Never a literal. |
+| A value that is genuinely fixed | Bind it to a named constant carrying the ADR or trade that set it. |
+| A requirement | `shall` binds and is verifiable. `should` is waiverable with recorded rationale. `may` creates no obligation. Never `will`, `must`, or `needs to`. |
+| A test assertion | Assert against data or a named constant, never against a literal the code under test also hardcodes. That proves only that two literals match. |
+| A new check | Prove it can fail. Break something on purpose and watch it fire. |
+| A heading, or any prose | Sentence case. No emoji. Anywhere. |
+
+## What the evidence supports
+
+All testing is hypothetical until someone brings hardware to the loop. That is
+a statement about evidence, not permission to write untested code. Code written
+now is expected to be correct, exercised end to end against fakes, and to work
+when it meets real hardware. It just cannot be *known* to.
 
 | Status | Meaning |
 | --- | --- |
-| `UNVERIFIED` | Nothing has been exercised. The default for a claim with no evidence at all. |
-| `SIMULATED` | Exercised end to end on the flat-sat against fakes and recorded fixtures. The logic is correct and the user flow is coherent. **Makes no claim about physical behaviour.** |
-| `HARDWARE-VERIFIED` | Demonstrated on real hardware with evidence recorded under `docs/evidence/` or `test/results/`. Nothing carries this status yet. |
+| `UNVERIFIED` | Nothing exercised. The default for a claim with no evidence. |
+| `SIMULATED` | Exercised end to end on the flat-sat against fakes and recorded fixtures. The logic is correct and the user flow coherent. **Says nothing about physical behaviour.** |
+| `HARDWARE-VERIFIED` | Demonstrated on real hardware, evidence under `docs/evidence/` or `test/results/`. **Nothing carries this.** |
 
-`SIMULATED` is a real result and worth having. It is not a weaker word for
+`SIMULATED` is a real result and worth having. It is not a softer word for
 tested, and it never supports a claim about RF, power, thermal, timing under
-load, or driver behaviour. Those need hardware, and until then they are
-`UNVERIFIED` regardless of how green the suite is.
+load, or driver behaviour.
 
-**Build system before application code.** The first functional code in this
-repository is the image build and configuration pipeline under `os/`. Features
-come after there is something to install them onto.
+Trades close on evidence under `docs/evidence/<TRADE-ID>/` accepted by a named
+owner, never on rewriting the trade document to sound more confident.
 
-**Every architecture decision gets a stable ID** in the `FML-ADR-###` namespace.
-IDs are permanent and never reused. A changed decision does not edit the old
-one: it gets a new ID, sets the old one to `SUPERSEDED`, and cites it. Use
-`tools/new-adr.sh`; it will not hand out a used number.
+## Where things go
 
-**Trades do not close on wording.** A trade closes on evidence stored under
-`docs/evidence/<TRADE-ID>/`: a measurement with instrument and date, a log, a
-photograph, or an archived vendor datasheet. Rewriting the trade document to
-sound more confident is not closure.
-
-**Modal verbs are load-bearing** in requirement-bearing documents. `shall` is
-binding and verifiable. `should` is preferred and waiverable with recorded
-rationale. `may` is permitted and creates no obligation. Do not use `will`,
-`must`, or `needs to` in a requirement.
-
-**Sentence case for headings. No emoji anywhere.**
-
-## The two-layer split
-
-This governs almost every `os/` decision.
-
-- The **Debian-family userland** is portable. It is expected to move between
-  compute modules with configuration changes only.
-- The **kernel and board support package** are hardware-specific and may require
-  vendor patches. The Wi-Fi HaLow driver path is out-of-tree. Whether a stock
-  kernel suffices or a patched vendor tree is required is open; see
-  `TBR-LINUX-01`.
-
-Kernel, out-of-tree driver, radio firmware, and the required userspace promote
-as **one tested compatibility set**, never independently (`FML-ADR-040`). If you
-bump one, you are proposing a new set, and the set has to pass the promotion
-gate in `os/release/README.md`.
-
-## Hardware abstraction: the governing code rule
-
-Two or three physical nodes will exist for a long time. Contributors will have
-none. Therefore:
-
-- Every function that reads or controls radio, power, thermal, or time state
-  **shall** sit behind a narrow interface with a fake or recorded-fixture
-  implementation.
-- Service-plane and status code **shall** be runnable and testable on an
-  ordinary laptop against fakes, with no radios present.
-- Fixtures captured from real hardware go in `test/fixtures/`, with the node
-  identifier, capture date, and image build recorded alongside them.
-
-If a change cannot be exercised without hardware, it cannot be reviewed by
-anyone but the person holding the hardware. That is the failure mode this rule
-exists to prevent.
-
-## The flat-sat
-
-`test/flatsat/` is the software equivalent of a spacecraft flat-sat: the real
-node logic, composed and run end to end, with the hardware layer replaced by
-fakes behind the narrow interfaces above.
-
-Its purpose is to verify the **end user experience** described in CONOPS section
-82 — power on, connect, authenticate, authorized services appear, work — so that
-what is developed matches how it will be used, and so the end-to-end flow is
-free of logic bugs before hardware is scarce and expensive.
-
-Three rules keep it honest:
-
-1. **It runs the real artifacts, not parallel copies.** The same configuration
-   generator, the same mission package schema, the same service definitions. A
-   flat-sat that has drifted from the node is worse than none, because "it works
-   on the flat-sat" becomes a permanent excuse.
-2. **Every fake is named and listed** in `test/flatsat/README.md`. A reader must
-   be able to see exactly which boundary is simulated.
-3. **A passing flat-sat scenario yields `SIMULATED`, never more.** It is
-   evidence about software, and `docs/evidence/README.md` already says evidence
-   produced against a fake never supports a claim about physical behaviour.
-
-Do not implement the placeholder services to make a scenario pass. The flat-sat
-exercises their **interfaces** with stand-ins, which is what a flat-sat is for:
-bringing up the bus while the payload does not exist yet.
-
-## Structure and simplicity
-
-**A reader who does not write code should be able to navigate this repository.**
-Every directory carries a `README.md` saying in plain language what is in it and
-why, or is named in its parent's README where a file of its own would be noise.
-`tools/validate-docs.sh` checks this. Name a file for the question it answers,
-not the pattern it uses. If someone has to read the code to find out what a
-directory is for, the README has failed and the README is what to fix.
-
-**Where code goes is decided by when it runs.**
+Decided by **when the code runs**, not by what it is about.
 
 | Directory | What lives there |
 | --- | --- |
 | `mule/` | Decisions the node makes while running, one module per question. Production standards, none of the `test/` relaxations. `FML-ADR-051`. |
 | `tools/` | Decisions made about the node beforehand on a builder's machine, and repository tooling. |
-| `os/` | The image build and configuration pipeline. |
+| `os/` | The image build and configuration pipeline. Build system before application code. |
 | `test/` | Fakes, fixtures, scenarios, the flat-sat. Never a decision the node makes. |
 
 Nothing enters `mule/` until the flat-sat exercises it end to end. It is a home
 for demonstrated logic, not a staging area for intended logic.
 
-**Prefer the simplest thing that works.** Do not add a layer, a wrapper, a base
-class or an indirection before a second caller needs it. Do not create a module
-for work that is anticipated rather than done. Complexity added early is defect
-surface that no test covers, and it is far easier to prevent than to remove. A
-clever line that costs a reader ten minutes is a defect in a repository
-maintained by volunteers in their spare time.
+**Everything that reads or controls radio, power, thermal or time state shall
+sit behind a narrow interface with a fake.** Service-plane and status code shall
+run on an ordinary laptop with no radios present. A change nobody without
+hardware can review is the failure this prevents.
 
-## Conventions you are expected to follow
+Production code never imports from the test tree; the dependency runs one way.
+Every fake is named in `test/flatsat/README.md` `[CI]`, and fixtures captured
+from real hardware go in `test/fixtures/` with the node identifier, capture date
+and image build recorded alongside them. A fixture whose provenance is unknown
+is a number nobody can trace.
 
-- **Shell**: POSIX `sh` where possible, `bash` where not. Every script opens
-  with `set -eu` and a usage comment. `shellcheck` and `shfmt -i 2 -ci` clean.
-- **Python**: `ruff` for lint and format, type hints on public functions,
-  minimum version pinned in `pyproject.toml`.
-- **YAML**: `yamllint` clean. **Ansible**: `ansible-lint` clean.
-- **Markdown**: `markdownlint-cli2` clean; long lines are permitted in tables
-  only.
-- **OCI images are referenced by immutable digest**, never by tag. Anywhere.
-- **Commits**: Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`,
-  `chore:`, `test:`), optional trailer `Refs: FML-ADR-### | TBR-XXX-##`, and a
-  `Signed-off-by` line (DCO). Short-lived branches into `main`.
-- **Values come from data, not from literals.** Region is a parameter, not a
-  constant: configuration generation takes a region profile from
-  `regions/<region-id>/`, and 902-928 MHz is never hardcoded. That rule
-  generalizes to every value a deployment can vary - service names, domains,
-  addresses, channels, limits, thresholds, timeouts - which are read from the
-  region profile, the mission package or the service catalog. Where a value is
-  genuinely fixed, bind it to a named constant carrying the ADR or trade that
-  set it. A literal buried in a function is a value nobody can find, review or
-  vary. In a test it is worse: a test asserting against a literal that the code
-  under test also hardcodes proves only that the two literals match.
-- **Diagram sources are committed**, not only exports. Mermaid or plain SVG for
-  architecture diagrams. Mechanical drawings commit native source and a render.
+## Structure and simplicity
 
-## Generated files
+**A reader who does not write code should be able to navigate this repository.**
+Every directory carries a `README.md` in plain language, or is named in its
+parent's where a file of its own would be noise. Name a file for the question it
+answers. If someone must read the code to learn what a directory is for, the
+README failed and the README is what to fix. `[CI]`
 
-`STATUS.md` is generated by `tools/gen-status.sh`. Never hand-edit it. CI fails
-if the committed copy differs from freshly generated output. The traceability
-matrix is generated by `tools/gen-traceability.sh` on the same terms.
+**Prefer the simplest thing that works.** No layer, wrapper, base class or
+indirection before a second caller needs it. No module for work that is
+anticipated rather than done. Complexity added early is defect surface no test
+covers, and it is far easier to prevent than remove. A clever line that costs a
+reader ten minutes is a defect in a repository maintained by volunteers in their
+spare time.
 
-If you change ADR or trade frontmatter, regenerate and commit the result in the
-same change.
+## Conventions
 
-## Never do this
+- **Shell**: POSIX `sh` where possible, `bash` where not. `set -eu` and a usage
+  comment. `shellcheck` and `shfmt -i 2 -ci` clean.
+- **Python**: `ruff` lint and format, type hints on public functions.
+- **YAML**: `yamllint`. **Ansible**: `ansible-lint`. **Markdown**:
+  `markdownlint-cli2`; long lines in tables only.
+- **OCI images by immutable digest**, never by tag, anywhere.
+- **Commits**: Conventional Commits, optional `Refs: FML-ADR-### | TBR-XXX-##`,
+  and a `Signed-off-by` line. Short-lived branches into `main`.
+- **Diagram sources are committed**, not only exports.
+- **Generated files are never hand-edited**: `STATUS.md` by `tools/gen-status.sh`,
+  the traceability matrix by `tools/gen-traceability.sh`. CI fails on drift.
+- **No badges.** A green badge is read as evidence of function; here it is not.
+- **New binary format?** Check `.gitattributes` LFS coverage before committing.
+- **Removing an item from `docs/NON-GOALS.md` needs an ADR.** That file is the
+  record of what this program refuses to build, and scope returns quietly.
 
-- Never implement the four placeholder services.
-- Never write an invented number, capacity, range, current draw, or duration.
-- Never write "tested", "verified", "validated", or "works" about anything in
-  this repository at its current stage. `SIMULATED` is available and means
-  something narrower; use it precisely.
-- Never let a flat-sat result stand in for a hardware result, and never add a
-  fake to make a scenario pass without listing it.
-- Never commit a private key, certificate, credential, real callsign, real
-  member identity, real deployment location, or captured operational traffic.
-  `mission/examples/` carries obviously fake identities only.
-- Never reference an OCI image by mutable tag.
-- Never reuse or renumber an ADR or trade ID.
-- Never hardcode a value the region profile, mission package or catalog
-  supplies, and never let a test assert against a literal the code under test
-  hardcodes too.
-- Never put a decision the node makes under `test/`, and never let production
-  code import from the test tree.
-- Never edit `STATUS.md` by hand.
-- Never close a trade without a path under `docs/evidence/`.
-- Never add a binary format to the tree without checking `.gitattributes` LFS
-  coverage first.
-- Never disable a linter wholesale to make a scaffold pass. Adjust the rule
-  deliberately and record why in the config.
-- Never remove an item from `docs/NON-GOALS.md` without an ADR.
+## How rules are kept
+
+`[CI]` means a machine checks it and you cannot merge past it. `[review]` means
+it holds only if you hold it. Unmarked rules are `[review]`.
+
+**When you find a `[review]` rule was broken, make it `[CI]` in the same
+change.** Every rule in this file that a machine now checks was added that way,
+after something slipped past: every fake named (check 11), every directory
+explained (check 12), nothing claiming hardware it has not met (check 13). A
+rule nothing checks is a suggestion, and this repository has already shipped
+three of them.
+
+**A check nobody has watched fail is not a check.** Break the thing on purpose,
+watch the check fire, then fix it. Do this when you write the check, not later.
+And prefer one check that fires to two that say the same thing: a duplicate
+makes both easier to ignore.
+
+Never disable a linter wholesale to make something pass. Adjust the rule
+deliberately and record why in the config.
+
+## Characteristic failures
+
+Real, from this repository. Recognise the shape.
+
+1. **A document claimed more than the code did.** `test/flatsat/README.md` said
+   it verified the CONOPS section 82 user flow. There was no authentication, no
+   authorization and no request path; `admit()` accepted an empty string. The
+   claim was written in good faith by someone who had just built the thing.
+2. **A check that could never fire.** `validate()` compared a resolved EIRP
+   against the profile field it had just been copied from. It read as a
+   regulatory control and was unreachable code. Nobody had watched it fail.
+3. **A fake answered the question the code was supposed to decide.**
+   `FakeClock` returned `CREDIBLE` or `DEGRADED` directly, so the fail-closed
+   tests asserted that a fixture agreed with itself. The suite looked thorough
+   and could not have failed.
+
+The common shape: **something looked verified because nobody asked what would
+have to break for the check to notice.** Ask it.
+
+## Where the reasoning lives
+
+This file states rules. These own the arguments behind them, and are the ones to
+change when a rule turns out to be wrong.
+
+| Subject | Document |
+| --- | --- |
+| The two-layer split, kernel and BSP, the compatibility set | `os/README.md`, `FML-ADR-040` |
+| The flat-sat, its fakes and what a scenario proves | `test/flatsat/README.md` |
+| What CI does and does not tell you | `test/README.md` |
+| Evidence tiers and trade closure | `docs/evidence/README.md` |
+| What this program refuses to build | `docs/NON-GOALS.md` |
+| Secrets, capture and the threat model | `SECURITY.md`, `THREAT_MODEL.md` |
+| Regulatory posture | `REGULATORY.md` |
+| Contributor workflow and review | `CONTRIBUTING.md` |
