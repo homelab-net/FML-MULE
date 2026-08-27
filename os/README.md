@@ -11,8 +11,10 @@ important idea to understand before changing anything here.
 
 **Layer one: the Debian-family userland.** Portable. Expected to move between
 compute modules with configuration changes only. Package manifests, services,
-network configuration, provisioning. Decided by `FML-ADR-022`. A contributor
-can reproduce most of it on an ordinary laptop.
+network configuration, provisioning. Decided by `FML-ADR-022`: **the current
+Debian stable release at build time, which at SAD issue is Debian 13.6
+"trixie"** (source `SR-001`). A contributor can reproduce most of it on an
+ordinary laptop.
 
 **Layer two: the kernel and board support package.** Hardware-specific, and
 **may require vendor patches**. Kernel, device tree, out-of-tree radio driver,
@@ -88,6 +90,42 @@ This has consequences for how the image build is structured: prefer a local
 package cache, prefer a single pinned manifest over resolution at build time,
 and make it possible to build twice without downloading twice. The mechanism is
 `TBD`; the preference is not.
+
+## The native Linux network stack
+
+SAD section 3.3 fixes the preferred production stack:
+
+```text
+Debian Linux
+  |
+  +-- cfg80211 / mac80211
+  +-- Morse Micro supported Linux driver stack
+  +-- wpa_supplicant for 802.11s where appropriate
+  +-- hostapd for EUD AP functions where appropriate
+  +-- batman-adv / BATMAN-V
+  +-- batctl / standard netlink tooling
+  +-- nftables
+  +-- dnsmasq or equivalent DHCP/DNS service
+  +-- systemd-networkd or equivalent controlled link configuration
+```
+
+Configuration tooling may change if a better supported upstream mechanism is
+validated, but external interfaces and required behaviour remain controlled.
+
+## The field prefix
+
+SAD section 4.2 retains the upstream OpenMANET **`10.41.0.0/16`** field prefix
+as the preferred initial choice, because it conflicts with neither the parent
+Homelab `10.77.0.0/16` home prefix nor the `10.78.0.0/16` rack prefix, and
+already carries a per-node lease-allocation model.
+
+It is preferred, not decided: `TBR-NET-01` confirms whether retaining it creates
+unacceptable collision risk with expected external networks. Exact reservations
+and node ranges become ICD-controlled values.
+
+**MULE v1 is IPv4-first.** The parent Homelab currently disables managed IPv6,
+so no separate managed IPv6 architecture is introduced during initial
+qualification (SAD section 4.4).
 
 ## Current state
 

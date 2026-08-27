@@ -26,9 +26,14 @@ design is built for.
 **No, not yet. But the design work is public, and that is the point of this
 repository.**
 
-The program is **pre-PDR**. The operational concept is baselined. The
-architecture is drafted. **Almost nothing is built, and nothing at all has been
-measured.**
+The program is **pre-PDR**. The operational concept is **baselined**
+(CONOPS v1.01, pending stakeholder signature). The architecture is **drafted**
+(SAD v0.31, an SRR package candidate). **Almost nothing is built, and nothing at
+all has been measured.**
+
+Both controlling documents are in this repository, transcribed verbatim. That is
+the substantive change from the initial scaffold: the design record is no longer
+a set of placeholders.
 
 Concretely, as of now:
 
@@ -76,16 +81,17 @@ Read in this order. Each part assumes the one before it.
    these before you buy or build anything. Lithium cells, sealed-enclosure
    thermal limits, and the fact that the sub-GHz band this program targets is
    **not permitted in the EU or the UK**.
-2. **[`docs/conops/`](docs/conops/)** — what the system is for. Baselined; the
-   controlling document is not yet transcribed here.
-3. **[`docs/architecture/`](docs/architecture/)** — how it is arranged. Drafted;
-   likewise not yet transcribed.
-4. **[`docs/adr/`](docs/adr/)** — the decisions taken, each with a permanent
-   `FML-ADR-###` identifier, a status, its consequences, and its accepted cost.
-5. **[`docs/trades/`](docs/trades/)** — the questions still open, each with an
-   owner and a closure gate.
+2. **[`docs/conops/`](docs/conops/)** — CONOPS v1.01, what the system is for.
+   Baselined. Start at its section 1, then sections 5, 9 and 78.
+3. **[`docs/architecture/`](docs/architecture/)** — SAD v0.31, how it is
+   arranged. Drafted. Start at its section 1, then 2.1 and 0.8.
+4. **[`docs/adr/`](docs/adr/)** — the **30 controlling decisions**, each with a
+   permanent `FML-ADR-###` identifier, a status, its consequences, and its
+   accepted cost.
+5. **[`docs/trades/`](docs/trades/)** — the **16 open trades**, each with a
+   function owner, a priority and a closure gate.
 6. **[`docs/NON-GOALS.md`](docs/NON-GOALS.md)** — what the program deliberately
-   does not do. Read it before proposing anything.
+   does not do, from CONOPS section 81. Read it before proposing anything.
 7. **[`STATUS.md`](STATUS.md)** — the generated current view. Never hand-edited.
 
 If you intend to change anything, also read **[`CONTRIBUTING.md`](CONTRIBUTING.md)**
@@ -94,45 +100,59 @@ summary of every rule here.
 
 ## The open critical trades
 
-Two questions are on the critical path. Both are unowned.
+**Sixteen trades are open. Every one of them is unowned.**
 
-**`TBR-LINUX-01`, kernel and out-of-tree driver viability.** Can the Wi-Fi HaLow
-driver, `batman-adv`, and the required userspace be brought up on a stock
-Debian-family kernel, or is a patched vendor tree required? Almost everything in
-`os/` waits behind it, and if a patch set is required the program acquires a
-maintained kernel fork with a person's name on it. **Requires hardware.**
+Four are marked `CRITICAL` in the SAD, and the SAD's priority ordering puts the
+power, compute and thermal characterization first, because those three bound the
+hardware selection everything else waits on.
 
-**`TBR-TAK-01`, mission-critical state boundary.** Which mission state must
-survive a node loss, a partition, or a rejoin, and which may be discarded and
-regenerated? It determines what the service plane must guarantee, and several
-other trades wait behind it. **Requires no hardware**, and can proceed today.
+| Pri | Trade | Question | Hardware |
+| ---: | --- | --- | --- |
+| 1 | `TBR-PWR-01` | Does the one-host, four-radio architecture close endurance with acceptable pack mass? | yes |
+| 2 | `TBR-COMP-01` | What CPU and RAM reserve does the full service catalog need on one host? | partly |
+| 3 | `TBR-THERM-01` | Can it run across the field thermal envelope without unacceptable throttling? | yes |
+| 9 | `TBR-TAK-01` | Which TAK state is mission-critical, and where is it stored? | **no** |
 
-Thirteen further trades are open, covering power, thermal, compute budget,
-hardware selection, the radio bearers, service recovery, storage unlock, time,
-rollback, carrier board, and addressing. See [`STATUS.md`](STATUS.md).
+**`TBR-TAK-01` needs no hardware and can proceed today.** It gates the HA
+mechanism, the database decision and three of the four placeholder service
+components. It is the highest-value work available to a contributor who owns no
+node.
+
+`TBR-HW-01`, the hardware block selection, is a **convergence decision** sitting
+behind six other trades. Selecting hardware before they close is how a program
+ends up requalifying an enclosure it has already had made.
+
+See [`docs/trades/README.md`](docs/trades/README.md) for the full register and
+the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 
 ## What is in this repository
 
 | Path | Contents |
 | --- | --- |
-| `docs/` | The design record: CONOPS, architecture, decisions, trades, verification, evidence, fork ledger. |
+| `docs/` | The design record: CONOPS v1.01, SAD v0.31, 30 decisions, 16 trades, verification, evidence, fork ledger, change requests. |
 | `regions/` | Regulatory profiles. Region is an input to configuration, never a constant. |
-| `hardware/` | Qualified hardware blocks, lifecycle register. Nothing selected. |
+| `hardware/` | Qualified hardware blocks, lifecycle register, prototype and test BOM. Nothing selected. |
 | `os/` | Image build, kernel pins, configuration templates, provisioning, release process. |
 | `services/` | Service plane structure. Four components are deliberate placeholders. |
 | `mission/` | Mission package schema, examples with fake identities, profiles. |
-| `test/` | Unit tests, fixtures, qualification stages, results. |
+| `test/` | Unit tests, fixtures, the 13 qualification stages, results. |
 | `tools/` | Validation, identifier allocation, and generation scripts. |
 
 ## What is not in this repository
 
 - **Working software.** Beyond the repository's own tooling, there is none.
-- **A bill of material**, a build guide, or a wiring diagram.
-- **Any measurement**, of anything.
+- **A production bill of material**, a build guide, or a wiring diagram. A
+  **prototype and test BOM** exists in `hardware/prototype/`; it answers what
+  must be bought to make the architecture decisions, not what a node is.
+- **Any measurement**, of anything. The power figures in the prototype BOM's
+  reasoning are engineering estimates superseded by `TBR-PWR-01`.
 - **Four service components**: the status aggregator, mission trust, service
-  controller, and gateways each hold a README naming the trade that must close
-  before implementation starts, and nothing else. Adding code there is the most
-  likely way to waste weeks of work here.
+  controller, and gateways. Three are now **approved** original software, and
+  each still holds a README and nothing else, because the trades that define
+  their interfaces have not closed. Approval is not permission to start. Adding
+  code there is the most likely way to waste weeks of work here.
+- **A TAK high-availability mechanism.** Deliberately unselected, with no ADR,
+  until `TBR-TAK-01` classifies the state it would protect.
 - **Anything real**: no key, certificate, credential, callsign, member identity,
   deployment location, or operational capture ever enters this repository. See
   [`SECURITY.md`](SECURITY.md).
@@ -143,8 +163,10 @@ The most useful contributions right now are not code.
 
 **If you have no hardware** — which is almost everyone:
 
-- **Close `TBR-TAK-01`.** It is on the critical path, needs no hardware, and is
-  the single highest-value piece of work available.
+- **Close `TBR-TAK-01`.** `CRITICAL`, needs no hardware, and is the single
+  highest-value piece of work available.
+- **Work `TBR-ID-01`**, whether the browser services need a common identity
+  provider. Workflow analysis, no hardware.
 - **Work `TBR-NET-01`**, the addressing scheme, so that two independently built
   deployments meeting at an incident do not collide.
 - **Add a region profile** for somewhere the maintainers cannot test. The EU and

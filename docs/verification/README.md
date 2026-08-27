@@ -37,10 +37,17 @@ a smaller scale than the program now operates at, with fewer requirements and
 one person holding all of them in their head. Recreating it by hand at a larger
 scale would fail again, later, and more expensively.
 
-The requirement set is not yet populated, because the CONOPS has not been
-transcribed. The generator and its check are wired up anyway, so the first
-requirement to land arrives into working machinery rather than into a promise
-that machinery will be built.
+**The requirement set is now populated.** `docs/verification/requirements.md`
+carries the **33 operational success criteria of CONOPS section 79** as
+structured requirements, with the validating stage taken from the CONOPS section
+85 verification traceability matrix. All 33 are binding, all 33 have an
+allocation and a stage, and the check reports zero defects.
+
+That is not the full set. CONOPS v1.01 carries **145 `[SHALL]` markers**, of
+which SAD section 35.1 traces **140** as system, operational or policy clauses.
+That clause-level decomposition lives in **SAD section 35.2** and belongs in the
+TRD; it is deliberately not duplicated here, because a second hand-maintained
+copy of a 140-row table is exactly the drift these rules exist to prevent.
 
 ## Qualification stages
 
@@ -48,9 +55,25 @@ that machinery will be built.
 what is being demonstrated, on what configuration, under what conditions, with
 what pass criteria, and what evidence it produces.
 
-Stages are not yet defined, because they depend on a selected hardware block
-(`TBR-HW-01`) and on the requirement set. `test/stages/README.md` records the
-intended structure.
+`test/stages/` now holds **one directory per CONOPS section 78 stage**, thirteen
+in total, each recording that stage's scope, the section 79 criteria it
+validates, the decisions it exercises and the trades expected to close there.
+
+**No stage is defined.** Recording scope is not defining a stage: a definition
+needs pass criteria, and pass criteria need a selected hardware block
+(`TBR-HW-01`) and measured baselines. Writing thresholds now would mean
+inventing them for hardware nobody has chosen.
+
+### Criterion 33 is about this repository
+
+CONOPS section 79 criterion 33 is that **the program can be maintained by more
+than one qualified person**, verified by inspection at Stage 13, sourced from
+CONOPS section 76.
+
+It is the same property the cold start drill below tests, the same property
+`hardware/blocks/_template/assembly/BUILD-ACCEPTANCE.md` tests for a build
+guide, and the same property `MAINTAINERS.md` currently records as **unmet**,
+with every role `VACANT`.
 
 The one gate that exists today is the **promotion gate** in
 `os/release/README.md`: a candidate compatibility set must rebuild all
@@ -116,7 +139,9 @@ not a test of whether the program is finished.
   defect in the front door.
 - **At `v0.0.1`:** build one node, run one service, reach it from a phone,
   following the repository alone. This is the milestone's acceptance criterion,
-  and the drill is how it is judged. See `ROADMAP.md`.
+  and the drill is how it is judged. See `ROADMAP.md`. It overlaps CONOPS Stage
+  1 without being it: Stage 1 tests the node, the drill tests the
+  documentation.
 - **After a hardware block is qualified:** complete
   `hardware/blocks/<block-id>/assembly/BUILD-ACCEPTANCE.md` end to end.
 
@@ -131,7 +156,9 @@ a successor. See `MAINTAINERS.md`.
 
 | Location | Contents |
 | --- | --- |
-| `test/stages/` | Stage definitions: what is demonstrated, how, and the pass criteria. |
+| `docs/verification/requirements.md` | The 33 CONOPS section 79 criteria as structured requirements. |
+| `docs/verification/traceability.md` | Generated matrix. Never hand-edited. |
+| `test/stages/` | One directory per CONOPS section 78 stage. Scope recorded; definitions pending. |
 | `test/bench/` | Bench procedures and instrumentation notes. |
 | `test/results/` | Measured data from stage execution. Structured, currently empty. |
 | `docs/evidence/<TRADE-ID>/` | Evidence that closes a trade. Distinct from stage results. |

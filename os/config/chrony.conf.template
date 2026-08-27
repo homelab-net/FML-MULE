@@ -1,0 +1,85 @@
+# chrony configuration template - MULE
+#
+# Configures local time discipline. Time is a security-bearing function here,
+# not a convenience: certificate validity, credential expiry and revocation
+# freshness all depend on it.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node.
+#
+# DECISION: FML-ADR-042. Every production hardware block carries a
+# battery-backed hardware RTC or equivalent retained local time source. Trust
+# validation NEVER FAILS OPEN on invalid time.
+#
+# Trade: TBR-TIME-01 (holdover, skew tolerance, plausibility, partition rejoin)
+#
+# THE SOURCE HIERARCHY, from SAD section 24.5.1:
+#
+#   approved GNSS/NTP source when available
+#               |
+#             chrony
+#               |
+#        local MULE system time
+#               |
+#      peer/local NTP service as required
+#               |
+#    logs / TAK / certificates / MQTT / audit
+#
+# GNSS is OPTIONAL MISSION HARDWARE, not a prerequisite for baseline boot.
+# WAN time is opportunistic and is NEVER the only time source.
+
+# --- Hardware clock ---------------------------------------------------------
+# The RTC is the authority at boot, before any network source exists.
+rtcfile /var/lib/chrony/rtc
+rtcsync
+# TBD: whether the RTC is trusted to set system time unconditionally at boot,
+# or only within a plausibility window. See TBR-TIME-01.
+
+# --- Optional GNSS ----------------------------------------------------------
+# refclock SHM 0 refid GPS offset TBD delay TBD
+# refclock PPS /dev/pps0 lock GPS refid PPS
+# TBD: GNSS is optional mission hardware. A node without it must still boot and
+# operate. Do not make a refclock a hard dependency.
+
+# --- Peer and upstream sources ----------------------------------------------
+# server TBD iburst
+# TBD: whether peers on the field mesh serve time to each other, by what rule,
+# and whether any node is authoritative. Distribution across a PARTITION is the
+# harder half of TBR-TIME-01: two groups out of contact, drifting apart, then
+# rejoining, is the normal case for this program.
+#
+# No upstream server is hardcoded. Local-first means there is usually none.
+
+# --- Skew and step behaviour ------------------------------------------------
+# makestep TBD TBD
+# TBD: how large a correction may be stepped rather than slewed, and how many
+# times. A step during operation moves certificate validity underneath running
+# services.
+
+# maxdistance TBD
+# TBD: the point beyond which a source is not credible.
+
+# --- Serving time to the local field network --------------------------------
+# allow TBD
+# FROM THE ADDRESSING SCHEME, not a literal. See TBR-NET-01.
+# Serve only the field network. Never a default allow.
+
+# --- TIME_DEGRADED ----------------------------------------------------------
+# chrony does not implement this by itself. FML-ADR-042 requires that on boot
+# the node evaluate whether retained time is plausible BEFORE trust-sensitive
+# operations proceed, and if it is not:
+#
+#   - enter TIME_DEGRADED;
+#   - certificate validity/expiry checks DO NOT FAIL OPEN;
+#   - basic local networking may continue where safe;
+#   - trust-sensitive enrollment, credential renewal and authoritative service
+#     promotion may be restricted;
+#   - the operator receives a clear recovery indication.
+#
+# The last point is a requirement on the Status Aggregator (FML-ADR-046), which
+# reports time state so a refusal to validate is diagnosable rather than
+# mysterious.
+#
+# A node with a dead RTC backup cell will refuse to join, in the field, during
+# an incident. That is intended. Failing open would make the credential system
+# decorative, which is worse than having none.

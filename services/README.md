@@ -16,6 +16,15 @@ Quadlet** units and supervised by systemd. `FML-ADR-029`.
   by hand on a device.
 - A service that genuinely cannot run rootless may run rootful, with the reason
   recorded in its catalog entry.
+- **Two explicit exceptions** exist. SAD section 9.3, the privileged service
+  rule: hardware-touching or host-networking functions run as narrowly scoped
+  native systemd services or privileged helpers, not as a general population of
+  rootful containers. SAD section 9.4, the native service exception: a mission
+  application may run natively where that is the upstream-supported method, and
+  **OpenTAKServer is currently a valid candidate**. If it does, SAD section 9.4
+  requires an Ansible role, pinned versions, configuration templates, backup and
+  restore procedures, an automated health check, and a Stage 5 recovery test
+  whose **restore is demonstrated onto a different eligible node**.
 - Restart and recovery policy is **not** decided. `TBR-HA-01` is open, and a
   naive restart policy on a resource-constrained node turns one failed service
   into a dead node.
@@ -45,18 +54,32 @@ intent, not a side effect: promotion of a dependency is a decision.
 ## The placeholder rule
 
 **Four components in this directory hold a `README.md` and nothing else, by
-decision:**
+decision.**
 
-| Component | Blocked on |
-| --- | --- |
-| `status-aggregator/` | `TBR-TAK-01`, `TBR-HA-01` |
-| `mission-trust/` | `TBR-SEC-01`, `TBR-TIME-01`, `TBR-TAK-01` |
-| `service-controller/` | `TBR-HA-01`, `TBR-TAK-01` |
-| `gateways/` | `TBR-TAK-01`, `TBR-RF-02` |
+Three of them are now **approved** original software, and one is not yet
+selected. Approval is not permission to start: the trades that define their
+interfaces have not closed.
 
-Their interfaces depend on trades that have not closed. Writing them now means
-writing against an interface that will change, and the code will be defended
-rather than rewritten, because it works.
+| Component | Decision | Blocked on |
+| --- | --- | --- |
+| `status-aggregator/` | `FML-ADR-046` + `FML-ADR-049`, SELECTED | `TBR-TAK-01`, `TBR-HA-01`, `TBR-COMP-01` |
+| `mission-trust/` | `FML-ADR-047`, SELECTED | `TBR-SEC-01`, `TBR-TIME-01`, `TBR-TAK-01` |
+| `service-controller/` | `FML-ADR-035`, SELECTED | `TBR-HA-01`, `TBR-TAK-01` |
+| `gateways/` | `FML-ADR-048` SELECTED RULE; coexistence service **NOT YET SELECTED** | `TBR-TAK-01`, `TBR-RF-02` |
+
+Writing them now means writing against an interface that will change, and the
+code will be defended rather than rewritten, because it works.
+
+### The original-software count is a controlled metric
+
+SAD section 29.5 requires the program to **count and justify its own glue**,
+under governing principle 10. The current count is **three approved daemons plus
+one conditional**, and `FML-ADR-049` deliberately folded the Service Authority
+Registry into the Status Aggregator rather than making it a fourth.
+
+Any new MULE-original daemon requires an ADR or explicit TBR status, a named
+owner, an interface contract, a reason no existing project can perform the
+function, a unit and health test, a resource budget, and a sustainment owner.
 
 Adding code to those four directories is the most likely way to waste weeks of
 work in this repository. Each README names what must close first. See
@@ -108,9 +131,9 @@ rule after a leak is impossible.
 | --- | --- |
 | `catalog/` | Approved service catalog definitions. |
 | `quadlets/` | Podman Quadlet and systemd unit definitions. |
-| `tak/` | TAK-compatible service deployment and state notes. |
-| `ingress/` | Local DNS and proxy configuration. |
-| `identity/` | PKI, admission, and mission trust material handling. |
+| `tak/` | TAK-compatible service deployment and state notes. OpenTAKServer preferred (`FML-ADR-032`). |
+| `ingress/` | Local DNS and HAProxy configuration (`FML-ADR-031`). |
+| `identity/` | PKI (`step-ca`, `FML-ADR-036`), admission (`FML-ADR-038`), mission trust material. |
 | `status-aggregator/` | Placeholder. Do not implement. |
 | `mission-trust/` | Placeholder. Do not implement. |
 | `service-controller/` | Placeholder. Do not implement. |

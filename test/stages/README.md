@@ -4,9 +4,13 @@ One directory per qualification stage. A stage defines what is being
 demonstrated, on what configuration, under what conditions, with what pass
 criteria, and what evidence it produces.
 
-**No stage is defined.** Stages depend on a selected hardware block
-(`TBR-HW-01`) and on a populated requirement set, and neither exists. Defining
-stages now would mean inventing pass criteria for hardware nobody has chosen.
+**No stage is defined.** Each of the thirteen directories here records the
+CONOPS section 78 scope for its stage, what it validates, and what it is blocked
+on. That is not a definition: a definition needs pass criteria, and pass criteria
+need a selected hardware block (`TBR-HW-01`) and measured baselines. Writing
+thresholds now would mean inventing them for hardware nobody has chosen.
+
+The requirement set **is** populated: see `docs/verification/requirements.md`.
 
 ## Where verification actually happens
 
@@ -52,19 +56,26 @@ It is likely to become the first stage, or to be absorbed into one.
 - **Evidence produced**, and where it is filed in `test/results/`.
 - **What a failure means**: retest after rework, or a return to a trade.
 
-## Stages this program will need
+## The thirteen stages
 
-Named so the shape is visible, not as a commitment. None is defined.
+From CONOPS section 78. Directory names carry a zero-padded number so they sort.
 
-| Likely stage | Validates |
-| --- | --- |
-| Build and boot | The promotion gate, `FML-ADR-040`. |
-| Radio enumeration and bring-up | `TBR-LINUX-01`, `FML-ADR-022`. |
-| Mesh formation and multi-hop traffic | `FML-ADR-024`, `TBR-RF-01`. |
-| Access point and concurrent load | `FML-ADR-045`, `TBR-RF-03`. |
-| Coexistence | `TBR-RF-02`. |
-| Endurance | `TBR-PWR-01`. |
-| Thermal | `TBR-THERM-01`. |
-| Time retention and fail-closed behaviour | `FML-ADR-042`, `TBR-TIME-01`. |
-| Rollback and recovery | `FML-ADR-041`, `TBR-REC-01`. |
-| Field usability | The cold start drill, `docs/verification/`. |
+| Stage | Subject | Trades expected to close or advance |
+| ---: | --- | --- |
+| 1 | Local Node | `TBR-COMP-01`, `TBR-REC-01` |
+| 2 | HaLow MANET | `TBR-LINUX-01`, `TBR-RF-01`, `TBR-NET-01` |
+| 3 | LoRa Continuity | `TBR-RF-02` |
+| 4 | High-Throughput IP | `TBR-RF-01`, `TBR-RF-03` |
+| 5 | TAK Service Continuity | `TBR-TAK-01`, `TBR-HA-01`, `TBR-COMP-01` |
+| 6 | WAN Overlay | none |
+| 7 | Sustainment | `TBR-PWR-01`, `TBR-COMP-01`, `TBR-THERM-01` |
+| 8 | Physical Field Qualification | `TBR-THERM-01`, `TBR-CARRIER-01`, `TBR-RF-02` |
+| 9 | Identity and Capture | `TBR-SEC-01`, `TBR-TIME-01`, `TBR-ID-01` |
+| 10 | Exercise and AAR | none |
+| 11 | External Interoperability | none |
+| 12 | NOMAD Integration | none, validates `PBCR-01` |
+| 13 | Program and Fleet Readiness | `TBR-HW-01`, `TBR-CARRIER-01` |
+
+**Stage 2 cannot be run with two nodes.** Multi-hop, relay, topology change and
+BATMAN reconvergence all need a third, which is why the prototype BOM adds a
+minimal relay node and calls it the highest-value line in the BOM.

@@ -137,12 +137,14 @@ being raised as a program risk. See `MAINTAINERS.md`.
 | Hardware | VACANT | VACANT |
 | Documentation | VACANT | VACANT |
 | Release | VACANT | VACANT |
+| TAK and service plane | VACANT | VACANT |
+| Power, thermal and mechanical | VACANT | VACANT |
 
-12 vacant slots across 6 roles.
+16 vacant slots across 8 roles.
 
 ## Reported risks
 
-- **12 vacant maintainer slots.** A role with no name is a role nobody
+- **16 vacant maintainer slots.** A role with no name is a role nobody
   answers for. See `MAINTAINERS.md`.
 - **`TBR-COMP-01` is CRITICAL and has no named owner.** Assigning a named
   individual and a target date to every open TBR is an SRR exit action

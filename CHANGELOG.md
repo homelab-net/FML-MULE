@@ -14,6 +14,74 @@ this program needs them visible:
 
 ## Unreleased
 
+### Controlling documents added
+
+**FML/MULE CONOPS v1.01 BASELINE** and **FML/MULE SAD v0.31 DRAFT** are now in
+the repository, transcribed verbatim, replacing the placeholders that stated the
+controlling documents would be added. A prototype and test BOM was added
+alongside them.
+
+The registers were reconciled against those documents. Where the initial
+scaffold had invented content, it was replaced.
+
+#### Added
+
+- `docs/conops/FML-MULE-CONOPS-v1.01.txt`, plain text as issued.
+- `docs/architecture/FML-MULE-SAD-v0.31.md`, Markdown as issued.
+- 21 further ADRs, bringing the register to the **30 controlling decisions** in
+  SAD section 0.8: `FML-ADR-025` to `028`, `030` to `039`, `043`, `044`, and
+  `046` to `050`.
+- `TBR-ID-01`, bringing the trade register to the **16 trades** in SAD section
+  30.2, each with its priority, function owner and dependency edges.
+- The **13 CONOPS section 78 qualification stages** under `test/stages/`.
+- `docs/verification/requirements.md`, the **33 CONOPS section 79 success
+  criteria** as structured requirements with their section 85 stage mapping.
+  `tools/gen-traceability.sh` now produces a real matrix.
+- `docs/change-requests/`, with **PBCR-01**, the parent-baseline change from
+  NOMAD-only TAK allocation to the controlled Field Service Plane.
+- `hardware/prototype/`, the prototype and test BOM as reviewable CSV with its
+  gates, cost model and assumptions.
+- `os/config/chrony.conf.template`, and the `10.41.0.0/16` field prefix and
+  Debian 13.6 baseline recorded where they belong.
+- Two maintainer roles the SAD function owners imply: TAK and service plane, and
+  power, thermal and mechanical.
+
+#### Changed, and worth knowing about
+
+- **The critical-path marking was wrong and is corrected.** The scaffold marked
+  `TBR-LINUX-01` and `TBR-TAK-01`. The SAD body marks **`TBR-PWR-01`,
+  `TBR-COMP-01`, `TBR-THERM-01` and `TBR-TAK-01`** as `CRITICAL`, and places
+  `TBR-LINUX-01` eighth by priority. Only `TBR-TAK-01` survives from the
+  scaffold's list. The correction is stated in `docs/trades/README.md` rather
+  than made silently.
+- **`docs/NON-GOALS.md` now transcribes CONOPS section 81**, and records the
+  correct promotion bar: a section 86 change request with a minor version
+  increment and stakeholder re-approval, **not** an ADR.
+- **`gen-status.sh` reported zero unowned trades, which was wrong.** Owners are
+  `TBD-SRR`, the SAD's own marker, and the check matched only `TBD`. It now
+  counts both, and reports 16 of 16 unowned.
+- The four placeholder services now carry their real ADRs. Three are
+  **approved** original software; all four remain unimplementable. Approval is
+  not permission to start.
+- Two `bats` tests hardcoded the next ADR and trade identifier. They now derive
+  it, so the register can grow without breaking them for the wrong reason.
+
+#### Not changed
+
+No `[SHALL]`, no section 79 criterion, no section 78 stage and no section 81
+exclusion was altered. Those require a CONOPS change request under section 86.
+
+#### Outstanding
+
+**SAD section 35.4 requires a second reviewer** to confirm each `PRESENT` row
+against the SAD text and to confirm quoted CONOPS text against the controlled
+v1.01 source, recording reviewer and date. **That review has not been
+performed.** The transcription passes the documents' own count audits — 145
+`[SHALL]` markers, 30 decisions, 140 traced clauses, 16 trades, 11 sources — but
+a count is not a reading.
+
+## Initial scaffold
+
 Initial repository scaffold. Structure, conventions, and the design record.
 **No functional software, no hardware selection, and no measurement of any
 kind.**

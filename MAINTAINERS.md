@@ -11,6 +11,20 @@ program has a single point of human failure in every role simultaneously. That
 is the most significant risk this program carries, and it is not a technical
 one.
 
+Two controlling documents say the same thing in their own terms:
+
+- **CONOPS section 76** requires, before fielding, at least one **additional
+  qualified builder or maintainer**. It is section 79 criterion 33, verified by
+  inspection at Stage 13, and it is currently unmet.
+- **CONOPS section 7.6** requires a standing Communications and Identity
+  Management function responsible for onboarding, identity issuance, revocation,
+  mission credentials, node identities, re-keying and audit records, and states
+  it **shall exist and be staffed before fielding**.
+- **SAD section 30.2** makes assigning a named individual and a target date to
+  every open TBR an **SRR exit action**. All sixteen read `TBD-SRR`.
+- **SAD section 31** carries "one individual owns too many TBRs/release
+  functions" as an OPEN risk, to be reviewed when names are assigned.
+
 ## The 90-day rule
 
 **No role may sit with a single name, or with no name, for more than 90 days
@@ -37,12 +51,34 @@ reads as a fact.
 | Hardware | VACANT | VACANT | - |
 | Documentation | VACANT | VACANT | - |
 | Release | VACANT | VACANT | - |
+| TAK and service plane | VACANT | VACANT | - |
+| Power, thermal and mechanical | VACANT | VACANT | - |
+
+### Relationship to the SAD function owners
+
+SAD v0.31 section 30.2 assigns a **function owner** to each of the sixteen open
+trades. Those functions map onto the roles above:
+
+| SAD function owner | Role here |
+| --- | --- |
+| Power/Mechanical | Power, thermal and mechanical |
+| Platform, Linux/Platform | Build and image pipeline |
+| Network + RF, RF/Spectrum | Radio and RF |
+| Security, Security/Identity | Security and identity |
+| Systems + Builder | Hardware |
+| TAK, SRE | TAK and service plane |
+| CM | Documentation, Release |
+
+The last two rows of the trade register's owner column matter most: SAD section
+30.2 requires a **named individual** per trade, and every trade currently reads
+`TBD-SRR`.
 
 ### What each role covers
 
 - **Build and image pipeline.** `os/image/`, `os/ansible/`, `os/config/`,
   `tools/`, CI. Owns reproducibility, and owns the answer to "can someone else
-  build this".
+  build this". Also owns the **hardware-in-the-loop release bench** required by
+  SAD section 20.4, without which `TBR-LINUX-01` cannot close.
 - **Radio and RF.** `regions/`, `hardware/blocks/*/rf/`, the bearer trades
   (`TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03`), coexistence, and the kernel-side
   driver question shared with build (`TBR-LINUX-01`).
@@ -55,7 +91,13 @@ reads as a fact.
 - **Documentation.** `docs/`, the ADR and trade registers, the glossary, the
   cold start drill, and the honesty of every status claim in the repository.
 - **Release.** `os/release/`, the promotion gate, signing, versioning, the
-  compatibility-set rule, and the deployment freeze.
+  compatibility-set rule (`FML-ADR-040`), and the deployment freeze.
+- **TAK and service plane.** `services/`, `TBR-TAK-01`, `TBR-HA-01`,
+  `TBR-ID-01`, and the three approved MULE-original components. Owns the
+  original-software count as a controlled metric.
+- **Power, thermal and mechanical.** `TBR-PWR-01`, `TBR-THERM-01`,
+  `TBR-CARRIER-01`, the battery configuration-item family, and the enclosure.
+  Owns the three highest-priority trades in the register.
 
 ## Contact
 

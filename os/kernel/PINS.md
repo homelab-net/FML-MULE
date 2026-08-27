@@ -19,6 +19,7 @@ to prevent.
 | Field | Value |
 | --- | --- |
 | Set version | `TBD` |
+| Userland baseline | Debian stable at build time; **13.6 "trixie"** at SAD issue (`FML-ADR-022`, source `SR-001`) |
 | Date promoted | `TBD` |
 | Promoted by | `TBD` |
 | Status | `UNVERIFIED` - no set has ever been built |
@@ -29,7 +30,7 @@ to prevent.
 
 | Field | Value | Source |
 | --- | --- | --- |
-| Tree | `TBD` | `TBR-LINUX-01` |
+| Tree | `TBD` - stock distribution, stock upstream plus patches, or vendor | `TBR-LINUX-01` |
 | Version | `TBD` | `TBR-LINUX-01` |
 | Commit or tag | `TBD` | |
 | Configuration | `TBD` | |
@@ -43,7 +44,7 @@ carried patches, or a vendor tree is the open question in `TBR-LINUX-01`.
 
 | Field | Value | Source |
 | --- | --- | --- |
-| Driver | `TBD` | `TBR-LINUX-01` |
+| Driver | `TBD` - Morse Micro `morse_driver` class, out-of-tree (source `SR-011`) | `TBR-LINUX-01` |
 | Version | `TBD` | |
 | Upstream | `TBD` | |
 | Commit or tag | `TBD` | |
@@ -54,7 +55,7 @@ carried patches, or a vendor tree is the open question in `TBR-LINUX-01`.
 
 | Field | Value | Source |
 | --- | --- | --- |
-| Firmware | `TBD` | `TBR-LINUX-01`, `TBR-HW-01` |
+| Firmware | `TBD` - Morse Micro MM6108/MM8108-class or validated successor | `TBR-LINUX-01`, `TBR-HW-01` |
 | Version | `TBD` | |
 | Source | `TBD` | |
 | Driver versions it pairs with | `TBD` | |

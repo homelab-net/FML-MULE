@@ -4,7 +4,13 @@
 
 This profile exists because the United States 902-928 MHz allocation is the
 region the program's first hardware is being sourced for. It is **not** the
-reference region and **not** a default. The program does not treat any region
+reference region and **not** a default.
+
+SAD section 8.1 confirms what makes this region's profile load-bearing:
+**HaLow and LoRa may share the 902-928 MHz US band** and must be treated as
+colocated potentially interfering systems. The prototype BOM sources both a
+US915 HaLow module and a US915 LoRa module, so the two occupy the same band in
+the same enclosure by construction. The program does not treat any region
 as canonical; doing so is how other regions become second-class and then
 unmaintained.
 
@@ -34,6 +40,7 @@ be doing genuinely useful work.
 | --- | --- |
 | Channel plan within the band | `TBR-RF-02` |
 | Coexistence with the LoRa plane in the same band | `TBR-RF-02` |
+| The **stated LoRa availability or duty-cycle figure** to hold while HaLow reacquires | `TBR-RF-02` |
 | Permitted and qualified radio modules | `TBR-HW-01` |
 | Antenna and gain, and the integration conditions of the approval | `TBR-HW-01` |
 | Conventional Wi-Fi channel selection for mesh and access point | `TBR-RF-01`, `TBR-RF-03` |
@@ -56,6 +63,23 @@ It does not make a device compliant, and it does not authorise operation on any
 frequency. Compliance of the assembled device is the builder's responsibility,
 including module approval, antenna and gain, integration conditions and
 labelling. See `REGULATORY.md`.
+
+## The coexistence priority
+
+CONOPS section 36 fixes the operational priority for this band:
+
+> When IP connectivity is lost, preservation of the degraded LoRa communications
+> path takes priority over aggressive HaLow reacquisition behavior that would
+> materially impair LoRa reception.
+
+CONOPS section 36 further requires System Architecture to **state a LoRa
+availability or duty-cycle figure** to be maintained while HaLow reacquisition
+is active, so the coexistence design has a verifiable target. That figure does
+not exist yet; producing it is `TBR-RF-02`.
+
+`FML-ADR-027` adds that coexistence is controlled through **documented supported
+host and radio interfaces**, and that the architecture shall not assume
+`openmanetd` provides deterministic scan or transmit-suppression primitives.
 
 ## Contributing to this profile
 

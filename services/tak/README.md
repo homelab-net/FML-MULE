@@ -3,7 +3,10 @@
 Deployment and state notes for the TAK-compatible situational-awareness service
 in the mission-service plane.
 
-**Nothing is deployed and no service implementation has been selected.**
+**Nothing is deployed.** `FML-ADR-032` makes **OpenTAKServer** the preferred
+initial implementation, and the architecture remains **TAK-compatible, not
+OpenTAKServer-exclusive**. `FML-ADR-033` makes PyTAK the preferred library for
+custom CoT clients and translation gateways.
 
 ## What this is
 
@@ -41,8 +44,21 @@ incident, which is unrecoverable and visible.
 **`TBR-TAK-01` requires no hardware.** It is a design and analysis trade,
 resolvable against documentation, protocol behaviour, and reasoning about
 partition, running against fakes on an ordinary laptop. It is the highest-value
-work available to a contributor who owns no hardware, and nobody has picked it
-up.
+work available to a contributor who owns no hardware, and its named owner is
+still `TBD-SRR`.
+
+SAD section 14.1 lists the ten state categories the study must classify, and SAD
+section 14.2 warns that **database support claimed by an ORM is not sufficient
+acceptance evidence**: the actual MULE workflows must be tested against the
+selected backend.
+
+### Known internal dependencies
+
+SAD section 13.3 records that OpenTAKServer currently uses multiple Python
+processes, **RabbitMQ** for internal CoT messaging, and SQLAlchemy-backed
+storage. RabbitMQ is treated as **local transient service infrastructure**, not
+a field-wide clustered message bus. All three land on the compute budget
+`TBR-COMP-01` must size.
 
 ## What must be recorded here when work starts
 

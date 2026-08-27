@@ -1,68 +1,96 @@
 # Status aggregator
 
-**PLACEHOLDER. DO NOT IMPLEMENT.**
+**APPROVED, NOT YET IMPLEMENTABLE. This directory contains this `README.md` and
+nothing else.**
 
-This directory contains this `README.md` and nothing else, by decision. See
-`AGENTS.md`, constraint one, and `services/README.md`, the placeholder rule.
+`FML-ADR-046` approves the MULE Status Aggregator as **thin original software**.
+`FML-ADR-049` folds the Service Authority Registry into it rather than creating a
+sixth standalone daemon.
 
-## What this component will do
+Approval is not permission to start. The trades that define its data model have
+not closed. See below.
 
-Collect health and state from every part of a node and present it as the
-operator status surface: what a person looks at to answer "is this thing
-working, and if not, which part".
+## What it does
 
-Expected to cover:
+**Source:** SAD v0.31 sections 22 and 12.
 
-- **Radio state** per bearer: enumerated, associated, link quality, peers.
-- **Mesh state**: neighbours, originators, path selection.
-- **Power state**: pack voltage, current draw, estimated endurance.
-- **Thermal state**: component temperatures, whether anything is throttling.
-- **Time state**: whether the clock is credible, and if not, why. Required by
-  `FML-ADR-042`, which obliges a node to report that its time is not credible
-  so that a refusal to validate is diagnosable rather than mysterious.
-- **Service state**: what is running, what has failed, and what the node has
-  given up trying to restart (`TBR-HA-01`).
-- **Compatibility set version** the node is running, which is what makes a
-  field fault report actionable (`FML-ADR-040`).
+Combines host, RF, network, mission-service, trust, time, storage and power
+state into the simplified operator view CONOPS section 67 requires. It must not
+require users to interpret BATMAN tables, Linux namespaces or container status.
 
-## Decision reference
+**Operator states:** `GREEN`, `DEGRADED`, `LOW-BANDWIDTH`, `NON-AUTHORITATIVE`,
+`EMCON`, `FAULT`.
 
-No ADR selects this component's design. Its execution model follows
-`FML-ADR-029` (rootless Podman, Quadlet) and it consumes the time-credibility
-reporting obligation from `FML-ADR-042`.
+**Reason codes** when shared data is not authoritative: `PARTITION`,
+`STATE_LAG`, `HOST_RECOVERY`, `NO_SAFE_AUTHORITY`, `UNSYNCHRONIZED`, `UNKNOWN`.
+
+Where available it also reports time since last authoritative synchronization,
+the current shared-service host, and whether this node is carrying elevated
+service-host power burden (CONOPS section 31).
+
+### Service Authority Registry
+
+A module of this component, not a separate daemon (`FML-ADR-049`). It collects
+local service health and authority state, receives approved peer records over
+the field IP network, validates their freshness and trust, maintains the local
+view of eligible and authoritative hosts, exposes a stable local interface to
+HAProxy ingress, marks stale or untrusted records unusable, and reports
+disagreement or no-safe-authority conditions.
+
+**It does not elect an authoritative TAK primary.** Authority is determined by
+the service-specific continuity mechanism under SAD section 14; the registry
+reports and consumes that decision.
+
+Preferred local interface: HTTP/JSON over loopback or a Unix-domain socket, with
+an explicit schema and freshness timestamp, and **no general remote
+configuration surface**.
+
+## Scope limit
+
+From the MULE-original software inventory, SAD section 29.5:
+
+> Read-mostly normalization and local service-host registry; does not elect TAK
+> authority or provide broad configuration authority.
+
+**Owner:** Platform / Field UX / SRE.
 
 ## What must close before implementation starts
 
-| Question | Trade |
-| --- | --- |
-| What mission state exists, and which of it is durable | `TBR-TAK-01` |
-| What "failed" and "given up" mean for a service | `TBR-HA-01` |
+| Question | Trade | Priority |
+| --- | --- | ---: |
+| What mission state exists, and which of it is durable | `TBR-TAK-01` | 9, `CRITICAL` |
+| What "failed" and "given up" mean for a service | `TBR-HA-01` | 12 |
+| The resource envelope this component may occupy | `TBR-COMP-01` | 2, `CRITICAL` |
 
-`TBR-TAK-01` is the harder dependency. The status surface reports on mission
-state, and until the state inventory exists and is classified, the data model
-this component would aggregate is not defined. Building it now means defining
-that model implicitly, in code, without the analysis, and then defending it.
+`TBR-TAK-01` is the hard dependency. The status surface reports on mission
+state, and until the state inventory exists and is classified into the CONOPS
+section 26 classes, the data model this component would aggregate is undefined.
 
 ## Why not build it anyway
 
-It is tempting: a status page seems shallow, useful immediately, and unlikely
-to constrain anything.
+It is tempting: a status page looks shallow, useful immediately, and unlikely to
+constrain anything.
 
-It is not shallow. It is the component that **defines the node's observable
-data model**, and every other part of the system ends up conforming to whatever
-it decided. An aggregator written before `TBR-TAK-01` closes will have invented
-a state taxonomy, and that taxonomy will be the one the program uses, because
-it works and rewriting it is expensive.
+It is not shallow. It **defines the node's observable data model**, and every
+other part of the system ends up conforming to whatever it decided. An
+aggregator written before `TBR-TAK-01` closes will have invented a state
+taxonomy, and that taxonomy will be the one the program uses, because it works
+and rewriting it is expensive.
 
 ## What can be done now
 
-Work that helps and does not prejudge the interface:
+- **Close `TBR-TAK-01`.** It needs no hardware and is `CRITICAL`. The single
+  most useful thing anyone can do for this component.
+- **Capture fixtures.** Recorded `batctl`, `iw`, Morse Micro driver, nftables,
+  hostapd, systemd, power and thermal output, stored in `test/fixtures/` with
+  the node, date and image build. Only someone with hardware can produce them,
+  and whoever eventually builds this needs them.
+- **Write the fakes**, once the interfaces are defined.
 
-- **Close `TBR-TAK-01`.** It requires no hardware. It is the single most useful
-  thing anyone can do for this component and for the program.
-- **Capture fixtures.** Recorded output from real radio, power, thermal and
-  time state, stored in `test/fixtures/` with the node, date and image build.
-  Whoever eventually builds this needs them, and only someone with hardware can
-  produce them.
-- **Write the fakes**, once the interfaces are defined, per the hardware
-  abstraction rule in `services/README.md`.
+## Hardware note
+
+The prototype BOM adds a monochrome I2C display and a sealed momentary
+pushbutton, recorded as a **module of this component, not a new daemon**. Dark
+by default, momentary wake, roughly 20 mW when lit and zero when off. It gives
+EMCON a confirmation path that does not require opening a browser, per CONOPS
+sections 65 and 67.

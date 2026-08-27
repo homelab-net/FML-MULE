@@ -21,6 +21,13 @@ the commit does not undo publication.
 
 ## Design intent, all UNVERIFIED
 
+Selected components: **Smallstep `step-ca`** as the preferred initial PKI
+(`FML-ADR-036`), the **Mission Trust Service** for signed state distribution
+(`FML-ADR-047`), the **hostapd integrated EAP server** for offline EAP-TLS
+admission (`FML-ADR-038`, with FreeRADIUS as an approved alternate), and
+**application-native RBAC first** with OPA only where cross-application policy
+justifies it (`FML-ADR-037`).
+
 Recorded so a reader knows what the program is aiming at, and knows that none
 of it is demonstrated:
 

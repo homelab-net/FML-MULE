@@ -5,6 +5,16 @@ services on a node.
 
 **Nothing is configured. No service exists to reach.**
 
+`FML-ADR-031` selects local DNS plus a lightweight TCP/HTTP proxy layer, with
+**HAProxy** as the preferred initial proxy, and prefers **TCP passthrough** for
+end-to-end protected protocols so the proxy is not a decryption point. Each
+eligible backend may hold its own key and a certificate valid for the same
+logical identity; **one service private key is not copied to every node**.
+
+Backend selection is fed by the Service Authority Registry (`FML-ADR-049`): a
+process that is alive but does not hold authoritative state is not an acceptable
+backend for authoritative traffic.
+
 ## What ingress must provide
 
 An operator associates a phone with the node's access point and needs to reach
