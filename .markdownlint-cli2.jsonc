@@ -53,6 +53,21 @@
   "globs": ["**/*.md"],
   "ignores": [
     "node_modules/**",
-    ".venv/**"
+    ".venv/**",
+
+    // Controlled documents, transcribed verbatim.
+    //
+    // docs/conops/ and docs/architecture/ hold the CONOPS and the SAD exactly
+    // as issued. They are baselined (CONOPS) or controlled-draft (SAD) source
+    // documents under the change control in CONOPS section 86, not this
+    // repository's own prose.
+    //
+    // A linter must not drive edits to a controlled document. Reformatting one
+    // to satisfy MD025, MD033 or MD013 would silently alter a baselined
+    // artifact and break the transcription-integrity checks in
+    // docs/architecture/README.md. If either document is wrong, the fix is a
+    // change request against its own process, not a lint pass here.
+    "docs/conops/FML-MULE-*",
+    "docs/architecture/FML-MULE-*"
   ]
 }

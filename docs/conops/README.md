@@ -1,56 +1,96 @@
 # Concept of operations
 
-**Status: baselined. Controlling document not yet in this repository.**
+**Status: BASELINE, pending stakeholder signature (CONOPS section 87).**
 
-The program's operational concept is baselined and is the source from which
-every requirement in this program traces. It has not been transcribed here yet.
+| File | Contents |
+| --- | --- |
+| `FML-MULE-CONOPS-v1.01.txt` | The controlling operational concept, transcribed verbatim. |
 
-This README is a placeholder and says so. It is not a summary, and it is
-deliberately not an attempt at one: a paraphrase written by someone working
-from the acronyms would read like content, would be cited as though it were the
-baseline, and would be wrong in ways nobody could detect. The controlling
-document will be added here.
+The CONOPS is the **controlling subsystem operational concept**. Every
+requirement in this program traces back to it, and the SAD in
+`docs/architecture/` is derived from it.
+
+## Why it is a `.txt` file
+
+The CONOPS is issued as a plain-text controlled document, and it is stored here
+byte-for-byte as issued. It is not reformatted into Markdown.
+
+Converting a baselined controlled document to satisfy this repository's house
+style would alter an artifact that is under the change control defined in its
+own section 86, and would put transcription drift between the copy here and the
+copy the signatories approved. The markdownlint configuration excludes it for
+the same reason.
+
+## Transcription integrity
+
+The document carries its own audit figure: SAD section 35.1 records **145
+`[SHALL]` markers** in the source.
+
+```sh
+grep -c '\[SHALL\]' docs/conops/FML-MULE-CONOPS-v1.01.txt   # expect 145
+```
+
+That check passes on the copy in this repository. It is not proof of a perfect
+transcription, but a dropped or duplicated clause changes the count, so it
+catches the most likely class of error.
+
+Per SAD section 35.4, a second reviewer must still confirm quoted CONOPS text
+against the controlled source and record reviewer and date. That review has
+**not** been performed on this transcription.
+
+## Modal verbs
+
+Section 0.2 fixes the meaning of three terms, and downstream documents preserve
+them:
+
+- **shall** - binding, decomposed into verifiable TRD requirements, appears in
+  the Verification Matrix, and cannot be dropped downstream without a change
+  request.
+- **should** - preferred. Waiverable in the SAD or TRD with recorded rationale.
+- **may** - permitted. Creates no obligation and no verification requirement.
+
+Binding clauses are marked inline as `[SHALL]` to support extraction.
 
 ## What the CONOPS governs
 
-- What MULE is for, and the operational situations it is meant to serve.
-- Who operates it, with what training, and under what organisational structure.
-- The PACE structure the equipment fits into, and what happens at each step
-  down.
-- Deployment patterns: how many nodes, how far apart, for how long, carried or
-  emplaced.
-- The endurance and portability requirements that `TBR-PWR-01` must satisfy.
-- The environmental conditions the equipment is expected to survive, which
-  `TBR-THERM-01` needs before it can state a worst-case ambient.
-- What is expected to survive a node loss, which `TBR-TAK-01` needs before it
-  can classify mission state.
-- What operators do when the system fails, which is a procedure and not a
-  feature; see `docs/NON-GOALS.md`.
+- What MULE is for, and the operational situations it serves (sections 1-4).
+- The user and organizational roles, and what each may and may not do
+  (section 7).
+- The service criticality model S0 through S3 (section 9).
+- Identity, trust, revocation under partition, and the audit boundary
+  (sections 13-18).
+- The TAK operating concept, state classes, continuity, and split-brain safety
+  (sections 20-31).
+- The bearer set and RF coexistence priority (sections 32-38).
+- Privacy, retention, and third-party data (sections 55-58).
+- Power, sustainment, and cold weather (sections 59-63).
+- The **13 qualification stages** (section 78), mirrored in `test/stages/`.
+- The **33 operational success criteria** (section 79) and the verification
+  traceability matrix that maps them to stages (section 85). These are
+  transcribed as structured requirements in
+  `docs/verification/requirements.md`.
+- What is deliberately out of scope (section 81), seeded into
+  `docs/NON-GOALS.md`.
 
-Several open trades are blocked less by hardware than by the absence of a
-stated requirement from this document. `TBR-PWR-01` cannot close without an
-endurance requirement, and `TBR-THERM-01` cannot close without a worst-case
-ambient. Transcribing the CONOPS unblocks work that no amount of hardware will.
+## Change control
 
-## Document control
+Section 86 governs. After signature:
 
-The CONOPS is a **controlling document**. When it lands here:
+- A change request records the section, current text, proposed text,
+  operational rationale, downstream documents affected, verification impact
+  against section 85, and approval.
+- Editorial corrections that alter no `[SHALL]`, no section 79 criterion and no
+  scope boundary are a point revision (`v1.02`).
+- Adding, removing or altering a `[SHALL]`, a section 79 criterion, a section 78
+  stage, or a section 81 exclusion requires a **minor version increment**
+  (`v1.1`) and stakeholder re-approval.
 
-- It is baselined, and changes go through a **change request** rather than an
-  ordinary pull request. A change request states what is changing, why, which
-  requirements are affected, and which ADRs and trades are invalidated.
-- A change that invalidates a `SELECTED` decision requires a superseding ADR,
-  raised in the same change.
-- Requirements carry the frontmatter described in `docs/README.md`, so
-  traceability is generated rather than extracted by hand.
-- Requirement IDs are permanent and never reused, on the same terms as ADR and
-  trade IDs.
-- The baseline version and date are recorded in the document itself, and a
-  change to the baseline is a version increment, not an edit.
+Do not edit the transcribed document in place to reflect a change. A new version
+is issued, and the file here is replaced with that version.
 
-## Until then
+## Known open item
 
-Where an ADR or trade cites the CONOPS, it cites a document a reader cannot yet
-open. That is an honest statement of the program's current state rather than a
-gap to be filled with invention. Nothing in this repository should paraphrase
-the CONOPS as though it were quoting it.
+**PBCR-01.** The CONOPS deliberately generalizes the parent Homelab assumption
+that TAK and communications-gateway functions are hosted only on NOMAD. That
+change is recorded in `docs/change-requests/PBCR-01-field-service-plane.md` and
+must be actioned before parent-system integration baseline closure.
