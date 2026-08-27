@@ -24,7 +24,8 @@ and one did not exist.
   and check 12.
 - **Why is this code like this?** Convention only. Code cites `FML-ADR-###` in
   comments, 25 citations across 7 decisions, and **nothing checked them**.
-  `FML-ADR-999` in a production docstring passed every linter and every check.
+  A nonexistent decision id in a production docstring passed every linter and
+  every check.
 - **What implements this decision?** Did not exist. ADR frontmatter is
   `id title status date supersedes superseded-by trades verification`, with no
   link forward to code.
