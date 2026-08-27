@@ -13,6 +13,7 @@
 #   7. Every trade's evidence directory exists.
 #   8. Every patch file in os/kernel/patches/ has an entry in docs/forks/.
 #   9. No OCI image reference anywhere uses a mutable tag.
+#  10. Every open trade appears in the ITEP campaign plan.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -27,6 +28,7 @@ ADR_DIR=docs/adr
 TRADE_DIR=docs/trades
 FORK_DIR=docs/forks
 PATCH_DIR=os/kernel/patches
+ITEP=docs/verification/FML-MULE-ITEP-v0.1.md
 
 fail_count=0
 
@@ -299,6 +301,35 @@ if [ -n "$tag_hits" ]; then
 fi
 
 info 'checked'
+
+# --- 10: every open trade is planned for in the ITEP -------------------------
+printf 'ITEP campaign coverage\n'
+
+# A trade with no plan to close it is a trade that will not close. The ITEP
+# groups every open trade into a campaign; this check fails the build if a
+# trade is added without one, so the plan cannot silently fall behind the
+# register.
+#
+# Closed and abandoned trades are exempt: their campaign has served its purpose.
+
+itep_count=0
+if [ -f "$ITEP" ]; then
+  for f in "$TRADE_DIR"/TBR-*.md; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f")" in _*) continue ;; esac
+    status=$(frontmatter_field "$f" status)
+    case "$status" in CLOSED | ABANDONED) continue ;; esac
+    id=$(frontmatter_field "$f" id)
+    [ -n "$id" ] || continue
+    itep_count=$((itep_count + 1))
+    if ! grep -q "\`$id\`" "$ITEP"; then
+      fail "$id is OPEN but does not appear in $ITEP. Every open trade needs a campaign."
+    fi
+  done
+  info "$itep_count open trades checked against the ITEP"
+else
+  info "no ITEP found at $ITEP; coverage not checked"
+fi
 
 # --- result -----------------------------------------------------------------
 printf '\n'

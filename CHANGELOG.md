@@ -14,6 +14,28 @@ this program needs them visible:
 
 ## Unreleased
 
+### Integrated Test and Evaluation Plan
+
+`docs/verification/FML-MULE-ITEP-v0.1.md` completes the third and last of the
+three artifacts SAD section 33.1 says should proceed immediately. It converts
+the SAD section 30.3 dependency graph and the CONOPS section 78 stages into
+eleven campaigns, each with a rig, instrumentation, a procurement gate, an
+evidence path and a function owner.
+
+It invents no dates, per SAD section 30.2, and no stage pass criteria, which
+need `TBR-HW-01`. Its authoring judgement calls are listed in its own section
+0.4 rather than left implicit.
+
+`tools/validate-docs.sh` gained a tenth check: **every open trade must appear in
+the ITEP.** A trade with no plan to close it is a trade that will not close, and
+the plan must not fall silently behind the register.
+
+Four gaps the plan surfaced, recorded rather than resolved: the HIL bench
+conflicts with the deployable fleet once one exists; `TBR-RF-03` feeds
+`TBR-PWR-01` while being lower priority; four instrumentation items the
+prototype BOM does not buy; and stage definitions remain out of scope for a plan
+that closes trades rather than qualifying a design.
+
 ### Controlling documents added
 
 **FML/MULE CONOPS v1.01 BASELINE** and **FML/MULE SAD v0.31 DRAFT** are now in

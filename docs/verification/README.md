@@ -49,6 +49,28 @@ That clause-level decomposition lives in **SAD section 35.2** and belongs in the
 TRD; it is deliberately not duplicated here, because a second hand-maintained
 copy of a 140-row table is exactly the drift these rules exist to prevent.
 
+## The Integrated Test and Evaluation Plan
+
+`FML-MULE-ITEP-v0.1.md` is the program-control document SAD section 33.1 names
+as the next one to write. It converts the SAD section 30.3 trade dependency
+graph and the CONOPS section 78 stages into **eleven campaigns**, each with a
+rig, instrumentation, a procurement gate, an evidence path and a function owner.
+
+Two things it deliberately does not contain, both for the same reason the SAD
+gives:
+
+- **No dates.** SAD section 30.2 does not baseline a schedule, so neither does
+  the plan. Sequencing is dependency-ordered tranches.
+- **No stage pass criteria.** Those need `TBR-HW-01`. Campaigns close trades;
+  they do not qualify the design, and confusing the two would let the program
+  believe it had verified requirements it had only informed.
+
+**`tools/validate-docs.sh` fails the build if an open trade has no campaign**,
+so the plan cannot fall behind the register.
+
+The plan's first campaign, `ITEP-C01`, requires no hardware, no purchase and no
+procurement gate. It can begin today.
+
 ## Qualification stages
 
 `test/stages/` holds one directory per qualification stage. A stage defines
@@ -156,6 +178,7 @@ a successor. See `MAINTAINERS.md`.
 
 | Location | Contents |
 | --- | --- |
+| `docs/verification/FML-MULE-ITEP-v0.1.md` | The Integrated Test and Evaluation Plan: eleven campaigns closing the sixteen trades. |
 | `docs/verification/requirements.md` | The 33 CONOPS section 79 criteria as structured requirements. |
 | `docs/verification/traceability.md` | Generated matrix. Never hand-edited. |
 | `test/stages/` | One directory per CONOPS section 78 stage. Scope recorded; definitions pending. |

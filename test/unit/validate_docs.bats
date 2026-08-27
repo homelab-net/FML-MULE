@@ -132,6 +132,16 @@ PATCH
   [ "$status" -eq 0 ]
 }
 
+@test "validate-docs detects an open trade with no ITEP campaign" {
+  make_sandbox
+  # A trade with no plan to close it is a trade that will not close. The plan
+  # must not be allowed to fall silently behind the register.
+  sh -c "cd '$SANDBOX' && sh tools/new-trade.sh RF 'Planted uncovered question'"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+}
+
 @test "gen-status --check detects a hand-edited STATUS.md" {
   make_sandbox
   # STATUS.md is generated and never hand-edited. A stale status page is how a
