@@ -14,6 +14,55 @@ this program needs them visible:
 
 ## Unreleased
 
+### Finding a decision from the code, and the code from a decision
+
+There was a rule for where code goes and none for how to get from a change back
+to the reasoning behind it. Four directions were checked; three worked partly
+and one did not exist.
+
+- **Where does this live?** Covered: the placement table, one file per question,
+  and check 12.
+- **Why is this code like this?** Convention only. Code cites `FML-ADR-###` in
+  comments, 25 citations across 7 decisions, and **nothing checked them**.
+  `FML-ADR-999` in a production docstring passed every linter and every check.
+- **What implements this decision?** Did not exist. ADR frontmatter is
+  `id title status date supersedes superseded-by trades verification`, with no
+  link forward to code.
+- **When and why did this change?** Partial. The `Refs:` trailer was optional
+  and present in 13 of 21 commits, so `git log --grep` answered "why" about
+  sixty per cent of the time.
+
+#### Added
+
+- `tools/gen-decision-index.sh` and `docs/decision-index.md`: the missing
+  direction, **derived rather than maintained**. A hand-written `implemented-by`
+  field would rot, and this program has already lost a hand-kept traceability
+  matrix that way. Generated, checked for staleness in CI, and it cannot drift
+  because nobody writes it.
+
+  It separates code that **acts** on a decision from prose that **describes**
+  one, because those are different claims. The first cut counted
+  `test/stages/*/README.md` as implementation; a stage definition is a document,
+  so the rule now keys on file type as well as path. The index currently reports
+  28 of 48 decisions with no implementation, which is correct for pre-PDR and
+  was previously invisible.
+
+- Check 14 in `tools/validate-docs.sh`: every decision ID cited anywhere
+  resolves to a real ADR or trade. Check 4 already did this for trades named in
+  ADR frontmatter; this covers code, tooling, tests and prose. It immediately
+  found a stale example ID in the trade template, and templates are now excluded
+  because carrying an example ID is what a template is for.
+
+#### Changed
+
+- `AGENTS.md`: **every decision is findable from both ends**, and never
+  hand-maintain the back-link. The `Refs:` trailer changes from optional to
+  expected on anything touching `mule/`, `tools/` or `os/`, so `git log --grep`
+  becomes a reliable index. Marked `[review]`: making CI reject a commit message
+  is a workflow decision, and eight existing commits would fail it.
+- `docs/README.md` gains a short "finding your way" table naming the three
+  generated indexes and what each answers.
+
 ### AGENTS.md rewritten around when an agent needs each rule
 
 The file had grown from 140 to 228 lines across five commits without anyone

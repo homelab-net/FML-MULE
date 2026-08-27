@@ -112,6 +112,7 @@ fi
 run "validate-docs" sh tools/validate-docs.sh
 run "gen-status --check" sh tools/gen-status.sh --check
 run "gen-traceability --check" sh tools/gen-traceability.sh --check
+run "gen-decision-index --check" sh tools/gen-decision-index.sh --check
 
 if have python3; then
   run "validate-mission" python3 tools/validate-mission.py

@@ -115,6 +115,19 @@ parent's where a file of its own would be noise. Name a file for the question it
 answers. If someone must read the code to learn what a directory is for, the
 README failed and the README is what to fix. `[CI]`
 
+**Every decision is findable from both ends.** Code that acts on a decision
+cites its `FML-ADR-###` or `TBR-XXX-##` in a comment, and
+`tools/gen-decision-index.sh` derives the reverse into `docs/decision-index.md`,
+so an ADR can be read back to what implements it. Cited IDs are checked to
+resolve `[CI]` and the index is checked for staleness `[CI]`. Never
+hand-maintain the back-link: a hand-written `implemented-by` field rots, and
+this program has already lost a hand-kept traceability matrix that way.
+
+**A change explains itself in the log.** Conventional Commits, and a
+`Refs: FML-ADR-### | TBR-XXX-##` trailer on anything touching `mule/`, `tools/`
+or `os/`, so that `git log --grep` answers "why did this change" without anyone
+reading prose. `[review]`
+
 **Prefer the simplest thing that works.** No layer, wrapper, base class or
 indirection before a second caller needs it. No module for work that is
 anticipated rather than done. Complexity added early is defect surface no test
@@ -130,11 +143,12 @@ spare time.
 - **YAML**: `yamllint`. **Ansible**: `ansible-lint`. **Markdown**:
   `markdownlint-cli2`; long lines in tables only.
 - **OCI images by immutable digest**, never by tag, anywhere.
-- **Commits**: Conventional Commits, optional `Refs: FML-ADR-### | TBR-XXX-##`,
-  and a `Signed-off-by` line. Short-lived branches into `main`.
+- **Commits**: Conventional Commits, a `Refs:` trailer where a decision is
+  touched, and a `Signed-off-by` line. Short-lived branches into `main`.
 - **Diagram sources are committed**, not only exports.
 - **Generated files are never hand-edited**: `STATUS.md` by `tools/gen-status.sh`,
-  the traceability matrix by `tools/gen-traceability.sh`. CI fails on drift.
+  the traceability matrix by `tools/gen-traceability.sh`, the decision index by
+  `tools/gen-decision-index.sh`. CI fails on drift.
 - **No badges.** A green badge is read as evidence of function; here it is not.
 - **New binary format?** Check `.gitattributes` LFS coverage before committing.
 - **Removing an item from `docs/NON-GOALS.md` needs an ADR.** That file is the

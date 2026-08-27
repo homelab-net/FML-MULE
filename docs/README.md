@@ -77,6 +77,27 @@ These are binding. See `CONTRIBUTING.md` for the full set.
 - **Every claim about component behaviour cites a datasheet or a measurement**,
   archived under `evidence/`.
 
+## Finding your way between a decision and the code
+
+Three indexes, all generated, none hand-maintained:
+
+| Question | Where to look |
+| --- | --- |
+| What is settled, what is open, who owns it? | `STATUS.md` |
+| Which requirement is allocated where, and what validates it? | `docs/verification/traceability.md` |
+| What implements this decision, and who explains it? | `docs/decision-index.md` |
+
+`decision-index.md` is derived from the `FML-ADR-###` and `TBR-XXX-##`
+citations in the tree, so it cannot drift: nobody writes it. It separates code
+that **acts** on a decision from prose that **describes** one, because those are
+different claims. An empty implementation column is not a defect at this stage;
+most decisions here are deliberately not built yet, and the index exists so that
+"decided and built" and "decided, not yet built" stay apart.
+
+Going the other way, from code to reasoning, is the citation itself: every
+module names the decision it serves, and `tools/validate-docs.sh` fails if a
+cited identifier does not resolve.
+
 ## Requirement frontmatter
 
 Requirement-bearing documents carry structured frontmatter so that traceability

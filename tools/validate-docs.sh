@@ -17,6 +17,7 @@
 #  11. Every fake in the flat-sat is named in the flat-sat README.
 #  12. Every directory has a README, or is named in its parent's README.
 #  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
+#  14. Every decision ID cited anywhere resolves to a real ADR or trade.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -432,6 +433,42 @@ if [ "$evidence_files" -eq 0 ]; then
 else
   info "$evidence_files evidence file(s) present; hardware claims now need review, not this check"
 fi
+
+# --- 14: every cited decision ID resolves ------------------------------------
+#
+# Code cites decisions in its comments, and that citation is the only link from
+# a module back to the reasoning behind it. Nothing checked the link, so a typo
+# or a reference to a deleted ADR read exactly like a correct citation and the
+# reader had no way to tell.
+#
+# Check 4 already does this for trades named in ADR frontmatter. This covers
+# every other citation: code, tooling, tests and prose.
+#
+# Placeholders are excluded by pattern: FML-ADR-### and TBR-XXX-## appear in
+# this repository as literal examples of the format, not as references.
+
+cited_count=0
+# Templates are excluded: they carry example IDs to show the format, which is
+# what a template is for. Everything else citing an ID means it.
+grep -rhoE '(FML-ADR-[0-9]{3}|TBR-[A-Z]+-[0-9]{2})' \
+  --include='*.md' --include='*.py' --include='*.sh' --include='*.yml' . 2>/dev/null |
+  grep -v node_modules | sort -u >/tmp/fml-cited.$$ || true
+
+while read -r id; do
+  [ -n "$id" ] || continue
+  cited_count=$((cited_count + 1))
+  case $id in
+    FML-ADR-*) [ -n "$(find "$ADR_DIR" -name "$id-*.md" 2>/dev/null | head -1)" ] && continue ;;
+    TBR-*) [ -n "$(find "$TRADE_DIR" -name "$id-*.md" 2>/dev/null | head -1)" ] && continue ;;
+  esac
+  where=$(grep -rlE "$id" --include='*.md' --include='*.py' --include='*.sh' \
+    --include='*.yml' . 2>/dev/null | grep -v node_modules |
+    grep -vE '(/_|FML-ADR-000-template)' | head -3 | tr '\n' ' ')
+  [ -n "$where" ] || continue
+  fail "$id is cited but no such decision exists. Seen in: $where"
+done </tmp/fml-cited.$$
+rm -f /tmp/fml-cited.$$
+info "$cited_count distinct decision IDs cited"
 
 # --- result -----------------------------------------------------------------
 printf '\n'
