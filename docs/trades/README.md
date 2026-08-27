@@ -126,6 +126,7 @@ Ordered by SAD section 30.2 priority. `STATUS.md` carries the generated view.
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no | no |
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes | no |
+
 ## What can be worked without hardware
 
 Three trades need no hardware, and one of them is `CRITICAL`:

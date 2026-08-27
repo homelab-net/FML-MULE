@@ -4,6 +4,9 @@ Terms and acronyms used in this repository. Written for a reader who has not
 worked in this domain, because a stranger reading this repository is the case
 it is designed for.
 
+CONOPS section 0.4 carries the controlling acronym and term list. This glossary
+covers it and adds the implementation vocabulary the SAD introduces.
+
 Where a term's meaning within this program differs from its general use, the
 program's meaning is stated and the difference is called out.
 
@@ -42,6 +45,56 @@ may be deployed. See `os/release/README.md`.
 **Cold start drill** - the quarterly exercise in which someone who did not
 write the documentation follows it to a working state, and every point of
 confusion becomes an issue. See `docs/verification/README.md`.
+
+**T-MBNN** - Team Multi-Bearer Network Node. The legacy working name for MULE,
+retained for history only. CONOPS v1.01 renamed the end item.
+
+**NOMAD** - the parent Homelab mobile compute platform. It may host shared field
+services, and MULE generalizes the older parent assumption that TAK and
+communications-gateway functions run only there. See `PBCR-01`.
+
+**Homelab** - the parent program. MULE is developed as its Phase 6 / WP-07 field
+communications subsystem.
+
+**PBCR** - parent-baseline change request. `PBCR-01` is the change from
+NOMAD-only TAK and communications allocation to the controlled Field Service
+Plane. See `docs/change-requests/`.
+
+**Field Service Plane** - the controlled set of approved hosts that may provide
+shared field services: an eligible MULE, NOMAD, a portable field-services host,
+or another approved platform.
+
+**S0 / S1 / S2 / S3** - the service criticality classes in CONOPS section 9. S0
+core node services remain active whenever the node is operational; S1 local
+mission services remain available without external hosts; S2 shared mission
+services use shared state; S3 enhanced services are the first stopped under
+constraint.
+
+**Service host** - a node currently running an S2 shared service.
+
+**Authoritative state** - a shared service condition in which held mission state
+is complete and current enough to be relied on for tasking. A process that
+restarted successfully is not thereby authoritative.
+
+**Peer operational domain** - the set of participants reachable by common peer
+CoT distribution on a given network. Traffic on it is treated as visible to all
+authenticated participants.
+
+**Mission-scoped identity** - a credential issued for a defined mission or
+validity window that fails safe by expiry.
+
+**Compatibility set version** - the single identifier naming the kernel, driver,
+firmware and userspace a node is running. What makes a field fault report
+actionable.
+
+**SRR / PDR / CDR** - system requirements review, preliminary design review,
+critical design review. This program is **pre-PDR**; SAD v0.31 is an SRR package
+candidate.
+
+**ITEP** - Integrated Test and Evaluation Plan. The next major program-control
+document, per SAD section 33.1. Not yet written.
+
+**RTM** - requirements traceability matrix. SAD section 35 is its predecessor.
 
 ## Process terms
 
@@ -127,6 +180,49 @@ the US 902-928 MHz rules.
 **Coexistence** - two radios in one enclosure not degrading each other.
 `TBR-RF-02`.
 
+**Desense** - desensitization. Reduction in a receiver's sensitivity caused by a
+nearby transmitter. The specific mechanism by which HaLow could silently disable
+the LoRa fallback.
+
+**OpenMANET** - an OpenWrt-based open firmware project integrating ATAK
+multicast behaviour with supported SBC and HaLow configurations. Consumed by
+this program as a **reference and configuration source, not production
+firmware**; see `FML-ADR-023`.
+
+**openmanetd** - OpenMANET's mesh, topology and configuration API daemon.
+Permitted as a prototype and reference telemetry source. Production observability
+does not depend on it, and `FML-ADR-027` forbids assuming it provides
+deterministic scan or transmit-suppression primitives.
+
+**Morse Micro** - the vendor of the MM6108 and MM8108-class HaLow silicon this
+program references. Its Linux driver is out-of-tree, which is the basis of the
+kernel lifecycle risk in `FML-ADR-040`.
+
+**UCI** - OpenWrt's Unified Configuration Interface. Production MULE has no UCI
+dependency.
+
+**mac80211 / cfg80211** - the Linux kernel's soft-MAC and configuration APIs for
+wireless. **nl80211** is the netlink interface user space uses to drive them.
+
+**hostapd** - the Linux access point and 802.1X authenticator daemon. Its
+**integrated EAP server** is the preferred initial EUD admission implementation,
+so admission does not depend on a central RADIUS server. See `FML-ADR-038`.
+
+**wpa_supplicant** - the Linux station and mesh association daemon.
+
+**PPSK** - per-device pre-shared key. Permitted for prototype work only; it is
+not the final authorization architecture.
+
+**EAP-TLS** - certificate-based 802.1X authentication. The production EUD
+admission target.
+
+**Split brain** - two hosts each believing they hold authoritative state, having
+diverged during a partition. CONOPS section 29 requires preferring loss of
+shared-service authority over divergent authoritative databases.
+
+**Fencing** - preventing a host that may still believe it is authoritative from
+acting. One of the mechanisms `TBR-HA-01` may select; none is selected yet.
+
 **Modular certification** - a radio module's approval, granted against a
 specific test configuration including its antenna. Substituting an antenna can
 void it, and compliance of the assembled device remains the builder's
@@ -149,6 +245,34 @@ Generated continuously by design, which makes it the asset most at risk. See
 
 **Marker** - an operator-placed object on the shared map. Whether markers are
 durable across node loss is `TBR-TAK-01`.
+
+**OpenTAKServer (OTS)** - the preferred initial TAK-compatible server
+implementation; see `FML-ADR-032`. The architecture remains TAK-compatible, not
+OpenTAKServer-exclusive.
+
+**PyTAK** - the preferred library for custom CoT clients and translation
+gateways; see `FML-ADR-033`.
+
+**DataSync / Mission API** - TAK server functions for shared mission content.
+Whether their state is mission-critical is part of `TBR-TAK-01`.
+
+**iTAK / WinTAK** - the iOS and Windows TAK clients.
+
+**Data package** - a bundled set of TAK content distributed to clients.
+
+**AHJ** - authority having jurisdiction.
+
+**COML** - Communications Unit Leader, an ICS position.
+
+**ICS** - Incident Command System. **ICS-205** is its communications plan. MULE
+sits alongside it and does not replace it.
+
+**NIFOG** - National Interoperability Field Operations Guide. Appearance of a
+frequency in it is not authorization to transmit on it.
+
+**RTO / RPO** - recovery time objective and recovery point objective. The CONOPS
+section 27 objective is 60 seconds under healthy IP-mesh conditions, and remains
+conditional on `TBR-TAK-01`.
 
 ## Platform and build
 
@@ -202,3 +326,46 @@ node, date and image build recorded. See `AGENTS.md`.
 
 **Fake** - a stand-in implementation of a hardware interface, used so that
 service-plane code runs on an ordinary laptop with no radios present.
+
+**HAProxy** - the preferred initial TCP and HTTP proxy providing stable local
+service ingress; see `FML-ADR-031`. **TCP passthrough** is preferred for
+end-to-end protected protocols, so the proxy is not a decryption point.
+
+**step-ca** - Smallstep's open-source certificate authority, the preferred
+initial PKI; see `FML-ADR-036`.
+
+**chrony** - the NTP implementation disciplining local time; see `FML-ADR-042`.
+
+**LUKS2** - the Linux block-encryption format used for protected mission state;
+see `FML-ADR-043`.
+
+**Cryptographic erase** - invalidating key material so encrypted data becomes
+unrecoverable, rather than overwriting the medium. The basis of `FML-ADR-044`.
+
+**TPM** - trusted platform module. One candidate for protected storage unlock in
+`TBR-SEC-01`; it protects against removing the storage medium, not against a
+captured node being powered on.
+
+**RabbitMQ** - the message broker OpenTAKServer uses internally. Treated as
+**local transient service infrastructure**, not a field-wide clustered bus.
+
+**cgroups** - the Linux control groups mechanism used to reserve CPU and memory
+for the Network Plane so a service-plane peak cannot starve routing.
+
+**nftables** - the Linux firewall framework enforcing policy between the EUD,
+service, management, WAN and external-RF domains.
+
+**HIL** - hardware in the loop. The permanent two-node release bench required by
+SAD section 20.4, without which `TBR-LINUX-01` cannot close.
+
+**Write amplification** - the multiplication of physical flash writes by
+database, journal and telemetry activity. Bounded by design under
+`FML-ADR-050`.
+
+**TIME_DEGRADED** - the node state when retained time is implausible or exceeds
+the approved skew. Trust validation refuses rather than failing open.
+
+**NO_SAFE_AUTHORITY** - the Status Aggregator reason code when no host can be
+shown safe to act as authoritative. SAD section 33.6 defines the operator
+action: continue peer ATAK and local PACE, do not treat stale state as
+authoritative, and contact the recovery authority.

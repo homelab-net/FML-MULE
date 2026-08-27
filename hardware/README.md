@@ -27,6 +27,7 @@ hardware/
     block-a/         first candidate block, contents TBD
   common/            genuinely block-independent material only
   lifecycle/         component lifecycle and obsolescence register
+  prototype/         prototype and test BOM, NOT a production baseline
 ```
 
 A **block** is not a compute module. It is the whole qualified configuration:
@@ -65,6 +66,16 @@ Resist putting things here. The natural pressure, with one candidate block, is
 to treat everything as common, and everything placed in `common/` that is
 actually block-specific has to be untangled later. When in doubt, it belongs to
 the block.
+
+## `prototype/`
+
+`hardware/prototype/` holds the **prototype and test BOM**: what must be
+purchased to make the architecture decisions, per SAD section 33.3.
+
+It is kept out of `blocks/` deliberately. Filing it under `block-a/` would imply
+that block A is being defined, and it is not. The prototype BOM buys the minimum
+alternatives and instrumentation needed to close the critical trades; a
+production BOM does not exist and cannot until `TBR-HW-01` closes.
 
 ## `lifecycle/`
 
