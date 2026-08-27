@@ -56,11 +56,29 @@ effort, because the fake is where the physics was removed:
 
 Those belong to the ITEP campaigns in `docs/verification/`, on rig R1 and above.
 
+## Where the decisions actually live
+
+`node.py` decides nothing. It gathers what the fakes report and asks `mule/`,
+which is production code held to production standards:
+
+| Question | Answered by |
+| --- | --- |
+| Can the clock be trusted? | `mule/timekeeping.py` |
+| May this device join? | `mule/admission.py` |
+| What does this node offer, and by what name? | `mule/services.py` |
+| What do we tell the operator? | `mule/status.py` |
+| Which radios matter? | `mule/bearers.py` |
+
+This split is `FML-ADR-051`, and it is the reason the flat-sat is worth
+anything: the same decisions run on a real node with real drivers behind the
+same interfaces. When a decision lived in the test tree, a fake could answer it
+and no test could tell.
+
 ## The four rules
 
 1. **It runs the real artifacts, not parallel copies.** `node.py` loads
-   `tools/gen-config.py` by path and imports the decision logic from `mule/`.
-   A flat-sat that has drifted from the node is worse than none, because "it
+   `tools/gen-config.py` by path and imports every decision from `mule/`. A
+   flat-sat that has drifted from the node is worse than none, because "it
    works on the flat-sat" becomes a permanent excuse.
 2. **Every fake is named below**, and `tools/validate-docs.sh` fails if one is
    not. An unlisted fake is a hidden assumption.
@@ -158,7 +176,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 | --- | --- |
 | `interfaces.py` | Narrow Protocols over radio, power and thermal state. They stay here deliberately; see the location note in the file. |
 | `fakes.py` | The four fakes above, and nothing else. |
-| `node.py` | `FlatSatNode`: the node composed from those interfaces, calling the real configuration tool. |
+| `node.py` | `FlatSatNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
 | `test_timekeeping.py` | Unit tests for `mule/timekeeping.py`. Moves with it if it moves again. |
 | `scenarios/` | The user-visible flows, written in CONOPS vocabulary. |

@@ -137,6 +137,34 @@ Do not implement the placeholder services to make a scenario pass. The flat-sat
 exercises their **interfaces** with stand-ins, which is what a flat-sat is for:
 bringing up the bus while the payload does not exist yet.
 
+## Structure and simplicity
+
+**A reader who does not write code should be able to navigate this repository.**
+Every directory carries a `README.md` saying in plain language what is in it and
+why, or is named in its parent's README where a file of its own would be noise.
+`tools/validate-docs.sh` checks this. Name a file for the question it answers,
+not the pattern it uses. If someone has to read the code to find out what a
+directory is for, the README has failed and the README is what to fix.
+
+**Where code goes is decided by when it runs.**
+
+| Directory | What lives there |
+| --- | --- |
+| `mule/` | Decisions the node makes while running, one module per question. Production standards, none of the `test/` relaxations. `FML-ADR-051`. |
+| `tools/` | Decisions made about the node beforehand on a builder's machine, and repository tooling. |
+| `os/` | The image build and configuration pipeline. |
+| `test/` | Fakes, fixtures, scenarios, the flat-sat. Never a decision the node makes. |
+
+Nothing enters `mule/` until the flat-sat exercises it end to end. It is a home
+for demonstrated logic, not a staging area for intended logic.
+
+**Prefer the simplest thing that works.** Do not add a layer, a wrapper, a base
+class or an indirection before a second caller needs it. Do not create a module
+for work that is anticipated rather than done. Complexity added early is defect
+surface that no test covers, and it is far easier to prevent than to remove. A
+clever line that costs a reader ten minutes is a defect in a repository
+maintained by volunteers in their spare time.
+
 ## Conventions you are expected to follow
 
 - **Shell**: POSIX `sh` where possible, `bash` where not. Every script opens
@@ -150,9 +178,6 @@ bringing up the bus while the payload does not exist yet.
 - **Commits**: Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`,
   `chore:`, `test:`), optional trailer `Refs: FML-ADR-### | TBR-XXX-##`, and a
   `Signed-off-by` line (DCO). Short-lived branches into `main`.
-- **Node decision logic lives in `mule/`**, held to production lint standards.
-  Fakes, fixtures and flat-sat scaffolding stay in `test/`. Nothing enters
-  `mule/` until the flat-sat exercises it end to end. `FML-ADR-051`.
 - **Values come from data, not from literals.** Region is a parameter, not a
   constant: configuration generation takes a region profile from
   `regions/<region-id>/`, and 902-928 MHz is never hardcoded. That rule
@@ -192,6 +217,8 @@ same change.
 - Never hardcode a value the region profile, mission package or catalog
   supplies, and never let a test assert against a literal the code under test
   hardcodes too.
+- Never put a decision the node makes under `test/`, and never let production
+  code import from the test tree.
 - Never edit `STATUS.md` by hand.
 - Never close a trade without a path under `docs/evidence/`.
 - Never add a binary format to the tree without checking `.gitattributes` LFS

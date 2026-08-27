@@ -17,12 +17,11 @@
 mutations:
   # --- trust: FML-ADR-042 fail-closed behaviour ---------------------------
   - id: M01
-    file: test/flatsat/node.py
+    file: mule/admission.py
+
     describe: admission stops checking time at all, and so fails open
-    find: |
-      if assessment.degraded:
-                  return AdmissionResult(False, f"TIME_DEGRADED: {assessment.reason}")
-    replace: "if False:\n            return AdmissionResult(False, \"unreachable\")"
+    find: "    if time.degraded:"
+    replace: "    if False:"
 
   - id: M02
     file: mule/timekeeping.py
@@ -62,18 +61,18 @@ mutations:
 
   # --- admission ----------------------------------------------------------
   - id: M07
-    file: test/flatsat/node.py
+    file: mule/admission.py
+
     describe: a node that never booted still admits devices
-    find: |
-      if not self._booted:
-                  return AdmissionResult(False, "node has not booted")
-    replace: "if False:\n            return AdmissionResult(False, \"unreachable\")"
+    find: "    if not booted:"
+    replace: "    if False:"
 
   - id: M08
-    file: test/flatsat/node.py
+    file: mule/admission.py
+
     describe: admission ignores whether the required bearers are serving
-    find: "        if not_serving:"
-    replace: "        if False:"
+    find: "    if not_serving:"
+    replace: "    if False:"
 
   - id: M09
     file: test/flatsat/node.py
@@ -110,15 +109,23 @@ mutations:
 
   - id: M14
     file: test/flatsat/node.py
+
     describe: services come from a list in the node rather than the package
-    find: "                for name in self._params[\"mission\"][\"services\"]"
-    replace: "                for name in [\"portal.field\"]"
+    find: '                    self._params["mission"]["services"],'
+    replace: '                    ["portal.field"],'
 
   - id: M15
     file: test/flatsat/node.py
+
     describe: radios come up even with no lawful configuration
-    find: "enumerated = [str(b) for b in self._radio.enumerated()] if resolved else []"
-    replace: "enumerated = [str(b) for b in self._radio.enumerated()]"
+    find: "enumerated = [str(b) for b in self._enumerated()] if resolved else []"
+    replace: "enumerated = [str(b) for b in self._enumerated()]"
+
+  - id: M26
+    file: mule/services.py
+    describe: a service name drops the deployment's local domain
+    find: 'return f"{name}.{local_domain}" if local_domain else name'
+    replace: "return name"
 
   # --- the status surface -------------------------------------------------
   - id: M16
@@ -128,47 +135,57 @@ mutations:
     replace: "projected_runtime_minutes=90,"
 
   - id: M17
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: the network is always reported healthy
-    find: "network_degraded=network_degraded,"
+    find: "network_degraded=_network_degraded(observed),"
     replace: "network_degraded=False,"
 
   - id: M18
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: the battery is always reported healthy
     find: >-
-      self._power.battery_healthy() if self._power.battery_present() else None
-    replace: "                True"
+      battery_healthy=observed.battery_healthy if observed.battery_present
+      else None
+    replace: "battery_healthy=True"
 
   - id: M19
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: LoRa is always reported available
-    find: "lora_available=\"lora\" in enumerated and self._radio.associated(\"lora\"),"
-    replace: "lora_available=True,"
+    find: >-
+      lora_available="lora" in observed.enumerated and "lora" in
+      observed.associated
+    replace: "lora_available=True"
 
   - id: M20
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: a sensor outside its envelope no longer raises a fault
-    find: "        elif not self._thermal.within_envelope():"
-    replace: "        elif False:"
+    find: "    if not observed.within_thermal_envelope:"
+    replace: "    if False:"
 
   - id: M21
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: thermal throttling no longer degrades the reported state
-    find: "        elif self._thermal.throttled():"
-    replace: "        elif False:"
+    find: "    if observed.thermally_throttled:"
+    replace: "    if False:"
 
   - id: M22
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: EMCON is never reported
-    find: "emcon_active=self._emcon,"
+    find: "emcon_active=observed.emcon,"
     replace: "emcon_active=False,"
 
   - id: M23
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: a node missing a required bearer is not faulted
-    find: "        if not self._booted or missing:"
-    replace: "        if not self._booted:"
+    find: "    if not observed.booted or missing:"
+    replace: "    if not observed.booted:"
 
   # --- fixture honesty ----------------------------------------------------
   - id: M24

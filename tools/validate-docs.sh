@@ -15,6 +15,7 @@
 #   9. No OCI image reference anywhere uses a mutable tag.
 #  10. Every open trade appears in the ITEP campaign plan.
 #  11. Every fake in the flat-sat is named in the flat-sat README.
+#  12. Every directory has a README, or is named in its parent's README.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -358,6 +359,42 @@ if [ -f "$FAKES" ] && [ -f "$FLATSAT_README" ]; then
 else
   info "no flat-sat fakes found; listing not checked"
 fi
+
+# --- 12: every directory is explained somewhere ------------------------------
+#
+# AGENTS.md: a reader who does not write code should be able to navigate this
+# repository. A directory carries its own README.md, or its parent's README
+# names it. Ansible's mandated role subdirectories are the case that needs the
+# second form: a README in each would be noise, so the role README explains the
+# layout instead.
+#
+# Generated, cache and vendored directories are skipped: nobody navigates them.
+
+dir_count=0
+find . -type d \
+  -not -path './.git*' \
+  -not -path './node_modules*' \
+  -not -path '*__pycache__*' \
+  -not -path './.pytest_cache*' \
+  -not -path './.ruff_cache*' \
+  -not -path './.ansible*' \
+  -not -path '.' |
+  sort >/tmp/fml-dirs.$$
+
+while read -r dir; do
+  [ "$dir" = "." ] && continue
+  [ -n "$dir" ] || continue
+  dir_count=$((dir_count + 1))
+  [ -f "$dir/README.md" ] && continue
+  parent=$(dirname "$dir")
+  base=$(basename "$dir")
+  if [ -f "$parent/README.md" ] && grep -q "$base" "$parent/README.md"; then
+    continue
+  fi
+  fail "$dir has no README.md and is not named in $parent/README.md."
+done </tmp/fml-dirs.$$
+rm -f /tmp/fml-dirs.$$
+info "$dir_count directories checked for a README or a parent that names them"
 
 # --- result -----------------------------------------------------------------
 printf '\n'

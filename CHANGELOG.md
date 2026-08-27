@@ -14,6 +14,71 @@ this program needs them visible:
 
 ## Unreleased
 
+### The rest of the node's decisions follow, and the repository explains itself
+
+`test/flatsat/node.py` still held four decisions after the time module moved:
+what to tell the operator, whether a device may join, what services exist and
+what they are called, and which radios matter. All four are now in `mule/`, and
+`node.py` does assembly and nothing else. It reads the fakes, hands plain values
+to the decision modules, and reports what came back.
+
+The package is organised so that **one file answers one question**:
+
+| File | The question it answers |
+| --- | --- |
+| `bearers.py` | Which radios can a node have, and which does it need? |
+| `timekeeping.py` | Can the clock be trusted? |
+| `admission.py` | May this device join the network? |
+| `services.py` | What does this node offer, and by what name? |
+| `status.py` | What do we tell the operator? |
+
+The decision functions take plain values rather than radios and sensors, so they
+are readable and testable without any hardware abstraction in the way. Coverage
+of `mule/` is 100% and all 26 mutations are caught, without a single new test:
+the existing scenarios already exercised this logic, they just could not reach
+it in a form worth reading.
+
+`Bearer` moved with them. It names the node's radio functions per
+`FML-ADR-045`, which is decided, and production code cannot import from the test
+tree. The Protocols in `test/flatsat/interfaces.py` still stay, for the reason
+already recorded there.
+
+**The refactor was caught by its own tooling.** Twelve mutations stopped
+applying when the code moved, and `tools/mutation-check.py` reported them as
+`NOT-APPLIED` rather than quietly scoring them as caught. That is the check
+working: a mutation that cannot be applied is not evidence of anything.
+
+#### Structure and simplicity, in `AGENTS.md`
+
+A new section, because a reader who does not write code should be able to
+navigate this repository:
+
+- Every directory carries a `README.md` in plain language, or is named in its
+  parent's README where a file of its own would be noise. **Check 12 in
+  `tools/validate-docs.sh` enforces it**, across 98 directories.
+- Where code goes is decided by **when it runs**: `mule/` is what the node
+  decides in the field, `tools/` is what is decided about the node beforehand on
+  a builder's machine, `os/` is the image pipeline, `test/` is fakes and
+  scenarios and never a decision the node makes.
+- Prefer the simplest thing that works. No layer, wrapper or indirection before
+  a second caller needs it; no module for work that is anticipated rather than
+  done. A clever line that costs a reader ten minutes is a defect in a
+  repository maintained by volunteers in their spare time.
+
+Writing that rule surfaced three directories it was not true of: the Ansible
+role's `defaults/`, `handlers/` and `meta/`, whose names Ansible fixes and which
+would be noise to document individually. The role README now explains the
+layout, which is the second form the rule allows.
+
+#### Added
+
+- `mule/bearers.py`, `mule/admission.py`, `mule/services.py`, `mule/status.py`.
+- `mule/README.md` rewritten as a plain-language guide: one table of questions,
+  the run-time versus build-time split, and what does not belong there.
+- Check 12 in `tools/validate-docs.sh`, and a layout section in
+  `os/ansible/roles/common/README.md`.
+- Mutation `M26`: a service name that drops the deployment's local domain.
+
 ### The credibility decision moves into production code
 
 `FML-ADR-051`: node-resident Python that **makes a decision** lives in the new

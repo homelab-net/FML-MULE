@@ -1,17 +1,25 @@
 """A MULE node, composed and run end to end with the hardware layer faked.
 
-This is the flat-sat. It exists to verify the **end user experience** in CONOPS
-section 82 — power on, connect, authenticate, authorized services appear, work —
-so that what is developed matches how it will be used, and so the end-to-end
-flow is free of logic bugs before hardware is scarce and expensive.
+This is the flat-sat's node. Its job is **assembly, not judgement**: it reads
+the fakes, hands plain values to the decision modules in `mule/`, and reports
+what they said. Every rule it appears to apply lives somewhere else.
+
+That split is `FML-ADR-051`, and it is what lets the same decisions run on a
+real node with real drivers behind the same interfaces. If you are looking for
+what the node *decides*, this is the wrong file. Read:
+
+- `mule/timekeeping.py` - can the clock be trusted?
+- `mule/admission.py` - may this device join?
+- `mule/services.py` - what does this node offer, and by what name?
+- `mule/status.py` - what do we tell the operator?
+- `mule/bearers.py` - which radios matter?
 
 **It runs the real artifacts.** Configuration resolution calls
-`tools/gen-config.py` itself, not a reimplementation, so a change that breaks
-region validation breaks the flat-sat too. A flat-sat that has drifted from the
-node is worse than none.
+`tools/gen-config.py` itself, not a reimplementation.
 
 **What is faked** is listed in `README.md` and confined to `fakes.py`: radio,
-power, thermal and time state, behind the narrow interfaces in `interfaces.py`.
+power and thermal state behind the interfaces in `interfaces.py`, and raw clock
+readings behind `mule.timekeeping.TimeReadings`.
 
 **What is not simulated, and cannot be:** RF propagation, throughput, mesh
 scaling, coexistence, power draw, endurance, thermal behaviour, driver
@@ -25,46 +33,21 @@ import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Literal
+from typing import Any
 
-from mule.timekeeping import (
-    TimeAssessment,
-    TimePolicy,
-    TimeReadings,
-    assess,
-)
+from mule import services, status
+from mule.admission import AdmissionDecision, decide
+from mule.bearers import Bearer
+from mule.status import NodeStatus, Observations
+from mule.timekeeping import TimeAssessment, TimePolicy, TimeReadings, assess
 
-from .interfaces import Bearer, PowerState, RadioState, ThermalState
+from .interfaces import PowerState, RadioState, ThermalState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-#: Bearers without which the node cannot perform its primary function. CONOPS
-#: section 82 puts "Connect approved EUD" between power on and everything that
-#: follows: with no access point there is no user-facing node, whatever else is
-#: healthy. Named rather than written into a condition so that a reader can see
-#: what the node considers essential, and so it can be varied when a mission
-#: profile eventually says otherwise.
-REQUIRED_BEARERS: tuple[Bearer, ...] = ("wifi_ap",)
-
-#: Bearers that carry traffic between nodes, as opposed to serving end user
-#: devices. FML-ADR-045 keeps the EUD access point and the inter-node mesh as
-#: separate logical functions whether or not they share a radio.
-INTER_NODE_BEARERS: tuple[Bearer, ...] = ("halow", "wifi_mesh")
-
-#: Operator-visible node states, from SAD section 22.
-OperatorState = Literal[
-    "GREEN", "DEGRADED", "LOW-BANDWIDTH", "NON-AUTHORITATIVE", "EMCON", "FAULT"
-]
-
-#: Reason codes for non-authoritative shared data, from SAD section 22.
-AuthorityReason = Literal[
-    "PARTITION",
-    "STATE_LAG",
-    "HOST_RECOVERY",
-    "NO_SAFE_AUTHORITY",
-    "UNSYNCHRONIZED",
-    "UNKNOWN",
-]
+#: Where the flat-sat's stand-in services are said to run. The real service
+#: plane waits on trades that have not closed; see `README.md`.
+STAND_IN_LOCATION = "local"
 
 
 def _load_gen_config() -> ModuleType:
@@ -99,38 +82,9 @@ class BootResult:
     radios_enumerated: list[str]
 
 
-@dataclass
-class AdmissionResult:
-    """Outcome of an end user device attempting to join."""
-
-    admitted: bool
-    reason: str | None
-
-
-@dataclass
-class NodeStatus:
-    """The simplified operator view.
-
-    Answers the thirteen questions CONOPS section 67 requires, in order. The
-    field names track the questions rather than the implementation, because the
-    CONOPS list is the acceptance criterion.
-    """
-
-    operational: bool
-    battery_healthy: bool | None
-    projected_runtime_minutes: int | None
-    hosting_shared_services: bool
-    hosting_reduces_runtime: bool | None
-    tak_available: bool
-    shared_data_authoritative: bool | None
-    authority_reason: AuthorityReason | None
-    data_stale: bool | None
-    network_degraded: bool
-    lora_available: bool
-    wan_available: bool
-    emcon_active: bool
-    fault: str | None
-    state: OperatorState
+#: The flat-sat reports admission using the decision type itself, so a scenario
+#: reads the same shape the node produced.
+AdmissionResult = AdmissionDecision
 
 
 class FlatSatNode:
@@ -174,19 +128,23 @@ class FlatSatNode:
         self._shared_services: dict[str, str] = {}
         self._admitted: set[str] = set()
 
+    # --- reading the hardware ----------------------------------------------
+
     def _assess_time(self) -> TimeAssessment:
         """Judge retained time now, rather than trusting a cached verdict.
 
-        The node does not decide this once at boot: a clock can lose
-        credibility while running, and a cached CREDIBLE is exactly the stale
-        answer FML-ADR-042 warns about.
+        A clock can lose credibility while the node is running, and a cached
+        CREDIBLE is exactly the stale answer FML-ADR-042 warns about.
         """
         return assess(self._clock, self._time_policy)
 
-    def _missing_required_bearers(self) -> list[Bearer]:
-        """Return required bearers whose hardware did not enumerate."""
-        enumerated = set(self._radio.enumerated())
-        return [b for b in REQUIRED_BEARERS if b not in enumerated]
+    def _enumerated(self) -> list[Bearer]:
+        """Bearers the platform found."""
+        return list(self._radio.enumerated())
+
+    def _associated(self) -> list[Bearer]:
+        """Bearers that have formed their link."""
+        return [b for b in self._enumerated() if self._radio.associated(b)]
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -219,16 +177,16 @@ class FlatSatNode:
         # resolve a lawful channel does not transmit: os/config/README.md makes
         # a generated channel outside the permitted set a regulatory problem,
         # not a bug, and the same logic applies to having no channel at all.
-        enumerated = [str(b) for b in self._radio.enumerated()] if resolved else []
+        enumerated = [str(b) for b in self._enumerated()] if resolved else []
 
         self._booted = resolved
         if resolved and self._params is not None:
-            # Services come from the mission package, never from a list written
-            # into the node. A package enabling none yields none: that is a
-            # node with no mission services, not a node with default ones.
             self._services = {
-                self._service_identity(name): "local"
-                for name in self._params["mission"]["services"]
+                name: STAND_IN_LOCATION
+                for name in services.identities(
+                    self._params["mission"]["services"],
+                    self._params["network"]["local_domain"],
+                )
             }
 
         return BootResult(
@@ -240,54 +198,29 @@ class FlatSatNode:
             radios_enumerated=enumerated,
         )
 
-    def _service_identity(self, name: str) -> str:
-        """Compose the name a user reaches a service by.
-
-        FML-ADR-031: users reach stable logical names. The domain comes from the
-        mission package; a fixed domain across every deployment makes collision
-        certain, so a package that supplies none yields bare names rather than
-        an invented suffix.
-        """
-        params = self._params or {}
-        domain = params.get("network", {}).get("local_domain")
-        return f"{name}.{domain}" if domain else name
-
     # --- admission ---------------------------------------------------------
 
-    def admit(self, device_id: str) -> AdmissionResult:
-        """Attempt to admit an end user device.
+    def admit(self, device_id: str) -> AdmissionDecision:
+        """Ask `mule.admission` whether this device may join, and record it.
 
-        **Fails closed on invalid time.** FML-ADR-042: trust validation shall
-        not fail open on invalid, implausible or unavailable time. Admission is
-        a trust-sensitive operation, so a node in TIME_DEGRADED refuses and
-        reports why.
-
-        This is the behaviour most worth having in a flat-sat, because it is
-        unwelcome in the field, correct, and easy to regress into failing open.
+        The decision is not made here. This gathers what the decision needs and
+        keeps the set of admitted devices, which is state rather than judgement.
         """
-        if not self._booted:
-            return AdmissionResult(False, "node has not booted")
-
-        assessment = self._assess_time()
-        if assessment.degraded:
-            return AdmissionResult(False, f"TIME_DEGRADED: {assessment.reason}")
-
-        not_serving = [b for b in REQUIRED_BEARERS if not self._radio.associated(b)]
-        if not_serving:
-            return AdmissionResult(
-                False, f"required bearer(s) not serving: {', '.join(not_serving)}"
-            )
-
-        self._admitted.add(device_id)
-        return AdmissionResult(True, None)
+        decision = decide(
+            booted=self._booted,
+            time=self._assess_time(),
+            associated=self._associated() if self._booted else [],
+        )
+        if decision.admitted:
+            self._admitted.add(device_id)
+        return decision
 
     def resolve_service(self, name: str, device_id: str) -> str | None:
         """Resolve a logical service identity for an admitted device.
 
-        CONOPS section 5.6 and FML-ADR-031: users reach stable logical names,
-        not physical hosts. An unadmitted device resolves nothing; network
-        admission and application authorization stay separate, and this is the
-        former.
+        An unadmitted device resolves nothing. Network admission and
+        application authorization stay separate, and this is the former; there
+        is no authorization anywhere yet, which `README.md` records as a gap.
         """
         if device_id not in self._admitted:
             return None
@@ -296,73 +229,25 @@ class FlatSatNode:
     # --- status ------------------------------------------------------------
 
     def status(self) -> NodeStatus:
-        """Answer the thirteen CONOPS section 67 questions.
-
-        Several answers are `None`, which is the honest value rather than a
-        missing one. Projected runtime has no power model (TBR-PWR-01);
-        authority state has no continuity mechanism (TBR-TAK-01, TBR-HA-01).
-        A number or a boolean in those fields today would be invented.
-        """
-        assessment = self._assess_time()
-        enumerated = self._radio.enumerated()
-        missing = self._missing_required_bearers()
-
-        fault: str | None = None
-        if not self._booted:
-            fault = self._config_error or "node did not boot"
-        elif missing:
-            fault = f"RADIO_ABSENT: required bearer(s) {', '.join(missing)}"
-        elif assessment.degraded:
-            fault = f"TIME_DEGRADED: {assessment.reason}"
-        elif not self._thermal.within_envelope():
-            fault = "THERMAL_DEGRADED: outside stated envelope"
-
-        # Precedence: a node that cannot serve users is FAULT whatever else is
-        # true; a deliberate emissions posture outranks a mere degradation but
-        # never hides a fault. SAD section 22 names the states but not their
-        # ordering, so this ordering is a decision recorded here.
-        state: OperatorState = "GREEN"
-        if not self._booted or missing:
-            state = "FAULT"
-        elif fault is not None:
-            state = "DEGRADED"
-        elif self._emcon:
-            state = "EMCON"
-        elif self._thermal.throttled():
-            state = "DEGRADED"
-
-        # An inter-node bearer that is fitted but not linked is a degraded
-        # network. A node with no inter-node bearer at all is not degraded: it
-        # is a node that was never meant to mesh, which is the ROADMAP v0.0.1
-        # configuration. Deriving this from what enumerated keeps the two cases
-        # distinguishable instead of hardcoding one bearer's name.
-        inter_node = [b for b in INTER_NODE_BEARERS if b in enumerated]
-        network_degraded = bool(inter_node) and not any(
-            self._radio.associated(b) for b in inter_node
-        )
-
-        return NodeStatus(
-            operational=self._booted,
-            battery_healthy=(
-                self._power.battery_healthy() if self._power.battery_present() else None
-            ),
-            projected_runtime_minutes=self._power.projected_runtime_minutes(),
-            # Derived from what is actually hosted. The set is empty because
-            # the TAK service plane waits on TBR-TAK-01 and the stand-in is
-            # local only, but the answer follows the state rather than being
-            # written into the reply.
-            hosting_shared_services=bool(self._shared_services),
-            hosting_reduces_runtime=None,
-            tak_available=bool(self._shared_services),
-            shared_data_authoritative=None,
-            authority_reason=(None if self._shared_services else "NO_SAFE_AUTHORITY"),
-            data_stale=None,
-            network_degraded=network_degraded,
-            lora_available="lora" in enumerated and self._radio.associated("lora"),
-            wan_available=self._wan,
-            emcon_active=self._emcon,
-            fault=fault,
-            state=state,
+        """Gather what the node observed and let `mule.status` interpret it."""
+        return status.derive(
+            Observations(
+                booted=self._booted,
+                config_error=self._config_error,
+                time=self._assess_time(),
+                enumerated=self._enumerated(),
+                associated=self._associated(),
+                battery_present=self._power.battery_present(),
+                battery_healthy=self._power.battery_healthy(),
+                projected_runtime_minutes=self._power.projected_runtime_minutes(),
+                within_thermal_envelope=self._thermal.within_envelope(),
+                thermally_throttled=self._thermal.throttled(),
+                # No shared service is hosted: the TAK service plane waits on
+                # TBR-TAK-01 and the stand-in is local only.
+                hosting_shared_services=bool(self._shared_services),
+                emcon=self._emcon,
+                wan_available=self._wan,
+            )
         )
 
     @property

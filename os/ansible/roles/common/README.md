@@ -32,6 +32,19 @@ time configuration per `FML-ADR-042`, journal and logging policy, and the
 resource reservation that keeps the network plane alive under service-plane
 load per `TBR-COMP-01`.
 
+## Layout
+
+Ansible fixes these directory names; they are not a choice this program made,
+and they carry no `README.md` of their own because the tooling expects exactly
+this shape.
+
+| Directory | What Ansible looks for there |
+| --- | --- |
+| `tasks/` | The work the role performs. `main.yml` is the entry point. |
+| `defaults/` | Variables the role defines and a playbook may override. Lowest precedence, so a region profile or mission package always wins. |
+| `handlers/` | Actions triggered by a task reporting a change, such as restarting a unit. |
+| `meta/` | Role metadata and dependencies on other roles. |
+
 ## Conventions
 
 - Idempotent. A second run changes nothing.

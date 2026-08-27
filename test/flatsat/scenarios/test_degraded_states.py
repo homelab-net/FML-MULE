@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import pytest
 
+from mule.bearers import REQUIRED_BEARERS
 from mule.timekeeping import TimePolicy
 
 from ..conftest import EUD, NodeFactory
@@ -24,7 +25,7 @@ from ..fakes import (
     FakeThermal,
     ImpossibleHardwareState,
 )
-from ..node import REPO_ROOT, REQUIRED_BEARERS
+from ..node import REPO_ROOT
 
 UNRESOLVABLE_REGION = REPO_ROOT / "regions" / "us-915" / "profile.yml"
 

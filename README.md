@@ -132,7 +132,7 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 | `docs/` | The design record: CONOPS v1.01, SAD v0.31, 30 decisions, 16 trades, verification, evidence, fork ledger, change requests. |
 | `regions/` | Regulatory profiles. Region is an input to configuration, never a constant. |
 | `hardware/` | Qualified hardware blocks, lifecycle register, prototype and test BOM. Nothing selected. |
-| `mule/` | Node-resident decision logic. One module. `FML-ADR-051` bounds what may go here. |
+| `mule/` | What the node decides while running: the clock, admission, services, status. One small module per question. `FML-ADR-051`. |
 | `os/` | Image build, kernel pins, configuration templates, provisioning, release process. |
 | `services/` | Service plane structure. Four components are deliberate placeholders. |
 | `mission/` | Mission package schema, examples with fake identities, profiles. |

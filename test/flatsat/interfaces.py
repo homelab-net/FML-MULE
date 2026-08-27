@@ -25,12 +25,13 @@ is `FML-ADR-042`, which is decided; these describe boundaries that are not.
 
 from __future__ import annotations
 
-from typing import Literal, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-#: Bearers the node may carry. Four radio functions per FML-ADR-045, of which
-#: the EUD access point and the high-rate inter-node mesh are separate logical
-#: functions whether or not they share a physical radio.
-Bearer = Literal["halow", "wifi_mesh", "wifi_ap", "lora"]
+from mule.bearers import Bearer
+
+# The `Bearer` vocabulary moved to `mule/bearers.py`: it names the node's radio
+# functions per FML-ADR-045, which is decided, and production code needs it.
+# The Protocols below stayed, for the reason in the location note above.
 
 
 @runtime_checkable
