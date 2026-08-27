@@ -22,7 +22,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 
 | Decision | Status | Implemented in | Explained in |
 | --- | --- | --- | --- |
-| `FML-ADR-000` | RETIRED | `tools/new-adr.sh`, `tools/validate-docs.sh` | `CONTRIBUTING.md` |
+| `FML-ADR-000` | RETIRED | `tools/new-adr.sh`, `tools/refs-report.sh`, `tools/validate-docs.sh` | `CONTRIBUTING.md` |
 | `FML-ADR-021` | SELECTED | *not yet* | `docs/NON-GOALS.md`, `docs/glossary.md`, `docs/verification/requirements.md`, `services/README.md`, `services/catalog/README.md`, `services/service-controller/README.md`, `test/stages/stage-01-local-node/README.md`, `test/stages/stage-07-sustainment/README.md` |
 | `FML-ADR-022` | SELECTED | *not yet* | `.github/ISSUE_TEMPLATE/adr-proposal.yml`, `hardware/README.md`, `hardware/blocks/block-a/README.md`, `os/README.md`, `os/image/manifest/README.md`, `os/kernel/PINS.md`, `test/stages/stage-02-halow-manet/README.md` |
 | `FML-ADR-023` | SELECTED | *not yet* | `docs/glossary.md`, `os/config/README.md`, `test/stages/stage-02-halow-manet/README.md` |

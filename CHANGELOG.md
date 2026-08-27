@@ -14,6 +14,47 @@ this program needs them visible:
 
 ## Unreleased
 
+### The Refs: rule gets measured instead of enforced
+
+`Refs:` stays `[review]`, and `tools/refs-report.sh` is what makes that a
+defensible position rather than a hopeful one. It prints the compliance rate on
+every `tools/lint.sh` run and names the offenders. It never fails the build.
+
+**The rule it measures was narrowed first, because the original was wrong.**
+"`Refs:` on anything touching `mule/`, `tools/` or `os/`" would have demanded a
+citation from `dc9bee9`, which added a repository check enforcing an `AGENTS.md`
+rule and served no ADR. There was nothing legitimate to reference, and a trailer
+invented to satisfy the rule is a false link that outlives the commit and looks
+deliberate to every later reader.
+
+The rule is now: a change that **adds or removes a decision citation in code**
+records which decision. Checked against all 23 commits, it fires on 10 and
+correctly stays silent on `dc9bee9`.
+
+Current coverage is **8 of 10, 80%**. Both misses are scaffold commits from
+before the convention existed.
+
+#### Added
+
+- `tools/refs-report.sh`, wired into `tools/lint.sh`. Defaults to
+  `origin/main..HEAD` so it reports on work that can still be fixed rather than
+  on history that cannot; `--all` for the whole record.
+
+  It counts only identifiers that **resolve to a real decision**, because
+  `test/unit/validate_docs.bats` plants a deliberately bogus one to prove a
+  check fires, and counting that would have reported the test suite as a
+  decision change forever.
+
+  It also separates "recorded a different decision than the one whose citation
+  changed" from "recorded nothing". The former is often correct and is shown
+  rather than counted as a fault.
+
+#### Changed
+
+- `AGENTS.md` states the narrowed rule, says plainly why it is not "any change
+  touching code", and names the report. A rule nobody measures is one nobody
+  keeps.
+
 ### Finding a decision from the code, and the code from a decision
 
 There was a rule for where code goes and none for how to get from a change back

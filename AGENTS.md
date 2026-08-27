@@ -124,9 +124,13 @@ hand-maintain the back-link: a hand-written `implemented-by` field rots, and
 this program has already lost a hand-kept traceability matrix that way.
 
 **A change explains itself in the log.** Conventional Commits, and a
-`Refs: FML-ADR-### | TBR-XXX-##` trailer on anything touching `mule/`, `tools/`
-or `os/`, so that `git log --grep` answers "why did this change" without anyone
-reading prose. `[review]`
+`Refs: FML-ADR-### | TBR-XXX-##` trailer on any change that **adds or removes a
+decision citation in code**, so that `git log --grep` answers "why did this
+change" without anyone reading prose. Not on every change touching code: a
+repository check that enforces a rule in this file serves no ADR, and a trailer
+invented to satisfy a rule is a false link that outlives the commit. `[review]`,
+reported by `tools/refs-report.sh` in every `tools/lint.sh` run, because a rule
+nobody measures is one nobody keeps.
 
 **Prefer the simplest thing that works.** No layer, wrapper, base class or
 indirection before a second caller needs it. No module for work that is
