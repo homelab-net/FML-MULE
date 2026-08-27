@@ -22,7 +22,8 @@ is a decision nobody has earned the right to make yet.
 A change is not done until all five hold. Say which ones you actually ran.
 
 1. `tools/lint.sh` passes. It runs every linter, the document checks, the
-   mission schema, and the mutation check.
+   mission schema, the shell tests and the mutation check. **Read its exit
+   code, not its last line of output.**
 2. New behaviour has a test that **fails without the change**. A test that
    passes either way is decoration.
 3. Any rule you added is enforced by a check, or you have said plainly why it
@@ -194,8 +195,15 @@ Real, from this repository. Recognise the shape.
    tests asserted that a fixture agreed with itself. The suite looked thorough
    and could not have failed.
 
+4. **A verification command did not cover what it claimed.** `tools/lint.sh`
+   never ran `bats`, while `AGENTS.md` said a change was done when `lint.sh`
+   passed. Two shell tests failed for days. They were also being read with
+   `tail -1`, which prints the last test rather than the result, so the run
+   looked green while its exit code was 1.
+
 The common shape: **something looked verified because nobody asked what would
-have to break for the check to notice.** Ask it.
+have to break for the check to notice.** Ask it. And when you check, read the
+signal that means success, not the one that looks like it.
 
 ## Where the reasoning lives
 

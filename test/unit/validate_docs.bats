@@ -153,12 +153,28 @@ PATCH
   [ "$status" -ne 0 ]
 }
 
-@test "gen-status reports a critical-path trade with no owner as a risk" {
+@test "gen-status reports every unowned critical-path trade as a risk" {
   run sh "$REPO/tools/gen-status.sh" --check
   [ "$status" -eq 0 ]
-  run grep -c "is on the critical path and has no owner" "$REPO/STATUS.md"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
+
+  # Derived from the trade files rather than matched against a phrase this test
+  # and the generator would both have to hardcode. An earlier version grepped
+  # for one sentence, and went stale silently when the wording changed.
+  unowned=0
+  for f in "$REPO"/docs/trades/TBR-*.md; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f")" in _*) continue ;; esac
+    grep -q "^critical-path: true" "$f" || continue
+    owner=$(sed -n 's/^owner: *//p' "$f" | head -1)
+    case "$owner" in TBD | TBD-*) ;; *) continue ;; esac
+    unowned=$((unowned + 1))
+    id=$(sed -n 's/^id: *//p' "$f" | head -1)
+    # Whatever the wording, the risk section must name the trade.
+    grep -q "$id" "$REPO/STATUS.md"
+  done
+
+  # The assertion is worthless if no trade qualifies, so prove some did.
+  [ "$unowned" -ge 1 ]
 }
 
 @test "gen-traceability --check fails on a binding requirement with no stage" {
@@ -231,13 +247,32 @@ REQ
   [ -f "$SANDBOX/docs/evidence/$expected/README.md" ]
 }
 
-@test "generated ADRs and trades pass validation" {
+@test "a generated ADR passes validation unmodified" {
   make_sandbox
   sh -c "cd '$SANDBOX' && sh tools/new-adr.sh 'Planted test decision'"
-  sh -c "cd '$SANDBOX' && sh tools/new-trade.sh RF 'Planted test question'"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -eq 0 ]
+}
+
+@test "a generated trade is invalid until it has an ITEP campaign" {
+  make_sandbox
+  sh -c "cd '$SANDBOX' && sh tools/new-trade.sh RF 'Planted test question'"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+
+  # This is correct behaviour, not a generator defect: check 10 requires every
+  # open trade to have a campaign, and a trade nobody has planned to close is
+  # a trade that will not close. An earlier version of this test asserted the
+  # generated trade passed, which check 10 had made impossible.
+  [ "$status" -ne 0 ]
+
+  # The campaign gap must be the ONLY thing wrong, otherwise the generator is
+  # producing incomplete artifacts and this test would hide it.
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1 | grep -c '^FAIL'"
+  [ "$output" -eq 1 ]
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1 | grep '^FAIL'"
+  [[ "$output" == *"does not appear in"* ]]
 }
 
 @test "new-adr refuses to overwrite an existing file" {

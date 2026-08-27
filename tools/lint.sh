@@ -132,6 +132,18 @@ else
   skip "mutation-check" python3
 fi
 
+# --- shell unit tests -------------------------------------------------------
+# These plant violations in a throwaway copy of the tree and assert each check
+# catches them. They belong here rather than only in CI: AGENTS.md says a change
+# is done when tools/lint.sh passes, and a command that omits the shell tests
+# makes that sentence untrue. Two failures survived unnoticed that way.
+
+if have bats; then
+  run "bats" bats test/unit
+else
+  skip "bats" bats
+fi
+
 # --- result -----------------------------------------------------------------
 printf '\n'
 if [ -n "$skipped" ]; then

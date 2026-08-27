@@ -14,6 +14,42 @@ this program needs them visible:
 
 ## Unreleased
 
+### tools/lint.sh now runs the shell tests, which it never did
+
+CI's first run on the repository found two `bats` tests failing. They had been
+failing locally too, and were not noticed for two reasons that reinforced each
+other.
+
+`tools/lint.sh` did not run `bats`. `AGENTS.md` says a change is done when
+`tools/lint.sh` passes, so the command the rules point at omitted the shell
+tests entirely, and a contributor following the rules would never run them.
+
+They were also being checked with `bats test/unit | tail -1`, which prints the
+last test rather than the result. The last test passed, the exit code was 1,
+and the output read as success. This is the same shape as reading a pipeline's
+output instead of its status, which had already gone wrong once in this branch.
+
+`lint.sh` now runs `bats`, and the `Done` rules say to read the exit code
+rather than the last line. Recorded as the fourth characteristic failure.
+
+#### Fixed
+
+- **`gen-status reports a critical-path trade with no owner as a risk`** was
+  matching a sentence `tools/gen-status.sh` stopped producing when its owner
+  handling was corrected earlier in this branch. It now derives the unowned
+  critical-path trades from the trade files and requires `STATUS.md` to name
+  each, so a wording change cannot make it stale again. It also asserts at
+  least one trade qualified, because the loop is worthless if none does.
+- **`generated ADRs and trades pass validation`** asserted something check 10
+  had made impossible: a freshly generated trade is `OPEN` and has no ITEP
+  campaign, and check 10 correctly refuses it. That is the generator and the
+  check both behaving properly, and the test's expectation was what was wrong.
+
+  Split in two. A generated ADR must pass validation unmodified. A generated
+  trade must fail, and the missing campaign must be the **only** failure -
+  which is a stronger statement than the original, because it proves the
+  generator produces otherwise-complete artifacts.
+
 ### TBR-TAK-01: the state classification, analysis half
 
 `ITEP-C01` item 1, the campaign the plan says "can begin today, by one person,
