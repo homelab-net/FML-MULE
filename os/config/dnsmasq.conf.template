@@ -1,0 +1,56 @@
+# Local DNS and DHCP configuration template - MULE
+#
+# Serves DNS and DHCP to end user devices associated with the EUD access point,
+# so that an operator's phone can find the node's services by name without
+# configuration.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node. dnsmasq is the
+# assumed implementation; that choice is not recorded as an ADR and should be.
+#
+# Trades: TBR-NET-01 (addressing scheme, and therefore the DHCP range)
+#         TBR-TAK-01 (which services need names)
+#
+# LOCAL-FIRST
+#
+# The system must remain useful with no internet, no central server, and no
+# parent infrastructure. This resolver is authoritative for the local domain
+# and forwards nothing by default. A resolver that fails when an upstream is
+# unreachable would defeat the property the whole program exists for.
+
+# --- Scope ------------------------------------------------------------------
+interface=TBD                  # EUD access point interface only.
+bind-interfaces
+# Do NOT serve DNS or DHCP onto the mesh. Every node runs this service, and
+# several DHCP servers on one flat layer 2 broadcast domain is a fault that
+# presents as intermittent and is unpleasant to diagnose. batman-adv makes the
+# mesh one broadcast domain; see batman-adv.conf.template.
+
+# --- DHCP -------------------------------------------------------------------
+# FROM THE MISSION PACKAGE AND THE ADDRESSING SCHEME. Never literals here.
+# dhcp-range=TBD
+# dhcp-option=TBD              # Router and DNS options
+# Lease time TBD: short enough that a device moving between nodes recovers
+# quickly, long enough not to churn. Nobody has measured what that is.
+
+# --- DNS --------------------------------------------------------------------
+# domain=TBD                   # Local domain. From the mission package.
+# local=/TBD/                  # Authoritative for the local domain.
+
+no-resolv
+# Forward nothing by default. Local-first; see above.
+
+# Service names resolve to this node's addresses. Which services exist and
+# which need names is TBR-TAK-01 and services/catalog/. See services/ingress/.
+# address=/TBD/TBD
+
+# --- What must never appear here --------------------------------------------
+# No real domain, hostname, member identity, callsign, or deployment location,
+# in any form, including in a comment or an example. A DNS configuration
+# discloses the structure of a deployment and the names of its participants.
+# See SECURITY.md, publication rule.
+
+# --- Notes ------------------------------------------------------------------
+# Two independently built deployments meeting at an incident must not collide.
+# A fixed local domain across all deployments makes that collision certain.
+# See TBR-NET-01.

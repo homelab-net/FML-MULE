@@ -1,0 +1,60 @@
+# Normalise line endings for everything Git considers text.
+* text=auto eol=lf
+
+# Explicit text types.
+*.md      text eol=lf
+*.sh      text eol=lf
+*.py      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.json    text eol=lf
+*.toml    text eol=lf
+*.conf    text eol=lf
+*.cfg     text eol=lf
+*.service text eol=lf
+*.network text eol=lf
+*.container text eol=lf
+*.patch   text eol=lf -diff
+*.diff    text eol=lf -diff
+
+# CAD, mechanical and drawing sources tracked with Git LFS.
+# This list exists BEFORE any such file is committed. Adding LFS tracking after
+# a binary has landed does not retroactively move it out of the Git object
+# store, so do not add a new binary format here without also confirming that no
+# file of that type is already in history.
+*.step  filter=lfs diff=lfs merge=lfs -text
+*.stp   filter=lfs diff=lfs merge=lfs -text
+*.stl   filter=lfs diff=lfs merge=lfs -text
+*.f3d   filter=lfs diff=lfs merge=lfs -text
+*.f3z   filter=lfs diff=lfs merge=lfs -text
+*.dxf   filter=lfs diff=lfs merge=lfs -text
+*.dwg   filter=lfs diff=lfs merge=lfs -text
+*.3mf   filter=lfs diff=lfs merge=lfs -text
+*.sldprt filter=lfs diff=lfs merge=lfs -text
+*.sldasm filter=lfs diff=lfs merge=lfs -text
+*.FCStd filter=lfs diff=lfs merge=lfs -text
+# Spreadsheets. A bill of material is committed as CSV so it diffs and reviews
+# as text; this tracking exists so that a source workbook, if one is ever
+# committed, lands correctly rather than as an unreviewable blob.
+*.xlsx  filter=lfs diff=lfs merge=lfs -text
+*.xlsm  filter=lfs diff=lfs merge=lfs -text
+*.ods   filter=lfs diff=lfs merge=lfs -text
+*.kicad_pcb filter=lfs diff=lfs merge=lfs -text
+
+# Rendered documents and images tracked with Git LFS.
+*.pdf   filter=lfs diff=lfs merge=lfs -text
+*.png   filter=lfs diff=lfs merge=lfs -text
+*.jpg   filter=lfs diff=lfs merge=lfs -text
+*.jpeg  filter=lfs diff=lfs merge=lfs -text
+*.gif   filter=lfs diff=lfs merge=lfs -text
+*.tif   filter=lfs diff=lfs merge=lfs -text
+*.tiff  filter=lfs diff=lfs merge=lfs -text
+*.webp  filter=lfs diff=lfs merge=lfs -text
+
+# SVG is a diagram source and is reviewed as text, so it is deliberately NOT
+# tracked with LFS. See docs/README.md, diagram source policy.
+*.svg   text eol=lf
+
+# Generated files: suppress diff noise in review, but they are still reviewed
+# by regenerating them. See tools/gen-status.sh.
+STATUS.md linguist-generated=true

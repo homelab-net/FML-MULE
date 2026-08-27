@@ -1,0 +1,121 @@
+---
+name: ADR proposal
+description: Propose an architecture decision
+title: "[adr] "
+labels: ["decision"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        An ADR records a decision that was taken, why, and what it costs. It is
+        not a design document and not a specification.
+
+
+        Before proposing: check `docs/NON-GOALS.md`. **Moving an item off that
+        list requires an ADR**, and this is the right place for it, but the bar
+        is deliberately high.
+
+
+        Allocate an identifier with `tools/new-adr.sh`. **Identifiers are
+        permanent and never reused**, and a changed decision supersedes an
+        earlier one rather than editing it.
+
+  - type: input
+    id: title
+    attributes:
+      label: Proposed decision
+      description: One sentence, in the active voice. One decision per ADR.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: >-
+        What forced a decision. What constraint applied, what was in tension,
+        what alternatives were genuinely on the table. A reader who was not
+        present should finish this understanding why doing nothing was not an
+        option.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Proposed status
+      description: See the vocabulary in `docs/adr/README.md`. The distinctions are the point.
+      options:
+        - SELECTED
+        - SELECTED PRINCIPLE
+        - SELECTED TARGET
+        - SELECTED PLANNING BASELINE
+        - PREFERRED
+        - CONDITIONAL
+    validations:
+      required: true
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: >-
+        Including what becomes harder and what this forecloses. An ADR whose
+        consequences are all favourable has not been examined.
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost
+    attributes:
+      label: Accepted cost
+      description: >-
+        What the program knowingly gives up. This is the specific thing someone
+        will later argue was a mistake; writing it down before they do is the
+        point. Do not write "none": there is always a cost, and an ADR claiming
+        otherwise is usually hiding one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: fallback
+    attributes:
+      label: Fallback
+      description: >-
+        What happens if this is wrong, what recovery costs, and what signal
+        would tell the program to take it. "None, this is structural" is a
+        legitimate answer; say it explicitly.
+    validations:
+      required: true
+
+  - type: input
+    id: trades
+    attributes:
+      label: Trades this depends on
+      description: >-
+        Every trade you cite must exist in `docs/trades/`;
+        `tools/validate-docs.sh` enforces it.
+      placeholder: e.g. TBR-LINUX-01, TBR-HW-01
+
+  - type: input
+    id: supersedes
+    attributes:
+      label: Supersedes
+      description: >-
+        An ADR identifier, if this replaces one. Record it in both directions.
+      placeholder: e.g. FML-ADR-022, or none
+
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked `docs/NON-GOALS.md`.
+          required: true
+        - label: >-
+            This ADR contains no invented specification. Unknown values are TBD
+            with the trade that will decide them.
+          required: true
+        - label: >-
+            This ADR claims nothing is tested. Unknown status is UNVERIFIED.
+          required: true

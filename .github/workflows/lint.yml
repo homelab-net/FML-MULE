@@ -1,0 +1,161 @@
+---
+# Lint and document validation.
+#
+# THERE IS NO BUILD OR TEST WORKFLOW, because there is nothing to build. The
+# first functional code in this repository is the image build pipeline, and it
+# does not exist yet. See AGENTS.md: build system before application code.
+#
+# WHAT A GREEN RUN MEANS
+#
+# The files parse, the linters are satisfied, the fakes pass, and the documents
+# are internally consistent. THAT IS ALL.
+#
+# CI HAS NO RADIOS, NO BATTERY, AND NO ENCLOSURE. A green run says nothing
+# about whether a radio enumerates, whether a mesh forms, whether the node
+# survives a day on battery, or whether it stays cool in an enclosure.
+# Hardware-in-the-loop verification belongs to the qualification stages. See
+# test/README.md.
+#
+# This is also why the repository carries no badges.
+
+name: Lint
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: a credential that reached an earlier commit is
+          # published, and removing the tip commit does not undo that.
+          fetch-depth: 0
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  documents:
+    name: Document validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate the ADR and trade registers
+        run: tools/validate-docs.sh
+
+      - name: Check that STATUS.md is not stale
+        # STATUS.md is generated and never hand-edited. A stale status page is
+        # how a repository signals abandonment.
+        run: tools/gen-status.sh --check
+
+      - name: Check requirement traceability
+        # Fails when any binding requirement lacks an architecture allocation
+        # or a validating stage. A requirement with no validating stage is a
+        # defect. The requirement set is not yet populated; the check is wired
+        # up so the first requirement lands into working machinery.
+        run: tools/gen-traceability.sh --check
+
+  markdown:
+    name: Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Lint Markdown
+        run: npx --yes markdownlint-cli2 "**/*.md"
+
+  shell:
+    name: Shell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck, shfmt and bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck bats
+          curl -fsSL -o /tmp/shfmt \
+            https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64
+          sudo install -m 0755 /tmp/shfmt /usr/local/bin/shfmt
+
+      - name: shellcheck
+        run: shellcheck tools/*.sh
+
+      - name: shfmt
+        run: shfmt -d -i 2 -ci tools/*.sh
+
+      - name: Shell unit tests
+        # These plant violations in a throwaway copy of the tree and assert
+        # each check catches them. A checker that has never been shown to fail
+        # has not been tested.
+        run: bats test/unit
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install --upgrade pip ruff pytest jsonschema pyyaml
+
+      - name: ruff lint
+        run: ruff check .
+
+      - name: ruff format
+        run: ruff format --check .
+
+      - name: Validate mission packages
+        run: python tools/validate-mission.py
+
+      # Unit tests and the flat-sat scenarios. Neither needs a radio; see
+      # test/README.md for what a green run does and does not mean.
+      - name: Python tests
+        run: pytest
+
+  yaml:
+    name: YAML and Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install --upgrade pip yamllint ansible-lint ansible-core
+
+      - name: yamllint
+        run: yamllint .
+
+      - name: ansible-lint
+        run: ansible-lint os/ansible
+
+      - name: Ansible syntax check
+        # --syntax-check and --check are the minimum bar. They confirm the
+        # playbook parses and the tasks are well-formed. They confirm nothing
+        # works: there is no host, and there are no radios.
+        run: |
+          ansible-playbook -i os/ansible/inventory/example.yml \
+            os/ansible/site.yml --syntax-check

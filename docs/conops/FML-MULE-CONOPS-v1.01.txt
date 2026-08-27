@@ -1,0 +1,2718 @@
+================================================================================
+PROGRAM FERAL MULE (FML)
+MULTI-BEARER UTILITY LINK EQUIPMENT (MULE)
+CONCEPT OF OPERATIONS (CONOPS)
+================================================================================
+
+Version              : 1.01
+Status               : BASELINE (pending stakeholder signature, Section 87)
+Parent Effort        : Homelab Phase 6 / WP-07 RF, Meshtastic and TAK
+                       Communications
+Document Type        : Subsystem Concept of Operations
+Supersedes           : T-MBNN CONOPS v1.0 BASELINE
+Controlled Document  : Yes. Changes after signature require a change request
+                       against Section 86.
+Program Nickname      : FERAL MULE
+Program Identifier    : FML
+Fielded End Item      : MULE
+Technical Expansion   : Multi-Bearer Utility Link Equipment
+Legacy Working Name   : Team Multi-Bearer Network Node (T-MBNN)
+Naming Classification : Unclassified internal project convention; does not
+                       imply government SAP status or classification.
+
+Document Purpose
+  Define the operational concept, user experience, service model, resilience
+  model, security boundaries, sustainment expectations, interoperability
+  posture, and deployment philosophy for the MULE subsystem before System
+  Architecture, TRD, ICD, BOM, verification, and procurement decisions are
+  finalized.
+
+--------------------------------------------------------------------------------
+0. DOCUMENT CONTROL
+--------------------------------------------------------------------------------
+
+0.1 Revision History
+
+  Ver    Date         Summary of Change
+  ----   ----------   ------------------------------------------------------
+  0.9    (prior)      Lock candidate. Post first multidisciplinary review.
+  0.99   (prior)      Second review incorporated. Added: designated alternate
+                      (7.3); communications/identity management function (7.6);
+                      property custodian (7.7); amateur control operator (7.8);
+                      bounded mission trust (14); partition revocation (15);
+                      EUD failure recovery (16); membership/credential
+                      lifecycle (17); auditability (18); peer scaling (22);
+                      TAK state classes (26); authoritative state (28);
+                      automatic vs administrative promotion (30); service-host
+                      burden (31); RF compliance ownership (37); amateur-radio
+                      governance (46); external interoperability boundary (47);
+                      incident-command interface (48); EMCON mode (50.12);
+                      EXERCISE mode (50.13); exercise control (51); diagnostic
+                      tier (52); training model (53); AAR (54); privacy and
+                      data governance (55-58); 24-72 hour sustainment (60);
+                      cold-weather power (61); night/signature controls (65);
+                      capture and data at rest (69); zeroize (70); unit
+                      acceptance (74); fleet sustainment (75); program
+                      knowledge continuity (76).
+  1.0    2026-08-25   Baseline issue. Changes from v0.99 are editorial and
+                      structural, not conceptual:
+                      (a) applied binding modal convention per Section 0.2;
+                      (b) added document control, acronym list, and approval
+                          block;
+                      (c) added Section 85 verification traceability matrix
+                          mapping success criteria to qualification stages;
+                      (d) added Section 86 change control;
+                      (e) restated Section 83 review basis to distinguish
+                          practitioner review from analytical review;
+                      (f) corrected formatting defects (collapsed code blocks,
+                          malformed table in Section 40).
+                      No operational concept was added, removed, or altered.
+  1.01   2026-08-25   Controlled nomenclature revision:
+                      (a) adopted FERAL MULE as the program nickname;
+                      (b) adopted FML as the program identifier;
+                      (c) renamed the fielded end item MULE, expanded as
+                          Multi-Bearer Utility Link Equipment;
+                      (d) retained T-MBNN as the legacy working name only.
+                      No SHALL statement, success criterion, qualification
+                      stage, security boundary, interface concept, or
+                      operational behavior was changed.
+
+0.2 Modal Verb Convention
+
+  This document uses three modal terms with fixed meaning. Downstream
+  documents shall preserve these meanings when tracing to this CONOPS.
+
+  SHALL   Binding. Establishes a requirement that shall be decomposed into one
+          or more verifiable TRD requirements and shall appear in the
+          Verification Matrix. A SHALL statement cannot be dropped downstream
+          without a change request against this document.
+
+  SHOULD  Preferred. Establishes the intended design direction. May be waived
+          in System Architecture or TRD with documented rationale recorded in
+          the applicable design decision record. A waiver does not require a
+          CONOPS change request.
+
+  MAY     Permitted. Establishes an allowed option or an illustrative example.
+          Creates no obligation and generates no verification requirement.
+
+  Where this document lists examples, those examples are MAY-class unless the
+  introducing sentence uses SHALL or SHOULD.
+
+0.3 Requirement Identification
+
+  Binding statements are marked inline as [SHALL] at the start of the clause
+  to support extraction into the TRD. Statements without a marker carry the
+  modal meaning of their verb per Section 0.2.
+
+0.4 Acronyms and Terms
+
+  AAR      After Action Review
+  AHJ      Authority Having Jurisdiction
+  APRS     Automatic Packet Reporting System
+  ATAK     Android Team Awareness Kit
+  ATP      Acceptance Test Plan
+  BMS      Battery Management System
+  BOM      Bill of Materials
+  CI       Configuration Item
+  COML     Communications Unit Leader (ICS position)
+  COP      Common Operating Picture
+  CoT      Cursor on Target
+  CRL      Certificate Revocation List
+  DHCP     Dynamic Host Configuration Protocol
+  EIRP     Effective Isotropic Radiated Power
+  EMCON    Emission Control
+  EUD      End User Device
+  GeoChat  TAK geospatial chat function
+  HaLow    IEEE 802.11ah sub-GHz Wi-Fi
+  HF       High Frequency
+  ICD      Interface Control Document
+  ICS      Incident Command System
+  IP       Internet Protocol
+  ISM      Industrial, Scientific, Medical (radio band)
+  LoRa     Long Range (sub-GHz modulation)
+  MANET    Mobile Ad Hoc Network
+  FML      Program Identifier for FERAL MULE
+  MULE     Multi-Bearer Utility Link Equipment
+  T-MBNN   Team Multi-Bearer Network Node (legacy working name)
+  NIFOG    National Interoperability Field Operations Guide
+  NOMAD    Parent Homelab mobile compute platform
+  PACE     Primary, Alternate, Contingency, Emergency (comms plan)
+  PKI      Public Key Infrastructure
+  PLI      Position Location Information
+  PTT      Push To Talk
+  RF       Radio Frequency
+  RPO      Recovery Point Objective
+  RSSI     Received Signal Strength Indicator
+  RTO      Recovery Time Objective
+  SAR      Search and Rescue
+  SBC      Single Board Computer
+  SIGINT   Signals Intelligence
+  SNR      Signal to Noise Ratio
+  SOP      Standard Operating Procedure
+  TAK      Team Awareness Kit
+  TLS      Transport Layer Security
+  TNC      Terminal Node Controller
+  TRD      Technical Requirements Document
+  UHF      Ultra High Frequency
+  VHF      Very High Frequency
+  WAN      Wide Area Network
+
+  Authoritative State      A shared service condition in which held mission
+                           state is complete and current enough to be relied on
+                           for tasking.
+  Hardware Block           A qualified configuration of compute, radio, and
+                           power components that is operationally
+                           interchangeable within its qualification boundary.
+  Mission-Scoped Identity  A credential issued for a defined mission or
+                           validity window that fails safe by expiry.
+  Peer Operational Domain  The set of participants reachable by common peer CoT
+                           distribution on a given network.
+  Service Host             A node currently running an S2 shared service.
+  FERAL MULE               Unclassified internal program nickname for the
+                           MULE development effort.
+  Program Identifier FML   Unclassified internal identifier associated with
+                           FERAL MULE for project/document shorthand only.
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+The Multi-Bearer Utility Link Equipment (MULE), developed under Program FERAL MULE (FML), is a standardized, portable,
+team-level communications and edge-services appliance designed to provide
+authenticated users with a consistent field digital environment despite
+changing radio conditions, intermittent or absent WAN connectivity, server
+failures, node failures, leadership changes, equipment loss, and degraded power
+conditions.
+
+The core operating principle is:
+
+    Power on, connect, authenticate, work.
+
+An authorized user should not need to know which radio bearer is active, which
+node is hosting a service, whether the TAK service is running on NOMAD, a
+portable field-services host, or another MULE, or whether WAN connectivity is
+available.
+
+The MULE is designed around one common hardware and software baseline.
+Different capabilities are enabled according to user identity, role,
+organizational scope, mission profile, current resource state, and current
+network conditions rather than by issuing different devices.
+
+[SHALL] The system shall be local-first and WAN-independent. Loss of WAN shall
+not remove baseline local communications.
+
+The system provides a hierarchy of communications capabilities:
+
+  1. higher-throughput conventional Wi-Fi IP when conditions support it;
+  2. range-oriented Wi-Fi HaLow IP for resilient local MANET operation;
+  3. LoRa/Meshtastic for degraded low-bandwidth communications;
+  4. local-only digital services when no inter-node path exists;
+  5. independent analog/manual PACE procedures when the digital system is
+     unavailable.
+
+The MULE is intended to support authorized training, volunteer disaster
+response, field communications experimentation, situational awareness, RF and
+sensor integration, and portable mission collaboration. It is not intended to
+replace normal incident-command communications structures, voice radio
+procedures, or analog fallback methods.
+
+================================================================================
+2. RELATIONSHIP TO THE PARENT HOMELAB
+================================================================================
+
+The MULE is developed as a Phase 6 / WP-07 field communications subsystem.
+
+The parent Homelab architecture establishes several principles that this
+subsystem preserves:
+
+  * TAK is the primary trusted field situational-awareness plane.
+  * Field operations are offline-first.
+  * WAN reachback is optional.
+  * Meshtastic/LoRa provides low-bandwidth field communications.
+  * RF and non-TAK-native systems integrate through controlled translation
+    interfaces.
+  * Network reachability does not itself grant service or data authorization.
+  * Local operation must continue when parent infrastructure is unavailable.
+  * Field users must not gain unrestricted access to home, private, or
+    administrative systems merely because reachability exists.
+
+This CONOPS deliberately generalizes the current parent-system assumption that
+TAK and communications-gateway functions are hosted only on NOMAD.
+
+Under the MULE concept, approved field services may operate on:
+
+  * NOMAD;
+  * a portable field-services host;
+  * an eligible MULE;
+  * another approved compatible platform.
+
+[SHALL] The MULE field subsystem shall be validated independently before the
+parent Homelab architecture is rebaselined.
+
+================================================================================
+3. OPERATIONAL PROBLEM
+================================================================================
+
+A field team does not merely need a radio. It needs a digital operating
+environment that continues to provide useful capability when:
+
+  * users and teams move;
+  * terrain changes;
+  * routes appear and disappear;
+  * bandwidth varies dramatically;
+  * WAN connectivity appears or disappears;
+  * a TAK Server fails;
+  * an edge node fails;
+  * the team leader becomes unavailable;
+  * an EUD is lost, destroyed, or replaced;
+  * a battery is depleted;
+  * a network partitions;
+  * an equipment item is captured or abandoned;
+  * one communications bearer becomes unusable;
+  * a field-service host loses power;
+  * a user or administrator departs the organization.
+
+No single communications technology provides the ideal combination of range,
+throughput, power efficiency, latency, spectrum diversity, and resilience.
+
+The operational problem is therefore:
+
+    Provide a team with one standardized appliance that presents authenticated
+    users with a consistent field-service environment while automatically
+    exploiting available communications capability, preserving critical
+    functionality through failure, and degrading safely when conditions worsen.
+
+================================================================================
+4. OPERATIONAL PHILOSOPHY
+================================================================================
+
+The MULE is an operational accelerator, not a replacement for fundamentals.
+
+[SHALL] Organizations employing the system shall maintain mission-appropriate
+PACE procedures that do not depend on MULE.
+
+These may include:
+
+  * voice radio;
+  * prearranged reporting windows;
+  * paper maps and analog COP products;
+  * written tasking;
+  * rally points;
+  * runners;
+  * manual resource and accountability procedures;
+  * non-digital command-and-control methods.
+
+[SHALL] Recurring team training shall include exercise periods in which MULE
+is intentionally unavailable for a meaningful portion of the problem.
+
+The system is successful when its loss is disruptive but not mission-ending.
+
+================================================================================
+5. CORE DESIGN PRINCIPLES
+================================================================================
+
+5.1 One Standard Device
+
+[SHALL] All normal fielded MULEs within an approved hardware block shall use
+materially common:
+
+  * compute hardware;
+  * approved radio interfaces;
+  * enclosure architecture;
+  * battery interface;
+  * approved firmware;
+  * approved service catalog;
+  * management stack;
+  * security architecture.
+
+A node may perform different operational roles through configuration or runtime
+policy. [SHALL] Separate leader, relay, gateway, or TAK-server hardware
+variants shall not be part of the baseline concept.
+
+[SHALL] A spare MULE shall be capable of replacing any normal MULE within
+the same approved hardware block.
+
+5.2 Hardware Block Interchangeability
+
+"Identical" does not require the same commercial part number forever. Because
+component availability and lifecycle may change, the fleet may use approved
+hardware blocks over time.
+
+[SHALL] Each hardware block shall:
+
+  * satisfy the same controlled interfaces;
+  * run the same approved mission-service model;
+  * meet the same functional requirements;
+  * remain operationally interchangeable within its qualification boundary;
+  * pass unit-level acceptance testing before fielding.
+
+[SHALL] Hardware substitutions shall be requalified against applicable RF,
+power, software, interface, and acceptance criteria.
+
+5.3 Roles Change, Hardware Does Not
+
+User capability is determined by:
+
+    Identity + Role + Organizational Scope + Mission Profile
+
+A Team Lead and a Unit Member may use the same physical MULE and receive
+different approved capabilities after authentication.
+
+5.4 Local First
+
+[SHALL] Required field capability shall not depend on:
+
+  * Internet;
+  * commercial cellular service;
+  * Starlink;
+  * Tailscale or any equivalent overlay;
+  * home Homelab connectivity;
+  * NOMAD;
+  * a central TAK Server.
+
+WAN enhances the local environment but does not create it.
+
+5.5 Graceful Degradation
+
+[SHALL] The system shall lose capability in a controlled order:
+
+    High-throughput IP
+        |
+        v
+    Range-oriented IP
+        |
+        v
+    LoRa / Meshtastic
+        |
+        v
+    Local digital operation
+        |
+        v
+    Analog / manual PACE
+
+The objective is not to preserve every service under every condition. The
+objective is to preserve the highest-priority useful capability available under
+the circumstances.
+
+5.6 Stable User Experience
+
+Users interact with stable logical services rather than physical hosts.
+Conceptual service names may include:
+
+    tak.field
+    chat.field
+    files.field
+    portal.field
+
+Users should not normally need to know:
+
+  * which node hosts a service;
+  * which node owns the WAN gateway;
+  * which radio path carries their traffic;
+  * which mesh route is selected;
+  * whether the service runs on NOMAD or a portable host.
+
+5.7 Replaceability Over Internal Redundancy
+
+Resilience should favor:
+
+  * common nodes;
+  * field-replaceable components;
+  * shared software baselines;
+  * distributed service capability;
+  * spare batteries;
+  * spare antennas;
+  * spare complete MULEs.
+
+The baseline should avoid duplicated internal compute or radio hardware added
+solely to prevent failure of one device.
+
+5.8 Stability Over Constant Optimization
+
+[SHALL] Service placement and route selection shall use damping, persistence,
+minimum-residency, or threshold logic sufficient to prevent oscillation.
+
+The system shall not move services or routes merely because another host or
+path appears marginally better.
+
+================================================================================
+6. REPRESENTATIVE TEAM
+================================================================================
+
+One MULE supports one field team. For planning, the representative team
+contains approximately 4 to 8 authenticated EUD users per MULE.
+
+This is a planning case, not a final technical maximum.
+
+[SHALL] Maximum EUD count, total mesh population, acceptable peer-to-peer TAK
+scale, and performance by hop count shall be established through testing under
+Section 78, Stage 2.
+
+================================================================================
+7. USER AND ORGANIZATIONAL ROLES
+================================================================================
+
+7.1 Unit Member
+
+A Unit Member receives normal approved field capabilities, including:
+
+  * operational WLAN access;
+  * ATAK access;
+  * peer-to-peer ATAK;
+  * approved browser field services;
+  * approved mission files and reference material;
+  * basic node and network status.
+
+[SHALL] A Unit Member shall not receive infrastructure administration
+privileges.
+
+7.2 Team Lead
+
+A Team Lead receives Unit Member capabilities plus approved team-level
+functions within the assigned organizational scope. Potential functions
+include:
+
+  * team connectivity status;
+  * team-level mission applications;
+  * expanded diagnostic status;
+  * approved service controls;
+  * limited operational configuration;
+  * awareness of authoritative and non-authoritative shared-service state.
+
+[SHALL] A Team Lead shall not automatically receive privileged access to
+another team's scope.
+
+7.3 Designated Alternate
+
+[SHALL] Each team shall be capable of designating one or more alternates.
+
+An alternate may assume approved Team Lead functions when:
+
+  * the Team Lead is unavailable;
+  * command is formally handed off;
+  * the leader's EUD fails;
+  * mission configuration directs succession.
+
+[SHALL] Team capability shall not depend on one person's EUD remaining awake or
+associated with the network.
+
+7.4 Field Network Administrator
+
+The Field Network Administrator may perform approved infrastructure functions
+including:
+
+  * node provisioning;
+  * field-network configuration;
+  * bearer configuration;
+  * node diagnostics;
+  * approved credential recovery;
+  * firmware and configuration recovery;
+  * service-continuity actions;
+  * replacement-node preparation.
+
+[SHALL] Field administrative authority shall not automatically confer
+organizational root or enrollment-authority privilege.
+
+7.5 TAK Administrator
+
+The TAK Administrator manages TAK service functions such as:
+
+  * user and group configuration;
+  * certificate and service configuration;
+  * enrollment;
+  * mission packages;
+  * server-side integrations;
+  * TAK service health.
+
+7.6 Communications and Identity Management Function
+
+[SHALL] The organization shall maintain a standing function responsible for:
+
+  * onboarding;
+  * identity issuance;
+  * periodic identity review;
+  * revocation;
+  * mission credentials;
+  * node identities;
+  * re-keying;
+  * mission configuration packages;
+  * node re-imaging;
+  * lost-device response;
+  * privileged-role review;
+  * audit records;
+  * replacement-node preparation.
+
+[SHALL] This function shall exist and be staffed before fielding.
+
+7.7 Property and Configuration Custodian
+
+[SHALL] The organization shall maintain custody records for:
+
+  * MULE serial and configuration identity;
+  * hardware block;
+  * battery packs;
+  * accessories;
+  * issue and return dates;
+  * assigned custodian;
+  * credential status;
+  * lost or stolen status.
+
+Property custody and technical telemetry are separate functions.
+
+7.8 Amateur-Radio Control Operator
+
+[SHALL] When an amateur-radio gateway is activated, a responsible control
+operator shall be designated as a distinct operational role.
+
+[SHALL] A Field Network Administrator shall not be treated as an amateur
+control operator by virtue of that role.
+
+[SHALL] Activation of amateur-radio egress shall occur only under an approved
+mission configuration and applicable lawful operating conditions.
+
+================================================================================
+8. FUNCTIONAL PLANES
+================================================================================
+
+Every MULE contains two principal functional planes.
+
+8.1 Network Plane
+
+The Network Plane provides:
+
+  * authenticated EUD access;
+  * local addressing and service discovery;
+  * mesh routing;
+  * high-throughput IP bearer;
+  * HaLow IP bearer;
+  * LoRa/Meshtastic bearer;
+  * Ethernet;
+  * WAN gateway capability;
+  * secure WAN overlay endpoint;
+  * firewalling;
+  * network policy;
+  * node and network status.
+
+8.2 Edge Service Plane
+
+The Edge Service Plane provides:
+
+  * identity and policy support;
+  * local field portal;
+  * locally cached mission information;
+  * service discovery;
+  * role-gated applications;
+  * node and service health;
+  * service orchestration;
+  * optional shared-service hosting.
+
+[SHALL] Every MULE shall carry the same approved software service catalog for
+its hardware block.
+
+================================================================================
+9. SERVICE CRITICALITY MODEL
+================================================================================
+
+9.1 S0 - Core Node Services
+
+[SHALL] S0 functions shall remain active whenever the node is operational.
+
+Examples:
+
+  * EUD access network;
+  * authentication;
+  * routing;
+  * node identity;
+  * core service discovery;
+  * policy enforcement;
+  * basic status;
+  * degraded-communications control;
+  * required local time functions.
+
+9.2 S1 - Local Mission Services
+
+S1 functions should remain locally available where practical even when all
+external service hosts are absent.
+
+Examples:
+
+  * peer-to-peer ATAK;
+  * selected cached maps;
+  * local mission reference material;
+  * local portal;
+  * selected local files;
+  * node and team status;
+  * Meshtastic interface.
+
+9.3 S2 - Shared Mission Services
+
+S2 functions use shared state or central coordination.
+
+Examples:
+
+  * TAK Server;
+  * browser-based group chat;
+  * shared mission files;
+  * shared mission collaboration services.
+
+S2 services may run on a selected MULE, a portable field-services host,
+NOMAD, or another approved host.
+
+9.4 S3 - Enhanced Services
+
+S3 services enhance capability but are not required for baseline field
+communications.
+
+Examples:
+
+  * AI/RAG;
+  * heavy video processing;
+  * bulk analytics;
+  * large media processing;
+  * noncritical synchronization.
+
+[SHALL] Loss or shutdown of any S3 service shall not disable baseline field
+communications. S3 services shall be the first class stopped under constrained
+battery, thermal, bandwidth, or compute conditions.
+
+================================================================================
+10. DYNAMIC SERVICE ACTIVATION
+================================================================================
+
+All MULEs carry the same approved service software for the hardware block.
+
+Nonessential services may activate based on:
+
+  * authenticated user demand;
+  * user role;
+  * organizational scope;
+  * mission profile;
+  * battery condition;
+  * CPU and memory state;
+  * thermal state;
+  * storage state;
+  * network quality;
+  * availability of another preferred service host.
+
+[SHALL] Service activation shall not tie team-level capability to a single EUD
+remaining connected.
+
+Team-level service continuity may be sustained by:
+
+  * an authenticated Team Lead;
+  * a designated alternate;
+  * the mission profile itself;
+  * explicit service persistence policy.
+
+[SHALL] Grace periods and damping shall be applied so that brief roaming, EUD
+sleep states, or momentary disconnects do not repeatedly start and stop
+services.
+
+================================================================================
+11. SERVICE ACTIVATION AND EMISSIONS
+================================================================================
+
+[SHALL] Service activation shall not create externally observable behavior that
+directly and unnecessarily reveals privileged-user login, leadership presence,
+or command structure.
+
+Where operationally practical:
+
+  * privileged services should use stable hosting behavior;
+  * service activation timing should not map directly to leader authentication
+    events;
+  * EMCON policy may suppress nonessential service announcements or external
+    traffic.
+
+Exact traffic-analysis mitigation is a downstream architecture and RF/security
+problem.
+
+================================================================================
+12. EUD ACCESS
+================================================================================
+
+EUDs connect to the MULE local access network.
+
+    Authorized EUD
+          |
+        Wi-Fi
+          |
+       MULE
+          |
+    Field services
+
+[SHALL] EUDs shall not join the Tailscale or equivalent WAN overlay directly.
+
+[SHALL] The MULE shall be the routing, authentication, and security boundary
+between EUDs and remote field services.
+
+================================================================================
+13. AUTHENTICATION MODEL
+================================================================================
+
+[SHALL] The system shall separate:
+
+  1. network admission;
+  2. user identity;
+  3. role and scope;
+  4. application authorization;
+  5. TAK authorization;
+  6. infrastructure administration.
+
+[SHALL] Knowledge of a shared WLAN password shall not be sufficient
+authorization for the production field environment.
+
+[SHALL] Each authorized EUD shall use an individually identifiable, revocable,
+and time-bounded credential appropriate to the mission.
+
+MAC addresses may support inventory, diagnostics, telemetry, and anomaly
+detection.
+
+[SHALL] MAC addresses shall not be trusted as primary proof of user or device
+identity.
+
+================================================================================
+14. MISSION-SCOPED TRUST
+================================================================================
+
+Offline operation and instantaneous revocation across disconnected partitions
+are incompatible. The system therefore uses the concept of bounded mission
+trust.
+
+[SHALL] Before deployment, authorized users and devices shall receive
+mission-scoped identities or credentials with a defined validity window.
+
+A conceptual trust hierarchy is:
+
+    Offline Organizational Root
+              |
+              v
+    Mission / Enrollment Authority
+              |
+              v
+    Mission-Scoped Identities
+
+[SHALL] The organizational root shall not be required to be present on any
+MULE.
+
+Field recovery or enrollment authority should be delegated only as necessary.
+
+================================================================================
+15. CREDENTIAL REVOCATION DURING PARTITION
+================================================================================
+
+When an EUD or identity is revoked:
+
+  1. a signed revocation or equivalent authorization change is generated;
+  2. the update propagates over available approved paths;
+  3. nodes receiving the update reject the identity;
+  4. disconnected nodes may continue honoring the previous credential until the
+     revocation reaches them, or the credential expires.
+
+[SHALL] This revocation-lag limitation shall be stated in administrator and
+Team Lead training material.
+
+[SHALL] The production system shall use bounded credential lifetimes such that
+a disconnected unrevoked credential eventually fails safe by expiry.
+
+Exact credential duration and revocation-lag objectives belong in the Security
+Architecture and TRD.
+
+================================================================================
+16. EUD FAILURE AND USER RECOVERY
+================================================================================
+
+[SHALL] An authorized user's operational identity shall not be permanently
+bound to one physical EUD.
+
+[SHALL] The system shall support controlled recovery when an EUD is destroyed,
+lost, damaged, depleted, or replaced.
+
+An approved recovery authority should be able to:
+
+  1. verify the user's identity;
+  2. revoke or suspend the missing device;
+  3. provision a replacement device;
+  4. restore appropriate role and scope;
+  5. restore approved application access;
+  6. perform the process without WAN dependency where the field recovery design
+     permits.
+
+[SHALL] Mission planning shall identify alternate recovery authorities or
+pre-positioned recovery capability.
+
+================================================================================
+17. MEMBERSHIP AND CREDENTIAL LIFECYCLE
+================================================================================
+
+[SHALL] Volunteer membership state shall be linked to credential validity.
+
+The system should prefer credentials that expire automatically unless renewed
+through an approved organizational process.
+
+[SHALL] The following events shall trigger identity review or revocation:
+
+  * resignation;
+  * termination;
+  * prolonged inactivity;
+  * loss of equipment;
+  * role change;
+  * privilege reduction;
+  * suspected compromise.
+
+[SHALL] Authority to issue or delegate identities shall be more constrained
+than normal network administration authority.
+
+================================================================================
+18. AUDITABILITY
+================================================================================
+
+[SHALL] The system shall record security-relevant administrative events
+including:
+
+  * credential issuance;
+  * revocation;
+  * role changes;
+  * scope changes;
+  * mission-profile changes;
+  * privileged configuration changes;
+  * service-host promotions;
+  * zeroize actions;
+  * node enrollment;
+  * node decommissioning.
+
+Audit records should be tamper-evident to a level appropriate to the system.
+
+Small volunteer organizations may not achieve perfect separation of duties.
+[SHALL] A compensating control shall be established consisting of periodic
+independent review of privileged identities and administrative actions by a
+second authorized person.
+
+================================================================================
+19. MISSION CONFIGURATION PACKAGE
+================================================================================
+
+[SHALL] Each deployment shall use an approved mission configuration package
+containing, as applicable:
+
+  * node identities;
+  * network parameters;
+  * trusted credentials;
+  * approved users;
+  * mission-scoped identities;
+  * roles;
+  * alternates;
+  * organizational scope;
+  * service definitions;
+  * TAK logical identity;
+  * radio profiles;
+  * exercise or live status;
+  * external interoperability parameters;
+  * amateur-radio enablement state;
+  * retention policy;
+  * EMCON parameters.
+
+Predeployment configuration is preferred over uncontrolled field modification.
+Field changes remain possible for authorized administrators but should be
+exceptional rather than routine.
+
+================================================================================
+20. ATAK AND TAK OPERATING CONCEPT
+================================================================================
+
+TAK is the primary trusted operational situational-awareness environment for
+supported missions.
+
+MULE supports two complementary TAK operating states:
+
+  * peer-to-peer ATAK;
+  * server-enhanced ATAK.
+
+================================================================================
+21. PEER-TO-PEER ATAK
+================================================================================
+
+Where network reachability exists, supported peer ATAK functions may continue
+without a TAK Server. Expected peer functions include:
+
+  * PLI;
+  * GeoChat;
+  * selected CoT events;
+  * selected peer-distributed information.
+
+Peer mode is a continuity capability. It is not assumed to provide:
+
+  * TAK Server persistence;
+  * full DataSync behavior;
+  * server-managed group semantics;
+  * equivalent scalability;
+  * identical performance under high client count.
+
+================================================================================
+22. PEER-TO-PEER SCALING
+================================================================================
+
+Peer CoT traffic can grow significantly as participant count and hop count
+increase. Therefore:
+
+  * 4 to 8 EUDs per node remains a planning scenario, not a guaranteed scale
+    limit;
+  * mission profiles may adjust PLI intervals and other update rates;
+  * [SHALL] multicast behavior shall be measured under representative
+    multi-hop load;
+  * [SHALL] Stage 2 qualification shall determine usable network size and
+    hop-count limits.
+
+[SHALL] The system shall not assume that bench-scale peer TAK performance
+extends automatically to a large field network.
+
+================================================================================
+23. PEER DATA PRIVACY RULE
+================================================================================
+
+[SHALL] Information sent through a common peer operational domain shall be
+treated as potentially visible to all other authenticated participants on that
+domain.
+
+A user interface that hides an item from a user does not make common peer
+traffic confidential.
+
+[SHALL] Role-restricted information shall use an appropriately authenticated
+service or another approved protection mechanism rather than relying on peer
+distribution behavior.
+
+[SHALL] This rule shall appear in user training, Team Lead training, and
+quick-reference material.
+
+================================================================================
+24. SERVER-ENHANCED TAK
+================================================================================
+
+A reachable TAK service may provide:
+
+  * centralized CoT routing;
+  * persistent data;
+  * groups;
+  * enrollment;
+  * DataSync;
+  * mission packages;
+  * shared mission collaboration.
+
+This CONOPS does not mandate a specific TAK implementation.
+
+================================================================================
+25. STABLE TAK SERVICE IDENTITY
+================================================================================
+
+[SHALL] EUDs shall reference a stable logical TAK service identity rather than
+a specific physical host.
+
+    ATAK
+      |
+    tak.field
+      |
+      +-- MULE
+      +-- Portable Field Services Host
+      +-- NOMAD
+
+[SHALL] Movement of the service between eligible hosts shall not require
+ordinary users to change ATAK server settings.
+
+[SHALL] Eligible hosts shall use compatible service trust and certificate
+identity so that failover does not create avoidable client trust failures.
+
+================================================================================
+26. TAK STATE CLASSES
+================================================================================
+
+TAK continuity distinguishes three classes of state.
+
+26.1 Common Trust and Configuration
+
+[SHALL] This class shall be consistent across all eligible service hosts.
+Examples include:
+
+  * service trust identity;
+  * certificate trust;
+  * mission configuration;
+  * role definitions;
+  * shared service configuration.
+
+26.2 Mission-Critical Persistent State
+
+[SHALL] State in this class shall survive failover before a replacement TAK
+service may be considered fully authoritative.
+
+[SHALL] The exact data categories in this class shall be defined in the TRD.
+
+Potential examples include:
+
+  * selected mission state;
+  * selected DataSync content;
+  * persistent tasking;
+  * selected shared files and data required for mission continuity.
+
+26.3 Reconstructable or Ephemeral State
+
+This state may be rebuilt from reconnecting clients or new network activity.
+Potential examples include:
+
+  * current PLI;
+  * transient session state;
+  * some presence information.
+
+================================================================================
+27. TAK SERVICE CONTINUITY
+================================================================================
+
+[SHALL] Failure of the active TAK host shall trigger recovery when another
+eligible host is available and safe authority can be established.
+
+[SHALL] Operational expectations are:
+
+  * no manual EUD server change;
+  * no routine end-user intervention;
+  * bounded interruption;
+  * bounded state loss;
+  * clear authoritative or degraded indication;
+  * peer ATAK remains available when local networking survives.
+
+The initial operational objective is:
+
+    Restore synchronized shared TAK service within 60 seconds under healthy
+    IP-mesh conditions without ordinary EUD reconfiguration.
+
+This is an objective for downstream validation, not yet a final minimum
+threshold. Cold recovery from unsynchronized state may take longer and shall be
+treated as a separate recovery class with its own objective.
+
+================================================================================
+28. AUTHORITATIVE STATE
+================================================================================
+
+A recovered TAK service may report one of several operational conditions:
+
+    AUTHORITATIVE
+    DEGRADED / PARTIAL STATE
+    NON-AUTHORITATIVE
+    UNKNOWN / UNSYNCHRONIZED
+
+[SHALL] A Team Lead shall be able to determine when shared mission data is
+stale, partial, or non-authoritative.
+
+[SHALL] A service shall not present itself as fully authoritative merely
+because the process restarted successfully.
+
+================================================================================
+29. SPLIT-BRAIN SAFETY
+================================================================================
+
+[SHALL] Automatic service recovery shall not create uncontrolled competing
+authoritative stateful services.
+
+When safe authority cannot be established, the affected partition may remain
+in:
+
+  * peer ATAK;
+  * local S0 and S1 services;
+  * LoRa/Meshtastic degraded communications.
+
+[SHALL] The system shall prefer loss of shared-service authority over divergent
+authoritative databases.
+
+The exact quorum, fencing, election, or promotion mechanism is a downstream
+architecture choice.
+
+================================================================================
+30. AUTOMATIC VERSUS ADMINISTRATIVE PROMOTION
+================================================================================
+
+The desired baseline behavior is automatic recovery when authority can be
+safely established.
+
+[SHALL] When safe automatic recovery cannot occur:
+
+  * the system shall clearly indicate degraded or non-authoritative status;
+  * an authorized administrator shall be able to perform an explicit recovery
+    or promotion procedure;
+  * ordinary users shall not be required to edit EUD server configuration.
+
+[SHALL] The system shall not force automatic promotion merely to maximize
+apparent availability.
+
+================================================================================
+31. SERVICE HOST BURDEN
+================================================================================
+
+Hosting shared services may increase battery use, CPU use, memory use, storage
+use, network traffic, and thermal load.
+
+[SHALL] The user status interface shall clearly indicate when the node is
+carrying elevated service-host responsibility and when that responsibility is
+materially reducing projected runtime.
+
+Example:
+
+    ROLE: ACTIVE FIELD SERVICE HOST
+    POWER IMPACT: ELEVATED
+    ESTIMATED RUNTIME: REDUCED
+
+Service-host placement should favor stability over constant optimization, per
+Section 5.8.
+
+================================================================================
+32. COMMUNICATIONS BEARERS
+================================================================================
+
+The MULE baseline concept includes:
+
+  1. higher-throughput conventional Wi-Fi IP;
+  2. range-oriented Wi-Fi HaLow IP;
+  3. LoRa/Meshtastic degraded communications;
+  4. wired Ethernet where practical.
+
+The exact radio products remain downstream decisions.
+
+MULE is a data capability. It does not by itself satisfy a voice
+communications requirement. See Sections 4, 47, and 48.
+
+================================================================================
+33. HIGH-THROUGHPUT IP BEARER
+================================================================================
+
+[SHALL] The MULE shall be capable of exploiting a higher-throughput IP path
+when propagation and mission conditions support it.
+
+Its operational purpose includes:
+
+  * HD or higher-rate video;
+  * large file transfer;
+  * map packages;
+  * mission synchronization;
+  * service replication;
+  * high-rate local collaboration.
+
+The exact use of 2.4 GHz, 5 GHz, dual-band Wi-Fi, or another compatible
+high-throughput implementation is deferred to System Architecture and RF trade
+studies.
+
+[SHALL] The requirement is higher-throughput IP capability outside the primary
+sub-GHz bearer, and shall not be interpreted as mandating a specific Wi-Fi
+product.
+
+[SHALL] The high-throughput bearer band shall be selected before RF coexistence
+analysis is completed, so that its harmonic and intermodulation relationships
+with the sub-GHz chains can be evaluated as part of Section 36.
+
+================================================================================
+34. HALOW IP BEARER
+================================================================================
+
+Wi-Fi HaLow is the leading range-oriented full-IP MANET bearer.
+
+Expected traffic includes:
+
+  * ATAK;
+  * PLI;
+  * GeoChat;
+  * CoT;
+  * moderate file exchange;
+  * administrative traffic;
+  * approved field services.
+
+HaLow is expected to provide longer-range or more resilient IP connectivity
+than the high-throughput Wi-Fi bearer in many field geometries.
+
+================================================================================
+35. LORA / MESHTASTIC BEARER
+================================================================================
+
+LoRa/Meshtastic provides degraded low-bandwidth communications.
+
+Expected traffic includes:
+
+  * PLI;
+  * short text;
+  * status;
+  * alerts;
+  * selected geospatial events;
+  * compact sensor reports.
+
+[SHALL] The LoRa bearer shall not be relied upon to carry arbitrary normal IP
+traffic.
+
+================================================================================
+36. DUAL SUB-GHZ RF CHAINS
+================================================================================
+
+[SHALL] HaLow and LoRa shall use independent RF chains and independent
+antennas.
+
+This supports degraded LoRa communications while HaLow attempts to recover IP
+connectivity. However, both systems may occupy overlapping US sub-GHz spectrum.
+
+The operational priority is:
+
+    When IP connectivity is lost, preservation of the degraded LoRa
+    communications path takes priority over aggressive HaLow reacquisition
+    behavior that would materially impair LoRa reception.
+
+[SHALL] Where necessary, HaLow scanning, probing, or transmission shall be
+coordinated or suppressed to preserve the degraded communications path.
+
+[SHALL] System Architecture shall state a LoRa availability or duty-cycle
+figure to be maintained while HaLow reacquisition is active, so that the
+coexistence design has a verifiable target.
+
+The exact coexistence method may use:
+
+  * antenna separation;
+  * channel planning;
+  * filtering;
+  * time-domain coordination;
+  * duty-cycle management;
+  * transmit scheduling.
+
+Unrestricted simultaneous transmission is not a baseline requirement.
+
+================================================================================
+37. RF COMPLIANCE RESPONSIBILITY
+================================================================================
+
+[SHALL] A designated RF and spectrum engineering function shall own regulatory
+compliance of the assembled MULE configuration, including the interaction of:
+
+  * radio module;
+  * antenna;
+  * cable and pigtail losses;
+  * channel plan;
+  * regulatory region;
+  * EIRP;
+  * field-replaceable antenna options.
+
+[SHALL] Field replacement shall use approved antenna configurations only.
+"Replaceable" does not mean "arbitrary."
+
+================================================================================
+38. ANTENNA FIELDABILITY
+================================================================================
+
+[SHALL] External antennas shall be treated as field-replaceable consumable
+accessories and shall be carried as spares in the field kit.
+
+Production design should favor:
+
+  * tool-less antenna replacement;
+  * protected connectors;
+  * mechanical and tactile differentiation;
+  * low snag risk;
+  * minimal exposed fragile coax;
+  * replacement without opening the core enclosure.
+
+[SHALL] Incorrect RF connections shall be prevented mechanically or tactilely
+where practical, rather than by color or label alone.
+
+================================================================================
+39. ADAPTIVE ROUTING
+================================================================================
+
+[SHALL] The network shall automatically adapt to:
+
+  * movement;
+  * node loss;
+  * changing neighbors;
+  * link degradation;
+  * gateway availability;
+  * recovery of better paths.
+
+[SHALL] Normal users shall not be required to select routes manually.
+
+The baseline requires best-path selection and failover. Packet-level multipath
+striping of a single flow is not required for v1.
+
+================================================================================
+40. TRAFFIC PREFERENCE
+================================================================================
+
+Traffic should use available network capacity intelligently.
+
+  Traffic Class                     Preferred Behavior
+  -------------------------------   ------------------------------
+  Critical CoT / PLI                stable viable IP path
+  GeoChat                           stable viable IP path
+  TAK service session               stable viable IP path
+  Video                             high-throughput IP
+  Large files                       high-throughput IP
+  Bulk sync / service replication   high-throughput IP or Ethernet
+  Ordinary TAK traffic              HaLow or better IP path
+  Degraded text / status            LoRa / Meshtastic
+
+[SHALL] Traffic policy shall preserve mission-critical communications before
+bandwidth-intensive services.
+
+================================================================================
+41. WAN INDEPENDENCE
+================================================================================
+
+WAN is optional.
+
+[SHALL] Loss of WAN shall not remove:
+
+  * local EUD access;
+  * local mesh;
+  * peer ATAK;
+  * local S0 and S1 services;
+  * LoRa/Meshtastic degraded communications.
+
+================================================================================
+42. LOCAL WAN GATEWAY
+================================================================================
+
+[SHALL] Any standard MULE shall be technically capable of assuming an
+authorized local WAN-gateway role.
+
+Potential uplinks include Starlink, Ethernet, cellular, or another approved IP
+path.
+
+The initial baseline may use one active local gateway at a time. Automatic
+competing multi-gateway operation is not required for v1.
+
+================================================================================
+43. WAN OVERLAY
+================================================================================
+
+Tailscale or another approved secure overlay may connect geographically
+separated MULEs and approved remote field infrastructure.
+
+    EUD
+     |
+    MULE
+     |
+    Secure WAN Overlay
+     |
+    Remote Field Services
+
+[SHALL] EUDs shall not join the overlay directly.
+
+[SHALL] The MULE shall remain the WAN security and routing boundary.
+
+[SHALL] Infrastructure access control and mission authorization shall remain
+separate. Overlay authentication alone shall not grant service or data
+authorization.
+
+================================================================================
+44. REMOTE TEAM OPERATION
+================================================================================
+
+Geographically separated teams may use independent WAN paths to reach shared
+services.
+
+Cross-site peer multicast is not assumed to stretch transparently through the
+WAN overlay.
+
+[SHALL] Remote ATAK communication shall use the TAK service or another approved
+routed application service.
+
+WAN loss returns the team to local operation.
+
+================================================================================
+45. EXTERNAL VHF/UHF/HF INTEGRATION
+================================================================================
+
+The baseline reserves an integration boundary for Bluetooth-, Wi-Fi-, USB-,
+audio-, packet-, or data-enabled VHF/UHF/HF radios. Specific commercial-radio
+support is not a v1 requirement.
+
+Three integration patterns are anticipated.
+
+45.1 EUD-Connected Radio
+
+    Radio
+     |
+    Bluetooth / Wi-Fi / USB
+     |
+    EUD
+     |
+    MULE
+
+45.2 RF Gateway
+
+    Radio
+     |
+    TNC / audio / data
+     |
+    RF Gateway
+     |
+    CoT / MQTT / approved IP interface
+     |
+    Field Network
+
+45.3 IP-Enabled Radio
+
+    Radio
+     |
+    IP
+     |
+    MULE
+
+Vendor-specific CAT control, remote PTT, audio bridging, and broad
+commercial-radio automation remain downstream or stretch capabilities.
+
+================================================================================
+46. AMATEUR-RADIO GOVERNANCE
+================================================================================
+
+[SHALL] Amateur-radio egress shall be a distinct mission capability and shall
+be disabled by default.
+
+[SHALL] Activation shall require:
+
+  * an approved mission profile;
+  * an appropriately authorized control operator;
+  * applicable station identification;
+  * appropriate rate limits;
+  * lawful message and content handling;
+  * a defined gateway mode.
+
+[SHALL] Automated position or status egress shall not mirror TAK update rates
+onto shared amateur networks, and the system shall prevent high-rate automated
+traffic from overloading local packet or APRS infrastructure.
+
+[SHALL] Third-party traffic, automatic control, message forwarding, encryption
+restrictions, and station-identification requirements shall be addressed in the
+applicable RF operating procedures.
+
+[SHALL] Field Network Administrator authority shall not itself authorize
+amateur transmission.
+
+================================================================================
+47. EXTERNAL INTEROPERABILITY BOUNDARY
+================================================================================
+
+[SHALL] The MULE field network shall not function only as an internal closed
+ecosystem during disaster response.
+
+The team should arrive as:
+
+    a self-contained supporting data capability that does not consume incident
+    communications resources unless explicitly integrated by the responsible
+    authority.
+
+[SHALL] The system shall support operational handoff of mission-relevant
+information to organizations that do not use TAK.
+
+Possible interoperability outputs include:
+
+  * position reports;
+  * resource status;
+  * task status;
+  * map and COP export;
+  * standardized incident reports;
+  * voice relay;
+  * approved radio workflows;
+  * human liaison.
+
+The objective is not universal protocol compatibility. The objective is to
+provide information in a form useful to the supported incident organization.
+
+================================================================================
+48. INCIDENT-COMMAND INTERFACE
+================================================================================
+
+[SHALL] When operating under an external incident command structure, the team
+shall provide the responsible communications or operations authority with, as
+applicable:
+
+  * organizational point of contact;
+  * team callsign;
+  * voice tasking path;
+  * declared data-network operation;
+  * WAN gateway presence;
+  * amateur control operator and callsign if amateur systems are used;
+  * relevant RF and data-network operating information;
+  * the means by which position, resource, and status information will be
+    handed off.
+
+MULE is a data capability that sits alongside the incident voice
+communications plan. It does not replace the ICS-205 or equivalent.
+
+[SHALL] No public-safety or interoperability frequency shall be presumed
+authorized solely because it appears in a reference document.
+
+================================================================================
+49. BROWSER-BASED FIELD SERVICES
+================================================================================
+
+Authenticated EUD users may access approved browser applications including:
+
+  * group and team messaging;
+  * field portal;
+  * files;
+  * maps;
+  * mission reference material;
+  * reporting;
+  * logistics and status tools;
+  * approved sensors;
+  * approved AI/RAG.
+
+Exact software products are downstream selections. The logical service
+experience should remain consistent regardless of physical host.
+
+================================================================================
+50. OPERATING MODES
+================================================================================
+
+50.1  LAB
+      Development, RF characterization, interoperability testing, software
+      testing, fault injection, service testing, training validation.
+
+50.2  FIELD-STANDALONE
+      No WAN, NOMAD, or home dependency. Local field services continue.
+
+50.3  FIELD-NETWORKED
+      Multiple MULEs form a mobile local network.
+
+50.4  SERVERLESS-TAK
+      No TAK Server reachable. Peer situational awareness continues.
+
+50.5  SERVER-ENHANCED
+      A TAK-compatible shared service is reachable.
+
+50.6  WAN-ENHANCED
+      Approved remote services reachable through the MULE WAN boundary.
+
+50.7  DEGRADED-IP
+      Available IP is constrained. Bandwidth-heavy services reduce first.
+
+50.8  LOW-BANDWIDTH
+      LoRa/Meshtastic provides selected essential traffic.
+
+50.9  ISOLATED
+      The team retains local EUD and node capability only.
+
+50.10 FIELD-ECONOMY
+      Nonessential services and traffic are reduced to preserve energy.
+
+50.11 TRANSPORT / SECURE
+      The node is prepared for movement or storage.
+
+50.12 EMCON / SILENT
+      The system deliberately reduces its electromagnetic and network
+      signature. Potential behaviors include suppressing nonessential
+      announcements, reducing beacon and update rates, disabling unnecessary
+      high-rate bearers, reducing background traffic, suppressing nonessential
+      service activity, and receive-dominant operation where technically
+      feasible.
+
+      [SHALL] The system shall define an EMCON entry procedure, a visible or
+      tactile EMCON state indication, an authorized override, and a re-entry
+      procedure.
+
+50.13 EXERCISE
+      The system operates in a clearly marked training state.
+
+      [SHALL] Exercise data shall be distinguishable from live incident data
+      and shall be prevented from crossing into real operations where
+      technically feasible.
+
+================================================================================
+51. EXERCISE CONTROL
+================================================================================
+
+An approved exercise-control function may:
+
+  * observe topology;
+  * observe bearer state;
+  * schedule fault injection;
+  * logically disable a bearer;
+  * simulate service-host loss;
+  * force degradation states;
+  * record exercise events.
+
+[SHALL] Exercise control shall not create an undocumented production backdoor,
+and exercise-control authority shall exist only under an approved exercise
+profile.
+
+================================================================================
+52. DIAGNOSTIC TIER
+================================================================================
+
+The appliance model should not prevent technical learning.
+
+A controlled diagnostic tier may expose:
+
+  * neighbors;
+  * RSSI and SNR;
+  * current bearer;
+  * hop count;
+  * selected path;
+  * gateway;
+  * current service host;
+  * authoritative state;
+  * synchronization state.
+
+[SHALL] Diagnostic access shall not automatically grant configuration
+authority.
+
+================================================================================
+53. TRAINING MODEL
+================================================================================
+
+[SHALL] The organization shall maintain at least three competency levels with
+defined qualification standards and recurrence intervals.
+
+53.1 User Qualification
+
+A qualified user shall be able to:
+
+  * connect;
+  * authenticate;
+  * read basic status;
+  * recognize degraded mode;
+  * understand peer-data visibility per Section 23;
+  * transition to analog and manual fallback.
+
+53.2 Team Lead Qualification
+
+Adds:
+
+  * interpretation of authoritative and non-authoritative state;
+  * delegation and succession;
+  * team-level service use;
+  * diagnostic-tier interpretation;
+  * data-handling expectations;
+  * recognition of service-host burden.
+
+53.3 Administrator Qualification
+
+Adds:
+
+  * provisioning;
+  * troubleshooting;
+  * service continuity;
+  * mission configuration;
+  * node recovery;
+  * credential recovery;
+  * lost-node actions;
+  * RF and network administrative procedures.
+
+[SHALL] Training shall include practical comms-out drills per Section 4.
+
+[SHALL] Fielding shall include quick-reference material, an indicator legend, a
+new-member brief, and applicable recurrence standards.
+
+================================================================================
+54. AAR AND ACCOUNTABILITY
+================================================================================
+
+[SHALL] The system shall produce exportable mission and exercise records
+appropriate to the operation.
+
+Potential records include:
+
+  * participant tracks;
+  * tasking events;
+  * TAK and CoT events;
+  * network topology changes;
+  * bearer changes;
+  * service outages;
+  * gateway changes;
+  * service-host changes;
+  * exercise fault injections;
+  * selected communications and task history.
+
+AAR records support mission reconstruction, accountability, training,
+engineering analysis, and safety review.
+
+[SHALL] Retention shall be governed by Sections 55 through 58.
+
+================================================================================
+55. PRIVACY AND DATA GOVERNANCE
+================================================================================
+
+MULE is a continuous location- and activity-aware system. It may process:
+
+  * participant identity;
+  * participant location;
+  * communications metadata;
+  * tasking;
+  * mission files;
+  * network events;
+  * potentially third-party incident data.
+
+[SHALL] The system shall apply data minimization. Information shall be
+collected and retained only when required for:
+
+  * current operations;
+  * accountability;
+  * safety;
+  * defined AAR needs;
+  * legal or incident-authority requirements.
+
+================================================================================
+56. DEFAULT DATA RETENTION
+================================================================================
+
+[SHALL] The default retention model shall be:
+
+    Mission duration plus an approved AAR and review window, followed by purge
+    unless longer retention is explicitly required.
+
+Longer retention may be required for legal obligations, incident authority
+requirements, safety investigations, approved training or research, or an
+explicitly authorized historical record.
+
+[SHALL] Retention shall not default to indefinite storage.
+
+================================================================================
+57. PARTICIPANT NOTICE
+================================================================================
+
+[SHALL] Members shall be informed during onboarding that operational
+participation may include:
+
+  * continuous location tracking;
+  * mission activity logging;
+  * identity records;
+  * communications metadata;
+  * AAR retention.
+
+[SHALL] Consent or acknowledgment shall be handled through the organization's
+membership or mission policy and shall not be assumed implicitly.
+
+================================================================================
+58. THIRD-PARTY AND SENSITIVE INCIDENT DATA
+================================================================================
+
+[SHALL] Victim, evacuee, or other third-party information shall be:
+
+  * minimized;
+  * handled under the supported authority's rules;
+  * segregated where appropriate;
+  * retained only as required;
+  * excluded from casual local archives.
+
+[SHALL] If minors participate or appear in collected information, the
+organization shall establish additional privacy and retention rules before
+operational use.
+
+================================================================================
+59. POWER CONCEPT
+================================================================================
+
+The MULE is expected to use a field-replaceable rechargeable battery assembly
+based on approved 18650 lithium-ion cells.
+
+[SHALL] The battery shall be an engineered protected assembly with appropriate
+protection and charging controls. Loose cells in an unqualified holder shall not
+be an approved operating configuration.
+
+The single-pack planning objective remains approximately 8 hours of
+representative nominal operation. This is a planning objective, not the full
+mission sustainment requirement, and not a verified minimum.
+
+================================================================================
+60. 24-72 HOUR SUSTAINMENT
+================================================================================
+
+Representative deployments may last approximately 24 to 72 hours.
+
+[SHALL] Mission planning products shall address:
+
+  * number of battery packs;
+  * pack mass;
+  * charging;
+  * charging time;
+  * external power;
+  * vehicle power;
+  * solar or generator support;
+  * cold-weather derating;
+  * service-host power penalty;
+  * reserve margin.
+
+The field support product shall ultimately answer:
+
+    How many packs must this team carry for this mission, and what do they
+    weigh?
+
+================================================================================
+61. COLD-WEATHER POWER
+================================================================================
+
+Cold-temperature battery behavior is a first-order operational consideration.
+
+[SHALL] The final verified endurance requirement shall include defined
+cold-temperature conditions representative of expected use.
+
+[SHALL] The nominal 8-hour objective shall not be treated as guaranteed winter
+endurance in any planning product.
+
+Potential procedures may include protected carriage, body-warm pack storage,
+battery rotation, and cold-weather derating tables.
+
+================================================================================
+62. EXTERNAL POWER AND CHARGING
+================================================================================
+
+[SHALL] The MULE shall support operation from an approved external power
+source while maintaining or replenishing its battery where practical.
+
+This is important for vehicle nodes, gateway nodes, extended service hosting,
+and fixed command-post operation.
+
+Approved charging methods, chargers, limits, and safety procedures belong in
+the support and safety documentation.
+
+================================================================================
+63. BATTERY LIFECYCLE AND SAFETY
+================================================================================
+
+[SHALL] The organization shall use:
+
+  * verified battery-cell sources;
+  * approved protected packs;
+  * appropriate BMS and protection;
+  * approved chargers;
+  * inspection procedures;
+  * damaged-pack quarantine;
+  * storage procedures;
+  * transport procedures;
+  * disposal procedures.
+
+[SHALL] Battery packs shall be managed as consumable configuration items under
+Section 7.7.
+
+================================================================================
+64. PHYSICAL EMPLOYMENT
+================================================================================
+
+The MULE shall be suitable for use:
+
+  * on or in a ruck;
+  * in a vehicle;
+  * at a temporary field position;
+  * in gloves;
+  * in darkness;
+  * in cold weather;
+  * during movement.
+
+The production design should minimize:
+
+  * snag hazards;
+  * exposed fragile connectors;
+  * accidental power-off;
+  * unnecessary visually distinctive protrusions;
+  * complicated field manipulations.
+
+================================================================================
+65. NIGHT AND SIGNATURE CONTROLS
+================================================================================
+
+[SHALL] Status illumination shall be suppressible to off.
+
+[SHALL] The production design shall avoid uncontrolled always-on indicator
+lights, including indicators integral to selected commercial modules. This is a
+BOM and component-selection constraint as well as a software behavior.
+
+Desired behaviors include:
+
+  * dimmable or off indicators;
+  * momentary status check;
+  * no unavoidable bright power or charge LEDs;
+  * deliberate controls resistant to accidental activation.
+
+Tactile or mechanically keyed interfaces are preferred to color-only
+identification.
+
+[SHALL] Cold-weather qualification shall include cables, connectors, controls,
+antenna replacement, battery replacement, and glove use.
+
+================================================================================
+66. HUMAN-FACTORS CONCEPT
+================================================================================
+
+Normal user workflow shall be:
+
+    Power on
+       |
+    Connect EUD
+       |
+    Authenticate
+       |
+    Authorized services appear
+       |
+    Work
+
+[SHALL] Normal users shall not be required to use:
+
+  * SSH;
+  * route commands;
+  * container commands;
+  * manual overlay configuration;
+  * manual bearer selection;
+  * manual TAK server discovery.
+
+================================================================================
+67. OPERATIONAL STATUS
+================================================================================
+
+[SHALL] The simplified status view shall answer:
+
+  * Is the node operational?
+  * Is the battery healthy?
+  * What is the projected runtime?
+  * Is this node hosting shared services?
+  * Is hosting reducing runtime?
+  * Is TAK available?
+  * Is shared data authoritative?
+  * Is data stale?
+  * Is the network degraded?
+  * Is LoRa available?
+  * Is WAN available?
+  * Is EMCON active?
+  * Is a fault present?
+
+================================================================================
+68. SECURITY CONCEPT
+================================================================================
+
+Security uses layered controls:
+
+    Network Admission
+          |
+    User Identity
+          |
+    Role + Scope
+          |
+    Application Authorization
+          |
+    TAK Authorization
+          |
+    Administrative Authorization
+
+[SHALL] WAN reachability shall not grant access to unrelated home, private,
+administrative, or cyber-range infrastructure.
+
+================================================================================
+69. PHYSICAL CAPTURE AND DATA AT REST
+================================================================================
+
+[SHALL] Loss or capture of one MULE shall not automatically compromise the
+entire organization.
+
+[SHALL] Production controls shall include:
+
+  * encrypted data at rest;
+  * protected credential storage;
+  * protected administrative credentials;
+  * integrity verification where practical;
+  * zeroize;
+  * out-of-band revocation;
+  * replacement identity issuance;
+  * limited local historical retention.
+
+[SHALL] A missing node shall be revocable without cooperation from that node,
+and remaining participants shall reject the revoked identity once updated
+authorization information becomes available.
+
+================================================================================
+70. ZEROIZE
+================================================================================
+
+[SHALL] An approved administrative procedure shall allow removal or
+invalidation of sensitive field information without WAN dependency.
+
+Zeroize shall address, as appropriate:
+
+  * field network credentials;
+  * secure WAN-overlay identity;
+  * mission configuration;
+  * cached mission data;
+  * locally retained sensitive information;
+  * privileged tokens or keys.
+
+Exact zeroize implementation is downstream.
+
+================================================================================
+71. EUD EMISSIONS AND SECURITY
+================================================================================
+
+MULE EMCON does not help if connected EUDs continue unnecessary wireless
+behavior.
+
+[SHALL] Operator procedures and mobile-device hardening guidance shall address:
+
+  * Wi-Fi probing;
+  * unnecessary Bluetooth;
+  * unused radios;
+  * unnecessary background network traffic;
+  * device lock;
+  * unattended device access.
+
+================================================================================
+72. OBSERVABILITY
+================================================================================
+
+Administrative telemetry may include:
+
+  * battery state;
+  * projected endurance;
+  * service-host burden;
+  * temperature;
+  * active users;
+  * bearer state;
+  * neighbor count;
+  * TAK state;
+  * authoritative or non-authoritative status;
+  * gateway state;
+  * storage state;
+  * service health;
+  * synchronization state.
+
+User-facing status shall remain simpler, per Section 67.
+
+Telemetry is a health and engineering function. It is distinct from the audit
+records of Section 18 and the property custody records of Section 7.7.
+
+================================================================================
+73. FIELD MAINTENANCE
+================================================================================
+
+The baseline support philosophy is:
+
+    Field swap rather than field repair.
+
+Normal field actions may include:
+
+  * battery swap;
+  * antenna swap;
+  * cable swap;
+  * approved external module swap;
+  * reboot and recovery;
+  * replacement by spare MULE.
+
+[SHALL] Returned failed nodes shall enter a controlled maintenance path for
+triage, re-imaging, re-keying, test, and return to spares.
+
+================================================================================
+74. UNIT ACCEPTANCE
+================================================================================
+
+[SHALL] Every production MULE shall pass an approved acceptance process
+before fielding.
+
+The exact ATP is developed downstream but shall validate at minimum:
+
+  * hardware and configuration identity;
+  * firmware and software baseline;
+  * credential identity;
+  * RF-chain operation;
+  * basic power behavior;
+  * thermal sanity;
+  * EUD connectivity;
+  * mesh connectivity;
+  * service capability.
+
+[SHALL] Operational interchangeability shall be verified, not assumed.
+
+================================================================================
+75. FLEET SUSTAINMENT
+================================================================================
+
+The program must plan beyond acquisition. Sustainment considerations include:
+
+  * batteries;
+  * antennas;
+  * cables;
+  * connectors;
+  * chargers;
+  * component obsolescence;
+  * RF-module availability;
+  * software maintenance;
+  * replacement nodes;
+  * volunteer assembly and maintenance labor.
+
+[SHALL] A five-year total-cost-of-ownership assessment shall be completed
+before fleet procurement.
+
+This belongs in the Acquisition Plan rather than as an operational requirement,
+but is required for a sustainable field capability.
+
+Long-lead RF and compute components should be procured for the intended fleet
+size in a single buy where lifecycle risk warrants, to protect the hardware
+block interchangeability of Section 5.2.
+
+================================================================================
+76. CONTINUITY OF PROGRAM KNOWLEDGE
+================================================================================
+
+[SHALL] The system shall not depend on one builder or originator.
+
+[SHALL] Before fielding, the program shall maintain:
+
+  * reproducible build documentation;
+  * software and configuration repository;
+  * acceptance procedures;
+  * at least one additional qualified builder or maintainer;
+  * known-good imaging and provisioning capability.
+
+================================================================================
+77. EXAMPLE DEPLOYMENT
+================================================================================
+
+A representative deployment may include:
+
+    Team Alpha
+      1 x MULE
+      4-8 EUDs
+      mission battery load
+      spare antenna kit
+
+    Team Bravo
+      1 x MULE
+      4-8 EUDs
+      mission battery load
+      spare antenna kit
+
+    Team Charlie
+      1 x MULE
+      4-8 EUDs
+      mission battery load
+      spare antenna kit
+
+    Shared:
+      optional Portable Field Services Host
+      optional NOMAD
+      optional WAN kit
+      optional RF gateway
+      common spare MULE
+      recharge capability
+      voice / analog PACE
+
+[SHALL] The loss of any shared optional component shall not make an otherwise
+functional team node unusable.
+
+================================================================================
+78. QUALIFICATION SEQUENCE
+================================================================================
+
+Stage 1 - Local Node
+  * boot;
+  * EUD authentication;
+  * role and scope;
+  * local services;
+  * simplified status;
+  * basic power;
+  * user quick-reference and training materials.
+
+Stage 2 - HaLow MANET
+  * multiple standardized nodes;
+  * multi-hop routing;
+  * mobility;
+  * topology change;
+  * peer ATAK;
+  * multicast scaling;
+  * PLI-rate effects.
+
+Stage 3 - LoRa Continuity
+  * degraded messaging;
+  * independent LoRa operation;
+  * HaLow loss and reacquisition;
+  * HaLow/LoRa coexistence controls.
+
+Stage 4 - High-Throughput IP
+  * higher-throughput bearer;
+  * large files;
+  * maps;
+  * video;
+  * bulk synchronization;
+  * traffic preference.
+
+Stage 5 - TAK Service Continuity
+  * active host failure;
+  * replacement host;
+  * stable service identity;
+  * trust compatibility;
+  * state-class continuity;
+  * authoritative-state indication;
+  * split-brain avoidance;
+  * recovery-time objective.
+
+Stage 6 - WAN Overlay
+  * local WAN gateway;
+  * secure overlay;
+  * remote field services;
+  * EUD isolation from overlay;
+  * unauthorized Homelab access denial;
+  * WAN loss and local continuity.
+
+Stage 7 - Sustainment
+  * nominal 8-hour objective;
+  * service-host power penalty;
+  * 24-72 hour mission battery model;
+  * external-power operation;
+  * charge-while-operating behavior;
+  * cold-weather endurance.
+
+Stage 8 - Physical Field Qualification
+  * antenna durability;
+  * tool-less replacement;
+  * glove use;
+  * night use and light discipline;
+  * connector keying;
+  * movement;
+  * snag resistance;
+  * thermal behavior;
+  * environmental resilience.
+
+Stage 9 - Identity and Capture
+  * lost EUD;
+  * replacement EUD;
+  * mission credential expiry;
+  * revocation propagation;
+  * disconnected revocation lag;
+  * lost node;
+  * node revocation;
+  * zeroize;
+  * encrypted storage.
+
+Stage 10 - Exercise and AAR
+  * EXERCISE profile;
+  * exercise and live separation;
+  * white-cell fault injection;
+  * diagnostic tier;
+  * AAR export and retention behavior;
+  * comms-out drill.
+
+Stage 11 - External Interoperability
+  * AHJ and COML handoff;
+  * position and resource-status export;
+  * voice tasking path;
+  * incident communications integration;
+  * approved amateur-radio gateway procedures.
+
+Stage 12 - NOMAD Integration
+  * same standard field nodes;
+  * NOMAD-hosted services;
+  * parent Homelab authorization boundaries;
+  * no field-node hardware changes required for integration.
+
+Stage 13 - Program and Fleet Readiness
+  * unit acceptance test executed on every fielded node;
+  * second qualified builder demonstrates reproducible build;
+  * imaging, re-key, and spares path exercised end to end;
+  * training qualification and recurrence standards issued.
+
+================================================================================
+79. OPERATIONAL SUCCESS CRITERIA
+================================================================================
+
+The concept is operationally successful when representative testing
+demonstrates that:
+
+   1. field nodes use one approved common hardware and software baseline per
+      block;
+   2. a standard node supports the representative 4-8 EUD team;
+   3. authorized users receive functions based on identity, role, scope, and
+      mission profile;
+   4. alternate leadership sustains team-level capability after loss of a
+      leader or leader EUD;
+   5. users can recover onto replacement EUDs without routine WAN dependence;
+   6. mission-scoped credentials fail safe by expiry if revocation cannot reach
+      a partition;
+   7. peer ATAK remains usable without TAK Server within validated scale
+      limits;
+   8. shared TAK service can recover onto another eligible host without
+      ordinary EUD reconfiguration;
+   9. a recovered TAK host indicates whether state is authoritative, degraded,
+      or incomplete;
+  10. split-brain is prevented or safely contained;
+  11. high-throughput IP supports bandwidth-intensive functions when available;
+  12. HaLow supports range-oriented IP;
+  13. LoRa preserves approved degraded communications;
+  14. LoRa remains usable while HaLow performs controlled recovery behavior;
+  15. RF coexistence and regulatory compliance are validated for the assembled
+      device;
+  16. WAN remains optional;
+  17. MULE remains the WAN-overlay boundary for EUDs;
+  18. remote teams can reach approved field services when WAN exists;
+  19. unauthorized home, private, and administrative infrastructure remains
+      inaccessible;
+  20. external antennas are field replaceable using approved spare
+      configurations;
+  21. mission battery planning covers more than one pack and includes
+      cold-weather effects;
+  22. users are informed when hosting services materially affects runtime;
+  23. exercise data is distinguishable from live incident data;
+  24. AAR and accountability data can be exported and purged according to
+      retention policy;
+  25. EMCON can be deliberately entered and exited;
+  26. a lost node can be revoked without cooperation from that node;
+  27. data at rest is protected according to downstream security requirements;
+  28. non-digital PACE is trained and usable;
+  29. incident information can be handed off to organizations that do not use
+      TAK;
+  30. amateur-radio operation is disabled by default and governed by a distinct
+      lawful control role;
+  31. field equipment can be operated in gloves, darkness, and representative
+      cold conditions;
+  32. every fielded node passes an acceptance test;
+  33. the program can be maintained by more than one qualified person.
+
+================================================================================
+80. DOWNSTREAM ENGINEERING DECISIONS
+================================================================================
+
+The following intentionally remain outside this CONOPS. These are not CONOPS
+defects.
+
+  * exact SBC;
+  * exact OS architecture;
+  * exact OpenMANET implementation or fork strategy;
+  * maximum EUD count;
+  * maximum mesh scale;
+  * maximum validated hop count;
+  * exact PLI intervals;
+  * minimum range;
+  * minimum throughput;
+  * exact conventional Wi-Fi band and chipset;
+  * exact HaLow hardware;
+  * exact LoRa hardware;
+  * exact antenna models and gains;
+  * RF filter and coexistence implementation;
+  * exact battery topology;
+  * exact battery quantity per team;
+  * exact cold-weather endurance requirement;
+  * exact pack mass;
+  * exact node mass and dimensions;
+  * exact authentication technology;
+  * exact mission credential duration;
+  * exact revocation-lag objective;
+  * exact service runtime or container technology;
+  * exact browser chat and file applications;
+  * exact TAK implementation;
+  * exact state replication mechanism;
+  * exact quorum, fencing, or election mechanism;
+  * final TAK RTO and RPO;
+  * exact exercise-control implementation;
+  * exact zeroize implementation;
+  * exact retention interval;
+  * exact external-agency interoperability formats;
+  * exact amateur-radio gateway implementation;
+  * exact VHF/UHF/HF commercial-radio integrations;
+  * final environmental qualification levels.
+
+These decisions belong in:
+
+  * System Architecture Description;
+  * TRD;
+  * ICD;
+  * Security Architecture;
+  * RF and Coexistence Plan;
+  * BOM and CI Registry;
+  * Verification Matrix;
+  * ATP;
+  * Training Plan;
+  * Acquisition Plan;
+  * Sustainment and Safety Plan.
+
+================================================================================
+81. INITIAL BASELINE OUT OF SCOPE
+================================================================================
+
+MULE v1 does not require:
+
+  * custom RF modem development;
+  * custom MANET routing protocol;
+  * custom LoRa PHY;
+  * arbitrary encrypted IP over amateur spectrum;
+  * packet-level multipath striping;
+  * unrestricted simultaneous RF transmission;
+  * competing automatic WAN gateways;
+  * custom role-encrypted peer multicast;
+  * database replication across every node;
+  * Kubernetes-scale orchestration;
+  * universal commercial-radio control;
+  * automatic remote PTT or audio bridging;
+  * custom PCB unless prototype results justify it;
+  * replacement of voice or manual PACE;
+  * universal interoperability with every public-safety system.
+
+Items in this list may be promoted only through a change request under
+Section 86.
+
+================================================================================
+82. END-USER OPERATIONAL VISION
+================================================================================
+
+A user should be able to receive any approved standard MULE and operate it as
+follows:
+
+    Receive device
+       |
+    Install approved battery / antennas
+       |
+    Power on
+       |
+    Connect approved EUD
+       |
+    Authenticate
+       |
+    Authorized services appear
+       |
+    Operate
+
+If other teams are nearby, the network forms.
+If a TAK Server exists, server-enhanced services appear.
+If the TAK Server fails, peer ATAK remains and service recovery begins.
+If a replacement TAK host comes online, the user does not manually reconfigure
+ATAK.
+If the recovered shared state is incomplete, the user is told that it is not
+fully authoritative.
+If high-throughput Wi-Fi is available, large files and video can use it.
+If only HaLow is viable, normal lower-rate IP continues.
+If IP fails, LoRa preserves approved essential communications.
+If WAN appears, approved remote services become reachable through the MULE
+boundary.
+If WAN disappears, local operation continues.
+If the Team Lead becomes unavailable, an approved alternate sustains team-level
+functions.
+If the user's EUD fails, a controlled recovery path exists.
+If the network partitions, the Team Lead can determine whether shared data is
+authoritative or stale.
+If the node becomes a shared-service host, the operator can see that runtime
+may be reduced.
+If emissions must be reduced, the team can enter EMCON.
+If the device is lost, its identity can be revoked without its cooperation.
+If the digital environment fails completely, the team continues using its
+trained analog and manual PACE plan.
+
+The user should not need to know which route is selected, which node owns WAN,
+which host runs TAK, which service container is active, or whether NOMAD is
+physically present.
+
+From the user perspective, there is one resilient field communications
+environment.
+
+================================================================================
+83. REVIEW BASIS
+================================================================================
+
+83.1 Perspectives Applied
+
+This concept has been reviewed against the following perspectives:
+
+  * chief systems architect;
+  * systems engineer;
+  * RF and spectrum engineer;
+  * networking engineer;
+  * security and identity architect;
+  * TAK subject-matter expert;
+  * distributed-systems and SRE engineer;
+  * battery and power engineer;
+  * amateur-radio control operator;
+  * emergency-management and AHJ;
+  * COML and communications unit;
+  * training and instructor;
+  * night and degraded-conditions user;
+  * builder and production owner;
+  * property and configuration owner;
+  * finance and program sponsor;
+  * insider-threat reviewer;
+  * privacy reviewer;
+  * individual field operator;
+  * Team Lead;
+  * Group Commander;
+  * adversarial and Red Force, with and without comparable technology;
+  * volunteer end user.
+
+83.2 Nature of Review
+
+[SHALL] The review-status column below shall be completed and signed before
+this document is treated as externally defensible.
+
+Reviews conducted analytically by the program are sufficient to mature the
+operational concept. They are not a substitute for confirmation by a qualified
+practitioner where regulatory, safety, legal, or external-authority obligations
+attach.
+
+  Perspective                          Analytical   Practitioner   Reviewer
+  ----------------------------------   ----------   ------------   --------
+  RF / spectrum engineer                   [ ]           [ ]
+  Amateur-radio control operator           [ ]           [ ]
+  Security and identity architect          [ ]           [ ]
+  TAK subject-matter expert                [ ]           [ ]
+  Distributed systems / SRE                [ ]           [ ]
+  Battery / power engineer                 [ ]           [ ]
+  Emergency management / AHJ               [ ]           [ ]
+  COML / communications unit               [ ]           [ ]
+  Privacy reviewer                         [ ]           [ ]
+  All other perspectives                   [ ]           [ ]
+
+[SHALL] Practitioner confirmation shall be obtained for RF compliance
+(Section 37), amateur-radio governance (Section 46), battery safety
+(Section 63), and privacy and retention governance (Sections 55 through 58)
+before operational fielding.
+
+83.3 Residual Risk Register
+
+Remaining major risks are implementation and verification risks, not concept
+defects:
+
+  Risk                                        Retired by
+  -----------------------------------------   -------------------------------
+  HaLow / LoRa coexistence                     Stage 3, RF Plan
+  High-throughput secondary bearer             Stage 4, RF Plan
+  Peer multicast scaling                       Stage 2
+  Offline identity lifecycle                   Stage 9, Security Architecture
+  Stateful TAK continuity                      Stage 5
+  Networking OS vs application host            System Architecture
+  Power and cold-weather endurance             Stage 7
+  Field device physical integration            Stage 8
+  Privacy and retention governance             Stage 10, policy
+  Public-safety and amateur interoperability   Stage 11
+  Long-term fleet sustainment                  Stage 13, Acquisition Plan
+
+================================================================================
+84. LOCK ASSESSMENT
+================================================================================
+
+The MULE operational concept is assessed as mature enough for baseline.
+
+No remaining behavior in this CONOPS requires:
+
+  * invention of a new physical-layer radio;
+  * invention of a new routing protocol;
+  * dependence on WAN infrastructure;
+  * dependence on one physical server;
+  * dependence on one team leader or administrator;
+  * dependence on one unique device variant;
+  * abandonment of analog or manual PACE.
+
+The core concept is technically plausible using current open-source and
+commodity technology, although several integration behaviors require
+engineering and field validation.
+
+Disposition: issue as FML/MULE CONOPS v1.01 BASELINE on signature, then progress
+to:
+
+  1. System Architecture Description;
+  2. Technical Requirements Document;
+  3. Interface Control Document;
+  4. Security Architecture;
+  5. RF and Coexistence Plan;
+  6. BOM and CI Registry;
+  7. Verification Matrix;
+  8. Acceptance Test Plan;
+  9. Training Plan;
+  10. Acquisition and Sustainment Plan.
+
+================================================================================
+85. VERIFICATION TRACEABILITY MATRIX
+================================================================================
+
+This matrix maps each Section 79 success criterion to the CONOPS section that
+establishes it and the Section 78 stage that validates it. It is the seed of the
+downstream Verification Matrix.
+
+[SHALL] Every criterion shall have at least one validating stage. Any criterion
+whose validating stage is later removed shall trigger a change request under
+Section 86.
+
+  Crit  Source Section(s)          Validating Stage(s)   Method
+  ----  ------------------------   -------------------   --------------------
+   1    5.1, 5.2                   1, 13                 Inspection / Test
+   2    6, 22                      2                     Test
+   3    5.3, 7.1-7.2, 13           1                     Test
+   4    7.3, 10                    1, 5                  Test
+   5    16                         9                     Demonstration
+   6    14, 15, 17                 9                     Test
+   7    21, 22                     2                     Test
+   8    25, 27                     5                     Test
+   9    26, 28, 30                 5                     Test
+  10    29, 30                     5                     Test
+  11    33, 40                     4                     Test
+  12    34, 40                     2, 4                  Test
+  13    35, 40                     3                     Test
+  14    36                         3                     Test
+  15    36, 37                     3, 4, 8               Analysis / Test
+  16    41                         6                     Test
+  17    12, 43                     6                     Test
+  18    43, 44                     6                     Test
+  19    43, 68                     6                     Test
+  20    38                         8                     Demonstration
+  21    59, 60, 61                 7                     Test / Analysis
+  22    31, 67                     1, 7                  Demonstration
+  23    50.13, 51                  10                    Test
+  24    54, 55, 56                 10                    Demonstration
+  25    11, 50.12                  10                    Demonstration
+  26    69                         9                     Test
+  27    69, 70                     9                     Test / Inspection
+  28    4, 53                      10                    Demonstration
+  29    47, 48                     11                    Demonstration
+  30    46, 7.8                    11                    Inspection / Demo
+  31    64, 65                     8                     Demonstration
+  32    74                         13                    Inspection
+  33    76                         13                    Inspection
+
+Coverage notes:
+
+  * Section 23 (peer data privacy) is a training and design rule validated
+    indirectly through Stage 10 and the Section 53 qualification standards. It
+    has no dedicated criterion and should be considered for one in the TRD.
+  * Section 18 (auditability) has no Section 79 criterion. Recommend adding a
+    verification requirement in the Security Architecture.
+  * Section 57 (participant notice) is a policy obligation, not a testable
+    system behavior, and is verified by inspection of organizational policy.
+
+================================================================================
+86. CHANGE CONTROL
+================================================================================
+
+[SHALL] After signature, changes to this document shall be made by change
+request recording:
+
+  1. the section affected;
+  2. the current text;
+  3. the proposed text;
+  4. the operational rationale;
+  5. downstream documents affected;
+  6. verification impact against Section 85;
+  7. approval.
+
+Editorial corrections that do not alter a SHALL statement, a success criterion,
+or a scope boundary may be issued as a point revision (for example, v1.02) with a revision
+history entry.
+
+Any change that adds, removes, or alters a SHALL statement, a Section 79
+criterion, a Section 78 stage, or a Section 81 scope exclusion requires a minor
+version increment (v1.1) and stakeholder re-approval.
+
+Acceptance of this CONOPS requires a subsequent controlled Homelab integration
+change package addressing the affected TRD, ICD, SOW, Verification Matrix, ATP,
+ADR, and BOM/CI records, per Section 2.
+
+================================================================================
+87. APPROVAL
+================================================================================
+
+By signature below, the undersigned accept FML/MULE CONOPS v1.01 as the controlled
+operational baseline for the MULE subsystem, and authorize progression to
+System Architecture and requirements development.
+
+  Role                              Name              Signature      Date
+  -------------------------------   ---------------   ------------   --------
+  Program Lead / Originator         ______________    ___________    ________
+  Systems Architect                 ______________    ___________    ________
+  Security / Identity Authority     ______________    ___________    ________
+  RF Compliance Authority           ______________    ___________    ________
+  Operations / Group Commander      ______________    ___________    ________
+  Training Authority                ______________    ___________    ________
+  Sustainment / Property Authority  ______________    ___________    ________
+
+Where one person holds multiple roles, each role shall be signed separately and
+the compensating review control of Section 18 shall apply.
+
+================================================================================
+END OF DOCUMENT - FML/MULE CONOPS v1.01 BASELINE
+================================================================================

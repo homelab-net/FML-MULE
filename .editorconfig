@@ -1,0 +1,35 @@
+# EditorConfig - https://editorconfig.org
+# Conventions are binding for this repository. See CONTRIBUTING.md.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2
+
+[*.md]
+# Markdown uses trailing whitespace for hard line breaks; this repository does
+# not, so trimming stays on.
+indent_size = 2
+
+[Makefile]
+# Make requires literal tabs in recipe lines. This is the only exception to the
+# no-tabs rule.
+indent_style = tab
+
+[*.patch]
+# Patch context columns are byte-exact.
+trim_trailing_whitespace = false
+insert_final_newline = false

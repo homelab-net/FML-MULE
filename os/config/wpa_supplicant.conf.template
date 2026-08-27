@@ -1,0 +1,63 @@
+# wpa_supplicant configuration template - MULE
+#
+# Configures station and 802.11s mesh association for the radio bearers.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node.
+#
+# REGION IS A PARAMETER. No frequency, channel, bandwidth or transmit power
+# appears in this file. Those come from regions/<region-id>/profile.yml. See
+# regions/README.md and REGULATORY.md. A generated channel outside the region's
+# permitted set is a regulatory problem, not a bug.
+#
+# LOGICAL, NOT PHYSICAL. Blocks below are named for logical radio functions.
+# Whether two functions share a physical radio is TBR-RF-03; see FML-ADR-045.
+#
+# Trades: TBR-RF-01 (high-rate mesh implementation)
+#         TBR-RF-02 (sub-GHz coexistence controls)
+#         TBR-RF-03 (AP and mesh radio consolidation)
+#         TBR-LINUX-01 (driver capabilities; whether these options are honoured)
+#
+# Whether the HaLow driver honours standard wpa_supplicant mesh options at all
+# is UNVERIFIED. TBR-LINUX-01 may show that vendor tooling is required instead,
+# in which case this template is replaced rather than filled in.
+
+ctrl_interface=TBD
+# Group permitted to control the supplicant. Rootless services must not need
+# root to read radio state; see the hardware abstraction rule in AGENTS.md.
+ctrl_interface_group=TBD
+
+# Regulatory domain. Sourced from the region profile, never hardcoded.
+country=TBD
+
+# --- Sub-GHz HaLow bearer: range-oriented IP MANET -------------------------
+# 802.11s mesh association. Routing is batman-adv/BATMAN-V; see FML-ADR-024
+# and batman-adv.conf.template.
+#
+# network={
+#   ssid="TBD"              # Mesh identifier. From the mission package.
+#   mode=5                  # 5 = 802.11s mesh point
+#   frequency=TBD           # FROM REGION PROFILE. Never a literal here.
+#   key_mgmt=TBD            # TBD: mesh security. Feeds THREAT_MODEL.md.
+#   # Mesh security is not decided. An open mesh admits any device in range,
+#   # which conflicts with the admission model. See TBR-TAK-01, TBR-SEC-01.
+# }
+
+# --- Conventional Wi-Fi: high-throughput inter-node bearer -----------------
+# Whether this uses 802.11s and joins the same batman-adv mesh, uses a separate
+# mesh, or uses a different mechanism entirely is TBR-RF-01.
+#
+# network={
+#   ssid="TBD"
+#   mode=TBD                # TBR-RF-01
+#   frequency=TBD           # FROM REGION PROFILE
+#   key_mgmt=TBD
+# }
+
+# --- Notes ------------------------------------------------------------------
+# Bring-up ordering is not captured here. A mesh interface configured before
+# its driver has finished initialising fails in ways that look like a radio
+# fault. Ordering belongs to the systemd unit structure and is TBD.
+#
+# Where configuration is adopted from the upstream MANET reference project,
+# cite the source in a comment on the adopting line. See FML-ADR-023.

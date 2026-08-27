@@ -1,0 +1,65 @@
+---
+# SYNTHETIC TEST FIXTURE. NOT A REGION PROFILE.
+#
+# Every number in this file is invented. None of them describes any real
+# regulatory allocation in any jurisdiction. This file exists so that
+# tools/gen-config.py can be exercised on its resolution and validation paths,
+# which is impossible against regions/, where every value is correctly TBD.
+#
+# The xx- prefix is reserved for fixtures and is not a valid economic area or
+# country code. This file cannot be loaded by region identifier; it must be
+# passed as an explicit path. See test/fixtures/regions/README.md.
+#
+# DO NOT COPY ANY VALUE FROM THIS FILE INTO regions/.
+#
+# DELIBERATELY INVALID: amateur integration is enabled. It is disabled by
+# default in every region and is never enabled by a region profile.
+# tools/gen-config.py must REJECT it. See REGULATORY.md and CONOPS 46.
+
+region:
+  id: xx-testfixture
+  name: "Synthetic test fixture, not a real region"
+  administration: "None. This is a test fixture."
+  regulator: "None. This is a test fixture."
+  status: FIXTURE
+  verified_by: "n/a, synthetic"
+
+halow:
+  permitted: true
+  band_low_hz: 900000000
+  band_high_hz: 910000000
+  channel_widths_hz: [1000000, 2000000]
+  default_channel: 905000000
+  max_eirp_dbm: 20
+  max_antenna_gain_dbi: 3
+  duty_cycle_percent: none
+  source: "Synthetic fixture. No rule."
+
+lora:
+  permitted: true
+  band_low_hz: 911000000
+  band_high_hz: 919000000
+  default_channel: 915000000
+  max_eirp_dbm: 14
+  duty_cycle_percent: none
+  source: "Synthetic fixture. No rule."
+
+wifi:
+  permitted_bands: ["5GHz"]
+  mesh_channel: 149
+  ap_channel: 36
+  max_eirp_dbm: 23
+  indoor_only_channels: [36]
+  dfs_required: false
+  source: "Synthetic fixture. No rule."
+
+amateur:
+  enabled: true
+  permitted_in_region: false
+  encryption_permitted: false
+  source: "Synthetic fixture. No rule."
+
+notes: >-
+  Synthetic. The HaLow and LoRa bands here are deliberately non-overlapping so
+  that the success path is unambiguous. Real sub-GHz coexistence is TBR-RF-02
+  and is not simulated by this fixture.

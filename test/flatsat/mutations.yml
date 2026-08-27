@@ -1,0 +1,195 @@
+---
+# Mutations for tools/mutation-check.py.
+#
+# Each entry breaks the node or the configuration generator in one specific,
+# semantically meaningful way. The suite is expected to FAIL for every one of
+# them. A mutation the suite still passes is called a survivor, and a survivor
+# is a defect the tests cannot see.
+#
+# Why this file is data rather than code: the mutations are the specification
+# of what the suite must be able to detect. Keeping them here means the list
+# can be reviewed, extended and argued about without reading a script, and it
+# keeps tools/mutation-check.py free of the literals it operates on.
+#
+# Adding a mutation is how you record "the suite must notice this". If it
+# survives, either write the missing test or delete the mutation with a reason.
+
+mutations:
+  # --- trust: FML-ADR-042 fail-closed behaviour ---------------------------
+  - id: M01
+    file: mule/admission.py
+
+    describe: admission stops checking time at all, and so fails open
+    find: "    if time.degraded:"
+    replace: "    if False:"
+
+  - id: M02
+    file: mule/timekeeping.py
+    describe: assess judges every reading credible
+    find: "    if not readings.rtc_present():"
+    replace: "    if False:"
+
+  - id: M03
+    file: mule/timekeeping.py
+    describe: a retained time predating the running image is no longer caught
+    find: "    if retained < policy.image_build_time:"
+    replace: "    if False:"
+
+  - id: M04
+    file: mule/timekeeping.py
+    describe: a depleted RTC backup cell is ignored
+    find: "    if readings.rtc_backup_cell_ok() is False:"
+    replace: "    if False:"
+
+  - id: M05
+    file: mule/timekeeping.py
+    describe: system clock and RTC may disagree without limit
+    find: "    if skew > policy.max_system_rtc_skew:"
+    replace: "    if False:"
+
+  - id: M06
+    file: mule/timekeeping.py
+    describe: credibility is decided before a trusted upstream is consulted
+    find: "    if readings.synchronized():"
+    replace: "    if False:"
+
+  - id: M25
+    file: mule/timekeeping.py
+    describe: a timestamp with no timezone raises instead of failing closed
+    find: "    if any(stamp.tzinfo is None for stamp in stamps):"
+    replace: "    if False:"
+
+  # --- admission ----------------------------------------------------------
+  - id: M07
+    file: mule/admission.py
+
+    describe: a node that never booted still admits devices
+    find: "    if not booted:"
+    replace: "    if False:"
+
+  - id: M08
+    file: mule/admission.py
+
+    describe: admission ignores whether the required bearers are serving
+    find: "    if not_serving:"
+    replace: "    if False:"
+
+  - id: M09
+    file: test/flatsat/node.py
+    describe: an unadmitted device can resolve services
+    find: |
+      if device_id not in self._admitted:
+                  return None
+    replace: "if False:\n            return None"
+
+  # --- configuration ------------------------------------------------------
+  - id: M10
+    file: tools/gen-config.py
+    describe: a channel outside the permitted band is accepted
+    find: "        elif not (low <= channel <= high):"
+    replace: "        elif False:"
+
+  - id: M11
+    file: tools/gen-config.py
+    describe: a TBD value no longer refuses generation
+    find: "        raise UnresolvedValueError(message)\n\n    return {"
+    replace: "        pass\n\n    return {"
+
+  - id: M12
+    file: tools/gen-config.py
+    describe: a bearer the region forbids still gets a channel resolved
+    find: "        if permitted is not True:"
+    replace: "        if False:"
+
+  - id: M13
+    file: tools/gen-config.py
+    describe: an unenforceable EIRP ceiling is accepted
+    find: "        if not isinstance(eirp, (int, float)):"
+    replace: "        if False:"
+
+  - id: M14
+    file: test/flatsat/node.py
+
+    describe: services come from a list in the node rather than the package
+    find: '                    self._params["mission"]["services"],'
+    replace: '                    ["portal.field"],'
+
+  - id: M15
+    file: test/flatsat/node.py
+
+    describe: radios come up even with no lawful configuration
+    find: "enumerated = [str(b) for b in self._enumerated()] if resolved else []"
+    replace: "enumerated = [str(b) for b in self._enumerated()]"
+
+  - id: M26
+    file: mule/services.py
+    describe: a service name drops the deployment's local domain
+    find: 'return f"{name}.{local_domain}" if local_domain else name'
+    replace: "return name"
+
+  # --- the status surface -------------------------------------------------
+  - id: M16
+    file: test/flatsat/node.py
+    describe: status invents a projected runtime
+    find: "projected_runtime_minutes=self._power.projected_runtime_minutes(),"
+    replace: "projected_runtime_minutes=90,"
+
+  - id: M17
+    file: mule/status.py
+
+    describe: the network is always reported healthy
+    find: "network_degraded=_network_degraded(observed),"
+    replace: "network_degraded=False,"
+
+  - id: M18
+    file: mule/status.py
+
+    describe: the battery is always reported healthy
+    find: >-
+      battery_healthy=observed.battery_healthy if observed.battery_present
+      else None
+    replace: "battery_healthy=True"
+
+  - id: M19
+    file: mule/status.py
+
+    describe: LoRa is always reported available
+    find: >-
+      lora_available="lora" in observed.enumerated and "lora" in
+      observed.associated
+    replace: "lora_available=True"
+
+  - id: M20
+    file: mule/status.py
+
+    describe: a sensor outside its envelope no longer raises a fault
+    find: "    if not observed.within_thermal_envelope:"
+    replace: "    if False:"
+
+  - id: M21
+    file: mule/status.py
+
+    describe: thermal throttling no longer degrades the reported state
+    find: "    if observed.thermally_throttled:"
+    replace: "    if False:"
+
+  - id: M22
+    file: mule/status.py
+
+    describe: EMCON is never reported
+    find: "emcon_active=observed.emcon,"
+    replace: "emcon_active=False,"
+
+  - id: M23
+    file: mule/status.py
+
+    describe: a node missing a required bearer is not faulted
+    find: "    if not observed.booted or missing:"
+    replace: "    if not observed.booted:"
+
+  # --- fixture honesty ----------------------------------------------------
+  - id: M24
+    file: test/flatsat/fakes.py
+    describe: a fake may describe a radio linked without being present
+    find: "        if absent:"
+    replace: "        if False:"

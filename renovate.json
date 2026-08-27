@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+  "description": [
+    "Dependency update policy for the FERAL MULE repository.",
+    "",
+    "PROPOSALS ARE OPENED. NOTHING IS EVER AUTO-MERGED.",
+    "",
+    "Kernel, out-of-tree radio driver, radio firmware and userspace promote as",
+    "ONE TESTED COMPATIBILITY SET, never independently (FML-ADR-040). A change",
+    "to any pin creates a new candidate set that must pass the full promotion",
+    "gate in os/release/README.md: rebuild all out-of-tree modules, boot,",
+    "enumerate every radio, form a mesh, serve the access point, pass a traffic",
+    "smoke test, survive a reboot, and demonstrate rollback.",
+    "",
+    "A bot cannot make that decision, and a green CI run is not evidence that",
+    "the set still works, because CI has no radios. See test/README.md."
+  ],
+  "automerge": false,
+  "automergeType": "pr",
+  "rebaseWhen": "conflicted",
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Every update is a decision. No exceptions, including patch and security updates: a security update to one component of the compatibility set still requires re-qualifying the set. That cost is acknowledged in FML-ADR-040 rather than avoided by auto-merging.",
+      "matchPackageNames": ["*"],
+      "automerge": false
+    },
+    {
+      "description": "Group repository tooling updates, which are not part of the compatibility set and can be reviewed together.",
+      "matchFileNames": [
+        "pyproject.toml",
+        ".pre-commit-config.yaml",
+        ".github/workflows/**"
+      ],
+      "groupName": "repository tooling"
+    },
+    {
+      "description": "Container images are referenced by immutable digest, never by tag. Renovate proposes a digest bump; the reviewer decides whether the new artifact is promoted.",
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "automerge": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "description": "Security advisories are labelled and raised, never merged automatically. See the compatibility set rule above.",
+    "labels": ["dependencies", "security"],
+    "automerge": false
+  }
+}

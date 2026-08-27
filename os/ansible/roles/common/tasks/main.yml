@@ -1,0 +1,23 @@
+---
+# Tasks for the common role.
+#
+# STATUS: skeleton. This role deliberately does almost nothing. See the role
+# README for why: most of what a common role would do is either baked into the
+# image (packages, pinned in os/image/manifest/) or waits on an open trade.
+#
+# The one task below is an assertion, not a change. It fails fast on a node
+# whose region is unset, because generating radio configuration without a
+# region profile would produce a device operating outside its regulatory
+# constraints. See regions/README.md and REGULATORY.md.
+
+- name: Assert that a region profile is configured for this node
+  ansible.builtin.assert:
+    that:
+      - common_region is defined
+      - common_region != "TBD"
+    fail_msg: >-
+      No region profile is configured for this node. Region is an input to
+      configuration generation, not a constant, and no default is safe:
+      902-928 MHz is not permitted in the EU or UK. Set common_region to a
+      profile under regions/. See regions/README.md and REGULATORY.md.
+    success_msg: Region profile is configured.

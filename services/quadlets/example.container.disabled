@@ -1,0 +1,75 @@
+# Example Podman Quadlet unit - MULE
+#
+# STATUS: REFERENCE ONLY. NOT A LOADABLE UNIT.
+#
+# The .disabled extension is deliberate: systemd's Quadlet generator does not
+# process this file, so it cannot start a service by accident. No service has
+# been selected or approved; see services/catalog/.
+#
+# This file shows the conventions a real unit follows. Every value is TBD or a
+# deliberately invalid placeholder.
+
+[Unit]
+Description=TBD - one line, what this service is for
+Documentation=file:///usr/share/doc/TBD
+# Services start after the network plane is up. The unit-level expression of
+# the bring-up sequence in os/config/interfaces.conf.template is TBD, pending
+# TBR-LINUX-01. A service that starts before its interface exists fails in a
+# way that looks like a service fault and is not.
+After=TBD
+Requires=TBD
+
+[Container]
+# IMAGES ARE REFERENCED BY IMMUTABLE DIGEST, NEVER BY TAG.
+#
+# A tag is a mutable pointer: the image behind it can change with no file in
+# this repository changing, so the artifact that was reviewed is not
+# necessarily the artifact that runs. That is unacceptable under the
+# compatibility-set rule (FML-ADR-040).
+#
+# Correct form:
+#   Image=registry.example.org/project/service@sha256:<64 hex characters>
+#
+# Never:
+#   Image=registry.example.org/project/service:latest
+#   Image=registry.example.org/project/service:1.2.3
+Image=TBD
+
+# Rootless by default (FML-ADR-029). A service that genuinely cannot run
+# rootless may run rootful, with the reason recorded in its catalog entry.
+User=TBD
+Group=TBD
+
+# Resource limits. TBR-COMP-01 establishes the budget and the reservation
+# mechanism that keeps the network plane alive under service-plane load. An
+# unbounded service on a shared compute element can starve routing and flap the
+# mesh; see FML-ADR-021 for the accepted cost that makes this possible.
+MemoryMax=TBD
+CPUQuota=TBD
+
+# Published ports. Rootless containers cannot bind privileged ports without
+# explicit handling, which is why ingress is a separate concern; see
+# services/ingress/.
+PublishPort=TBD
+
+# Volumes. What a service stores, and whether that state must survive node loss
+# or a rollback, is declared in its catalog entry and classified by TBR-TAK-01.
+# State that was never declared is state that will be lost.
+Volume=TBD
+
+# Environment. NO CREDENTIAL, KEY, PASSPHRASE OR TOKEN APPEARS IN A UNIT FILE,
+# in any form, including in a comment or an example. See SECURITY.md.
+# Secrets are supplied at runtime by a mechanism that is TBD; see TBR-SEC-01.
+Environment=TBD
+
+[Service]
+# NO RESTART POLICY IS SET.
+#
+# TBR-HA-01 is open. A naive restart policy on a resource-constrained node
+# turns one failed service into a dead node: the service fails on memory
+# exhaustion, restarts, exhausts memory again, and the restart loop competes
+# with the routing daemon until mesh links flap. Do not copy a default here.
+# Restart=TBD
+
+[Install]
+WantedBy=TBD

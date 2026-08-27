@@ -1,0 +1,102 @@
+---
+name: Software defect
+description: Something in the build, configuration, or tooling does not work
+title: "[defect] "
+labels: ["defect"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For build, configuration, provisioning, or repository tooling that does
+        not behave as documented.
+
+
+        **There is very little application code**, and the four placeholder
+        services in `services/` are deliberately unimplemented. A missing
+        feature there is not a defect; see `AGENTS.md`.
+
+
+        **Do not paste an unredacted log.** A `journalctl` excerpt can contain
+        a credential, an identifier, or a location. See `SECURITY.md`.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Image build (os/image)
+        - Kernel or driver (os/kernel)
+        - Configuration templates (os/config)
+        - Provisioning (os/ansible)
+        - Release and promotion (os/release)
+        - Service definitions (services)
+        - Mission package or schema (mission)
+        - Repository tooling (tools)
+        - CI
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: The commit you saw this on.
+    validations:
+      required: true
+
+  - type: input
+    id: setversion
+    attributes:
+      label: Compatibility set version
+      description: >-
+        From `os/kernel/PINS.md`, where a node is involved. Kernel, driver,
+        firmware and userspace promote as one set, so the set version is what
+        makes a fault report actionable. No set has been promoted yet, so TBD
+        is expected.
+      placeholder: e.g. TBD
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The commands you ran, in order.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: >-
+        Redact before pasting. Say what you redacted; a log with an obvious
+        redaction is honest, a log silently trimmed is not reviewable.
+      render: text
+
+  - type: checkboxes
+    id: hardware
+    attributes:
+      label: Hardware
+      options:
+        - label: >-
+            I reproduced this without hardware, against fakes. If you could
+            not, say why in the description: a defect that only its reporter
+            can reproduce is one only its reporter can fix.
+          required: false
+
+  - type: checkboxes
+    id: publication
+    attributes:
+      label: Publication rule
+      options:
+        - label: >-
+            This report contains no credential, key, real callsign, real member
+            identity, real deployment location, or operational capture.
+          required: true

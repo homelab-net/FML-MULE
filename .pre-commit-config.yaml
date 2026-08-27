@@ -1,0 +1,75 @@
+---
+# Pre-commit hooks for the FERAL MULE repository.
+#
+# Install with:
+#   pip install pre-commit && pre-commit install
+#
+# These run the same checks CI runs, locally, before a commit is made. The
+# secret scan is the one that matters most: a credential that reaches main is
+# published, and removing the commit does not undo that. Catching it before the
+# commit exists is the only cheap point in the process.
+#
+# Hooks are not a substitute for CI. A contributor can skip them, and CI is
+# what the repository actually relies on.
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        name: Scan for committed secrets
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+        # The Quadlet reference file is systemd unit syntax, not YAML.
+        exclude: '\.container\.disabled$'
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-added-large-files
+        # A large file here is usually a binary that should be tracked by Git
+        # LFS instead. Check .gitattributes before adding a new binary format.
+        args: ["--maxkb=512"]
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+      - id: ruff-format
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+
+  - repo: local
+    hooks:
+      - id: validate-docs
+        name: Validate the ADR and trade registers
+        entry: tools/validate-docs.sh
+        language: script
+        pass_filenames: false
+
+      - id: gen-status-check
+        name: Check that STATUS.md is not stale
+        entry: tools/gen-status.sh
+        args: ["--check"]
+        language: script
+        pass_filenames: false
+
+      - id: gen-traceability-check
+        name: Check requirement traceability
+        entry: tools/gen-traceability.sh
+        args: ["--check"]
+        language: script
+        pass_filenames: false

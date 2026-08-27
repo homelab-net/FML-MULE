@@ -1,0 +1,76 @@
+# Key and credential material. Nothing matching these patterns is ever
+# committed. See SECURITY.md and CONTRIBUTING.md, publication rule.
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.csr
+*.gpg
+*.asc
+.env
+.env.*
+!.env.example
+secrets/
+**/secrets/
+
+# Local, non-publishable mission material: real identities, real locations,
+# real callsigns, captured operational data.
+mission/local/
+**/mission/local/
+
+# Build and image output.
+build/
+dist/
+out/
+*.img
+*.img.xz
+*.wic
+*.wic.*
+*.sdcard
+*.rootfs.tar
+*.squashfs
+*.deb
+*.rpm
+
+# Kernel and driver build residue.
+*.ko
+*.o
+*.mod
+*.mod.c
+*.order
+*.symvers
+.tmp_versions/
+
+# Python.
+__pycache__/
+.coverage
+htmlcov/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Node, used only for markdown tooling.
+node_modules/
+
+# Ansible.
+*.retry
+.ansible/
+
+# Editor and operating system noise.
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local scratch that must never be published.
+scratch/
+tmp/

@@ -1,0 +1,28 @@
+# shellcheck configuration for the FERAL MULE repository.
+#
+# Rules are adjusted deliberately and with a reason, never disabled wholesale.
+# See CONTRIBUTING.md: "If a linter cannot pass on something, adjust the rule
+# deliberately in its config with a comment explaining why."
+
+# SC2016: "Expressions don't expand in single quotes, use double quotes."
+#
+# Disabled repository-wide, for one specific reason. The generators in tools/
+# emit Markdown, and Markdown uses backticks for inline code. Every generated
+# line such as
+#
+#     printf 'See `docs/adr/README.md`.\n'
+#
+# trips SC2016, because shellcheck reads the backticks as an unexpanded
+# command substitution. They are literal output. Single quotes are the CORRECT
+# choice here: switching to double quotes would make the shell attempt the
+# substitution, which is the bug SC2016 exists to warn about.
+#
+# Roughly twenty such lines exist across gen-status.sh, gen-traceability.sh and
+# new-trade.sh. Annotating each individually would add more noise than the rule
+# removes, and would not be maintained.
+#
+# The trade-off accepted: a genuine missing expansion inside a single-quoted
+# printf will not be caught by shellcheck. Every generator writes to a checked
+# output (gen-status.sh --check, gen-traceability.sh --check), so an
+# unexpanded variable appears as a literal in a file CI compares.
+disable=SC2016

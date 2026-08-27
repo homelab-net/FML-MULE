@@ -1,0 +1,16 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. See SECURITY.md.",
+  "_purpose": "INVALID example. MUST BE REJECTED.",
+  "_violates": "Contains 'transmit_power_dbm', a field the schema does not define. Radio parameters are never in a mission package: they come from a region profile under regions/, because region is an input to configuration generation rather than a constant. A package that could set transmit power could put a node outside its regulatory constraints. See regions/README.md and REGULATORY.md.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-unknown-field",
+    "name": "Example with an undefined field",
+    "example": true
+  },
+  "network": {
+    "mesh_id": "example-mesh"
+  },
+  "profile": "exercise",
+  "transmit_power_dbm": 30
+}

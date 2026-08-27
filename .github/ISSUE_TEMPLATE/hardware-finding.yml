@@ -1,0 +1,110 @@
+---
+name: Hardware finding
+description: A problem, measurement, or observation about physical hardware
+title: "[hardware] "
+labels: ["hardware"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        For anything you observed on real hardware: a part that does not work,
+        a measurement that contradicts a datasheet, a part that has gone
+        end-of-life, an assembly step that cannot be performed.
+
+
+        **Safety defects are not embargoed.** If this is a safety finding, say
+        so in the title. See `SAFETY.md`.
+
+
+        **Do not include a real deployment location, member identity, callsign,
+        or credential.** Strip metadata from photographs. See `SECURITY.md`.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of finding
+      options:
+        - Part does not work as documented
+        - Measurement contradicts a datasheet or an assumption
+        - Part is end-of-life, unobtainable, or changed revision
+        - Assembly cannot be performed as written
+        - Safety defect
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: part
+    attributes:
+      label: Part
+      description: >-
+        Exact manufacturer part number, including revision or variant suffix. A
+        module whose RF front end changed between revisions is a different part
+        for this program's purposes.
+      placeholder: e.g. VENDOR-MODULE-1234-RevB
+    validations:
+      required: true
+
+  - type: input
+    id: block
+    attributes:
+      label: Hardware block
+      description: >-
+        Which block, from `hardware/blocks/`. No block is qualified yet; TBD is
+        a fine answer.
+      placeholder: e.g. block-a, or TBD
+    validations:
+      required: true
+
+  - type: input
+    id: region
+    attributes:
+      label: Region profile
+      description: Which profile from `regions/`, where the finding is region-dependent.
+      placeholder: e.g. us-915, or not applicable
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What you found
+      description: What happened, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: >-
+        A measurement needs its instrument, date, node, image build,
+        configuration and ambient conditions. An unlabelled number is not
+        evidence. Where you cite a datasheet, archive it under `docs/evidence/`
+        rather than only linking it; vendors delete PDFs.
+      placeholder: |
+        Instrument:
+        Date:
+        Node:
+        Image build:
+        Configuration:
+        Ambient:
+        Measured:
+    validations:
+      required: true
+
+  - type: input
+    id: trade
+    attributes:
+      label: Related trade or decision
+      description: Which `TBR-` or `FML-ADR-` this bears on, if you know.
+      placeholder: e.g. TBR-HW-01
+
+  - type: checkboxes
+    id: publication
+    attributes:
+      label: Publication rule
+      options:
+        - label: >-
+            This report contains no real deployment location, member identity,
+            callsign, credential, or operational capture, and any photograph
+            has had its metadata stripped.
+          required: true

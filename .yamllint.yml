@@ -1,0 +1,49 @@
+---
+# yamllint configuration for the FERAL MULE repository.
+#
+# Rules are adjusted deliberately and with a reason, never disabled wholesale.
+# See CONTRIBUTING.md.
+
+extends: default
+
+ignore: |
+  node_modules/
+  .venv/
+
+rules:
+  # 80 is the prose width used throughout this repository, but YAML carries
+  # long values that cannot be wrapped: a container image digest is 64 hex
+  # characters plus a registry path, and a URL cannot be broken. 100 accepts
+  # those without inviting unwrapped prose in comments.
+  line-length:
+    max: 100
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Comments in the configuration templates are the documentation. They carry
+  # the trade references and the TBD reasons, so they are heavily used and are
+  # not required to sit two spaces from content.
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: true
+
+  # Ansible and this repository's YAML both use "true"/"false" consistently.
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+
+  # A document start marker is required, so that a reader can tell a YAML file
+  # from a fragment at a glance.
+  document-start:
+    present: true
+
+  # The four settings below are not preferences. ansible-lint refuses to run
+  # its own YAML rule against a yamllint configuration that disagrees with
+  # them, and disabling ansible-lint's YAML rule to keep a stylistic
+  # preference would be trading a real check for a cosmetic one.
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

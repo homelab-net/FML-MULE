@@ -1,0 +1,26 @@
+---
+# Defaults for the common role.
+#
+# Every value here is TBD or a deliberately safe default. No frequency,
+# channel, bandwidth or transmit power appears in this file or in any role;
+# those come from regions/<region-id>/profile.yml. See os/config/README.md.
+
+# Region profile this node is configured for. Region is an input to
+# configuration generation, never a constant. See regions/README.md.
+common_region: TBD
+
+# Hardware block this node belongs to. No block is qualified; see TBR-HW-01.
+common_block: TBD
+
+# Compatibility set version the node should be running, from
+# os/kernel/PINS.md. Kernel, driver, firmware and userspace promote together
+# and never independently. See FML-ADR-040.
+common_set_version: TBD
+
+# Journal retention. Structured logging goes to the journal; no credential or
+# location data is logged by default. See services/README.md.
+common_journal_max_use: TBD
+
+# Resource reservation for the network plane, so that a service-plane peak
+# cannot starve routing and flap the mesh. Mechanism and values are TBR-COMP-01.
+common_network_plane_reservation: TBD

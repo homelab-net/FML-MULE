@@ -1,0 +1,72 @@
+# batman-adv configuration template - MULE
+#
+# Configures layer 2 mesh routing. batman-adv in BATMAN-V mode is the baseline
+# IP MANET routing for the range-oriented sub-GHz bearer; see FML-ADR-024.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
+# configuration generation, not a file to be edited on a node.
+#
+# batman-adv routes Ethernet frames rather than IP packets, so the mesh appears
+# as one flat broadcast domain. Two consequences that shape everything else:
+#   - Services relying on link-local discovery work without a discovery proxy.
+#   - Broadcast and multicast traffic reaches every node over a low-rate
+#     bearer, and controlling that is real work this file does not yet solve.
+#
+# Trades: TBR-RF-01 (whether the high-rate bearer joins the same mesh)
+#         TBR-NET-01 (field address prefix)
+#         TBR-LINUX-01 (whether the driver supplies a throughput estimate)
+#
+# batman-adv and batctl are part of the compatibility set and are pinned in
+# os/kernel/PINS.md. They must match. See FML-ADR-040.
+
+# --- Routing algorithm ------------------------------------------------------
+# BATMAN-V uses a throughput-based metric rather than packet loss.
+#
+# WARNING, UNVERIFIED: BATMAN-V needs a usable throughput estimate from the
+# driver. Whether the out-of-tree HaLow driver provides one is unknown and is
+# part of TBR-LINUX-01. If it does not, the metric falls back to a default and
+# path selection may be effectively arbitrary, which would undermine
+# FML-ADR-024. Confirm with batctl before assuming the metric works.
+#
+# Must be set BEFORE any interface is added to the mesh.
+routing_algo=BATMAN_V
+
+# --- Mesh interface ---------------------------------------------------------
+mesh_interface=TBD             # e.g. bat0
+
+# Interfaces attached to the mesh. Which bearers join is TBR-RF-01: the sub-GHz
+# bearer certainly, the high-rate inter-node bearer possibly.
+#
+# The EUD access point does NOT join the mesh. It is a separate logical radio
+# function; see FML-ADR-045.
+hard_interfaces=TBD
+
+# --- Parameters -------------------------------------------------------------
+orig_interval=TBD              # Originator message interval, ms.
+                               # Directly trades convergence time against
+                               # airtime on a low-rate bearer. TBR-RF-01.
+
+hop_penalty=TBD                # TBR-RF-01
+
+gw_mode=TBD                    # Gateway mode. Local-first means there is
+                               # usually no gateway; see docs/NON-GOALS.md.
+
+multicast_mode=TBD             # Multicast optimisation. Matters more here than
+                               # in a conventional mesh, because a flat layer 2
+                               # domain over a low-rate bearer makes broadcast
+                               # expensive.
+
+fragmentation=TBD
+distributed_arp_table=TBD
+bridge_loop_avoidance=TBD
+
+# --- Notes ------------------------------------------------------------------
+# Bring-up ordering matters: batman-adv attached to an interface that is not
+# yet up fails in ways that look like a radio fault. Ordering belongs to the
+# systemd unit structure and is TBD, pending TBR-LINUX-01.
+#
+# Where configuration is adopted from the upstream MANET reference project,
+# cite the source in a comment on the adopting line. See FML-ADR-023.
+#
+# Scaling is unmeasured. The node count at which a flat layer 2 mesh over this
+# bearer stops working is unknown; FML-ADR-024 records that as an accepted cost.
