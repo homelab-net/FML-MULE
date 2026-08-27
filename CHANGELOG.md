@@ -14,6 +14,49 @@ this program needs them visible:
 
 ## Unreleased
 
+### TBR-TAK-01: the state classification, analysis half
+
+`ITEP-C01` item 1, the campaign the plan says "can begin today, by one person,
+with no budget". The ten SAD section 14.1 state categories are placed into the
+three CONOPS section 26 classes with a justification each, the durable set is
+named, and its partition and rejoin behaviour is described with a conflict
+resolution rule.
+
+**It does not close the trade**, and says so in its own first section. The
+listed evidence also requires a different-node restore and the DataSync,
+mission-package, certificate and map-cache tests, none of which has run. SAD
+section 14.2 is explicit that support claimed rather than demonstrated is not
+acceptance evidence; a classification derived from documentation says what state
+*is*, not where an implementation *puts* it. The named owner is also still
+`TBD-SRR`, and a trade closes only when a named owner accepts the evidence.
+
+The artifact names no OpenTAKServer table, schema, endpoint or file path.
+Writing one from memory would be inventing a specification of the most
+plausible-looking kind: specific, confident and unsourced.
+
+Five findings, of which three change downstream work:
+
+- **Relational database state is not a class.** It is a container holding items
+  from all three classes, and which rows fall where is a property of the
+  implementation. This is why the empirical half is mandatory rather than
+  desirable.
+- **Database high availability alone cannot protect the durable set.**
+  `FML-ADR-034` makes PostgreSQL preferred *conditional on* mission-critical
+  state living in the SQL backend. At least two durable-set members - mission
+  packages and uploaded files, and sole-copy map cache - are filesystem-shaped.
+  If that holds empirically, `TBR-HA-01` is selecting a mechanism for a subset
+  of the problem.
+- **Timestamp conflict resolution is unavailable to this program.**
+  `FML-ADR-042` permits a node to run with `TIME_DEGRADED`, so under
+  last-writer-wins the node with the least trustworthy clock wins every conflict
+  and wins it silently. `TBR-HA-01` must establish authority by something other
+  than comparing wall-clock timestamps.
+
+Two further findings: losing revocation state on failover is a trust validation
+failing open, the same shape `FML-ADR-042` forbids for time; and cached map
+tiles are not ephemeral in a deployment defined by the WAN being absent, because
+the source that would serve a re-fetch is exactly what is unavailable.
+
 ### The Refs: rule gets measured instead of enforced
 
 `Refs:` stays `[review]`, and `tools/refs-report.sh` is what makes that a

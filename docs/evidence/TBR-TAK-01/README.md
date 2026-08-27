@@ -7,10 +7,27 @@
 **Priority:** 9 of 16 (SAD v0.31 section 30.2). **Function owner:** TAK + SRE.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** the analysis half only. This trade remains `OPEN`.
 
-This directory exists before the work does, deliberately. The closure gate is
+| Artifact | What it is | Status |
+| --- | --- | --- |
+| `2026-08-27-state-classification-analysis.md` | The ten SAD section 14.1 categories placed into the three CONOPS section 26 classes, with the durable set and its partition and rejoin behaviour | `UNVERIFIED` |
+
+**That artifact does not close this trade**, and says so in its own opening
+section. The listed evidence also requires a different-node restore and the
+DataSync, mission-package, certificate and map-cache tests, none of which has
+been performed. SAD section 14.2 is explicit that support claimed rather than
+demonstrated is not acceptance evidence, and a classification derived from
+documentation is a claim about what state *is*, not about where an
+implementation *puts* it.
+
+Five findings in it are worth a reader's attention before the empirical half
+runs, particularly the fifth: at least two members of the durable set appear to
+sit outside any plausible SQL backend, which would make database high
+availability necessary and not sufficient, and would change the shape of
+`TBR-HA-01`.
+
+This directory existed before the work did, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be
 graded against a standard invented after seeing it.
 
