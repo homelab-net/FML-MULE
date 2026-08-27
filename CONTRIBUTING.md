@@ -14,8 +14,12 @@ summary of everything below, and it applies to humans as well as to tools.
 1. **Do not invent specifications.** If a value is unknown, write `TBD` and
    reference the trade that will decide it. A plausible-looking number is worse
    than a blank, because a blank gets filled and a number gets quoted.
-2. **Do not claim anything is tested.** Where status is unknown, write
-   `UNVERIFIED`. No badges, no "working", no "supported".
+2. **Do not claim anything is tested.** No badges, no "working", no
+   "supported". Three status words exist and they are not interchangeable:
+   `UNVERIFIED` (no evidence), `SIMULATED` (exercised end to end on the flat-sat
+   against fakes; no claim about physical behaviour), and `HARDWARE-VERIFIED`
+   (demonstrated on hardware with recorded evidence; nothing carries it yet).
+   See `AGENTS.md` and `test/README.md`.
 3. **Every claim about component behaviour cites a datasheet or a
    measurement.** Not a forum post, not a vendor marketing page, not a
    recollection. A citation is a path under `docs/evidence/` or a specific
@@ -147,6 +151,12 @@ none. Therefore:
 A change that can only be exercised by the person holding the hardware can only
 be reviewed by that person. This rule is the difference between a project one
 person works on and one other makers can contribute to.
+
+`test/flatsat/` is where that rule is cashed in: the real node logic composed
+end to end with the hardware layer faked, so a contributor with no node can run
+the whole user flow and see it work. If you add a fake, list it in
+`test/flatsat/README.md`. If you find yourself adding one to make a scenario
+pass, stop and ask whether the scenario was testing anything.
 
 ## Regions
 

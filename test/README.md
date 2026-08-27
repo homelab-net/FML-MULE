@@ -12,9 +12,13 @@ A green pipeline means:
 - The documents are internally consistent: identifiers are unique, cited trades
   exist, `STATUS.md` is not stale, and no image reference uses a mutable tag.
 
-**It says nothing about whether the system works.** Not whether a radio
-enumerates, whether a mesh forms, whether the node survives a day on battery,
-whether it stays cool in an enclosure, or whether an operator can use it.
+**It says nothing about whether the system works on hardware.** Not whether a
+radio enumerates, whether a mesh forms, whether the node survives a day on
+battery, or whether it stays cool in an enclosure.
+
+It does say something about whether the **software** is correct and whether the
+**user flow** is coherent, because `test/flatsat/` exercises both end to end.
+That result is worth having and it has its own word.
 
 This is worth stating plainly because a green badge on a repository is read as
 evidence of function, and here it is not. That is also why this repository
@@ -29,6 +33,7 @@ gate in `os/release/README.md`.
 | Directory | Contents |
 | --- | --- |
 | `unit/` | Unit tests. `bats` for shell, `pytest` for Python. Run in CI. |
+| `flatsat/` | The flat-sat: the real node logic end to end, hardware replaced by fakes. |
 | `fixtures/` | Recorded output captured from real hardware, replayed against fakes. |
 | `stages/` | Qualification stage definitions. One directory per stage. |
 | `bench/` | Bench procedures and instrumentation notes. |
@@ -39,11 +44,30 @@ trade closes a question during design; a stage validates a requirement against
 a build. Where the same measurement serves both, one cites the other rather
 than being copied.
 
+## The three evidence tiers
+
+All testing is hypothetical until someone brings hardware to the loop. That is a
+statement about what the evidence supports, not permission to write untested
+code.
+
+| Status | Produced by | Supports a claim about |
+| --- | --- | --- |
+| `UNVERIFIED` | nothing | nothing |
+| `SIMULATED` | `test/flatsat/`, against fakes | software logic, integration, user flow |
+| `HARDWARE-VERIFIED` | the ITEP campaigns, on real hardware | physical behaviour |
+
+**Nothing in this repository is `HARDWARE-VERIFIED`.** No node exists.
+
+`SIMULATED` never supports a claim about RF, power, thermal, timing under load,
+or driver behaviour. Those are `UNVERIFIED` regardless of how green the suite
+is, and `docs/evidence/README.md` says the same thing about evidence produced
+against a fake.
+
 ## Running the tests
 
 ```sh
 tools/lint.sh          # linters and repository checks
-pytest                 # Python unit tests
+pytest                 # Python unit tests and flat-sat scenarios
 bats test/unit         # shell unit tests
 ```
 
@@ -85,6 +109,8 @@ about physical behaviour.
 | Requirement traceability | `tools/gen-traceability.sh --check` |
 | Mission package schema and repository rules | `tools/validate-mission.py`, and `test/unit/` |
 | Shell tooling | `bats`, in `test/unit/` |
+| Configuration resolution and region validation | `tools/gen-config.py`, and `test/unit/` |
+| End-to-end node flow and fail-closed behaviour | `test/flatsat/` |
 | Ansible playbook syntax | `ansible-playbook --check` |
 | Secrets | `gitleaks` |
 

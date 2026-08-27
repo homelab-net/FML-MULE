@@ -14,6 +14,59 @@ this program needs them visible:
 
 ## Unreleased
 
+### The flat-sat, and a vocabulary for what testing means here
+
+All testing in this repository is hypothetical until someone brings hardware to
+the loop. That was always true; it was not written down, and an unwritten
+caveat erodes. It is now stated in `AGENTS.md` as a statement about what the
+evidence supports rather than as permission to write untested code, with a
+three-tier vocabulary: `UNVERIFIED`, `SIMULATED`, `HARDWARE-VERIFIED`. Nothing
+in the repository carries the third.
+
+`test/flatsat/` is the software equivalent of a spacecraft flat-sat: the real
+node logic, composed and run end to end, with radio, power, thermal and time
+state replaced by fakes behind narrow interfaces. Its purpose is to verify the
+**end user experience** in CONOPS section 82, so that what is developed matches
+how it will be used and the end-to-end flow is free of logic bugs before
+hardware is scarce and expensive.
+
+Its first scenario targets the same flow as the `ROADMAP.md` `v0.0.1`
+acceptance criterion, because they are the same flow.
+
+Three rules keep it honest, and they are in `AGENTS.md` rather than only in the
+directory: it runs the real artifacts and not parallel copies; every fake is
+named in `test/flatsat/README.md`; and a passing scenario yields `SIMULATED`,
+never more. The four placeholder services stay unimplemented — the flat-sat
+exercises their interfaces with a named stand-in, which is what a flat-sat is
+for.
+
+#### Added
+
+- `tools/gen-config.py`, the first code intended for prototype hardware. It
+  resolves node configuration from a region profile and a mission package, and
+  its most important behaviour today is **refusing to invent a value that is
+  still `TBD`**, naming the trade that will supply it. Distinct exit codes
+  separate "not decided yet" (3) from "not permitted" (4).
+- `test/flatsat/`: `interfaces.py`, `fakes.py`, `node.py`, `scenarios/`, and a
+  `README.md` naming every fake, what each does and does not simulate, and the
+  trade that replaces it.
+- `test/fixtures/regions/xx-testfixture/`, three synthetic region profiles.
+  They sit outside `regions/` deliberately, so an invented number can never be
+  mistaken for a deployable regulatory profile.
+- `test/unit/test_gen_config.py`, including a tripwire asserting that **every**
+  committed region profile is still unresolvable.
+
+#### Changed
+
+- `AGENTS.md`: the evidence-tier table, a `## The flat-sat` section, and two
+  further entries under "Never do this".
+- `test/README.md`, `CONTRIBUTING.md`, `docs/glossary.md` and
+  `docs/verification/README.md` carry the same vocabulary.
+- `docs/verification/FML-MULE-ITEP-v0.1.md` gained rig **R0**, the flat-sat.
+  It is the only rig that needs no hardware and the only one that can produce
+  no `HARDWARE-VERIFIED` result.
+- `pyproject.toml`: `test/flatsat` added to `testpaths`.
+
 ### Integrated Test and Evaluation Plan
 
 `docs/verification/FML-MULE-ITEP-v0.1.md` completes the third and last of the

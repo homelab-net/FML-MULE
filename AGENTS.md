@@ -36,8 +36,25 @@ eventually believed. Never write a figure you cannot source to a datasheet or a
 measurement.
 
 **Do not claim anything is tested.** No badges, no "verified", no "working", no
-"supported". Where status is unknown, write `UNVERIFIED`. CI passing means the
-files parse; see `test/README.md`.
+"supported". CI passing means the files parse and the fakes pass; see
+`test/README.md`.
+
+**All testing is hypothetical until someone brings hardware to the loop.** That
+is a statement about what the evidence supports, not permission to write
+untested code. Code written now is expected to be correct, exercised end to end
+against fakes, and to work when introduced to real hardware. It just cannot be
+*known* to, and the difference has a vocabulary:
+
+| Status | Meaning |
+| --- | --- |
+| `UNVERIFIED` | Nothing has been exercised. The default for a claim with no evidence at all. |
+| `SIMULATED` | Exercised end to end on the flat-sat against fakes and recorded fixtures. The logic is correct and the user flow is coherent. **Makes no claim about physical behaviour.** |
+| `HARDWARE-VERIFIED` | Demonstrated on real hardware with evidence recorded under `docs/evidence/` or `test/results/`. Nothing carries this status yet. |
+
+`SIMULATED` is a real result and worth having. It is not a weaker word for
+tested, and it never supports a claim about RF, power, thermal, timing under
+load, or driver behaviour. Those need hardware, and until then they are
+`UNVERIFIED` regardless of how green the suite is.
 
 **Build system before application code.** The first functional code in this
 repository is the image build and configuration pipeline under `os/`. Features
@@ -93,6 +110,33 @@ If a change cannot be exercised without hardware, it cannot be reviewed by
 anyone but the person holding the hardware. That is the failure mode this rule
 exists to prevent.
 
+## The flat-sat
+
+`test/flatsat/` is the software equivalent of a spacecraft flat-sat: the real
+node logic, composed and run end to end, with the hardware layer replaced by
+fakes behind the narrow interfaces above.
+
+Its purpose is to verify the **end user experience** described in CONOPS section
+82 — power on, connect, authenticate, authorized services appear, work — so that
+what is developed matches how it will be used, and so the end-to-end flow is
+free of logic bugs before hardware is scarce and expensive.
+
+Three rules keep it honest:
+
+1. **It runs the real artifacts, not parallel copies.** The same configuration
+   generator, the same mission package schema, the same service definitions. A
+   flat-sat that has drifted from the node is worse than none, because "it works
+   on the flat-sat" becomes a permanent excuse.
+2. **Every fake is named and listed** in `test/flatsat/README.md`. A reader must
+   be able to see exactly which boundary is simulated.
+3. **A passing flat-sat scenario yields `SIMULATED`, never more.** It is
+   evidence about software, and `docs/evidence/README.md` already says evidence
+   produced against a fake never supports a claim about physical behaviour.
+
+Do not implement the placeholder services to make a scenario pass. The flat-sat
+exercises their **interfaces** with stand-ins, which is what a flat-sat is for:
+bringing up the bus while the payload does not exist yet.
+
 ## Conventions you are expected to follow
 
 - **Shell**: POSIX `sh` where possible, `bash` where not. Every script opens
@@ -125,7 +169,10 @@ same change.
 - Never implement the four placeholder services.
 - Never write an invented number, capacity, range, current draw, or duration.
 - Never write "tested", "verified", "validated", or "works" about anything in
-  this repository at its current stage.
+  this repository at its current stage. `SIMULATED` is available and means
+  something narrower; use it precisely.
+- Never let a flat-sat result stand in for a hardware result, and never add a
+  fake to make a scenario pass without listing it.
 - Never commit a private key, certificate, credential, real callsign, real
   member identity, real deployment location, or captured operational traffic.
   `mission/examples/` carries obviously fake identities only.

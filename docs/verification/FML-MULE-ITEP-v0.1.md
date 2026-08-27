@@ -175,6 +175,7 @@ only interpretable alongside the load that produced it.
 
 | Rig | Contents | Campaigns |
 | --- | --- | --- |
+| **R0 Flat-sat** | `test/flatsat/`. The real node logic composed end to end, hardware layer faked. Software only; runs in CI. | `ITEP-C01`, and regression cover for every campaign that later touches software |
 | **R1 Analysis** | An ordinary laptop. Fakes and recorded fixtures. A representative TAK build. No radios, no node. | `ITEP-C01` |
 | **R2 Instrumented bench** | One full node, PD source, DC power logger, thermocouples, enclosure fit article when available | `ITEP-C02`, `ITEP-C06`, `ITEP-C07` |
 | **R3 Multi-node RF** | Two full nodes plus the relay, EUD clients, traffic generator, open space | `ITEP-C03`, `ITEP-C05`, `ITEP-C09` |
@@ -201,7 +202,7 @@ throughout, per section 1.1.
 **Trades:** `TBR-TAK-01` (pri 9, CRITICAL), `TBR-NET-01` (15), `TBR-ID-01` (14),
 `TBR-SEC-01` analysis half (6), `TBR-COMP-01` service-plane half (2, CRITICAL)
 
-**Rig:** R1. **Gate:** none. **Cost:** none.
+**Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
@@ -241,6 +242,11 @@ analyses that their hardware halves can be measured against.
 
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.
+
+**R0, the flat-sat, is the persistent half of this campaign.** Analysis outputs
+are documents; the flat-sat is executable and stays in CI, so a later change
+that breaks the user flow is caught rather than rediscovered. Results from it
+carry `SIMULATED` and never substitute for a hardware campaign.
 
 ---
 

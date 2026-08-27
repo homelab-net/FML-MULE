@@ -135,12 +135,17 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 | `os/` | Image build, kernel pins, configuration templates, provisioning, release process. |
 | `services/` | Service plane structure. Four components are deliberate placeholders. |
 | `mission/` | Mission package schema, examples with fake identities, profiles. |
-| `test/` | Unit tests, fixtures, the 13 qualification stages, results. |
+| `test/` | Unit tests, the flat-sat, fixtures, the 13 qualification stages, results. |
 | `tools/` | Validation, identifier allocation, and generation scripts. |
 
 ## What is not in this repository
 
-- **Working software.** Beyond the repository's own tooling, there is none.
+- **A working node.** What exists is the repository's own tooling, the
+  configuration generator, and the flat-sat: the node logic composed end to end
+  with radio, power, thermal and time state replaced by fakes. Everything it
+  demonstrates is `SIMULATED`, which is a real result about software and no
+  result at all about RF, power, thermal or timing. Nothing here is
+  `HARDWARE-VERIFIED`; see [`test/README.md`](test/README.md).
 - **A production bill of material**, a build guide, or a wiring diagram. A
   **prototype and test BOM** exists in `hardware/prototype/`; it answers what
   must be bought to make the architecture decisions, not what a node is.
@@ -175,6 +180,10 @@ The most useful contributions right now are not code.
 - **Run the cold start drill**: clone this, read it, and file an issue for every
   point where it did not make sense. That is a real contribution, not a
   courtesy.
+- **Add a flat-sat scenario.** `test/flatsat/` runs the real node logic
+  against fakes on an ordinary laptop, with no radios present. A scenario that
+  describes how you would actually use a node is the most useful code
+  contribution available to someone with no hardware.
 - **Archive a datasheet** before the vendor deletes it. This program has already
   had a key module reach end of life before it could be purchased.
 

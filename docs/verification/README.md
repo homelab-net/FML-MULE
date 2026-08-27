@@ -104,6 +104,26 @@ point, pass a traffic smoke test, survive a reboot, and demonstrate rollback.
 That is a build-acceptance gate rather than a qualification stage, but it is
 the first real verification the program will perform.
 
+## Evidence tiers
+
+Verification here has three tiers, and conflating them is the failure this
+section exists to prevent.
+
+| Status | Produced by | Supports |
+| --- | --- | --- |
+| `UNVERIFIED` | nothing | nothing |
+| `SIMULATED` | the flat-sat, `test/flatsat/` | software logic, integration, user flow |
+| `HARDWARE-VERIFIED` | ITEP campaigns on real hardware | physical behaviour |
+
+**All testing is hypothetical until someone brings hardware to the loop.** Code
+written now is expected to be correct and exercised end to end; it simply cannot
+be *known* to work on a node. `SIMULATED` records that honestly, and never
+substitutes for a qualification stage.
+
+The flat-sat's first target is the `ROADMAP.md` `v0.0.1` acceptance criterion,
+because they are the same flow: one node, one service, reachable from a client,
+end to end.
+
 ## What CI verifies, and what it does not
 
 **CI has no radios, no battery, and no enclosure.** A green pipeline means the

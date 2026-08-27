@@ -109,8 +109,23 @@ identifier, an owner and a closure gate. Namespace `TBR-<AREA>-##`. Marks a
 **TBD** - to be determined. Marks an unknown **value**, and always cites the
 trade that will supply it. `TBR` is the question, `TBD` is the missing number.
 
-**UNVERIFIED** - status is unknown because nothing has been tested. Used
-throughout this repository, deliberately and often.
+**UNVERIFIED** - nothing has been exercised. The default for a claim with no
+evidence. Used throughout this repository, deliberately and often.
+
+**SIMULATED** - exercised end to end on the flat-sat against fakes and recorded
+fixtures. The logic is correct and the user flow is coherent. **Makes no claim
+about physical behaviour.** A real result, not a weaker word for tested.
+
+**HARDWARE-VERIFIED** - demonstrated on real hardware with evidence recorded
+under `docs/evidence/` or `test/results/`. Nothing carries this status.
+
+**Flat-sat** - borrowed from spacecraft practice, where a flatsat is the avionics
+stack laid out on a bench running real flight software with simulated
+interfaces. Here, `test/flatsat/`: the real node logic composed and run end to
+end with the hardware layer replaced by fakes behind narrow interfaces. It
+verifies the CONOPS section 82 user flow before hardware is scarce. It runs the
+same artifacts as a node, never parallel copies, because a flat-sat that has
+drifted is worse than none.
 
 **Trade** - short for trade study. The analysis behind a `TBR`.
 
