@@ -27,8 +27,14 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Literal
 
+from mule.timekeeping import (
+    TimeAssessment,
+    TimePolicy,
+    TimeReadings,
+    assess,
+)
+
 from .interfaces import Bearer, PowerState, RadioState, ThermalState
-from .timekeeping import TimeAssessment, TimePolicy, TimeReadings, assess
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

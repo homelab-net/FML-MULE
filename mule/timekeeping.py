@@ -11,9 +11,9 @@ That warning is the whole reason this module exists. Judging credibility is a
 nobody has tested. Here the platform supplies raw readings and this code decides
 what they mean, so a fake can stimulate the decision but never stand in for it.
 
-**Location note.** This is production code. It lives under `test/flatsat/`
-because no production package exists yet, for the reason given in
-`interfaces.py`, and moves there unchanged.
+`FML-ADR-051` puts this here rather than under `test/`: a decision parked in the
+test tree is held to test standards and reads as scaffolding. The flat-sat
+imports it; it does not import the flat-sat.
 """
 
 from __future__ import annotations

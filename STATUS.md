@@ -53,6 +53,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-043` | Sensitive local mission data uses LUKS2-class block encryption; key-on-same-media unattended unlock is rejected | TBR-SEC-01, TBR-HW-01, TBR-CARRIER-01, TBR-REC-01 |
 | `FML-ADR-044` | Zeroize is primarily cryptographic key/credential invalidation, not flash overwrite | TBR-SEC-01 |
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
+| `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 
 ### SELECTED TARGET
 

@@ -150,6 +150,9 @@ bringing up the bus while the payload does not exist yet.
 - **Commits**: Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`,
   `chore:`, `test:`), optional trailer `Refs: FML-ADR-### | TBR-XXX-##`, and a
   `Signed-off-by` line (DCO). Short-lived branches into `main`.
+- **Node decision logic lives in `mule/`**, held to production lint standards.
+  Fakes, fixtures and flat-sat scaffolding stay in `test/`. Nothing enters
+  `mule/` until the flat-sat exercises it end to end. `FML-ADR-051`.
 - **Values come from data, not from literals.** Region is a parameter, not a
   constant: configuration generation takes a region profile from
   `regions/<region-id>/`, and 902-928 MHz is never hardcoded. That rule

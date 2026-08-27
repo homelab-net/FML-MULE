@@ -16,9 +16,10 @@ from datetime import timedelta
 
 import pytest
 
+from mule.timekeeping import TimePolicy, assess
+
 from .conftest import FIXTURE_IMAGE_BUILD_TIME
 from .fakes import AFTER_BUILD, FakeClock
-from .timekeeping import TimePolicy, assess
 
 
 def test_a_healthy_clock_is_credible(time_policy: TimePolicy) -> None:

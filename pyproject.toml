@@ -61,7 +61,8 @@ convention = "pep257"
 
 [tool.ruff.lint.per-file-ignores]
 # Tests may use assert, which bandit flags (S101), and do not need the full
-# docstring set on every case.
+# docstring set on every case. Nothing under mule/ is relaxed: FML-ADR-051 puts
+# decision logic there precisely so it is held to production standards.
 "test/**/*.py" = ["S101", "D103"]
 
 [tool.ruff.format]
@@ -70,6 +71,11 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
+# The repository root, so that `mule` imports the same way for a bare `pytest`
+# as for `python -m pytest`. FML-ADR-051 makes mule/ a production package; how
+# it is installed onto an image is left to a later implementation ADR, and
+# until then tests import it from the tree.
+pythonpath = ["."]
 # test/unit holds unit tests; test/flatsat holds the end-to-end flat-sat
 # scenarios. Both run in CI, and neither needs a radio.
 testpaths = ["test/unit", "test/flatsat"]

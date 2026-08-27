@@ -25,37 +25,37 @@ mutations:
     replace: "if False:\n            return AdmissionResult(False, \"unreachable\")"
 
   - id: M02
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: assess judges every reading credible
     find: "    if not readings.rtc_present():"
     replace: "    if False:"
 
   - id: M03
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: a retained time predating the running image is no longer caught
     find: "    if retained < policy.image_build_time:"
     replace: "    if False:"
 
   - id: M04
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: a depleted RTC backup cell is ignored
     find: "    if readings.rtc_backup_cell_ok() is False:"
     replace: "    if False:"
 
   - id: M05
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: system clock and RTC may disagree without limit
     find: "    if skew > policy.max_system_rtc_skew:"
     replace: "    if False:"
 
   - id: M06
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: credibility is decided before a trusted upstream is consulted
     find: "    if readings.synchronized():"
     replace: "    if False:"
 
   - id: M25
-    file: test/flatsat/timekeeping.py
+    file: mule/timekeeping.py
     describe: a timestamp with no timezone raises instead of failing closed
     find: "    if any(stamp.tzinfo is None for stamp in stamps):"
     replace: "    if False:"

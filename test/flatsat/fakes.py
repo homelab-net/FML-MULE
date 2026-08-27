@@ -26,8 +26,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
+from mule.timekeeping import TimePolicy
+
 from .interfaces import Bearer
-from .timekeeping import TimePolicy
 
 #: Offsets used to build scripted clock readings. Expressed relative to the
 #: image build time because that is the semantic anchor `timekeeping.assess`

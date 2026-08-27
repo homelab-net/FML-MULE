@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import pytest
 
+from mule.timekeeping import TimePolicy
+
 from ..conftest import EUD, NodeFactory
 from ..fakes import FakeClock
-from ..timekeeping import TimePolicy
 
 #: One of the services mission/examples/valid-full.json enables.
 SERVICE = "example-service-a.example.invalid"

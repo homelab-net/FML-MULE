@@ -66,16 +66,18 @@ def test_each_fake_satisfies_the_interface_it_stands_in_for(
 
 
 def test_the_clock_fake_is_deliberately_not_in_that_list() -> None:
-    """`FakeClock` implements `TimeReadings`, which lives in `timekeeping.py`.
+    """`FakeClock` implements `TimeReadings`, which lives in `mule/`.
 
     Time is the one boundary where the node makes a judgement rather than
-    reading a fact, so its Protocol sits beside the code that judges. This test
-    exists so that the omission above reads as a decision rather than a gap.
+    reading a fact, so its Protocol sits beside the code that judges, and that
+    code is production per `FML-ADR-051`. This test exists so the omission
+    above reads as a decision rather than a gap.
     """
     from datetime import UTC, datetime
 
+    from mule.timekeeping import TimeReadings
+
     from .fakes import FakeClock
-    from .timekeeping import TimeReadings
 
     clock = FakeClock(
         present=True,

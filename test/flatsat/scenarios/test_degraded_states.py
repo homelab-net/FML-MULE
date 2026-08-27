@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+from mule.timekeeping import TimePolicy
+
 from ..conftest import EUD, NodeFactory
 from ..fakes import (
     FakeClock,
@@ -23,7 +25,6 @@ from ..fakes import (
     ImpossibleHardwareState,
 )
 from ..node import REPO_ROOT, REQUIRED_BEARERS
-from ..timekeeping import TimePolicy
 
 UNRESOLVABLE_REGION = REPO_ROOT / "regions" / "us-915" / "profile.yml"
 

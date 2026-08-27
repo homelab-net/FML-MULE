@@ -59,9 +59,9 @@ Those belong to the ITEP campaigns in `docs/verification/`, on rig R1 and above.
 ## The four rules
 
 1. **It runs the real artifacts, not parallel copies.** `node.py` loads
-   `tools/gen-config.py` by path and calls it. A flat-sat that has drifted from
-   the node is worse than none, because "it works on the flat-sat" becomes a
-   permanent excuse.
+   `tools/gen-config.py` by path and imports the decision logic from `mule/`.
+   A flat-sat that has drifted from the node is worse than none, because "it
+   works on the flat-sat" becomes a permanent excuse.
 2. **Every fake is named below**, and `tools/validate-docs.sh` fails if one is
    not. An unlisted fake is a hidden assumption.
 3. **A fake reports; it does not conclude.** Anything the node has to *decide*
@@ -81,7 +81,7 @@ derive one from.
 | `FakeRadio` | `RadioState` | Driver attachment, link formation, peer visibility | RF propagation, throughput, desense, multicast scaling, coexistence | `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03` |
 | `FakePower` | `PowerState` | External source presence, pack presence, pack health flag | Consumption, endurance, projected runtime, charge behaviour | `TBR-PWR-01` |
 | `FakeThermal` | `ThermalState` | A throttle flag and an in-envelope flag | Temperature, heat flow, ambient sensitivity, the enclosure | `TBR-THERM-01` |
-| `FakeClock` | `TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
+| `FakeClock` | `mule.timekeeping.TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
 
 `FakePower.projected_runtime_minutes()` returns `None` unconditionally. That is
 not a stub awaiting a number; it is the correct answer until `TBR-PWR-01`
@@ -96,7 +96,10 @@ flat-sat makes.
 ### Why `FakeClock` is different
 
 It supplies raw readings and reaches no verdict. Whether they are credible is
-decided by `timekeeping.assess`, which is production code under test.
+decided by `mule.timekeeping.assess`, which is production code in the sense
+`FML-ADR-051` gives the word: it lives outside this tree, in `mule/`, and is
+held to production lint and docstring standards rather than the test tree's
+relaxations.
 
 This was not always so, and the reason it changed is worth keeping. When the
 fake returned `CREDIBLE` or `DEGRADED` directly, the fail-closed tests asserted
@@ -153,12 +156,11 @@ That refusal is the behaviour under test, not an obstacle to it.
 
 | File | Contents |
 | --- | --- |
-| `interfaces.py` | Narrow Protocols over radio, power and thermal state. Production code with nowhere to live yet; see the location note in the file. |
-| `timekeeping.py` | The time credibility decision, and the raw `TimeReadings` it judges. Production code, same note. |
+| `interfaces.py` | Narrow Protocols over radio, power and thermal state. They stay here deliberately; see the location note in the file. |
 | `fakes.py` | The four fakes above, and nothing else. |
 | `node.py` | `FlatSatNode`: the node composed from those interfaces, calling the real configuration tool. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
-| `test_timekeeping.py` | Unit tests for the credibility decision. Moves with `timekeeping.py`. |
+| `test_timekeeping.py` | Unit tests for `mule/timekeeping.py`. Moves with it if it moves again. |
 | `scenarios/` | The user-visible flows, written in CONOPS vocabulary. |
 | `mutations.yml` | What the suite is required to be able to detect. |
 

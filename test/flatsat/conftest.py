@@ -12,9 +12,10 @@ from pathlib import Path
 
 import pytest
 
+from mule.timekeeping import TimePolicy
+
 from .fakes import FakeClock, FakePower, FakeRadio, FakeThermal
 from .node import REPO_ROOT, FlatSatNode
-from .timekeeping import TimePolicy
 
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
 GOOD_PROFILE = FIXTURE_REGIONS / "profile.yml"

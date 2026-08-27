@@ -177,6 +177,7 @@ table is a reading aid and may lag; the generated one does not.
 | `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | `SELECTED` |
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | `SELECTED` |
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | `SELECTED PRINCIPLE` |
+| `FML-ADR-051` | Node decision logic lives in an importable `mule/` package, not under the test tree | `SELECTED PRINCIPLE` |
 
 ## Decisions not yet recorded
 

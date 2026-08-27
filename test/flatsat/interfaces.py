@@ -10,13 +10,17 @@ These Protocol definitions are that contract. They are deliberately small: each
 describes what the node needs to *know*, not what a driver can *do*. A wide
 interface is one nobody can fake honestly.
 
-**Location note.** These belong to production code, not to tests. They live
-under `test/flatsat/` today because no production package exists yet — the first
-functional code in this repository is the image and configuration pipeline, and
-the service plane waits on trades that have not closed. When a production
-package exists, these Protocols move to it unchanged and the fakes in
-`fakes.py` implement them from here. Their location reflects that ordering, not
-a judgement that they are test-only.
+**Location note.** A production package now exists, `mule/`, per
+`FML-ADR-051`, and these Protocols deliberately did **not** move into it.
+
+They overlap the radio abstraction for the network plane, which
+`docs/interfaces/README.md` records as blocked on `TBR-LINUX-01`, `TBR-RF-01`
+and `TBR-RF-03`. Promoting them to production would be defining a blocked
+interface by relocating a file, which is the same act under a quieter name.
+
+They stay here until either those trades close or a consumer outside the
+flat-sat needs them. `mule/timekeeping.py` moved because the decision it makes
+is `FML-ADR-042`, which is decided; these describe boundaries that are not.
 """
 
 from __future__ import annotations

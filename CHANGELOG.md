@@ -14,6 +14,55 @@ this program needs them visible:
 
 ## Unreleased
 
+### The credibility decision moves into production code
+
+`FML-ADR-051`: node-resident Python that **makes a decision** lives in the new
+top-level `mule/` package, and is held to production lint, docstring and typing
+standards. Fakes, fixtures, scenarios and flat-sat composition stay under
+`test/`.
+
+`mule/timekeeping.py` is the first and only occupant. Splitting the time
+credibility decision out of `FakeClock` fixed the test; it left the production
+half parked under `test/flatsat/` with a note promising it would move when a
+production package existed. That note was a promise nobody was obliged to keep,
+and the same review that prompted it found two other stale claims.
+
+The package is bounded rather than open. Nothing enters it until the flat-sat
+exercises it end to end - it is a home for demonstrated logic, not a staging
+area for intended logic - and it acquires no daemon, no entry point, and none of
+the four placeholder components. `FML-ADR-051` records that an accumulation of
+unexercised modules is the signal the decision was wrong, and names the fallback.
+
+**The interface Protocols deliberately did not move.** `RadioState`,
+`PowerState` and `ThermalState` overlap the radio abstraction that
+`docs/interfaces/README.md` records as blocked on `TBR-LINUX-01`, `TBR-RF-01`
+and `TBR-RF-03`. Promoting them would be defining a blocked interface by
+relocating a file. `timekeeping.py` moved because the decision it makes,
+`FML-ADR-042`, is decided; those describe boundaries that are not.
+
+Moving the module closes no trade and baselines no number. `TimePolicy` still
+has no defaults: the caller supplies the image build time, the forward horizon
+and the skew tolerance, and every one of them belongs to `TBR-TIME-01`.
+
+#### Added
+
+- `mule/`, with `__init__.py`, `README.md` and `timekeeping.py`.
+- `FML-ADR-051`, and its row in the ADR register.
+- `pythonpath = ["."]` in `pyproject.toml`, so `mule` imports identically under
+  a bare `pytest` and under `python -m pytest`. Verified against an interpreter
+  with the repository root off `sys.path`.
+
+#### Changed
+
+- The `test/**` ruff relaxations no longer reach the decision logic, which was
+  the concrete cost of leaving it in the test tree.
+- `tools/mutation-check.py` mutates `mule/timekeeping.py` at its new path. Six
+  of the twenty-five mutations target the credibility decision; all 25 are
+  still caught.
+- `test/flatsat/interfaces.py` carries a corrected location note explaining why
+  it stayed, rather than one promising a move that will not happen.
+- `AGENTS.md` gains the placement rule.
+
 ### Red team of the flat-sat, and the fixes it forced
 
 The flat-sat was audited adversarially before anything was baselined against it,
