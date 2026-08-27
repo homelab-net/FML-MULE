@@ -49,7 +49,7 @@ frontmatter_field() {
 }
 
 tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT INT TERM
+trap 'rm -f "$tmp" "$tmp.trades" "$tmp.out"' EXIT INT TERM
 
 {
   cat <<'HEADER'
@@ -103,11 +103,13 @@ HEADER
   printf '## Open trades\n\n'
   printf 'A trade closes on evidence under `docs/evidence/<TRADE-ID>/`, never on document\n'
   printf 'wording. See `docs/trades/README.md`.\n\n'
-  printf '| ID | Question | Status | Owner | Hardware needed |\n'
-  printf '| --- | --- | --- | --- | --- |\n'
+  printf 'Ordered by the SAD v0.31 section 30.2 priority.\n\n'
+  printf '| Pri | ID | Question | Status | Function owner | Named owner | HW |\n'
+  printf '| ---: | --- | --- | --- | --- | --- | --- |\n'
 
-  open_count=0
-  unowned=0
+  # Rows are collected into a file first. Counting inside the sort pipeline
+  # would put the counters in a subshell and lose them.
+  : >"$tmp.trades"
   for f in "$TRADE_DIR"/TBR-*.md; do
     [ -e "$f" ] || continue
     case "$(basename "$f")" in _*) continue ;; esac
@@ -117,16 +119,26 @@ HEADER
     id=$(frontmatter_field "$f" id)
     title=$(frontmatter_field "$f" title)
     owner=$(frontmatter_field "$f" owner)
-    # First sentence only: the trade file wraps its answer over several
-    # lines, and the table wants the answer, not the reasoning.
-    hw=$(sed -n 's/^- \*\*Requires hardware:\*\* //p' "$f" | head -1 |
-      sed -e 's/\*\*//g' -e 's/\..*$//' -e 's/[[:space:]]*$//')
-    [ -n "$hw" ] || hw='TBD'
-    open_count=$((open_count + 1))
-    [ "$owner" = "TBD" ] && unowned=$((unowned + 1))
-    printf '| `%s` | %s | `%s` | `%s` | %s |\n' "$id" "$title" "$status" "$owner" "$hw"
+    pri=$(frontmatter_field "$f" priority)
+    [ -n "$pri" ] || pri=99
+    fowner=$(frontmatter_field "$f" function-owner)
+    [ -n "$fowner" ] || fowner=TBD
+    hw=$(frontmatter_field "$f" requires-hardware)
+    [ -n "$hw" ] || hw=TBD
+    printf '%03d|%s|%s|%s|%s|%s|%s\n' \
+      "$pri" "$id" "$title" "$status" "$fowner" "$owner" "$hw" >>"$tmp.trades"
   done
-  printf '\n%s open trades. %s have no owner.\n\n' "$open_count" "$unowned"
+
+  open_count=$(wc -l <"$tmp.trades" | tr -d ' ')
+  # A named owner is required by the SAD section 30.2 SRR exit action.
+  # TBD-SRR marks the gap explicitly and still counts as unowned.
+  unowned=$(awk -F'|' '$6 == "TBD" || $6 ~ /^TBD-/' "$tmp.trades" | wc -l | tr -d ' ')
+
+  sort -n "$tmp.trades" | awk -F'|' '{
+    printf "| %d | `%s` | %s | `%s` | %s | `%s` | %s |\n",
+      $1, $2, $3, $4, $5, $6, $7
+  }'
+  printf '\n%s open trades. %s have no named owner.\n\n' "$open_count" "$unowned"
 
   # --- Critical path --------------------------------------------------------
   printf '## Critical path\n\n'
@@ -140,15 +152,19 @@ HEADER
     id=$(frontmatter_field "$f" id)
     title=$(frontmatter_field "$f" title)
     owner=$(frontmatter_field "$f" owner)
-    hw=$(sed -n 's/^- \*\*Requires hardware:\*\* //p' "$f" | head -1 |
-      sed -e 's/\*\*//g' -e 's/\..*$//' -e 's/[[:space:]]*$//')
-    cp_rows="$cp_rows| \`$id\` | $title | \`$owner\` | $hw |
+    pri=$(frontmatter_field "$f" priority)
+    [ -n "$pri" ] || pri=99
+    hw=$(frontmatter_field "$f" requires-hardware)
+    cp_rows="$cp_rows$(printf '%03d|%s|%s|%s|%s' "$pri" "$id" "$title" "$owner" "$hw")
 "
   done
   if [ -n "$cp_rows" ]; then
-    printf '| ID | Question | Owner | Hardware needed |\n'
-    printf '| --- | --- | --- | --- |\n'
-    printf '%s' "$cp_rows"
+    printf 'Marked CRITICAL in the SAD v0.31 body. Ordered by SAD priority.\n\n'
+    printf '| Pri | ID | Question | Named owner | HW |\n'
+    printf '| ---: | --- | --- | --- | --- |\n'
+    printf '%s' "$cp_rows" | grep -v '^$' | sort -n | awk -F'|' '{
+      printf "| %d | `%s` | %s | `%s` | %s |\n", $1, $2, $3, $4, $5
+    }'
   else
     printf 'No trade is marked critical path.\n'
   fi
@@ -192,12 +208,14 @@ HEADER
     [ -e "$f" ] || continue
     case "$(basename "$f")" in _*) continue ;; esac
     [ "$(frontmatter_field "$f" critical-path)" = "true" ] || continue
-    [ "$(frontmatter_field "$f" owner)" = "TBD" ] || continue
+    case "$(frontmatter_field "$f" owner)" in TBD | TBD-*) ;; *) continue ;; esac
     [ "$(frontmatter_field "$f" status)" = "CLOSED" ] && continue
     risks=$((risks + 1))
     id=$(frontmatter_field "$f" id)
-    printf -- '- **`%s` is on the critical path and has no owner.** Owner `TBD` is not\n' "$id"
-    printf '  acceptable on a critical-path trade. See `docs/trades/README.md`.\n'
+    printf -- '- **`%s` is CRITICAL and has no named owner.** Assigning a named\n' "$id"
+    printf '  individual and a target date to every open TBR is an SRR exit action\n'
+    printf '  (SAD section 30.2). A trade cannot close while nobody can accept its\n'
+    printf '  evidence.\n'
   done
   [ "$risks" -eq 0 ] && printf 'None reported.\n'
   printf '\n'

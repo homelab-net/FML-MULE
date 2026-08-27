@@ -23,25 +23,61 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-021` | Single primary compute element, single Debian-family host | TBR-COMP-01, TBR-HW-01, TBR-CARRIER-01, TBR-PWR-01 |
-| `FML-ADR-022` | Host operating system family | TBR-LINUX-01, TBR-HW-01 |
-| `FML-ADR-023` | Consume the upstream MANET reference project as configuration knowledge, not as mandatory production firmware | TBR-LINUX-01, TBR-RF-01 |
-| `FML-ADR-024` | 802.11s plus batman-adv and BATMAN-V as the baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
-| `FML-ADR-029` | Rootless Podman and Quadlet as the default application execution model | TBR-HA-01, TBR-COMP-01 |
-| `FML-ADR-040` | Kernel, driver, firmware and userspace promote as one tested set | TBR-LINUX-01, TBR-REC-01 |
-| `FML-ADR-042` | Retained local time via battery-backed RTC, trust validation never fails open on invalid time | TBR-TIME-01, TBR-SEC-01, TBR-HW-01 |
+| `FML-ADR-021` | Single primary compute / single Debian host with logical plane isolation | TBR-COMP-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
+| `FML-ADR-022` | Debian stable as production host OS | TBR-LINUX-01, TBR-HW-01 |
+| `FML-ADR-023` | Consume OpenMANET as reference/configuration source, not mandatory production firmware | TBR-LINUX-01, TBR-RF-01 |
+| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
+| `FML-ADR-025` | High-throughput conventional Wi-Fi as an additional IP bearer | TBR-RF-01, TBR-RF-03 |
+| `FML-ADR-026` | Meshtastic/LoRa remains a separate non-IP degraded plane | TBR-RF-02 |
+| `FML-ADR-027` | RF coexistence controlled through supported host/radio interfaces; no assumed openmanetd primitive | TBR-RF-02, TBR-RF-03 |
+| `FML-ADR-028` | Mission services share the Debian host but cannot directly own network/RF configuration | TBR-COMP-01 |
+| `FML-ADR-029` | Rootless Podman + Quadlet is default OCI execution model | TBR-HA-01, TBR-COMP-01 |
+| `FML-ADR-030` | Shared-kernel logical isolation using users/namespaces/cgroups/nftables | TBR-COMP-01 |
+| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | TBR-NET-01, TBR-TAK-01 |
+| `FML-ADR-033` | PyTAK is preferred custom CoT transport/gateway library | none |
+| `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | TBR-HA-01, TBR-TAK-01, TBR-COMP-01 |
+| `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | TBR-ID-01 |
+| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | none |
+| `FML-ADR-040` | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | TBR-LINUX-01, TBR-REC-01, TBR-HW-01 |
+| `FML-ADR-042` | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | TBR-TIME-01, TBR-HW-01, TBR-SEC-01, TBR-HA-01 |
+| `FML-ADR-046` | MULE Status Aggregator is approved thin original software | TBR-TAK-01, TBR-HA-01, TBR-TIME-01, TBR-COMP-01 |
+| `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
+| `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
+| `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
 
 ### SELECTED PRINCIPLE
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-041` | Bootable known-good rollback path independent of the active root | TBR-REC-01, TBR-SEC-01, TBR-HW-01 |
+| `FML-ADR-041` | MULE requires an A/B or equivalently bootable known-good rollback path | TBR-REC-01, TBR-SEC-01, TBR-HW-01 |
+| `FML-ADR-043` | Sensitive local mission data uses LUKS2-class block encryption; key-on-same-media unattended unlock is rejected | TBR-SEC-01, TBR-HW-01, TBR-CARRIER-01, TBR-REC-01 |
+| `FML-ADR-044` | Zeroize is primarily cryptographic key/credential invalidation, not flash overwrite | TBR-SEC-01 |
+| `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
+
+### SELECTED TARGET
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-038` | EAP-TLS is the production EUD admission target | TBR-SEC-01, TBR-TIME-01, TBR-RF-03 |
 
 ### SELECTED PLANNING BASELINE
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-045` | EUD access point and high-throughput inter-node mesh are separate logical radio functions | TBR-RF-03, TBR-RF-01, TBR-HW-01, TBR-PWR-01 |
+| `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
+
+### PREFERRED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-032` | OpenTAKServer is preferred initial TAK-compatible server | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+| `FML-ADR-036` | Smallstep step-ca is preferred initial PKI | TBR-TIME-01, TBR-SEC-01, TBR-ID-01 |
+
+### CONDITIONAL
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
 
 ### RETIRED
 
@@ -54,32 +90,39 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 A trade closes on evidence under `docs/evidence/<TRADE-ID>/`, never on document
 wording. See `docs/trades/README.md`.
 
-| ID | Question | Status | Owner | Hardware needed |
-| --- | --- | --- | --- | --- |
-| `TBR-CARRIER-01` | Carrier board justification | `OPEN` | `TBD` | yes for the assembly attempt |
-| `TBR-COMP-01` | CPU and memory budget | `OPEN` | `TBD` | partly |
-| `TBR-HA-01` | Safe automatic service recovery | `OPEN` | `TBD` | partly |
-| `TBR-HW-01` | Primary compute hardware block | `OPEN` | `TBD` | yes, by definition |
-| `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | `TBD` | yes |
-| `TBR-NET-01` | Field address prefix | `OPEN` | `TBD` | no |
-| `TBR-PWR-01` | Endurance and battery mass | `OPEN` | `TBD` | yes, for the measurement |
-| `TBR-REC-01` | Rollback implementation | `OPEN` | `TBD` | yes |
-| `TBR-RF-01` | High-rate mesh implementation | `OPEN` | `TBD` | yes, at least two nodes |
-| `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | `TBD` | yes, including the assembled enclosure |
-| `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | `TBD` | yes, at least two nodes and several client devices |
-| `TBR-SEC-01` | Protected storage unlock | `OPEN` | `TBD` | partly |
-| `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | `TBD` | no |
-| `TBR-THERM-01` | Thermal architecture | `OPEN` | `TBD` | yes, including an enclosure |
-| `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | `TBD` | yes for drift measurement |
+Ordered by the SAD v0.31 section 30.2 priority.
 
-15 open trades. 15 have no owner.
+| Pri | ID | Question | Status | Function owner | Named owner | HW |
+| ---: | --- | --- | --- | --- | --- | --- |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | `TBD-SRR` | yes |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | `TBD-SRR` | partly |
+| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | `TBD-SRR` | yes |
+| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | `TBD-SRR` | yes |
+| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | `TBD-SRR` | yes |
+| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `TBD-SRR` | partly |
+| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `TBD-SRR` | yes |
+| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `TBD-SRR` | yes |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `TBD-SRR` | no |
+| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `TBD-SRR` | yes |
+| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `TBD-SRR` | yes |
+| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `TBD-SRR` | partly |
+| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `TBD-SRR` | yes |
+| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no |
+| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no |
+| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes |
+
+16 open trades. 16 have no named owner.
 
 ## Critical path
 
-| ID | Question | Owner | Hardware needed |
-| --- | --- | --- | --- |
-| `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `TBD` | yes |
-| `TBR-TAK-01` | Mission-critical state boundary | `TBD` | no |
+Marked CRITICAL in the SAD v0.31 body. Ordered by SAD priority.
+
+| Pri | ID | Question | Named owner | HW |
+| ---: | --- | --- | --- | --- |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `TBD-SRR` | yes |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `TBD-SRR` | partly |
+| 3 | `TBR-THERM-01` | Thermal architecture | `TBD-SRR` | yes |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `TBD-SRR` | no |
 
 ## Maintainer roles
 
@@ -101,10 +144,22 @@ being raised as a program risk. See `MAINTAINERS.md`.
 
 - **12 vacant maintainer slots.** A role with no name is a role nobody
   answers for. See `MAINTAINERS.md`.
-- **`TBR-LINUX-01` is on the critical path and has no owner.** Owner `TBD` is not
-  acceptable on a critical-path trade. See `docs/trades/README.md`.
-- **`TBR-TAK-01` is on the critical path and has no owner.** Owner `TBD` is not
-  acceptable on a critical-path trade. See `docs/trades/README.md`.
+- **`TBR-COMP-01` is CRITICAL and has no named owner.** Assigning a named
+  individual and a target date to every open TBR is an SRR exit action
+  (SAD section 30.2). A trade cannot close while nobody can accept its
+  evidence.
+- **`TBR-PWR-01` is CRITICAL and has no named owner.** Assigning a named
+  individual and a target date to every open TBR is an SRR exit action
+  (SAD section 30.2). A trade cannot close while nobody can accept its
+  evidence.
+- **`TBR-TAK-01` is CRITICAL and has no named owner.** Assigning a named
+  individual and a target date to every open TBR is an SRR exit action
+  (SAD section 30.2). A trade cannot close while nobody can accept its
+  evidence.
+- **`TBR-THERM-01` is CRITICAL and has no named owner.** Assigning a named
+  individual and a target date to every open TBR is an SRR exit action
+  (SAD section 30.2). A trade cannot close while nobody can accept its
+  evidence.
 
 ---
 

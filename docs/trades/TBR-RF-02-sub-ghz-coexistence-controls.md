@@ -2,77 +2,102 @@
 id: TBR-RF-02
 title: Sub-GHz coexistence controls
 status: OPEN
-owner: TBD
+owner: TBD-SRR
 area: RF
+priority: 11
+function-owner: RF/Spectrum
 critical-path: false
-depends-on: []
-feeds: [TBR-HW-01, TBR-RF-03]
+depends-on: [TBR-RF-03]
+feeds: [TBR-HW-01, TBR-CARRIER-01]
+requires-hardware: yes
 evidence: docs/evidence/TBR-RF-02/
-adr: []
+adr: [FML-ADR-027, FML-ADR-026]
+target-date: TBD-SRR
 ---
 
 # TBR-RF-02 Sub-GHz coexistence controls
 
+**Source:** SAD v0.31 section 8.2, and the TBR register in SAD section
+30.2 (priority 11 of 16).
+
+**Function owner:** RF/Spectrum. **Named owner:** `TBD-SRR`.
+
+SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
+individual and one calendar target date to every open TBR. `TBD-SRR` marks the
+gap explicitly rather than hiding it behind a functional organization.
+
 ## Question
 
-How do the HaLow bearer and the LoRa plane coexist in the same sub-GHz band, in
-the same enclosure, without degrading each other?
+What LoRa availability is preserved during HaLow recovery and what supported controls exist?
 
 ## Why it matters
 
-Two transmitters in one band, centimetres apart, sharing an enclosure and
-possibly a ground plane. The HaLow bearer is the range-oriented IP MANET; the
-LoRa plane is the independent degraded-communications fallback whose whole
-value is that it still works when the IP plane does not. If HaLow desensitises
-the LoRa receiver, the fallback fails at exactly the moment it is needed, and
-it fails silently.
+HaLow and LoRa may share 902-928 MHz, centimetres apart, in one enclosure. If
+HaLow desensitizes the LoRa receiver, the degraded-communications fallback fails
+at exactly the moment it is needed, and it fails silently.
 
-Coexistence is also a regional matter. The 902-928 MHz channel plan differs
-from the 863-868 MHz one, and the European sub-bands carry duty-cycle
-constraints with no analogue in the US rules. Any control decided here must be
-expressible as a region parameter; see `regions/README.md` and `REGULATORY.md`.
+CONOPS section 36 gives LoRa preservation priority over aggressive HaLow
+reacquisition, and requires System Architecture to **state a LoRa availability or
+duty-cycle figure** so the coexistence design has a verifiable target. That
+figure does not yet exist; producing it is this trade.
 
-There is a further constraint from `REGULATORY.md`: where a builder enables
-amateur-band operation, encryption is unlawful in many jurisdictions, so
-coexistence policy cannot assume every sub-GHz emission is confidential.
+`FML-ADR-027` also makes this trade decide whether a MULE-original coexistence
+policy service is needed at all.
 
 ## Options
 
-Axes: physical separation and antenna placement, filtering, a coexistence
-policy service that schedules or gates transmissions between the two radios,
-channel plan separation within the band, duty-cycle limits, and simply
-accepting degradation and characterising it.
+Axes from SAD section 8.1: channel separation, antenna separation, filtering,
+time-domain coordination, scan timing, transmit suppression, and duty-cycle
+limits.
 
-A coexistence policy service is one of the four placeholder components in
-`services/`, and it is not to be implemented before this trade closes. See
-`services/gateways/README.md` and `AGENTS.md`.
+`FML-ADR-027` requires the trade to first determine whether supported driver,
+netlink/nl80211, `iw`, `wpa_supplicant`, Morse Micro or equivalent controls are
+sufficient. **Original coexistence software is permitted only if a thin policy
+layer is still necessary after that test**, and no driver fork is authorised.
+
+Where a builder enables amateur-band operation, encryption is unlawful in many
+jurisdictions, so coexistence policy cannot assume every sub-GHz emission is
+confidential.
 
 ## Closure evidence
 
-Committed under `docs/evidence/TBR-RF-02/`:
+SAD section 30.2: desense; a **supported-control inventory**; recovery; and a
+no-fork assessment.
 
-- Measured LoRa receive sensitivity with the HaLow radio idle, and with it
-  transmitting at maximum duty, in the assembled enclosure, with antenna
-  positions recorded.
-- The reciprocal measurement: HaLow link quality with the LoRa radio
-  transmitting.
-- Measurements at the antenna separations physically achievable in the
-  candidate enclosure, not on a bench with the radios far apart.
-- The region profile each measurement was taken under.
+Measured LoRa receive sensitivity with the HaLow radio idle and with it
+transmitting at maximum duty, in the assembled enclosure, with antenna positions
+recorded. The reciprocal measurement: HaLow link quality with LoRa
+transmitting.
+
+Measurements at the antenna separations physically achievable in the candidate
+enclosure, not on a bench with the radios far apart. The region profile each
+measurement was taken under.
+
+Evidence is committed under `docs/evidence/TBR-RF-02/`.
 
 ## Closure gate
 
-Measured degradation of each bearer in the presence of the other is
-characterised and stated, and either falls within a stated acceptable limit, or
-a control is selected and demonstrated to bring it within that limit. The limit
-is written before the measurement.
+A stated LoRa availability or duty-cycle figure to be maintained while HaLow
+reacquisition is active, and measured degradation of each bearer in the presence
+of the other characterised and either inside that figure or brought inside it by
+a demonstrated control.
 
-"No interference was observed" is not closure. The measurement must show the
-sensitivity figure with and without the interferer.
+The figure is written before the measurement. "No interference was observed" is
+not closure; the measurement must show the sensitivity figure with and without
+the interferer.
+
+**Closure gate per SAD section 30.2:** Before RF design lock / Stage 3.
+
+No TBR closes on document wording alone. It closes only when its listed evidence
+exists, the named owner accepts the evidence, and the resulting architecture
+decision is entered into the persistent ADR register.
 
 ## Dependencies
 
-- **Depends on:** none, though it needs a candidate enclosure to be meaningful.
-- **Feeds:** `TBR-HW-01`, `TBR-RF-03`.
-- **Requires hardware:** yes, including the assembled enclosure. Bench
-  measurements with separated radios do not answer this question.
+- **Depends on:** `TBR-RF-03`
+- **Feeds:** `TBR-HW-01`, `TBR-CARRIER-01`
+- **Related decisions:** `FML-ADR-027`, `FML-ADR-026`
+- **Validating stage:** Stage 3 (CONOPS section 78)
+- **Requires hardware:** Requires the assembled enclosure and the final radio
+  topology from `TBR-RF-03`.
+Bench measurements with separated radios do not answer this question.

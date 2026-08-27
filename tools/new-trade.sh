@@ -95,13 +95,17 @@ evidence="$EVIDENCE_DIR/$id"
   printf 'id: %s\n' "$id"
   printf 'title: %s\n' "$TITLE"
   printf 'status: OPEN\n'
-  printf 'owner: TBD\n'
+  printf 'owner: TBD-SRR\n'
   printf 'area: %s\n' "$AREA"
+  printf 'priority: 99\n'
+  printf 'function-owner: TBD\n'
   printf 'critical-path: false\n'
   printf 'depends-on: []\n'
   printf 'feeds: []\n'
+  printf 'requires-hardware: TBD\n'
   printf 'evidence: %s/\n' "$evidence"
   printf 'adr: []\n'
+  printf 'target-date: TBD-SRR\n'
   printf -- '---\n'
   printf '\n'
   printf '# %s %s\n' "$id" "$TITLE"
@@ -133,6 +137,8 @@ printf 'Created %s/\n' "$evidence"
 printf '\nNext:\n'
 printf '  1. Fill in every section. Delete the template instructions.\n'
 printf '  2. Write the closure gate BEFORE the work starts.\n'
-printf '  3. Record an owner. TBD is not acceptable on a critical-path trade.\n'
-printf '  4. Add a row to %s/README.md and, if the area is new, list it there.\n' "$TRADE_DIR"
-printf '  5. Run tools/validate-docs.sh and tools/gen-status.sh.\n'
+printf '  3. Record a NAMED owner and a target date. Assigning both to every\n'
+printf '     open TBR is an SRR exit action; TBD-SRR marks the gap.\n'
+printf '  4. Set priority and function-owner from the SAD section 30.2 register.\n'
+printf '  5. Add a row to %s/README.md and, if the area is new, list it there.\n' "$TRADE_DIR"
+printf '  6. Run tools/validate-docs.sh and tools/gen-status.sh.\n'

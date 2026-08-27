@@ -1,69 +1,78 @@
 ---
 id: FML-ADR-041
-title: Bootable known-good rollback path independent of the active root
+title: MULE requires an A/B or equivalently bootable known-good rollback path
 status: SELECTED PRINCIPLE
-date: TBD
+date: 2026-08-25
 supersedes: none
 superseded-by: none
 trades: [TBR-REC-01, TBR-SEC-01, TBR-HW-01]
-verification: TBD
+verification: Stage 1
 ---
 
-# FML-ADR-041 Bootable known-good rollback path independent of the active root
+# FML-ADR-041 MULE requires an A/B or equivalently bootable known-good rollback path
 
-This is a stub. The **system architecture description is the source of
-rationale**; see `docs/architecture/README.md`.
+**Source of rationale:** SAD v0.31 section 20.3. See also sections 2.1, 26 and
+CONOPS section 73.
+
+New in SAD v0.3.
 
 ## Context
 
-A node is deployed by volunteers, often without a keyboard, a display, or
-anyone present who can recover a failed boot. An update that leaves the device
-unbootable is not an inconvenience; it is the loss of a scarce asset during an
-incident.
-
-Because kernel, driver, firmware and userspace promote as one set
-(`FML-ADR-040`), a bad promotion fails everything at once.
+`FML-ADR-021` makes the host the per-node compute single point of failure, and
+`FML-ADR-040` promotes the whole compatibility set together, so a bad promotion
+fails everything at once. A node is deployed by volunteers, often with no
+keyboard, no display and nobody present who can recover a failed boot.
 
 ## Decision
 
-Every node **shall** provide a bootable known-good path that does not depend on
-the integrity of the active root filesystem.
+MULE **shall** provide a bootable recovery path **independent of the newly
+promoted root filesystem**.
 
-Rollback to that path **shall** be possible without physical disassembly and
-without a host computer.
+The production implementation **shall** provide either A/B root filesystem or
+image slots, or an equivalently robust bootable known-good image and rollback
+mechanism.
+
+**A filesystem snapshot that cannot boot when the active root filesystem is
+damaged is not sufficient by itself** (SAD section 20.3).
 
 ## Status
 
 `SELECTED PRINCIPLE`.
 
-The **property** is decided. The **mechanism** is not: A/B root slots, a
-separate recovery image, a read-only fallback root, or something else. That is
-`TBR-REC-01`, and the ADR that selects a mechanism will **not** supersede this
-one, because the principle continues to hold.
+The **property** is decided. The **mechanism** is not: `TBR-REC-01` selects it
+after the compute and carrier boot chain is chosen. The ADR that selects a
+mechanism will **not** supersede this one, because the principle continues to
+hold.
 
 The mechanism interacts with protected storage unlock (`TBR-SEC-01`) and with
 whatever boot arrangement the selected hardware block offers (`TBR-HW-01`).
 
 ## Consequences
 
-- Storage layout is constrained before a compute module is chosen: a device
-  with a single small non-partitionable boot medium may be disqualified on this
+- Storage layout is constrained before a compute module is chosen. A device with
+  a single small non-partitionable boot medium may be disqualified on this
   ground alone. Feeds `TBR-HW-01`.
-- Storage capacity requirements roughly double for the root, which feeds
-  `TBR-COMP-01` indirectly and the bill of material for any block.
-- The promotion gate must demonstrate rollback, not merely provide it. That is
-  already required in `os/release/README.md`.
-- The rollback path is a second thing to keep current, and a known-good image
-  that is two years old is a weak guarantee. Managing that is part of
-  `TBR-REC-01`.
-- The rollback path is also an attack surface and a capture-time asset. See
-  `THREAT_MODEL.md`.
+- Root storage capacity requirements roughly double, which interacts with the
+  storage endurance rules in `FML-ADR-050`.
+- The promotion gate must **demonstrate** rollback, not merely provide it. That
+  is already required in `os/release/README.md` and in SAD section 20.4 item 12.
+- Acceptance covers a failed update, a corrupt active image, a failed
+  radio-driver promotion, an operator-initiated rollback, and restoration to a
+  known-good fleet baseline **without WAN** (SAD section 20.3).
+- The rollback path is a second thing to keep current. A known-good image that
+  is two years old is a weak guarantee, and may not understand the current
+  mission package format. That currency policy is part of `TBR-REC-01`.
+- The rollback path is also an attack surface and a capture-time asset, so
+  whatever unlocks it must not become a way to boot the node without its
+  protections (`TBR-SEC-01`).
+- A node that has rolled back remains **out of ready-spare status until
+  revalidated** (SAD section 26).
 
 ## Accepted cost
 
 The program accepts additional storage cost, additional build and promotion
-complexity, and a constraint on hardware selection, in exchange for a node that
-a volunteer can recover in the field.
+complexity, and a constraint on hardware selection, in exchange for a node a
+volunteer can recover in the field.
 
 ## Fallback
 
@@ -77,5 +86,5 @@ None.
 
 ## Verification dependency
 
-`TBD` pending `TBR-REC-01`. Demonstrated rollback is an explicit gate in
-`os/release/README.md` and will map to a stage under `test/stages/`.
+Stages 1 and 13. `TBR-REC-01` closure requires failed-update, corrupt-root and
+radio-driver rollback demonstrated without WAN.

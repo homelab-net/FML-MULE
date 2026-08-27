@@ -1,76 +1,85 @@
 ---
 id: FML-ADR-022
-title: Host operating system family
+title: Debian stable as production host OS
 status: SELECTED
-date: TBD
+date: 2026-08-25
 supersedes: none
 superseded-by: none
 trades: [TBR-LINUX-01, TBR-HW-01]
-verification: TBD
+verification: Stage 2
 ---
 
-# FML-ADR-022 Host operating system family
+# FML-ADR-022 Debian stable as production host OS
 
-This is a stub. The **system architecture description is the source of
-rationale**; see `docs/architecture/README.md`.
+**Source of rationale:** SAD v0.31 section 3.1. See also sections 3.3, 3.4, 20.2
+and 29.
+
+Supersedes the draft-local `AD-002` labels used in SAD v0.1 and v0.2; see SAD
+section 0.8.
 
 ## Context
 
 The appliance needs a general-purpose Linux userland with long-lived package
-availability, broad hardware support, wide contributor familiarity, and
-container tooling. Alternatives considered included a build-system-generated
-image with no package manager on the device, and a non-Debian general-purpose
-distribution.
-
-The program also has to be buildable by makers who are not embedded Linux
-specialists.
+availability, broad hardware support, wide contributor familiarity and container
+tooling, buildable by makers who are not embedded Linux specialists.
 
 ## Decision
 
-The MULE host **shall** run a Debian-family userland.
+The primary MULE compute element **shall** use the current Debian stable release
+at build time. At SAD issue, that is **Debian 13.6 "trixie"** (SAD section 3.1,
+source `SR-001`).
 
-The specific distribution and release within that family are `TBD`. The
-**kernel tree is explicitly not decided by this ADR**; see below.
+The production image **shall** use a supported Debian stable kernel and
+security-update stream, version-controlled package manifests, controlled kernel
+and module configuration, Ansible-managed host configuration, signed or
+hash-verified release artifacts, and a field-release freeze before planned
+deployments.
+
+The production MULE **shall not** require OpenWrt as its host operating system.
 
 ## Status
 
 `SELECTED`, with the kernel-tree question open.
 
 This is the userland half of the two-layer split that governs `os/`. The
-userland is portable and is expected to move between compute modules with
-configuration changes only. The kernel and board support package are
-hardware-specific and may require vendor patches. Whether a stock kernel
-suffices for the Wi-Fi HaLow driver path or whether a patched vendor tree is
-required is open: `TBR-LINUX-01`. If a patch set turns out to be required, it
-constitutes a maintained fork with an owner and a rebase strategy, registered
-under `docs/forks/`.
+userland is portable. The kernel and board support package are hardware-specific
+and may require vendor patches.
+
+Whether a stock Debian kernel suffices for the out-of-tree Wi-Fi HaLow driver
+path, or a patched vendor tree is required, is `TBR-LINUX-01`. If a patch set is
+required it constitutes a maintained fork with a named owner and a rebase
+strategy, registered under `docs/forks/`.
 
 ## Consequences
 
-- Package pinning and reproducible builds work against a well-understood
-  archive format. See `os/image/manifest/`.
+- Package pinning and reproducible builds work against a well-understood archive
+  format. See `os/image/manifest/`.
 - Contributors can reproduce most of the userland on an ordinary laptop.
-- A Debian-family userland does not constrain the kernel, so the program can
-  carry a vendor kernel beneath a portable userland if `TBR-LINUX-01` forces
-  it. That is the reason the split is drawn here rather than at the image.
-- Long-lived releases lag on wireless subsystem work, which is exactly the
-  subsystem this program depends on most. This tension is `TBR-LINUX-01`'s
-  problem to resolve.
+- The split is drawn at the userland boundary so the program can carry a vendor
+  kernel beneath a portable userland if `TBR-LINUX-01` forces it.
+- The fleet drops from two general-purpose OS lifecycles to one (SAD section
+  20.1).
+- A long-lived stable release lags on wireless subsystem work, which is the
+  subsystem this program depends on most. `TBR-LINUX-01` resolves that tension.
+- Debian's security update cadence is not aligned with the compatibility-set
+  promotion rule in `FML-ADR-040`. Reconciling them is ongoing work.
 
 ## Accepted cost
 
-The program accepts a larger installed footprint and a longer boot than a
+The program accepts a larger installed footprint and longer boot than a
 purpose-built image would need, in exchange for maintainability by volunteers
-and for the ability to change compute modules without rebuilding the userland
-story. It also accepts that a general-purpose distribution's security update
-cadence is not aligned with the compatibility-set promotion rule in
-`FML-ADR-040`, and that reconciling the two is ongoing work.
+and the ability to change compute modules without rebuilding the userland story.
+
+It accepts that a general-purpose distribution's update cadence conflicts with
+promoting the compatibility set as a unit, and that this will at some point mean
+knowingly running a component with a published vulnerability while the set is
+re-qualified.
 
 ## Fallback
 
 Changing distribution within the Debian family is a moderate cost, largely in
 the Ansible roles and the image manifest. Leaving the Debian family entirely
-would supersede this ADR and would invalidate most of `os/`.
+would supersede this ADR and invalidate most of `os/`.
 
 ## Superseded by
 
@@ -78,6 +87,11 @@ None.
 
 ## Verification dependency
 
-`TBD`. Depends on `TBR-LINUX-01`. Minimally, a candidate image must rebuild all
-out-of-tree modules and enumerate every radio, which is the first gate in
-`os/release/README.md`.
+Stage 2. SAD section 30.1 records the OpenMANET firmware dependency as OPEN
+until a mesh equivalence test demonstrates that native Debian reproduces the
+reference behaviour. Source limitation `SR-002`/`SR-003` states that OpenMANET
+behaviour is evidence for the reference implementation, not proof that native
+Debian reproduces it until Stage 2.
+
+Minimally, a candidate image must rebuild all out-of-tree modules and enumerate
+every radio, which is the first gate in `os/release/README.md`.

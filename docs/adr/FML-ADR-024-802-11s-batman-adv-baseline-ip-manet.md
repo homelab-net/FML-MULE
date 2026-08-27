@@ -1,74 +1,88 @@
 ---
 id: FML-ADR-024
-title: 802.11s plus batman-adv and BATMAN-V as the baseline IP MANET
+title: IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET
 status: SELECTED
-date: TBD
+date: 2026-08-25
 supersedes: none
 superseded-by: none
 trades: [TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01]
-verification: TBD
+verification: Stage 2
 ---
 
-# FML-ADR-024 802.11s plus batman-adv and BATMAN-V as the baseline IP MANET
+# FML-ADR-024 IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET
 
-This is a stub. The **system architecture description is the source of
-rationale**; see `docs/architecture/README.md`.
+**Source of rationale:** SAD v0.31 section 4.1. See also sections 4.2, 4.3, 5.1,
+28 and 29.
+
+Carries forward the v0.1/v0.2 `AD-004` decision; see SAD section 0.8.
 
 ## Context
 
 The range-oriented bearer needs an IP-level mesh that forms without
-configuration, tolerates nodes appearing and disappearing, and routes over
-links of very unequal quality. Writing a routing protocol was rejected; see
-`docs/NON-GOALS.md`.
-
-The candidates were in-kernel mesh with a layer 2 routing daemon, or a layer 3
-routing protocol running over point-to-point links.
+configuration, tolerates nodes appearing and disappearing, and routes over links
+of unequal quality. Writing a routing protocol is excluded by CONOPS section 81.
 
 ## Decision
 
-The baseline IP MANET **shall** use IEEE 802.11s for mesh association together
-with `batman-adv` in BATMAN-V mode for routing.
+The primary IP MANET **shall** use IEEE 802.11s for mesh association together
+with `batman-adv` in BATMAN-V mode.
+
+This follows the current OpenMANET model and preserves peer ATAK multicast
+behaviour without requiring application-layer routing awareness.
 
 ## Status
 
 `SELECTED`.
 
-Applies to the range-oriented sub-GHz bearer. Whether the high-throughput
-inter-node bearer uses the same mechanism is a separate question, `TBR-RF-01`,
-and its relationship to the access point function is `TBR-RF-03` and
-`FML-ADR-045`.
+The field L2 domain retains the OpenMANET flat field domain concept, with
+`10.41.0.0/16` as the preferred initial field prefix because it does not
+conflict with the parent Homelab `10.77.0.0/16` home prefix or `10.78.0.0/16`
+rack prefix. Exact reservations become ICD-controlled values, and the prefix
+choice itself is `TBR-NET-01`.
 
-The field address prefix is `TBD`: `TBR-NET-01`.
+Whether the high-throughput bearer joins the same batman-adv mesh is
+`TBR-RF-01`; its relationship to the EUD access point is `TBR-RF-03` and
+`FML-ADR-045`.
 
 ## Consequences
 
 - Routing happens at layer 2, so the mission-service plane sees one flat
-  broadcast domain and services that rely on link-local discovery work without
-  a discovery proxy.
-- `batman-adv` is an out-of-tree-adjacent kernel component in practice, which
-  couples this decision to the kernel question in `TBR-LINUX-01` and to the
-  compatibility-set rule in `FML-ADR-040`.
-- BATMAN-V's throughput-based metric needs a usable throughput estimate from
-  the driver. Whether the HaLow driver provides one is `UNVERIFIED` and feeds
-  `TBR-LINUX-01`.
-- A flat layer 2 domain means broadcast and multicast traffic reaches every
-  node over a low-rate bearer. Controlling that is real work and is not solved
-  by this decision.
-- Peer traffic is visible to all admitted participants. This is stated as a
-  condition in `THREAT_MODEL.md`, not a defect.
+  broadcast domain and services relying on link-local discovery work without a
+  discovery proxy.
+- Local EUD access is bridged into the field BATMAN domain so peer ATAK
+  multicast traverses the mesh and a team retains local connectivity if the mesh
+  fragments (SAD section 4.3).
+- **Ordinary EUD broadcast is not free.** Because EUD access is bridged in,
+  Stage 2 must measure not only CoT and PLI traffic but ordinary broadcast,
+  multicast, ARP, mDNS and discovery load at representative client and hop
+  counts. SAD section 4.3 states the architecture does not assume normal phone
+  broadcast behaviour is free on a constrained multi-hop mesh.
+- `batman-adv` couples this decision to the kernel question in `TBR-LINUX-01`
+  and to the compatibility-set rule in `FML-ADR-040`.
+- BATMAN-V's throughput-based metric needs a usable throughput estimate from the
+  driver. Whether the HaLow driver provides one is **UNVERIFIED** and is part of
+  `TBR-LINUX-01`. If it does not, path selection may be effectively arbitrary,
+  which would undermine this decision.
+- Peer traffic is visible to all admitted participants on the domain. CONOPS
+  section 23 makes that an explicit rule, not a defect.
 
 ## Accepted cost
 
-The program accepts kernel coupling, and accepts the broadcast burden of a flat
-layer 2 mesh over a bearer whose capacity is `TBD`. It accepts that scaling
-behaviour beyond a small node count is unmeasured, and that the number of nodes
-at which this arrangement stops working is unknown.
+The program accepts kernel coupling, and the broadcast burden of a flat layer 2
+mesh over a bearer whose capacity is `TBD`. It accepts that scaling behaviour
+beyond a small node count is unmeasured: CONOPS section 22 states that
+bench-scale peer TAK performance is not assumed to extend to a large field
+network, and Stage 2 determines usable network size and hop-count limits.
 
 ## Fallback
 
-A layer 3 routing protocol over the same radio links is the fallback, at the
-cost of link-local service discovery and of the configuration-free property.
-Taking it would supersede this ADR.
+A layer 3 routing protocol over the same radio links, at the cost of link-local
+service discovery and the configuration-free property. Taking it would supersede
+this ADR.
+
+SAD section 5.3 provides a narrower fallback for the high-rate bearer only: if
+its hardware cannot provide stable 802.11s, it becomes a routed adjunct while
+HaLow remains the baseline MANET fabric.
 
 ## Superseded by
 
@@ -76,6 +90,6 @@ None.
 
 ## Verification dependency
 
-`TBD`. Requires a mesh-formation and multi-hop traffic stage under
-`test/stages/`, with node count, spacing, and offered load recorded. Nothing
-has been measured.
+Stage 2, with Stage 4 for the high-rate bearer. Requires mesh formation and
+multi-hop traffic with node count, spacing and offered load recorded, plus the
+EUD broadcast measurement above. Nothing has been measured.

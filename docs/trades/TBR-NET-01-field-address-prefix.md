@@ -2,74 +2,101 @@
 id: TBR-NET-01
 title: Field address prefix
 status: OPEN
-owner: TBD
+owner: TBD-SRR
 area: NET
+priority: 15
+function-owner: Network
 critical-path: false
 depends-on: []
 feeds: []
+requires-hardware: no
 evidence: docs/evidence/TBR-NET-01/
-adr: [FML-ADR-024]
+adr: [FML-ADR-024, FML-ADR-031]
+target-date: TBD-SRR
 ---
 
 # TBR-NET-01 Field address prefix
 
+**Source:** SAD v0.31 section 4.2, and the TBR register in SAD section
+30.2 (priority 15 of 16).
+
+**Function owner:** Network. **Named owner:** `TBD-SRR`.
+
+SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
+individual and one calendar target date to every open TBR. `TBD-SRR` marks the
+gap explicitly rather than hiding it behind a functional organization.
+
 ## Question
 
-What address prefix and allocation scheme does the field network use, such that
-independently built deployments do not collide when they meet?
+Retain 10.41.0.0/16 or select another field prefix?
 
 ## Why it matters
 
-Small, and it will bite. Two volunteer groups that built nodes independently
-from this repository, arriving at the same incident, must be able to
-interoperate or at least coexist. If both used the same hardcoded prefix with
-overlapping host allocations, they cannot.
+SAD section 4.2 retains the upstream OpenMANET `10.41.0.0/16` field prefix as the
+preferred initial choice, because it does not conflict with the parent Homelab
+`10.77.0.0/16` home prefix or the `10.78.0.0/16` rack prefix, reduces divergence
+from upstream, and already includes a per-node lease-allocation model.
+
+The open question is collision risk with **expected external networks**. Two
+volunteer groups that built nodes independently from this repository, arriving
+at the same incident, must be able to interoperate or at least coexist.
 
 The scenario is not hypothetical for a repository published for other makers to
 build from: the more successful this program is, the more likely two
 independently built deployments meet.
 
-Ancillary questions that belong here: whether addressing is IPv6, IPv4 or both;
-whether addresses are derived from node identity or allocated; how an EUD on
-the access point is addressed relative to the mesh; and what DNS names exist in
-`services/ingress/`.
-
 ## Options
 
-Axes: address family, whether a prefix is fixed for all deployments or
-per-deployment and set in the mission package, whether host addresses are
-derived from a node identifier or allocated by a service, and whether a
-deployment identifier is embedded in the prefix so that two deployments differ
-by construction.
+Retain `10.41.0.0/16`, or select another prefix.
 
-Deriving addresses from node identity has an obvious interaction with
-`THREAT_MODEL.md`: an address that encodes a durable identifier is a durable
-identifier visible to anyone observing traffic.
+Ancillary questions that belong here: exact reservations and node ranges, which
+become ICD-controlled values; how an EUD on the access point is addressed
+relative to the mesh; and what DNS names exist in `services/ingress/`.
+
+CONOPS section 5.4 and SAD section 4.4 fix the address family: **MULE v1 is
+IPv4-first** and does not introduce a separate managed IPv6 architecture during
+initial qualification, because the parent Homelab currently disables managed
+IPv6. IPv6 may be reintroduced only through controlled parent and subsystem
+change.
 
 ## Closure evidence
 
-Committed under `docs/evidence/TBR-NET-01/`:
+SAD section 30.2: collision analysis, plus an interoperability exercise.
 
-- A written scheme, including the address family, the prefix source, and the
-  host allocation rule.
-- Demonstrated behaviour when two deployments configured independently form a
-  mesh: whether they interoperate, coexist, or conflict, and what an operator
-  sees.
-- Confirmation that the scheme is expressible in the mission configuration
-  package schema, and validated by `mission/schema/`.
-- Analysis of what the address discloses, referred to `THREAT_MODEL.md`.
+The collision analysis covers expected external networks a deployment may meet:
+incident command networks, partner organizations, and other MULE deployments
+built independently from this repository.
+
+The interoperability exercise demonstrates what actually happens when two
+independently configured deployments form a mesh: whether they interoperate,
+coexist or conflict, and what an operator sees.
+
+Confirmation that the scheme is expressible in the mission configuration package
+schema and validated by `mission/schema/`.
+
+Evidence is committed under `docs/evidence/TBR-NET-01/`.
 
 ## Closure gate
 
-The scheme is documented, two independently configured deployments are
-demonstrated not to collide, and the mission package schema validates a
-deployment's addressing configuration.
+The prefix decision is recorded with its collision analysis, two independently
+configured deployments are demonstrated not to collide, and the mission package
+schema validates a deployment's addressing configuration.
+
+Exact reservations and node ranges pass to the ICD.
+
+**Closure gate per SAD section 30.2:** Before ICD baseline / Stages 2, 11.
+
+No TBR closes on document wording alone. It closes only when its listed evidence
+exists, the named owner accepts the evidence, and the resulting architecture
+decision is entered into the persistent ADR register.
 
 ## Dependencies
 
-- **Depends on:** none.
-- **Feeds:** `os/config/` interface and DHCP templates, `services/ingress/`,
-  and the mission package schema.
-- **Requires hardware:** **no.** The scheme can be designed and the collision
-  case exercised with virtual interfaces on an ordinary machine. Another good
-  candidate for a contributor without a node.
+- **Depends on:** none
+- **Feeds:** none
+- **Related decisions:** `FML-ADR-024`, `FML-ADR-031`
+- **Validating stage:** Stage 2 (CONOPS section 78)
+- **Requires hardware:** **No.** The scheme can be analysed and the collision
+  case exercised with virtual
+interfaces on an ordinary machine. The interoperability exercise benefits from
+real nodes but does not require them.

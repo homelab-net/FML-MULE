@@ -1,173 +1,195 @@
 # Trade register
 
 A trade is an open engineering question whose answer has consequences the
-program cannot absorb silently. Each one gets a stable ID in the
-`TBR-<AREA>-##` namespace, a named owner, and a stated closure gate.
+program cannot absorb silently. Each has a stable identifier in the
+`TBR-<AREA>-##` namespace, a function owner, a named owner, and a stated closure
+gate.
 
-`TBR` is read as "to be resolved" in this program. It marks a question, not a
-value; a specific unknown value is written `TBD` and cites the trade that will
-supply it.
+The register is transcribed from **SAD v0.31 section 30.2**, which is
+controlling. `TBR` is read as "to be resolved". It marks a **question**; a
+specific unknown value is written `TBD` and cites the trade that will supply it.
+
+## Correction from the initial repository scaffold
+
+The first version of this repository marked `TBR-LINUX-01` and `TBR-TAK-01` as
+the two trades on the critical path. **That was a scaffolding assumption and it
+is superseded by the SAD.**
+
+SAD section 30.2 assigns a priority ordering in which `TBR-PWR-01` is first and
+`TBR-LINUX-01` is eighth, and the SAD body marks **four** trades `CRITICAL`:
+
+| Trade | SAD section | Priority |
+| --- | --- | ---: |
+| `TBR-PWR-01` | 25.1, "CRITICAL / FIRST HARDWARE TRADE" | 1 |
+| `TBR-COMP-01` | 25.3, "CRITICAL" | 2 |
+| `TBR-THERM-01` | 25.7, "CRITICAL" | 3 |
+| `TBR-TAK-01` | 14.1, "CRITICAL" | 9 |
+
+`TBR-TAK-01` is the only one carried over from the scaffold's list.
+`TBR-LINUX-01` remains important — almost everything in `os/` waits behind it —
+but the SAD places the **power, compute and thermal characterization** ahead of
+it, because those three bound the hardware selection that `TBR-LINUX-01` itself
+needs a candidate for.
+
+The `critical-path` frontmatter field and `STATUS.md` now follow the SAD.
 
 ## Identifier rules
 
-1. **IDs are permanent and never reused**, including after a trade is closed,
-   merged into another, or abandoned.
-2. **Filename is `TBR-<AREA>-##-slug.md`.** `<AREA>` is upper case, the number
-   is two digits, the slug is lower-case hyphenated.
+1. **Identifiers are permanent and never reused**, including after a trade is
+   closed, merged into another, or abandoned.
+2. **Filename is `TBR-<AREA>-##-slug.md`.**
 3. **The `id` in frontmatter matches the filename.**
-4. Areas in use: `LINUX`, `PWR`, `COMP`, `THERM`, `HW`, `RF`, `TAK`, `HA`,
-   `SEC`, `TIME`, `REC`, `CARRIER`, `NET`. A new area is fine; add it here in
-   the same change.
+4. Areas in use: `PWR`, `COMP`, `THERM`, `RF`, `TIME`, `SEC`, `HW`, `LINUX`,
+   `TAK`, `HA`, `REC`, `ID`, `NET`, `CARRIER`. A new area is fine; add it here
+   in the same change.
 
-Allocate an ID with `tools/new-trade.sh RF "Question in sentence case"`.
+Allocate one with `tools/new-trade.sh RF "Question in sentence case"`.
 
 ## Status vocabulary
 
 | Status | Meaning |
 | --- | --- |
 | `OPEN` | Question stated, not answered. |
-| `IN WORK` | Someone is actively producing the evidence. Has an owner who is not `TBD`. |
-| `BLOCKED` | Cannot proceed until a dependency closes or a resource exists. The blocker is named in the file. |
-| `CLOSED` | Answered, with evidence committed under `docs/evidence/<TRADE-ID>/` and a decision recorded as an ADR. |
-| `ABANDONED` | No longer relevant. The reason is recorded. The ID is retained and never reused. |
+| `IN WORK` | Someone is actively producing the evidence. Has a named owner. |
+| `BLOCKED` | Cannot proceed until a dependency closes or a resource exists. |
+| `CLOSED` | Answered, with evidence under `docs/evidence/<TRADE-ID>/`, accepted by the named owner, and a decision recorded in the ADR register. |
+| `ABANDONED` | No longer relevant. Reason recorded. Identifier retained. |
+
+## Owners, and the SRR exit action
+
+Every trade carries two owner fields:
+
+- **`function-owner`** — the engineering function accountable, from SAD section
+  30.2. For example `Power/Mechanical`, `TAK + SRE`, `Linux/Platform`.
+- **`owner`** — a **named individual**.
+
+SAD section 30.2 records an SRR exit action:
+
+> the Program Owner assigns one named individual and one calendar target date to
+> every open TBR.
+
+Every trade currently reads `TBD-SRR` for both the named owner and the target
+date. The SAD is explicit that this marker exists so the gap is visible rather
+than hidden behind a functional organization, and `STATUS.md` reports it as a
+program risk.
+
+A trade **cannot** close while its named owner is `TBD-SRR`, because closure
+requires the named owner to accept the evidence.
+
+SAD section 31 separately carries "one individual owns too many TBRs/release
+functions" as an OPEN risk, to be reviewed when the names are assigned.
 
 ## Closure
 
-**No trade closes on document wording alone.** Rewriting a trade document more
-confidently is not closure, and it is the most common way a program convinces
-itself it has decided something.
+**No trade closes on document wording alone.** SAD section 30.2:
 
-A trade closes when all four hold:
+> A TBR closes only when its listed evidence exists, the named owner accepts the
+> evidence, and the resulting architecture decision is entered into the
+> persistent ADR register.
 
-1. The evidence its closure gate demands exists, and is committed under
-   `docs/evidence/<TRADE-ID>/` with instrument, date, node and configuration
-   recorded where it is a measurement.
-2. An ADR records the resulting decision and cites the evidence path.
-3. The trade file's status is `CLOSED`, citing that ADR and that path.
-4. `tools/validate-docs.sh` passes.
+So closure needs all four:
 
-A closure that cites no path under `docs/evidence/` is not a closure. A closure
-whose supporting datasheet has since 404'd is not verifiable, which is why
-datasheets are archived into the repository rather than linked. See
-`docs/evidence/README.md`.
-
-## Frontmatter
-
-```yaml
----
-id: TBR-LINUX-01
-title: Kernel and out-of-tree driver viability
-status: OPEN
-owner: TBD
-area: LINUX
-critical-path: true
-depends-on: []
-feeds: [TBR-HW-01, TBR-RF-01]
-evidence: docs/evidence/TBR-LINUX-01/
-adr: []
----
-```
-
-- `owner` is a name or `TBD`. **`TBD` is not acceptable on a critical-path
-  trade**; that combination is reported in `STATUS.md` as a program risk.
-- `depends-on` lists trades that must close first. `feeds` lists trades that
-  consume this one's answer. Both are flow sequences of IDs, or `[]`.
-- `evidence` is the directory path, which must exist.
-- `adr` lists ADRs that record or depend on the outcome.
+1. the evidence the closure gate demands, committed under
+   `docs/evidence/<TRADE-ID>/`, with instrument, date, node and configuration
+   recorded where it is a measurement;
+2. acceptance by the named owner;
+3. an ADR recording the decision and citing the evidence path;
+4. `tools/validate-docs.sh` passing.
 
 ## Required sections
 
-`tools/validate-docs.sh` requires all six.
+`tools/validate-docs.sh` requires all six: **Question**, **Why it matters**,
+**Options**, **Closure evidence**, **Closure gate**, **Dependencies**.
 
-- **Question** - one sentence. If it takes a paragraph, it is more than one
-  trade.
-- **Why it matters** - what breaks or stalls while this is open.
-- **Options** - what is genuinely being considered, including doing nothing.
-- **Closure evidence** - specifically what artifact would answer it. Name the
-  measurement, the instrument class, the conditions.
-- **Closure gate** - the condition under which the program agrees it is
-  answered. Written before the work, so the answer cannot be graded against a
-  standard invented afterwards.
-- **Dependencies** - what must close first, what waits on this.
-
-## The critical path
-
-Two trades are currently on the critical path.
-
-**`TBR-LINUX-01`, kernel and out-of-tree driver viability.** Almost everything
-in `os/` waits on it. If a patched vendor kernel tree is required, the program
-acquires a maintained fork, which needs an owner, a rebase cadence, and an
-entry under `docs/forks/`. It also constrains which compute modules are viable
-at all, so it feeds hardware selection. It **requires hardware** and cannot
-start until a candidate module and radio are in hand.
-
-**`TBR-TAK-01`, mission-critical state boundary.** It determines what the
-mission-service plane must guarantee, which shapes the service catalog, the
-identity design, and the recovery behaviour. It is on the critical path because
-several service-plane trades wait behind it.
-
-**`TBR-TAK-01` requires no hardware and can proceed in parallel.** It is a
-design and analysis trade, resolvable against documentation, the upstream
-protocol behaviour, and reasoning about partition. Anyone can pick it up today,
-without owning a node, and it is the highest-value thing an unequipped
-contributor can do for this program.
-
-## Trades feeding hardware selection
-
-`TBR-HW-01` cannot close before the trades that constrain it do. This is the
-dependency structure that most often gets missed, so it is stated explicitly:
-
-```mermaid
-graph TD
-  LINUX01[TBR-LINUX-01 kernel and driver viability]
-  COMP01[TBR-COMP-01 CPU and memory budget]
-  PWR01[TBR-PWR-01 endurance and battery mass]
-  THERM01[TBR-THERM-01 thermal architecture]
-  RF01[TBR-RF-01 high-rate mesh implementation]
-  RF03[TBR-RF-03 AP and mesh consolidation]
-  CARRIER01[TBR-CARRIER-01 carrier board justification]
-  REC01[TBR-REC-01 rollback implementation]
-  TIME01[TBR-TIME-01 clock holdover]
-  HW01[TBR-HW-01 primary compute hardware block]
-
-  LINUX01 --> HW01
-  COMP01 --> HW01
-  PWR01 --> HW01
-  THERM01 --> HW01
-  RF01 --> RF03
-  RF03 --> HW01
-  CARRIER01 --> HW01
-  REC01 --> HW01
-  TIME01 --> HW01
-  COMP01 --> PWR01
-  PWR01 --> THERM01
-```
-
-Selecting hardware before these close is how a program ends up requalifying an
-enclosure it has already had made.
+The closure gate is written **before** the work, so the result cannot be graded
+against a standard invented after seeing it.
 
 ## Register
 
-`STATUS.md` carries the generated current view. This table is a reading aid.
+Ordered by SAD section 30.2 priority. `STATUS.md` carries the generated view.
 
-| ID | Title | Status | Owner | Critical path |
-| --- | --- | --- | --- | --- |
-| `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | `TBD` | yes |
-| `TBR-PWR-01` | Endurance and battery mass | `OPEN` | `TBD` | no |
-| `TBR-COMP-01` | CPU and memory budget | `OPEN` | `TBD` | no |
-| `TBR-THERM-01` | Thermal architecture | `OPEN` | `TBD` | no |
-| `TBR-HW-01` | Primary compute hardware block | `OPEN` | `TBD` | no |
-| `TBR-RF-01` | High-rate mesh implementation | `OPEN` | `TBD` | no |
-| `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | `TBD` | no |
-| `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | `TBD` | no |
-| `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | `TBD` | yes |
-| `TBR-HA-01` | Safe automatic service recovery | `OPEN` | `TBD` | no |
-| `TBR-SEC-01` | Protected storage unlock | `OPEN` | `TBD` | no |
-| `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | `TBD` | no |
-| `TBR-REC-01` | Rollback implementation | `OPEN` | `TBD` | no |
-| `TBR-CARRIER-01` | Carrier board justification | `OPEN` | `TBD` | no |
-| `TBR-NET-01` | Field address prefix | `OPEN` | `TBD` | no |
+| Pri | ID | Question | Status | Function owner | Named owner | HW | Critical |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | `TBD-SRR` | yes | **yes** |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | `TBD-SRR` | partly | **yes** |
+| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | `TBD-SRR` | yes | **yes** |
+| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | `TBD-SRR` | yes | no |
+| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | `TBD-SRR` | yes | no |
+| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `TBD-SRR` | partly | no |
+| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `TBD-SRR` | yes | no |
+| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `TBD-SRR` | yes | no |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `TBD-SRR` | no | **yes** |
+| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `TBD-SRR` | yes | no |
+| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `TBD-SRR` | yes | no |
+| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `TBD-SRR` | partly | no |
+| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `TBD-SRR` | yes | no |
+| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no | no |
+| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no | no |
+| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes | no |
+## What can be worked without hardware
 
-Every owner is `TBD`, including both critical-path trades. That is the
-program's current state and is reported as a risk in `STATUS.md` rather than
-tidied away.
+Three trades need no hardware, and one of them is `CRITICAL`:
+
+- **`TBR-TAK-01`, mission-critical state boundary.** Priority 9 and marked
+  `CRITICAL`. A design and analysis trade, resolvable against documentation,
+  protocol behaviour and reasoning about partition, running against fakes on an
+  ordinary laptop. `TBR-HA-01` and `FML-ADR-034` both wait on it. **This is the
+  highest-value work available to a contributor who owns no node.**
+- **`TBR-NET-01`, field address prefix.** Whether to retain `10.41.0.0/16`. The
+  collision case can be exercised with virtual interfaces.
+- **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
+  offline login against fakes.
+
+Two more are `partly` workable without hardware: `TBR-SEC-01`, whose analysis
+against the capture scenarios is the larger half, and `TBR-COMP-01`, whose
+service-plane measurements can be taken on an ordinary machine against fakes.
+
+## Dependency graph
+
+From SAD section 30.3. This is the architecture-driven schedule until calendar
+dates are assigned.
+
+```mermaid
+graph TD
+  RF03[TBR-RF-03 AP and mesh consolidation]
+  PWR01[TBR-PWR-01 endurance and battery mass]
+  RF01[TBR-RF-01 high-rate mesh]
+  THERM01[TBR-THERM-01 thermal architecture]
+  COMP01[TBR-COMP-01 CPU and memory budget]
+  TIME01[TBR-TIME-01 clock holdover]
+  SEC01[TBR-SEC-01 protected storage unlock]
+  HW01[TBR-HW-01 primary compute hardware block]
+  REC01[TBR-REC-01 rollback implementation]
+  CARRIER01[TBR-CARRIER-01 carrier board]
+  LINUX01[TBR-LINUX-01 kernel and driver viability]
+  TAK01[TBR-TAK-01 mission-critical state boundary]
+  HA01[TBR-HA-01 safe automatic service recovery]
+  RF02[TBR-RF-02 sub-GHz coexistence]
+
+  RF03 --> PWR01
+  RF03 --> RF01
+  PWR01 --> THERM01
+  THERM01 --> HW01
+  COMP01 --> HW01
+  TIME01 --> HW01
+  SEC01 --> HW01
+  HW01 --> REC01
+  HW01 --> CARRIER01
+  HW01 --> LINUX01
+  TAK01 --> HA01
+  TIME01 --> HA01
+  RF03 --> RF02
+```
+
+SAD section 30.3 draws four conclusions from it:
+
+- **`TBR-HW-01` is a convergence decision**, not an independent early choice.
+- **`TBR-TIME-01` constrains both hardware and HA.**
+- **`TBR-SEC-01` may add a TPM or secure-element requirement**, and therefore
+  constrains hardware and carrier selection.
+- **`TBR-RF-03` affects power, thermal, antenna count, the high-rate
+  architecture and coexistence testing**, which is why it sits at the head of
+  the graph despite being priority 4.
+
+Selecting hardware before these close is how a program ends up requalifying an
+enclosure it has already had made.

@@ -2,70 +2,104 @@
 id: TBR-COMP-01
 title: CPU and memory budget
 status: OPEN
-owner: TBD
+owner: TBD-SRR
 area: COMP
-critical-path: false
+priority: 2
+function-owner: Platform + TAK
+critical-path: true
 depends-on: [TBR-TAK-01]
-feeds: [TBR-HW-01, TBR-PWR-01, TBR-CARRIER-01]
+feeds: [TBR-HW-01, TBR-PWR-01]
+requires-hardware: partly
 evidence: docs/evidence/TBR-COMP-01/
-adr: [FML-ADR-021, FML-ADR-029]
+adr: [FML-ADR-021, FML-ADR-028, FML-ADR-029, FML-ADR-030]
+target-date: TBD-SRR
 ---
 
 # TBR-COMP-01 CPU and memory budget
 
+**Source:** SAD v0.31 section 25.3, and the TBR register in SAD section
+30.2 (priority 2 of 16).
+
+**Function owner:** Platform + TAK. **Named owner:** `TBD-SRR`.
+
+SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
+individual and one calendar target date to every open TBR. `TBD-SRR` marks the
+gap explicitly rather than hiding it behind a functional organization.
+
 ## Question
 
-What CPU and memory does the combined network plane and mission-service plane
-require, with enough margin to survive a peak without the mesh degrading?
+What CPU/RAM reserve is required for the complete one-host service catalog?
 
 ## Why it matters
 
-`FML-ADR-021` puts both planes on one host, so they compete. The failure mode
-is specific and nasty: the mission-service plane takes memory or CPU under
-load, the network plane's routing daemon is starved, mesh links flap, and the
-node appears to have a radio fault when it has a scheduling fault.
+SAD section 25.3 marks this **CRITICAL**. The one-host architecture requires an
+explicit compute and memory model alongside the power model, and **the host
+hardware is not selected until the resource model and power model agree.**
 
-The budget sets the floor for hardware selection, and every module below the
-floor is disqualified. Set it too high and the program buys power and heat it
-did not need, which feeds straight into `TBR-PWR-01` and `TBR-THERM-01`.
-
-No CPU class, core count, memory size or storage size appears anywhere in this
-repository. None has been chosen.
+`FML-ADR-021` accepted that a fault in the mission-service plane can starve the
+network plane. This trade is where that accepted cost is quantified and bounded.
+The failure mode is specific: the service plane takes memory or CPU, the routing
+daemon is starved, mesh links flap, and the node appears to have a radio fault
+when it has a scheduling fault.
 
 ## Options
 
-The axes, rather than invented options: memory size, CPU class and core count,
-storage class and endurance, whether hardware cryptographic acceleration is
-required, and how much headroom is reserved for the network plane.
+The axes are memory size, CPU class and core count, storage class and endurance,
+whether hardware cryptographic acceleration is required, and how much headroom
+is reserved for the Network Plane.
 
-Reservation mechanism matters as much as size. Whether the network plane gets a
-systemd resource reservation, a dedicated core, or nothing but priority is part
-of this trade.
+**The reservation mechanism matters as much as the size.** SAD section 10.4
+requires critical network functions to receive reserved CPU and memory priority
+sufficient to remain responsive during application load. Whether that is a
+systemd resource reservation, a dedicated core, or priority alone is part of
+this trade.
 
 ## Closure evidence
 
-Committed under `docs/evidence/TBR-COMP-01/`:
+Measured RAM, CPU, OOM and cgroup behaviour for the components SAD section 25.3
+enumerates:
 
-- Measured resident memory and CPU utilisation for each service in the catalog,
-  under a representative mission load, recorded with the image build.
-- The same for the network plane: routing daemon, mesh interface handling,
-  firewall, DNS and DHCP.
-- A peak measurement, not only a steady-state one, including service start-up,
-  a mesh reconfiguration, and a client association storm at the access point.
-- A stated reservation policy and evidence that the network plane keeps its
-  reservation while the service plane is at peak.
+- baseline Debian and network stack;
+- hostapd and EAP;
+- batman-adv and mesh telemetry;
+- OpenTAKServer processes;
+- RabbitMQ;
+- PostgreSQL if selected;
+- HAProxy;
+- Mission Trust Service;
+- MULE service controller;
+- MULE Status Aggregator;
+- representative rootless browser, file and chat services;
+- observability and exporters;
+- failover and synchronization workload.
+
+Peak as well as steady state: service start-up, a mesh reconfiguration, and a
+client association storm at the access point.
+
+Evidence is committed under `docs/evidence/TBR-COMP-01/`.
 
 ## Closure gate
 
-A budget is stated with headroom, and a node running the full catalog at a
-representative load holds mesh links stable through a service-plane peak, with
-the measurement recorded. The budget document names the reservation mechanism.
+A budget is stated defining normal and peak RAM utilization, swap policy, CPU
+utilization under normal and worst representative load, reserve margin, OOM
+behaviour and cgroup or service priority.
+
+A node running the full catalog at representative load holds mesh links stable
+through a service-plane peak, with the measurement recorded.
+
+**Closure gate per SAD section 30.2:** Before host selection / Stages 1, 5.
+
+No TBR closes on document wording alone. It closes only when its listed evidence
+exists, the named owner accepts the evidence, and the resulting architecture
+decision is entered into the persistent ADR register.
 
 ## Dependencies
 
-- **Depends on:** `TBR-TAK-01`, which determines whether durable mission state
-  and its storage are in the budget at all.
-- **Feeds:** `TBR-HW-01`, `TBR-PWR-01`, `TBR-CARRIER-01`.
-- **Requires hardware:** partly. Service-plane measurements can be taken on an
-  ordinary machine against fakes, per the hardware abstraction rule in
-  `AGENTS.md`. Network-plane measurements need radios.
+- **Depends on:** `TBR-TAK-01`
+- **Feeds:** `TBR-HW-01`, `TBR-PWR-01`
+- **Related decisions:** `FML-ADR-021`, `FML-ADR-028`, `FML-ADR-029`, `FML-ADR-030`
+- **Validating stage:** Stage 1 (CONOPS section 78)
+- **Requires hardware:** Service-plane measurements can be taken on an
+  ordinary machine against fakes,
+per the hardware abstraction rule in `AGENTS.md`. Network-plane measurements and
+the association-storm case need radios.

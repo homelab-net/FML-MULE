@@ -1,146 +1,187 @@
 # Architecture decision register
 
-Every architecture decision in this program is recorded here as a numbered
-document in the `FML-ADR-###` namespace.
+Every controlling architecture decision in this program is recorded here as a
+numbered document in the `FML-ADR-###` namespace.
 
-An ADR records a decision that was taken, why, and what it costs. It is not a
-design document and it is not a specification. If a reader has to ask "why is
-it like that", the answer belongs in an ADR.
+The decisions are transcribed from **SAD v0.31 section 0.8**, which is the
+controlling register. `docs/architecture/FML-MULE-SAD-v0.31.md` is the source of
+rationale; the files here record the decision, its status, its consequences and
+its accepted cost with a permanent identifier, and cite the SAD section that
+argues it.
+
+Neither replaces the other. A decision described only in the SAD is not citable;
+a decision recorded only here has lost its reasoning.
 
 ## Identifier rules
 
-These are binding. `tools/validate-docs.sh` enforces the mechanical parts.
+Binding. `tools/validate-docs.sh` enforces the mechanical parts.
 
 1. **Identifiers are permanent and never reused.** Not after a decision is
-   abandoned, not after a file is deleted, not to close a gap in the sequence.
-   A gap in the numbering is information; filling it destroys that information.
+   abandoned, not after a file is deleted, not to close a gap in the sequence. A
+   gap in the numbering is information; filling it destroys that information.
+   This is governing principle 14 in SAD section 0.3.
 2. **Filename is `FML-ADR-###-slug.md`**, three digits, lower-case hyphenated
-   slug derived from the title.
+   slug.
 3. **The `id` in frontmatter matches the filename.**
-4. **A changed decision does not edit the old ADR.** Write a new one, set the
+4. **A changed decision does not edit the old one.** Write a new one, set the
    old one's status to `SUPERSEDED` with `superseded-by`, and set `supersedes`
-   on the new one. Both directions are recorded so a reader arriving at either
-   file finds the other.
-5. **Editing an existing ADR** is for typographical corrections, for
-   consequences that were always true and were missed, and for status changes.
-   Not for changing the decision.
-6. **Every trade an ADR cites must exist** as a file in `docs/trades/`.
+   on the new one. Both directions are recorded.
+5. **Every trade an ADR cites must exist** as a file in `docs/trades/`.
 
-Allocate an ID with `tools/new-adr.sh "Title in sentence case"`. It will not
-hand out a used number, including numbers used by deleted files, because it
-reads the highest ID ever recorded rather than counting files.
+Allocate an identifier with `tools/new-adr.sh "Title in sentence case"`. It
+reads the highest identifier ever recorded, from the working tree **and from git
+history**, so a deleted identifier is never reissued.
 
-The number range is not meaningful and is not reserved by area. The seed set
-starts at 021 because the decisions numbered below that were taken during the
-pre-repository phase of the program and have not yet been transcribed; their
-IDs are reserved and will not be reissued.
+## The draft-local AD-001 to AD-020 labels
+
+SAD section 0.8 records that the inline `AD-001` through `AD-020` labels used in
+SAD v0.1 and v0.2 were draft-local identifiers, and were **incorrectly reused
+when their meanings changed**.
+
+They are historical only and **shall not** be used as controlling decision
+identifiers. Nothing in this repository cites them. Where a current decision
+carries forward or supersedes one, its own file says so in prose; the
+`supersedes` frontmatter field is reserved for `FML-ADR-###` identifiers.
+
+The register starts at 021 for that reason. Identifiers below 021 are consumed
+and will not be reissued, except `FML-ADR-000`, which is the template and is
+marked `RETIRED` so that it never reads as an active decision.
 
 ## Status vocabulary
 
-The status is not a confidence rating. It says what kind of commitment the
-decision is, which determines what it takes to change it. Read this section
-before setting a status; the distinctions are the point.
+From SAD section 0.4, extended with the states the register actually uses. The
+status is not a confidence rating. It says what kind of commitment the decision
+is, which determines what it takes to change it.
 
 | Status | Meaning |
 | --- | --- |
 | `PROPOSED` | Written, under review, not yet decided. Carries no weight. |
-| `SELECTED` | A decision has been taken. Implementation may depend on it. Changing it requires a superseding ADR. |
-| `SELECTED PRINCIPLE` | The property is decided; the mechanism that provides it is not. Implementations must satisfy the principle. A later ADR names the mechanism without superseding this one. |
-| `SELECTED TARGET` | A value or objective the design is being driven toward, which has not been demonstrated achievable. May be revised downward with recorded rationale rather than superseded. |
-| `SELECTED PLANNING BASELINE` | Adopted so that dependent work can proceed. Expected to be revisited when a named trade closes. Nobody should be surprised if it changes. |
-| `PREFERRED` | A leaning, not a decision. Recorded so the reasoning is not lost, and so a contributor knows which way the program is inclined. Nothing may depend on it. |
-| `CONDITIONAL` | Decided, but contingent on a stated condition. If the condition fails, the decision reverts and the fallback applies. The condition is written in the Status section. |
-| `SUPERSEDED` | Replaced by a later ADR, cited in `superseded-by`. Retained permanently. Never deleted. |
+| `SELECTED` | Architecture direction accepted for the current SRR package. Implementation may depend on it. Changing it requires a superseding ADR. |
+| `SELECTED PRINCIPLE` | The property is decided; the mechanism that provides it is not. A later ADR names the mechanism **without superseding** this one. |
+| `SELECTED TARGET` | An objective the design is being driven toward, not yet demonstrated achievable. |
+| `SELECTED PLANNING BASELINE` | Adopted so dependent work can proceed. Expected to be revisited when a named trade closes. Nobody should be surprised if it changes. |
+| `PREFERRED` | An implementation candidate currently favoured but replaceable if controlled interfaces remain intact. |
+| `CONDITIONAL` | Decided, but contingent on a stated condition. If the condition fails, the decision reverts and the fallback applies. |
+| `SUPERSEDED` | Replaced by a later ADR, cited in `superseded-by`. Retained permanently. |
 | `RETIRED` | No longer applicable because the thing it decided no longer exists. Not superseded, because nothing replaced it. Retained permanently. |
 
-Two distinctions that matter and are commonly confused:
+Three distinctions that matter and are commonly confused:
 
-- `SELECTED PRINCIPLE` versus `SELECTED`. `FML-ADR-041` decides that a bootable
-  known-good rollback path exists independently of the active root. It does not
-  decide whether that is an A/B slot scheme, a recovery partition, or something
-  else. An implementation ADR will decide the mechanism and will **not**
-  supersede `FML-ADR-041`, because the principle still holds.
-- `SELECTED PLANNING BASELINE` versus `PREFERRED`. A planning baseline is
-  something dependent work is allowed to build on, with the understanding that
-  it may move. A preference is something nothing may build on.
+- **`SELECTED PRINCIPLE` versus `SELECTED`.** `FML-ADR-041` decides that a
+  bootable known-good rollback path exists independently of the active root. It
+  does not decide whether that is A/B slots, a recovery partition, or something
+  else. `TBR-REC-01` selects the mechanism, and the ADR that records it will
+  **not** supersede `FML-ADR-041`.
+- **`SELECTED PLANNING BASELINE` versus `PREFERRED`.** A planning baseline is
+  something dependent work may build on, understanding it may move.
+  `FML-ADR-045` is one: power, antenna and BOM planning assume separate radios
+  until `TBR-RF-03` proves otherwise. A preference is something nothing may
+  build on.
+- **`CONDITIONAL`.** `FML-ADR-034` prefers PostgreSQL **only if** the TAK state
+  study shows the SQL backend is the correct continuity boundary. The condition
+  is stated in the file, and if it fails the decision does not take effect.
 
 ## Frontmatter
-
-Every ADR begins with YAML frontmatter. `tools/gen-status.sh` and
-`tools/validate-docs.sh` read it, so the field names and the flow-sequence
-syntax are fixed.
 
 ```yaml
 ---
 id: FML-ADR-021
-title: Single primary compute element, single Debian-family host
+title: Single primary compute / single Debian host with logical plane isolation
 status: SELECTED
-date: TBD
+date: 2026-08-25
 supersedes: none
 superseded-by: none
-trades: [TBR-COMP-01, TBR-HW-01]
-verification: TBD
+trades: [TBR-COMP-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01]
+verification: Stage 1
 ---
 ```
 
 - `status` is one of the values above, spelled exactly.
-- `date` is the date the status was last changed, `YYYY-MM-DD`, or `TBD` where
-  the decision predates the register.
-- `supersedes` and `superseded-by` are an ADR ID or `none`.
-- `trades` is a flow sequence of trade IDs, or `[]`. Every ID listed must
-  exist as a file in `docs/trades/`.
-- `verification` names the test stage that validates the decision, or `TBD`.
+- `date` is the date the status was last changed. The seed set carries
+  `2026-08-25`, the SAD v0.31 issue date.
+- `supersedes` and `superseded-by` are an ADR identifier or `none`.
+- `trades` is a flow sequence of trade identifiers, or `[]`. Every identifier
+  listed must exist in `docs/trades/`.
+- `verification` names the CONOPS section 78 qualification stage that validates
+  the decision.
 
 ## Required sections
 
-Each of these headings appears in every ADR. `tools/validate-docs.sh` fails a
-file that is missing one. An empty section is permitted only with `TBD` and a
-reason; a missing section is not.
+Each appears in every ADR. `tools/validate-docs.sh` fails a file missing one.
 
-- **Context** - the situation that forced a decision. What constraint, what
-  conflict, what alternative was on the table.
-- **Decision** - what was decided, in the active voice, using `shall` where the
-  decision is binding.
-- **Status** - the status value, and for `CONDITIONAL` the condition, for
-  `SELECTED TARGET` what has not been demonstrated, for
-  `SELECTED PLANNING BASELINE` the trade that will revisit it.
-- **Consequences** - what follows, including what becomes harder. An ADR that
-  lists only benefits has not been thought about.
-- **Accepted cost** - what the program is knowingly giving up. Distinct from
-  consequences: this is the part someone will later argue was a mistake, so
-  write it down before they do.
-- **Fallback** - what happens if this turns out to be wrong. Sometimes "none,
-  this is structural"; say so explicitly rather than leaving it blank.
-- **Superseded by** - an ADR ID or `None`.
-- **Verification dependency** - the test stage or evidence that would confirm
-  the decision holds, or `TBD` with the trade that will define it.
+**Context**, **Decision**, **Status**, **Consequences**, **Accepted cost**,
+**Fallback**, **Superseded by**, **Verification dependency**.
 
-## The seed set
+**Accepted cost** is distinct from consequences: it is the specific thing
+someone will later argue was a mistake. Writing it down before they do is the
+point of the section.
 
-These ADRs were transcribed into the register from the drafted architecture
-description. **The architecture document is the source of rationale**; the ADRs
-here record the decision, its status, and its consequences, and point at that
-document. Where an ADR body reads thin, that is why: the reasoning has not been
-transcribed yet, and inventing it here would misrepresent it as the register's
-own.
+## The decision that is deliberately absent
 
-| ID | Title | Status |
-| --- | --- | --- |
-| `FML-ADR-021` | Single primary compute element, single Debian-family host | `SELECTED` |
-| `FML-ADR-022` | Host operating system family | `SELECTED` |
-| `FML-ADR-023` | Consume the upstream MANET reference project as configuration knowledge, not as mandatory production firmware | `SELECTED` |
-| `FML-ADR-024` | 802.11s plus batman-adv and BATMAN-V as the baseline IP MANET | `SELECTED` |
-| `FML-ADR-029` | Rootless Podman and Quadlet as the default application execution model | `SELECTED` |
-| `FML-ADR-040` | Kernel, driver, firmware and userspace promote as one tested set | `SELECTED` |
-| `FML-ADR-041` | Bootable known-good rollback path independent of the active root | `SELECTED PRINCIPLE` |
-| `FML-ADR-042` | Retained local time via battery-backed RTC, trust validation never fails open on invalid time | `SELECTED` |
-| `FML-ADR-045` | EUD access point and high-throughput inter-node mesh are separate logical radio functions | `SELECTED PLANNING BASELINE` |
+The **TAK automatic-recovery mechanism has no ADR**, by decision. SAD section
+0.8 states it remains `TBR-HA-01` and does not receive an identifier until a
+mechanism is selected.
+
+Selecting one before `TBR-TAK-01` classifies the mission-critical state would
+mean building an HA stack around an unknown continuity boundary. SAD section
+14.4 lists the six properties the eventual mechanism must have, without naming
+Patroni, etcd, Raft, a witness, a lease, quorum or fencing.
+
+## Status summary
+
+| Status | Count |
+| --- | ---: |
+| `SELECTED` | 21 |
+| `SELECTED PRINCIPLE` | 4 |
+| `SELECTED TARGET` | 1 |
+| `SELECTED PLANNING BASELINE` | 1 |
+| `PREFERRED` | 2 |
+| `CONDITIONAL` | 1 |
+
+30 controlling decisions, matching SAD section 0.8.
+
+## Register
 
 `STATUS.md` at the repository root carries the generated current view. This
 table is a reading aid and may lag; the generated one does not.
 
+| ID | Decision | Status |
+| --- | --- | --- |
+| `FML-ADR-021` | Single primary compute / single Debian host with logical plane isolation | `SELECTED` |
+| `FML-ADR-022` | Debian stable as production host OS | `SELECTED` |
+| `FML-ADR-023` | Consume OpenMANET as reference/configuration source, not mandatory production firmware | `SELECTED` |
+| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | `SELECTED` |
+| `FML-ADR-025` | High-throughput conventional Wi-Fi as an additional IP bearer | `SELECTED` |
+| `FML-ADR-026` | Meshtastic/LoRa remains a separate non-IP degraded plane | `SELECTED` |
+| `FML-ADR-027` | RF coexistence controlled through supported host/radio interfaces; no assumed openmanetd primitive | `SELECTED` |
+| `FML-ADR-028` | Mission services share the Debian host but cannot directly own network/RF configuration | `SELECTED` |
+| `FML-ADR-029` | Rootless Podman + Quadlet is default OCI execution model | `SELECTED` |
+| `FML-ADR-030` | Shared-kernel logical isolation using users/namespaces/cgroups/nftables | `SELECTED` |
+| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | `SELECTED` |
+| `FML-ADR-032` | OpenTAKServer is preferred initial TAK-compatible server | `PREFERRED` |
+| `FML-ADR-033` | PyTAK is preferred custom CoT transport/gateway library | `SELECTED` |
+| `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | `CONDITIONAL` |
+| `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | `SELECTED` |
+| `FML-ADR-036` | Smallstep step-ca is preferred initial PKI | `PREFERRED` |
+| `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | `SELECTED` |
+| `FML-ADR-038` | EAP-TLS is the production EUD admission target | `SELECTED TARGET` |
+| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | `SELECTED` |
+| `FML-ADR-040` | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | `SELECTED` |
+| `FML-ADR-041` | MULE requires an A/B or equivalently bootable known-good rollback path | `SELECTED PRINCIPLE` |
+| `FML-ADR-042` | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | `SELECTED` |
+| `FML-ADR-043` | Sensitive local mission data uses LUKS2-class block encryption; key-on-same-media unattended unlock is rejected | `SELECTED PRINCIPLE` |
+| `FML-ADR-044` | Zeroize is primarily cryptographic key/credential invalidation, not flash overwrite | `SELECTED PRINCIPLE` |
+| `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | `SELECTED PLANNING BASELINE` |
+| `FML-ADR-046` | MULE Status Aggregator is approved thin original software | `SELECTED` |
+| `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | `SELECTED` |
+| `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | `SELECTED` |
+| `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | `SELECTED` |
+| `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | `SELECTED PRINCIPLE` |
+
 ## Decisions not yet recorded
 
-The licensing split (Apache 2.0 for code, CC BY 4.0 for documentation and
-hardware artifacts) is a program decision that has not been written as an ADR.
-It should be. It is listed here rather than silently omitted.
+The licensing split for this repository (Apache 2.0 for code, CC BY 4.0 for
+documentation and hardware artifacts) is a decision that has not been written as
+an ADR. It is a repository governance decision rather than a MULE architecture
+decision, so it does not belong in the `FML-ADR` namespace as it stands. It is
+listed here rather than silently omitted.

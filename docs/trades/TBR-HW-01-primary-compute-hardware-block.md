@@ -2,65 +2,80 @@
 id: TBR-HW-01
 title: Primary compute hardware block
 status: OPEN
-owner: TBD
+owner: TBD-SRR
 area: HW
+priority: 7
+function-owner: Systems + Builder
 critical-path: false
-depends-on: [TBR-LINUX-01, TBR-COMP-01, TBR-PWR-01, TBR-THERM-01, TBR-RF-03, TBR-CARRIER-01, TBR-REC-01, TBR-TIME-01]
-feeds: []
+depends-on: [TBR-PWR-01, TBR-COMP-01, TBR-THERM-01, TBR-RF-03, TBR-TIME-01, TBR-SEC-01]
+feeds: [TBR-REC-01, TBR-CARRIER-01, TBR-LINUX-01]
+requires-hardware: yes
 evidence: docs/evidence/TBR-HW-01/
-adr: [FML-ADR-021, FML-ADR-041, FML-ADR-042, FML-ADR-045]
+adr: [FML-ADR-021, FML-ADR-041, FML-ADR-042, FML-ADR-050]
+target-date: TBD-SRR
 ---
 
 # TBR-HW-01 Primary compute hardware block
 
+**Source:** SAD v0.31 section 25.2, and the TBR register in SAD section
+30.2 (priority 7 of 16).
+
+**Function owner:** Systems + Builder. **Named owner:** `TBD-SRR`.
+
+SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
+individual and one calendar target date to every open TBR. `TBD-SRR` marks the
+gap explicitly rather than hiding it behind a functional organization.
+
 ## Question
 
-Which compute module, carrier, radios, enclosure, pack and antenna set
-constitute the first qualified hardware block?
+Which CM4/CM5/industrial-SBC class becomes the first hardware block?
 
 ## Why it matters
 
-This is the trade every other hardware trade feeds. It is deliberately last,
-because selecting hardware before its constraints are known is how a program
-ends up requalifying an enclosure it has already had made.
+SAD section 30.3 states it directly: **HW-01 is a convergence decision, not an
+independent early choice.** Six trades feed it.
 
 It is also the trade under the most pressure to close early, because until it
-closes nobody can build a node, and a program that cannot build anything loses
-contributors. `ROADMAP.md` addresses that tension by scoping `v0.0.1` to one
-node and one service rather than by rushing this trade.
+closes nobody can build a node. Selecting hardware before its constraints are
+known is how a program ends up requalifying an enclosure it has already had
+made.
 
 A block is not a compute module. It is the whole qualified configuration, and
-the promise the program makes is that a spare node replaces any node **within
-the same block**. Substituting a component may require requalification; see
-`hardware/README.md`.
-
-Note that several constraints are disqualifying rather than scoring: no viable
-kernel path (`TBR-LINUX-01`), no battery-backed real-time clock
-(`FML-ADR-042`), or no boot medium that supports an independent known-good path
-(`FML-ADR-041`) each rule a candidate out regardless of its other merits.
+the program's promise is that a spare node replaces any node **within the same
+block** (CONOPS section 5.1).
 
 ## Options
 
-Candidate modules are not listed, because listing them now would create the
-appearance of a shortlist that has been evaluated. None has been.
+SAD section 25.2 requires the trade to include at minimum:
 
-`hardware/blocks/block-a/` exists as the placeholder for the first candidate
-block. Its contents are `TBD`.
+- Raspberry Pi CM4-class - lower resource and power potential, public production
+  commitment through at least January 2034 (source `SR-007`);
+- Raspberry Pi CM5-class - substantially greater compute, RAM and I/O, public
+  production commitment through at least January 2036 (source `SR-008`);
+- at least one low-power industrial SBC family with a credible Linux and HaLow
+  integration path.
+
+**Neither Pi variant wins before measurement.** Gateworks Venice-class hardware
+is noted in SAD section 6.2 as architecture-compatible.
+
+Some constraints are **disqualifying rather than scoring**: no viable kernel
+path (`TBR-LINUX-01`), no battery-backed RTC (`FML-ADR-042`), and no boot medium
+supporting a known-good path independent of the active root (`FML-ADR-041`).
 
 ## Closure evidence
 
-Committed under `docs/evidence/TBR-HW-01/`:
+SAD section 30.2: Linux support; RAM, storage, endurance and I/O; RTC and trust
+hardware; radios; measured power and thermal; lifecycle; cost.
 
-- A complete bill of material for the candidate block, with part numbers,
-  sources, and archived datasheets for every active component.
-- Lifecycle status for every part, per `hardware/lifecycle/`. This program has
-  already had a key module reach end of life before purchase.
-- Evidence that each disqualifying constraint above is satisfied.
-- The closure evidence from every trade in the `depends-on` list.
-- A built node passing the acceptance procedure in the block's `acceptance/`
-  directory.
-- Regulatory records per `REGULATORY.md`: module approvals, antenna and gain,
-  and integration conditions, filed under the block's `rf/` directory.
+SAD section 25.8 adds storage evidence: storage technology, rated endurance
+where published, expected write workload, capacity reserve, SMART/NVMe/eMMC
+health visibility, and the replaceability and reimage procedure.
+
+Plus the closure evidence from every trade in the depends-on list, a complete
+bill of material with archived datasheets, lifecycle status per
+`hardware/lifecycle/`, and regulatory records per `REGULATORY.md`.
+
+Evidence is committed under `docs/evidence/TBR-HW-01/`.
 
 ## Closure gate
 
@@ -69,12 +84,20 @@ acceptance procedure, every dependency trade is `CLOSED`, and the block README
 states its qualification status and the requalification a substitution demands.
 
 A block does not become qualified because one node was built and worked once.
-The gate requires the acceptance procedure, which is a written, repeatable
-document.
+The gate requires the acceptance procedure, which is a written repeatable
+document. CONOPS section 74 requires operational interchangeability to be
+**verified, not assumed**.
+
+**Closure gate per SAD section 30.2:** Before hardware PDR / Stages 1, 7, 8.
+
+No TBR closes on document wording alone. It closes only when its listed evidence
+exists, the named owner accepts the evidence, and the resulting architecture
+decision is entered into the persistent ADR register.
 
 ## Dependencies
 
-- **Depends on:** `TBR-LINUX-01`, `TBR-COMP-01`, `TBR-PWR-01`, `TBR-THERM-01`,
-  `TBR-RF-03`, `TBR-CARRIER-01`, `TBR-REC-01`, `TBR-TIME-01`.
-- **Feeds:** every build instruction in the repository.
-- **Requires hardware:** yes, by definition.
+- **Depends on:** `TBR-PWR-01`, `TBR-COMP-01`, `TBR-THERM-01`, `TBR-RF-03`, `TBR-TIME-01`, `TBR-SEC-01`
+- **Feeds:** `TBR-REC-01`, `TBR-CARRIER-01`, `TBR-LINUX-01`
+- **Related decisions:** `FML-ADR-021`, `FML-ADR-041`, `FML-ADR-042`, `FML-ADR-050`
+- **Validating stage:** Stage 8 (CONOPS section 78)
+- **Requires hardware:** Yes, by definition.

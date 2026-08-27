@@ -195,22 +195,30 @@ REQ
 
 @test "new-adr allocates the next unused identifier and never reuses one" {
   make_sandbox
+  # Derived, not hardcoded: the register grows, and a hardcoded number would
+  # make this test fail for the wrong reason every time an ADR is added.
+  highest=$(ls "$SANDBOX/docs/adr" | sed -n 's/^FML-ADR-\([0-9][0-9][0-9]\)-.*/\1/p' |
+    sort -n | tail -1)
+  expected=$(printf 'FML-ADR-%03d' "$((10#$highest + 1))")
+
   run sh -c "cd '$SANDBOX' && sh tools/new-adr.sh 'Planted test decision'"
   [ "$status" -eq 0 ]
-  # 045 is the highest seeded identifier, so the next is 046.
-  [ -f "$SANDBOX/docs/adr/FML-ADR-046-planted-test-decision.md" ]
+  [ -f "$SANDBOX/docs/adr/$expected-planted-test-decision.md" ]
 }
 
 @test "new-trade allocates within its area and creates the evidence directory" {
   make_sandbox
+  highest=$(ls "$SANDBOX/docs/trades" | sed -n 's/^TBR-RF-\([0-9][0-9]\)-.*/\1/p' |
+    sort -n | tail -1)
+  expected=$(printf 'TBR-RF-%02d' "$((10#$highest + 1))")
+
   run sh -c "cd '$SANDBOX' && sh tools/new-trade.sh RF 'Planted test question'"
   [ "$status" -eq 0 ]
-  # RF-03 is the highest seeded RF identifier, so the next is RF-04.
-  [ -f "$SANDBOX/docs/trades/TBR-RF-04-planted-test-question.md" ]
+  [ -f "$SANDBOX/docs/trades/$expected-planted-test-question.md" ]
   # The evidence directory exists before the work does, so that the closure
   # gate is written before the evidence is gathered.
-  [ -d "$SANDBOX/docs/evidence/TBR-RF-04" ]
-  [ -f "$SANDBOX/docs/evidence/TBR-RF-04/README.md" ]
+  [ -d "$SANDBOX/docs/evidence/$expected" ]
+  [ -f "$SANDBOX/docs/evidence/$expected/README.md" ]
 }
 
 @test "generated ADRs and trades pass validation" {
@@ -225,9 +233,11 @@ REQ
 @test "new-adr refuses to overwrite an existing file" {
   make_sandbox
   sh -c "cd '$SANDBOX' && sh tools/new-adr.sh 'Planted test decision'"
-  # Roll the identifier back so the script would allocate 046 again, and
-  # confirm it refuses rather than clobbering.
+  # Confirm the second call does not clobber the first.
   run sh -c "cd '$SANDBOX' && sh tools/new-adr.sh 'Planted test decision'"
   [ "$status" -eq 0 ]
-  [ -f "$SANDBOX/docs/adr/FML-ADR-047-planted-test-decision.md" ]
+  # The second call allocates the NEXT identifier rather than overwriting the
+  # first. Identifiers are permanent and never reused.
+  count=$(ls "$SANDBOX/docs/adr" | grep -c -- '-planted-test-decision\.md$')
+  [ "$count" -eq 2 ]
 }

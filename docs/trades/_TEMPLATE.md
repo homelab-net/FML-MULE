@@ -1,14 +1,18 @@
 ---
 id: TBR-AREA-00
-title: Question in sentence case
+title: Short title in sentence case
 status: OPEN
-owner: TBD
+owner: TBD-SRR
 area: AREA
+priority: 99
+function-owner: TBD
 critical-path: false
 depends-on: []
 feeds: []
+requires-hardware: TBD
 evidence: docs/evidence/TBR-AREA-00/
 adr: []
+target-date: TBD-SRR
 ---
 
 # TBR-AREA-00 Question in sentence case
@@ -62,5 +66,16 @@ being compared.
 
 - **Depends on:** trades that must close first, or `none`.
 - **Feeds:** trades and decisions that consume this answer, or `none`.
-- **Requires hardware:** yes or no. This determines whether a contributor
+- **Related decisions:** the `FML-ADR-###` entries this bears on, or `none`.
+- **Validating stage:** the CONOPS section 78 stage, or `TBD`.
+- **Requires hardware:** `yes`, `no` or `partly`, matching the
+  `requires-hardware` frontmatter field. This determines whether a contributor
   without a node can work on it, which matters more than it looks.
+
+## Frontmatter notes
+
+`priority` is the SAD section 30.2 register position. `function-owner` is the
+engineering function accountable for the trade. `owner` is a **named
+individual**: SAD section 30.2 makes assigning one, plus a target date, to every
+open TBR an SRR exit action, and `TBD-SRR` marks the gap explicitly rather than
+hiding it behind a functional organization.
