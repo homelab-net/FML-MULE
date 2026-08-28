@@ -54,7 +54,7 @@ permissions:
 
 jobs:
   batman:
-    name: "Mesh: gratuitous-ARP=${{ matrix.garp }}"
+    name: "Mesh: bridge-loop-avoidance=${{ matrix.bla }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -63,12 +63,20 @@ jobs:
         # per mesh: the moment traffic flows the tables are warm and the
         # question is gone, so each value gets its own runner.
         #
-        # Gratuitous ARP is the only claim being tested, because it is the only
-        # one previously reported as a result. The earlier verdicts on
-        # distributed_arp_table and orig_interval came from an instrument that
-        # could not resolve three seconds, so they mean nothing in either
-        # direction and are not re-run until this instrument is trusted.
-        garp: ["off", "on"]
+        # Bridge loop avoidance, because run 20 localised the warm-up to
+        # batman-adv not delivering node1's ARP request to node2 for thirty
+        # seconds, and BLA is the one thing enabled here that holds client
+        # traffic back on purpose. The arithmetic fits: BLA works in ten
+        # second periods and waits three of them before it will pass client
+        # frames, and the measured figure is 31.5 seconds.
+        #
+        # That is a hypothesis with a number attached, not a conclusion. This
+        # run decides it.
+        #
+        # Gratuitous ARP drops out. It measured 31.655, 31.231, 31.662 and
+        # 31.464 seconds across runs 18 to 20, both settings, which is no
+        # effect rather than a small one. It can come back if BLA is not it.
+        bla: ["on", "off"]
     steps:
       - uses: actions/checkout@v4
 
@@ -172,8 +180,18 @@ jobs:
             # there is no mesh-wide multicast story to optimise for yet.
             sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
+            # Bridge loop avoidance stops a mesh bridged to a common LAN from
+            # forming a loop, and it is on by default. It was never chosen
+            # here. Run 20 measured node2 receiving node1's first ARP request
+            # 31.463 seconds after attach and answering it 34 microseconds
+            # later, so something upstream of node2's stack held that frame,
+            # and BLA is the only thing enabled that does so deliberately.
+            sudo ip netns exec "$ns" batctl meshif bat0 bridge_loop_avoidance \
+              "$BLA_VALUE"
             sudo ip netns exec "$ns" ip link set bat0 up
           }
+          if [ "${{ matrix.bla }}" = "off" ]; then BLA_VALUE=0; else BLA_VALUE=1; fi
+
           attach node1 veth12
           attach node2 veth21 veth23
           attach node3 veth32
@@ -238,16 +256,6 @@ jobs:
           sudo ip netns exec node1 ping -i 0.2 -D 10.42.0.3 >/tmp/p3.txt 2>&1 &
           sleep 1
 
-          if [ "${{ matrix.garp }}" = "on" ]; then
-            i=1
-            for n in node1 node2 node3; do
-              sudo ip netns exec "$n" arping -A -c 3 -I bat0 "10.42.0.$i" \
-                >/dev/null 2>&1 || true
-              i=$((i + 1))
-            done
-            echo "gratuitous ARP sent"
-          fi
-
           sleep 40
           sudo pkill -f tcpdump || true
           sudo pkill -f "ping -i 0.2" || true
@@ -277,7 +285,7 @@ jobs:
           {
           echo
           echo "=== warm-up, measured from t0 at wire timestamps ==="
-          echo "  gratuitous ARP: ${{ matrix.garp }}"
+          echo "  bridge loop avoidance: ${{ matrix.bla }}"
           echo "  first reply one hop:  $(since "$(first_reply /tmp/p2.txt)")"
           echo "  first reply two hops: $(since "$(first_reply /tmp/p3.txt)")"
           echo
