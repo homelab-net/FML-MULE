@@ -194,92 +194,83 @@ jobs:
           sudo ip netns exec node1 batctl meshif bat0 transglobal || true
           test "$converged" = yes
 
-      - name: Watch all four points between node1 and node2
+      - name: Pin both ARP caches
         run: |
-          # Nine runs were spent reading batctl tables, which report what the
-          # mesh believes about itself. They have been consistently correct and
-          # consistently unhelpful. This watches the wire instead.
-          #
-          # A packet from node1 to node2 crosses four observable points:
-          #
-          #   node1 bat0    entering the mesh
-          #   node1 veth12  leaving the node, encapsulated
-          #   node2 veth21  arriving on the far side of the wire
-          #   node2 bat0    decapsulated and delivered upward
-          #
-          # Whichever is the last to see it is where the packet dies. This
-          # cannot be inferred from a translation table and should have been
-          # the second thing tried, not the tenth.
-
-          # Pin both caches so ARP is not in the question. Run 9 established
-          # that ARP is not the fault.
+          # Run 9 established ARP is not the fault, so it stays out of the way.
           mac1=$(sudo ip netns exec node1 cat /sys/class/net/bat0/address)
           mac2=$(sudo ip netns exec node2 cat /sys/class/net/bat0/address)
+          mac3=$(sudo ip netns exec node3 cat /sys/class/net/bat0/address)
           sudo ip netns exec node1 ip neigh replace 10.42.0.2 \
             lladdr "$mac2" dev bat0 nud permanent
+          sudo ip netns exec node1 ip neigh replace 10.42.0.3 \
+            lladdr "$mac3" dev bat0 nud permanent
           sudo ip netns exec node2 ip neigh replace 10.42.0.1 \
             lladdr "$mac1" dev bat0 nud permanent
+          sudo ip netns exec node3 ip neigh replace 10.42.0.1 \
+            lladdr "$mac1" dev bat0 nud permanent
+          echo "node1 $mac1 / node2 $mac2 / node3 $mac3"
 
-          echo "node1 bat0 $mac1 / node2 bat0 $mac2"
+      - name: Single hop, node1 to node2, with nothing watching
+        run: |
+          # THE CONTROL. Run 11 passed traffic for the first time, and it did so
+          # while four tcpdumps held every interface in promiscuous mode and the
+          # ping's exit code was discarded with "|| true". Neither of those may
+          # be load-bearing, and a result that depends on being observed is not
+          # a result.
+          #
+          # No capture here, and the exit code decides the step.
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+          echo "SINGLE HOP OK, unobserved."
 
+      - name: Two hops, node1 to node3
+        run: |
+          # node1 and node3 share no link, so this can only succeed by routing
+          # through node2.
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
+          echo "TWO HOPS OK."
+
+      - name: Confirm the second hop was really used
+        run: |
+          # A successful ping proves reachability, not that batman-adv routed
+          # it. node1's originator entry for node3 must name node2 as next hop.
+          mac2if=$(sudo ip netns exec node2 cat /sys/class/net/veth21/address)
+          node3if=$(sudo ip netns exec node3 cat /sys/class/net/veth32/address)
+          echo "node2 veth21 $mac2if / node3 veth32 $node3if"
+          sudo ip netns exec node1 batctl meshif bat0 originators | tee /tmp/orig
+          line=$(grep -i "$node3if" /tmp/orig | head -1)
+          echo "node3 originator line: $line"
+          echo "$line" | grep -qi "$mac2if"
+          echo
+          echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
+          echo "Routing algorithm actually used: $ALGO"
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          # Watch the wire, not the mesh's opinion of itself. A packet from
+          # node1 to node2 crosses four observable points, and the last one to
+          # see it is where it died. Nine runs of reading batctl tables never
+          # located a fault; one capture did.
           capture() {
-            sudo ip netns exec "$1" timeout 14 tcpdump -i "$2" -nn -e -c 40 \
-              >"/tmp/$1-$2.txt" 2>"/tmp/$1-$2.err" &
+            sudo ip netns exec "$1" timeout 12 tcpdump -i "$2" -nn -c 30 \
+              >"/tmp/$1-$2.txt" 2>/dev/null &
           }
           capture node1 bat0
           capture node1 veth12
           capture node2 veth21
           capture node2 bat0
-          sleep 3
-
-          echo "--- counters before ---"
-          sudo ip netns exec node1 ip -s link show bat0 | tail -4
-          sudo ip netns exec node1 ip -s link show veth12 | tail -4
-          sudo ip netns exec node2 ip -s link show veth21 | tail -4
-          sudo ip netns exec node2 ip -s link show bat0 | tail -4
-
-          sudo ip netns exec node1 ping -c 4 -i 1 -W 3 10.42.0.2 || true
           sleep 2
-
-          echo "--- counters after ---"
-          sudo ip netns exec node1 ip -s link show bat0 | tail -4
-          sudo ip netns exec node1 ip -s link show veth12 | tail -4
-          sudo ip netns exec node2 ip -s link show veth21 | tail -4
-          sudo ip netns exec node2 ip -s link show bat0 | tail -4
-
+          sudo ip netns exec node1 ping -c 3 -i 1 -W 3 10.42.0.2 || true
           wait 2>/dev/null || true
           for f in node1-bat0 node1-veth12 node2-veth21 node2-bat0; do
-            echo
             echo "=========== $f ==========="
-            grep -v -e 'BATADV' -e 'ethertype Unknown' "/tmp/$f.txt" |
-              head -12 || true
-            echo "(lines captured: $(wc -l <"/tmp/$f.txt"))"
-            head -2 "/tmp/$f.err" || true
+            grep -i icmp "/tmp/$f.txt" | head -6 || true
+            echo "(total lines: $(wc -l <"/tmp/$f.txt"))"
           done
-
-      - name: Say where the packet died
-        if: always()
-        run: |
-          echo "--- batman-adv counters, node1 then node2 ---"
           for n in node1 node2; do
             echo "=== $n ==="
+            sudo ip netns exec "$n" ip -brief addr || true
+            sudo ip netns exec "$n" ip neigh || true
             sudo ip netns exec "$n" batctl meshif bat0 statistics 2>/dev/null |
               grep -vE ' 0$' || true
           done
-          echo
-          echo "Read the four captures above in order. The last one to show an"
-          echo "ICMP echo request is the point at which the packet stopped."
-
-      - name: Diagnostics on failure
-        if: failure()
-        run: |
-          # Deliberately narrow. An earlier version dumped every table for all
-          # three nodes and buried the isolation verdict under ninety lines,
-          # which made the run harder to read than the one before it.
-          for n in node1 node2; do
-            echo "=============== $n ==============="
-            sudo ip netns exec "$n" ip -brief addr || true
-            sudo ip netns exec "$n" ip neigh || true
-            sudo ip netns exec "$n" batctl meshif bat0 statistics || true
-          done
-          sudo dmesg | grep -i batman | tail -12 || true
