@@ -26,7 +26,9 @@
 #   /lib/modules/6.17.0-1022-azure/kernel/drivers/net/wireless/  does not exist
 #   /lib/modules/6.17.0-1022-azure/kernel/net/batman-adv/        batman-adv.ko.zst
 #
-# Installing linux-modules-extra does not add it. So mac80211_hwsim cannot load
+# Both of those readings are AFTER installing linux-modules-extra, which the
+# base runner image does not carry. That package supplies batman-adv and does
+# not supply any wireless driver, hwsim included. So mac80211_hwsim cannot load
 # and 802.11s cannot be exercised on a hosted runner. It needs a machine with an
 # ordinary distribution kernel. The step below records that state on every run,
 # so the day it changes, this file finds out rather than someone guessing.
@@ -49,11 +51,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install batctl and iproute2
+      - name: Install batctl, iproute2 and the extra kernel modules
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq batctl iproute2 iw
+          # batman-adv is NOT in the runner's base module set. It ships in
+          # linux-modules-extra, and without this modprobe fails with "not
+          # found in directory /lib/modules/<kernel>". Dropping this line is
+          # what broke probe run 3.
+          sudo apt-get install -y -qq "linux-modules-extra-$(uname -r)"
           batctl -v
+          ls "/lib/modules/$(uname -r)/kernel/net/batman-adv/"
 
       - name: Record whether a wireless stack exists on this runner
         run: |
