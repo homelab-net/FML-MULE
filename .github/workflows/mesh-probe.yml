@@ -54,7 +54,7 @@ jobs:
       - name: Install batctl, iproute2 and the extra kernel modules
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq batctl iproute2 iw
+          sudo apt-get install -y -qq batctl iproute2 iw tcpdump
           # batman-adv is NOT in the runner's base module set. It ships in
           # linux-modules-extra, and without this modprobe fails with "not
           # found in directory /lib/modules/<kernel>". Dropping this line is
@@ -198,34 +198,61 @@ jobs:
         run: |
           # A control. If this fails too, the problem is IP over bat0 rather
           # than multi-hop routing, and the two-hop result below would be
-          # uninterpretable. Diagnosing the wrong layer is how five runs get
-          # spent on the wrong thing.
-          echo "--- node1 local translation table ---"
-          sudo ip netns exec node1 batctl meshif bat0 translocal || true
+          # uninterpretable. Run 7 established that it does fail.
           echo "--- node1 global translation table ---"
           sudo ip netns exec node1 batctl meshif bat0 transglobal || true
+
           if sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2; then
             echo "SINGLE HOP OK. IP over bat0 works."
             exit 0
           fi
+          echo "Single hop failed. Isolating."
 
-          # It failed. Separate "ARP cannot resolve" from "unicast cannot
-          # traverse the mesh" by removing ARP from the question entirely.
-          # If a static neighbour entry makes the ping work, the fault is
-          # broadcast handling; if it does not, it is forwarding.
-          echo "Single hop failed. Retrying with a static ARP entry."
+      - name: Isolate ARP from unicast forwarding
+        run: |
+          # Run 8 put a static neighbour entry on node1 only and still failed.
+          # That proved nothing: node2 must ARP for node1 to send the echo
+          # REPLY, and its cache showed "10.42.0.1 dev bat0 FAILED". A one-way
+          # static entry does not remove ARP from a round trip.
+          #
+          # Pin both directions. If the ping then works, unicast forwarding is
+          # sound and ARP is the entire fault. If it still fails, forwarding is
+          # broken and the ARP failure is a symptom.
+          mac1=$(sudo ip netns exec node1 cat /sys/class/net/bat0/address)
           mac2=$(sudo ip netns exec node2 cat /sys/class/net/bat0/address)
           sudo ip netns exec node1 ip neigh replace 10.42.0.2 \
             lladdr "$mac2" dev bat0 nud permanent
-          sudo ip netns exec node1 ip neigh
+          sudo ip netns exec node2 ip neigh replace 10.42.0.1 \
+            lladdr "$mac1" dev bat0 nud permanent
+
+          # Watch node2's mesh-facing interface while node1 sends. This says
+          # whether frames physically traverse the veth at all, which no
+          # amount of reading batctl tables can answer.
+          sudo ip netns exec node2 timeout 12 tcpdump -i veth21 -nn -c 20 \
+            >/tmp/cap.txt 2>/tmp/cap.err &
+          cap=$!
+          sleep 2
+
           if sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2; then
-            echo "WORKS WITH STATIC ARP: unicast traverses the mesh,"
-            echo "and ARP broadcast is what does not. Fault isolated to"
-            echo "broadcast handling rather than forwarding."
-            exit 1
+            echo
+            echo "RESULT: unicast forwarding WORKS with both caches pinned."
+            echo "ARP resolution is the entire fault."
+            verdict=arp
+          else
+            echo
+            echo "RESULT: still fails with both caches pinned."
+            echo "Unicast forwarding across bat0 is the fault."
+            verdict=forwarding
           fi
-          echo "STILL FAILS WITH STATIC ARP: unicast forwarding is the fault."
-          exit 1
+
+          wait "$cap" 2>/dev/null || true
+          echo "--- frames seen on node2 veth21 ---"
+          cat /tmp/cap.txt || true
+          cat /tmp/cap.err || true
+          echo "--- node1 neigh ---"; sudo ip netns exec node1 ip neigh
+          echo "--- node2 neigh ---"; sudo ip netns exec node2 ip neigh
+          echo "VERDICT=$verdict"
+          test "$verdict" = arp
 
       - name: Route traffic two hops, node1 to node3
         run: |
