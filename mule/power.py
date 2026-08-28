@@ -42,8 +42,14 @@ class PowerReadings(Protocol):
         """Whether the pack reports itself within its operating envelope."""
         ...
 
-    def state_of_charge(self) -> float | None:
+    def state_of_charge_fraction(self) -> float | None:
         """Fraction of capacity remaining, or None where nothing reports it.
+
+        The unit is in the name deliberately. Linux reports this at
+        `/sys/class/power_supply/<supply>/capacity` as a **percent**, so a
+        reader has to divide, and a method called `state_of_charge` gives it
+        nowhere to notice. The same trap costs a factor of a hundred between
+        the thermal framework's millidegrees and this class's tenths.
 
         None is a real answer, not a gap. Whether the selected assembly carries
         a gauge the node can read is `TBR-PWR-01` and `TBR-HW-01`, and a node
@@ -152,7 +158,7 @@ def assess(
             pack_unhealthy=unhealthy,
         )
 
-    charge = readings.state_of_charge()
+    charge = readings.state_of_charge_fraction()
     if charge is None:
         return PowerAssessment(
             projected_runtime_minutes=None,

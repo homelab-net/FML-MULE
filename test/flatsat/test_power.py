@@ -170,7 +170,7 @@ def test_an_uninstrumented_pack_gets_no_derating_and_that_is_visible() -> None:
 
 
 @pytest.mark.parametrize("charge", [FULL, HALF, 0.0])
-def test_the_estimate_tracks_state_of_charge(charge: float) -> None:
+def test_the_estimate_tracks_state_of_charge_fraction(charge: float) -> None:
     result = assess(
         FakePower(pack=True, charge=charge),
         FIXTURE_POWER_MODEL,

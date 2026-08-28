@@ -19,6 +19,8 @@
 #  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
 #  14. Every decision ID cited anywhere resolves to a real ADR or trade.
 #  15. Every hardware reading in mule/ is accounted for in docs/readings.md.
+#  16. Every numeric reading carries its unit in its name.
+#  17. Every reading declares a source kind; command sources name a package.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -487,16 +489,51 @@ READINGS_DOC=docs/readings.md
 
 if [ -f "$READINGS_DOC" ] && [ -x tools/list-readings.py ]; then
   reading_count=0
+  command_count=0
+  pinned_count=0
   tools/list-readings.py >/tmp/fml-readings.$$
-  while read -r reading; do
+  while IFS="$(printf '\t')" read -r reading verdict; do
     [ -n "$reading" ] || continue
     reading_count=$((reading_count + 1))
-    if ! grep -q "\`$reading\`" "$READINGS_DOC"; then
-      fail "$reading is read by mule/ but has no row in $READINGS_DOC."
+
+    # 16: a numeric reading whose name does not state its unit. Linux reports
+    # the same quantity in millidegrees, tenths and percents depending on the
+    # subsystem, and every conversion is a place to be wrong by a factor of a
+    # hundred while producing a plausible number.
+    if [ "$verdict" = "needs-unit" ]; then
+      fail "$reading returns a number but its name does not state the unit."
     fi
+
+    row=$(grep "^| \`$reading\`" "$READINGS_DOC" || true)
+    if [ -z "$row" ]; then
+      fail "$reading is read by mule/ but has no row in $READINGS_DOC."
+      continue
+    fi
+
+    # 17: a reading is served by a kernel interface, by a command that must be
+    # in the image, or by nothing. A command row names the package that
+    # provides it, so the image build has something to guarantee.
+    case "$row" in
+      *'| `kernel` |'*) ;;
+      *'| `none` |'*) ;;
+      *'| `command` |'*)
+        command_count=$((command_count + 1))
+        if ! printf '%s' "$row" | grep -q 'package `'; then
+          fail "$reading is a command source but names no package in $READINGS_DOC."
+        else
+          for pkg in $(printf '%s' "$row" | sed -n 's/.*package `\([a-z0-9.+-]*\)`.*/\1/p'); do
+            grep -q "^$pkg=" os/image/manifest/packages.list 2>/dev/null &&
+              pinned_count=$((pinned_count + 1))
+          done
+        fi
+        ;;
+      *) fail "$reading has no source kind in $READINGS_DOC. Use kernel, command or none." ;;
+    esac
   done </tmp/fml-readings.$$
   rm -f /tmp/fml-readings.$$
   info "$reading_count hardware readings checked against $READINGS_DOC"
+  # Reported, not failed: nothing is pinned yet by decision. TBR-LINUX-01.
+  info "$command_count reading(s) need a command; $pinned_count of those packages are pinned"
 else
   info "no readings register found; hardware readings not checked"
 fi

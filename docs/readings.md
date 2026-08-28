@@ -13,6 +13,28 @@ actually provide will get the shape of its inputs wrong.
 So the question is asked here, in advance, for every reading.
 `tools/validate-docs.sh` fails if a reading method in `mule/` has no row.
 
+## Kernel interface, or a command?
+
+Every reading is one of three kinds, and the difference is not cosmetic.
+
+| Kind | What it costs |
+| --- | --- |
+| `kernel` | Nothing. `sysfs` and `procfs` are kernel ABI: stable across distributions and releases, present on every Debian-family node without installing anything. |
+| `command` | A package in the image, a fork and exec per reading, and a parsing surface. Command output is **not** ABI-stable the way `sysfs` is; a version bump can reword it. |
+| `none` | No interface exists at all, on any platform. |
+
+**Prefer a `kernel` source to a `command` every time one exists.** A reading
+that shells out has quietly created a dependency on the image containing that
+binary, and if `os/image/manifest/packages.list` does not carry it, the reading
+fails in the field on a node nobody can reach. `vcgencmd` is the sharpest case:
+it is Raspberry Pi VideoCore userland, not a Debian package at all, so a reading
+that needs it constrains `TBR-HW-01`.
+
+Every `command` row names the package that provides it, so the image build has
+something to guarantee. `tools/validate-docs.sh` requires that, and reports how
+many of those packages are actually pinned. Today none are, because nothing is
+pinned at all: the manifest is empty pending `TBR-LINUX-01`.
+
 ## How to read the status column
 
 | Status | Meaning |
@@ -29,21 +51,21 @@ produce silent hundred-fold errors. The thermal framework reports
 
 `mule/thermal.py`, read by `mule/sysfs.py`.
 
-| Reading | Real source | Units | Status |
-| --- | --- | --- | --- |
-| `temperatures_c` | `/sys/class/thermal/thermal_zone<N>/temp`, matched by the sibling `type` file | millidegrees C | `READER`. Zone-to-sensor map is per board and empty until `TBR-HW-01`. |
-| `throttling_reported` | No portable interface. Raspberry Pi has `vcgencmd get_throttled`; others expose cooling-device state, vendor sysfs, or nothing. | flag | `NO SOURCE` until `TBR-HW-01`. Probe is injected; a platform with none reports `None`, never `False`. |
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `temperatures_c` | `kernel` | `/sys/class/thermal/thermal_zone<N>/temp`, matched by the sibling `type` file | millidegrees C | `READER`. Zone-to-sensor map is per board and empty until `TBR-HW-01`. |
+| `throttling_reported` | `none` | No portable interface. Raspberry Pi has `vcgencmd get_throttled`, which needs package `libraspberrypi-bin` and is not Debian-general; others expose cooling-device state, vendor sysfs, or nothing. | flag | `NO SOURCE` until `TBR-HW-01`. Probe is injected; a platform with none reports `None`, never `False`. |
 
 ## Power
 
 `mule/power.py`. No reader exists.
 
-| Reading | Real source | Units | Status |
-| --- | --- | --- | --- |
-| `pack_present` | `/sys/class/power_supply/<supply>/present`, or the supply directory existing | flag | `NO READER`. Supply name is per board. |
-| `pack_healthy` | `/sys/class/power_supply/<supply>/health`, a string such as `Good` or `Overheat` | enum string | `NO READER`. Mapping those strings to a boolean is a decision that belongs in `mule/power.py`, not in the reader. |
-| `state_of_charge` | `/sys/class/power_supply/<supply>/capacity` | percent, 0-100 | `NO READER`. `mule/power.py` takes a fraction, so the reader divides. |
-| `pack_temperature_c` | `/sys/class/power_supply/<supply>/temp` | **tenths of a degree C** | `NO READER`. Different unit from the thermal framework above. Reading it as millidegrees is a hundred-fold error that looks plausible. |
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `pack_present` | `kernel` | `/sys/class/power_supply/<supply>/present`, or the supply directory existing | flag | `NO READER`. Supply name is per board. |
+| `pack_healthy` | `kernel` | `/sys/class/power_supply/<supply>/health`, a string such as `Good` or `Overheat` | enum string | `NO READER`. Mapping those strings to a boolean is a decision that belongs in `mule/power.py`, not in the reader. |
+| `state_of_charge_fraction` | `kernel` | `/sys/class/power_supply/<supply>/capacity` | percent, 0-100 | `NO READER`. The method returns a **fraction**, so the reader divides; the unit is in its name so that step cannot be forgotten. |
+| `pack_temperature_c` | `kernel` | `/sys/class/power_supply/<supply>/temp` | **tenths of a degree C** | `NO READER`. Different unit from the thermal framework above. Reading it as millidegrees is a hundred-fold error that looks plausible. |
 
 **Whether any of this exists at all depends on the battery assembly exposing a
 power supply class device**, which needs a BMS with a kernel driver. CONOPS
@@ -55,13 +77,13 @@ these, and `mule/power.py` already handles a pack that cannot report its charge.
 
 `mule/timekeeping.py`. No reader exists.
 
-| Reading | Real source | Units | Status |
-| --- | --- | --- | --- |
-| `rtc_present` | `/sys/class/rtc/rtc0/` exists, or `/dev/rtc0` | flag | `NO READER` |
-| `rtc_backup_cell_ok` | **No standard interface.** The RTC class ABI defines no battery-low node. Some drivers expose a voltage-low flag; most do not. | flag | `NO SOURCE`. See the finding below. |
-| `rtc_time` | `/sys/class/rtc/rtc0/time` and `date`, or `hwclock -r` | ISO date and time | `NO READER` |
-| `system_time` | The running clock | timestamp | `NO READER`, and trivial: no kernel interface needed. |
-| `synchronized` | `timedatectl show -p NTPSynchronized`, or chrony's own `chronyc tracking` | flag | `NO READER`. `FML-ADR-042` names chrony. |
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `rtc_present` | `kernel` | `/sys/class/rtc/rtc0/` exists, or `/dev/rtc0` | flag | `NO READER` |
+| `rtc_backup_cell_ok` | `none` | **No standard interface.** The RTC class ABI defines no battery-low node. Some drivers expose a voltage-low flag; most do not. | flag | `NO SOURCE`. See the finding below. |
+| `rtc_time` | `kernel` | `/sys/class/rtc/rtc0/time` and `/sys/class/rtc/rtc0/date`. Package `util-linux` provides `hwclock -r`, which is **not** needed: the sysfs read avoids the dependency. | ISO date and time | `NO READER` |
+| `system_time` | `kernel` | The running clock, through the standard library | timestamp | `NO READER`, and trivial: no interface to choose. |
+| `synchronized` | `command` | `chronyc tracking`, package `chrony`. `FML-ADR-042` names chrony as the daemon, so the package is required regardless and the dependency costs nothing extra. Package `systemd` would provide `timedatectl show -p NTPSynchronized` as an alternative. | flag | `NO READER` |
 
 ### Finding: the flagship fail-closed case may have no signal
 

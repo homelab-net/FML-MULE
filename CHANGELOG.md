@@ -14,6 +14,50 @@ this program needs them visible:
 
 ## Unreleased
 
+### Readings must come from a known interface, and say what unit they are in
+
+Two more checks, both generalising the readings register.
+
+**Kernel interface or command.** `docs/readings.md` named `chronyc`, `hwclock`,
+`timedatectl` and `vcgencmd` without recording that these are a different kind
+of thing from a `sysfs` path. A `sysfs` read costs nothing: it is kernel ABI,
+stable across distributions and present on every node. A command is a package in
+the image, a fork per reading, and output that is **not** ABI-stable.
+
+`os/image/manifest/packages.list` is empty. So four readings depended on
+binaries nothing guaranteed would exist, and a node in the field would have
+found out first.
+
+Every reading now declares a kind - `kernel`, `command` or `none` - and a
+`command` row names the package that provides it. Check 17 enforces both and
+**reports** how many of those packages are pinned: one reading needs a command,
+zero pinned, because nothing is pinned at all pending `TBR-LINUX-01`. Reported
+rather than failed, since that gap cannot be closed yet.
+
+Writing it moved two rows off commands entirely. `rtc_time` reads
+`/sys/class/rtc/rtc0/time` rather than shelling out to `hwclock`, which drops a
+`util-linux` dependency for nothing. `vcgencmd` is recorded as what it is:
+Raspberry Pi VideoCore userland, not a Debian package, so a reading needing it
+constrains `TBR-HW-01`.
+
+**Units belong in the name.** `state_of_charge` returned a fraction while Linux
+reports `/sys/class/power_supply/<supply>/capacity` as a **percent**. The unit
+lived in a docstring, where a reader writing the conversion would not see it. It
+is now `state_of_charge_fraction`, and check 16 requires every numeric reading
+to end in a unit suffix.
+
+That trap is not hypothetical here: the thermal framework reports millidegrees
+and the power supply class reports tenths of a degree, a hundred-fold
+difference between two adjacent subsystems both called "temp".
+
+#### Added
+
+- Checks 16 and 17 in `tools/validate-docs.sh`; `tools/list-readings.py` now
+  emits a unit verdict per reading. All three failure modes were watched firing.
+- Two rows in the `AGENTS.md` trigger table: prefer a kernel interface to a
+  command and name the package when only a command exists; put the unit in the
+  name of any reading that returns a number.
+
 ### Two recurring defects get machine checks
 
 Both shapes below had happened more than once, and both were caught by a person

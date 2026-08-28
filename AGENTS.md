@@ -61,6 +61,8 @@ A change is not done until all five hold. Say which ones you actually ran.
 | A requirement | `shall` binds and is verifiable. `should` is waiverable with recorded rationale. `may` creates no obligation. Never `will`, `must`, or `needs to`. |
 | A test assertion | Assert against data or a named constant, never against a literal the code under test also hardcodes. That proves only that two literals match. |
 | A hardware reading interface | Say where the value really comes from on a Debian node, and what the platform returns when it cannot answer. If "nothing" is possible, the type is `T \| None`. Add the row to `docs/readings.md`. `[CI]` |
+| A reading's source | Prefer a kernel interface (`sysfs`, `procfs`) to a command. A command is a package in the image, a fork per reading, and output that is not ABI-stable. Where only a command exists, name the package that provides it. `[CI]` |
+| A reading that returns a number | Put the unit in the method name. Linux reports the same quantity in millidegrees, tenths and percents depending on the subsystem, and every conversion is a factor-of-a-hundred error that produces a plausible number. `[CI]` |
 | A new check | Prove it can fail. Break something on purpose and watch it fire. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 

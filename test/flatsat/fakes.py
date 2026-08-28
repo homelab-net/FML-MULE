@@ -109,7 +109,7 @@ class FakePower:
         """Whether the pack reports itself within its operating envelope."""
         return self.pack and self.healthy
 
-    def state_of_charge(self) -> float | None:
+    def state_of_charge_fraction(self) -> float | None:
         """Fraction of capacity remaining, or None where nothing reports it."""
         return self.charge
 
