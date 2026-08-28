@@ -94,6 +94,22 @@ multicast_mode=0               # Multicast optimisation OFF.
                                # since FML-ADR-024 already warns that ordinary
                                # EUD broadcast is not free.
 
+# --- Announce, do not wait to be discovered ---------------------------------
+# MEASURED. A node that sends an unsolicited ARP when bat0 comes up reaches its
+# peers about six seconds sooner than one that waits to be asked:
+#
+#   gratuitous ARP off   28s from converged originators to first reply
+#   gratuitous ARP on    22s
+#
+# Replicated at both distributed_arp_table settings. Three frames per node at
+# bring-up, and it belongs in the interface unit rather than a daemon:
+#
+#   arping -A -c 3 -I bat0 <address>
+#
+# The remaining ~22s is NOT ARP and is not explained. Do not assume this is the
+# whole warm-up story.
+gratuitous_arp_on_bringup=yes
+
 distributed_arp_table=0        # Distributed ARP table OFF.
                                #
                                # DAT answers ARP from a mesh-wide cache instead
@@ -105,10 +121,13 @@ distributed_arp_table=0        # Distributed ARP table OFF.
                                # has since become unreachable is the same shape
                                # of error one layer down.
                                #
-                               # Also a REASONED DEFAULT. ARP resolves across
-                               # the mesh with it disabled, which shows the
-                               # mesh does not depend on DAT. Whether DAT would
-                               # also work is untested.
+                               # MEASURED TO MAKE NO DIFFERENCE to warm-up:
+                               # 28s off and 28s on without gratuitous ARP, 22s
+                               # off and 22s on with it. So this setting rests
+                               # entirely on the partition argument above and
+                               # not on any performance claim. It was disabled
+                               # here on that reasoning before it was measured,
+                               # which was not justified at the time.
 
 fragmentation=TBD
 distributed_arp_table=TBD

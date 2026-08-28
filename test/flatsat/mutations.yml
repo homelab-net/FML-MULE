@@ -315,6 +315,24 @@ mutations:
     find: "    if observed.modes.bearer_capability == \"LOW-BANDWIDTH\":"
     replace: "    if False:"
 
+  - id: M50
+    file: mule/modes.py
+    describe: a node that reaches no peer still claims the rung it associated at
+    find: "    if peer_reachable is False:"
+    replace: "    if False:"
+
+  - id: M51
+    file: mule/modes.py
+    describe: an unmeasured peer is treated as unreachable and downgrades
+    find: "    if peer_reachable is False:"
+    replace: "    if peer_reachable is not True:"
+
+  - id: M52
+    file: mule/modes.py
+    describe: the unmeasured-reachability gap is never recorded
+    find: "    if inputs.peer_reachable is None and rung != \"ISOLATED\":"
+    replace: "    if False:"
+
   # --- fixture honesty ----------------------------------------------------
   - id: M24
     file: test/flatsat/fakes.py

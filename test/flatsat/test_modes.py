@@ -47,6 +47,7 @@ def _inputs(
     wan: bool | None = None,
     charge: float | None = None,
     model: PowerModel | None = None,
+    peer_reachable: bool | None = True,
 ) -> ModeInputs:
     """Build mode inputs from scripted readings, never from named outcomes."""
     radio = FakeRadio(
@@ -62,6 +63,7 @@ def _inputs(
         associated=tuple(b for b in enumerated if radio.associated(b)),
         hosting_shared_services=hosting,
         wan_reachable=wan,
+        peer_reachable=peer_reachable,
         power=assess_power(
             # A pack is fitted throughout. Whether an unfitted pack can be
             # reasoned about is mule/power.py's question, not this module's.
@@ -81,10 +83,17 @@ def _assess(
     linked: list[Bearer] | None = None,
     hosting: bool = False,
     wan: bool | None = None,
+    peer_reachable: bool | None = True,
 ) -> ModeAssessment:
     """Assess with no economy threshold, which is the programme's state today."""
     return assess(
-        _inputs(present=present, linked=linked, hosting=hosting, wan=wan),
+        _inputs(
+            present=present,
+            linked=linked,
+            hosting=hosting,
+            wan=wan,
+            peer_reachable=peer_reachable,
+        ),
         economy_below_minutes=None,
     )
 
@@ -297,6 +306,7 @@ def test_the_commanded_axes_are_carried_not_decided() -> None:
         associated=("wifi_ap",),
         hosting_shared_services=False,
         wan_reachable=None,
+        peer_reachable=True,
         power=assess_power(FakePower(), None, hosting_shared_services=False),
         lifecycle="TRANSPORT-SECURE",
         emission="EMCON-SILENT",
@@ -325,6 +335,7 @@ def test_axes_hold_at_once() -> None:
         associated=("wifi_ap", "lora"),
         hosting_shared_services=False,
         wan_reachable=None,
+        peer_reachable=True,
         power=assess_power(FakePower(), None, hosting_shared_services=False),
         lifecycle="OPERATIONAL",
         emission="EMCON-SILENT",
@@ -337,3 +348,69 @@ def test_axes_hold_at_once() -> None:
     assert result.emission == "EMCON-SILENT"
     assert result.data_marking == "EXERCISE"
     assert result.bearer_capability == "LOW-BANDWIDTH"
+
+
+# --- association is not capability -----------------------------------------
+
+
+def test_a_node_reaching_no_peer_is_isolated_whatever_has_linked() -> None:
+    """The defect the mesh probe measured, in one assertion.
+
+    A freshly formed batman-adv mesh converges its originator table in about
+    four seconds and cannot carry client traffic for roughly twenty-five more.
+    For that window every bearer is associated and the node reaches nobody.
+    Reporting NOMINAL-IP there is a claim to carry traffic the node cannot
+    carry, and an operator acting on it would wait on a link that is not there.
+    """
+    result = _assess(
+        present=["wifi_ap", "wifi_mesh"],
+        linked=["wifi_ap", "wifi_mesh"],
+        peer_reachable=False,
+    )
+
+    assert result.bearer_capability == "ISOLATED"
+    assert result.degraded_bearer
+
+
+def test_an_unmeasured_peer_does_not_downgrade_but_is_recorded() -> None:
+    """`None` is not `False`, and the difference decides the rung.
+
+    Nothing on a real node probes peer reachability yet. Downgrading on an
+    absent measurement would report ISOLATED for every node that has no probe,
+    which is its own false claim in the other direction. The rung stays at the
+    ceiling association allows and the gap is recorded, so a caller can tell
+    "reaches peers" from "nobody asked".
+    """
+    result = _assess(
+        present=["wifi_ap", "wifi_mesh"],
+        linked=["wifi_ap", "wifi_mesh"],
+        peer_reachable=None,
+    )
+
+    assert result.bearer_capability == "NOMINAL-IP"
+    reasons = dict(result.undetermined)
+    assert "ceiling" in reasons["bearer_capability"]
+
+
+def test_a_reachable_peer_leaves_the_ladder_alone() -> None:
+    """The other half. A check that only fires one way has not been tested."""
+    result = _assess(
+        present=["wifi_ap", "wifi_mesh"],
+        linked=["wifi_ap", "wifi_mesh"],
+        peer_reachable=True,
+    )
+
+    assert result.bearer_capability == "NOMINAL-IP"
+    assert "bearer_capability" not in dict(result.undetermined)
+
+
+def test_a_node_with_no_bearer_linked_records_no_reachability_gap() -> None:
+    """An access-point-only node is ISOLATED by association, not by silence.
+
+    Recording an undetermined reachability for a node that has linked nothing
+    would attach a caveat to a rung that association already settles.
+    """
+    result = _assess(present=["wifi_ap"], linked=["wifi_ap"], peer_reachable=None)
+
+    assert result.bearer_capability == "ISOLATED"
+    assert "bearer_capability" not in dict(result.undetermined)
