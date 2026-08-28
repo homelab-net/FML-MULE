@@ -224,6 +224,24 @@ mutations:
     find: "    throttling = readings.throttling_reported()"
     replace: "    throttling = False"
 
+  - id: M35
+    file: mule/sysfs.py
+    describe: millidegrees are read as degrees, off by a factor of a thousand
+    find: "        return int(raw) / MILLIDEGREES_PER_DEGREE"
+    replace: "        return float(int(raw))"
+
+  - id: M36
+    file: mule/sysfs.py
+    describe: an unmapped thermal zone is guessed at instead of skipped
+    find: "if sensor is None:\n                continue"
+    replace: "if sensor is None:\n                sensor = 'processor'"
+
+  - id: M37
+    file: mule/sysfs.py
+    describe: a platform with no throttle probe claims it is not throttling
+    find: "            return None\n        return self._throttling_probe()"
+    replace: "            return False\n        return self._throttling_probe()"
+
   # --- fixture honesty ----------------------------------------------------
   - id: M24
     file: test/flatsat/fakes.py

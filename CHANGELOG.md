@@ -14,6 +14,58 @@ this program needs them visible:
 
 ## Unreleased
 
+### mule/sysfs.py: how a temperature actually reaches the node
+
+`mule/thermal.py` decided what readings mean. Nothing produced them. Asking how
+thermal would read on the selected hardware exposed two things.
+
+**A defect, one field over from the one just fixed.** `throttling_reported()`
+returned `bool`, so a board with no throttle signal had to answer `False` -
+which is a claim that the node is *not* throttling, not the absence of a claim.
+The same shape as `within_envelope=True` by default. It is now `bool | None`,
+and `FakeThermal` defaults to `None`, because a scenario that did not script
+throttling has not said the node is running unthrottled.
+
+**A dead branch.** `temperatures_c` guarded `Path.glob` with `except OSError`.
+`Path.glob` returns empty for a missing or non-directory root rather than
+raising, so the branch was unreachable code that read like a safety net. Same
+shape as the EIRP check. Removed, and a comment says why there is nothing to
+guard.
+
+#### What is decided, and what is not
+
+- **Decided:** `/sys/class/thermal/thermal_zone<N>/temp` in millidegrees
+  Celsius, `type` naming the zone. Kernel ABI, identical on every Debian-family
+  node (`FML-ADR-022`), the same on a Pi and an x86 box. No trade gates it.
+- **Per board:** which zone is the processor. Zone type strings are
+  driver-supplied and unstandardised - `cpu-thermal`, `bcm2711_thermal`,
+  `soc_thermal`. `TBR-HW-01` selects the board, so `ZoneMap` is configuration
+  and is **empty today**: the node reports no temperatures rather than assuming
+  `thermal_zone0` is its processor.
+- **Not portable at all:** throttling. Linux has no general flag. The probe is
+  injected; a platform with none reports `None`.
+- **Not yet possible:** battery, enclosure and ambient readings need a BMS and
+  an enclosure that do not exist.
+
+Matching is on zone `type`, never zone number: numbering follows driver probe
+order and moves between kernel versions, which is the class of bug that works on
+the bench and fails after an update.
+
+#### Added
+
+- `mule/sysfs.py` and `test/flatsat/test_sysfs.py`. 100% covered, three new
+  mutations, all caught. 37 of 37 overall.
+- A test that reads `48250` as `48.25`, because getting millidegrees wrong
+  faults a healthy machine instantly, and one that reads `-15000` as `-15.0`,
+  because CONOPS section 61 makes cold first-order and a sign error would be
+  wrong exactly when it matters most.
+
+**Nothing here has run against real hardware.** The tests build a synthetic
+sysfs tree, faithful to the documented interface and silent about any board.
+This container exposes no `/sys/class/thermal` at all, which is itself why the
+missing-root case is tested. A capture from a real node belongs in
+`test/fixtures/` with node identifier, capture date and image build recorded.
+
 ### mule/thermal.py, and the last fake that reached a verdict
 
 `FakeThermal` returned `within_envelope=True` by default and the node passed it

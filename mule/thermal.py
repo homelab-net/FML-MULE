@@ -49,11 +49,17 @@ class ThermalReadings(Protocol):
         """
         ...
 
-    def throttling_reported(self) -> bool:
+    def throttling_reported(self) -> bool | None:
         """Whether the compute element reports that it is throttling.
 
         A fact the hardware states, not an inference. SAD section 25.7 lists
         thermal throttling among the things measured rather than derived.
+
+        **None where the platform has no throttle signal**, which is the common
+        case: Linux has no portable "am I thermally throttled" flag. It is
+        per-SoC, and a board that cannot answer must not be made to say `False`.
+        `False` is a claim that the node is not throttling; the absence of a
+        signal is not that claim.
         """
         ...
 
@@ -91,7 +97,8 @@ class ThermalAssessment:
 
     state: ThermalState
     #: Reported by the hardware, so it is known even when `state` is UNKNOWN.
-    throttling: bool
+    #: None where the platform has no throttle signal at all.
+    throttling: bool | None
     #: The hottest reporting sensor, for an operator who wants one number.
     hottest: tuple[Sensor, float] | None
     #: Sensors at or above their critical limit, hottest first.

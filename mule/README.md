@@ -13,6 +13,7 @@ question you can ask in plain English.
 | `bearers.py` | Which radios can a node have, and which ones does it need to do its job? |
 | `power.py` | How long can the node keep running, and can it even say? |
 | `thermal.py` | Is the node inside its thermal envelope, and can it tell? |
+| `sysfs.py` | Reading the machine's own sensors through the Linux kernel. |
 | `timekeeping.py` | Can the clock be trusted? |
 | `admission.py` | May this device join the network? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
@@ -20,6 +21,29 @@ question you can ask in plain English.
 
 That is the whole package. If a sixth file appears, it should be because there
 is a sixth question, not because a file got long.
+
+## One file is not a decision
+
+`sysfs.py` is the exception, and it is deliberate. Everything else here judges;
+that file produces the readings the judgements consume, by reading the kernel's
+own interfaces. It sits in `mule/` because it is node-resident production code
+that runs in the field, which is what `FML-ADR-051` is about, even though it
+decides nothing.
+
+It is also the first thing that will behave differently on hardware than it does
+in development, so it is worth knowing what is decided about it and what is not:
+
+| | |
+| --- | --- |
+| **Decided** | `/sys/class/thermal/thermal_zone<N>/temp` in millidegrees Celsius, `type` naming the zone. Kernel ABI, identical on every Debian-family node (`FML-ADR-022`). Needs no trade. |
+| **Per board** | Which zone is the processor and which the radio. Zone type strings are driver-supplied and unstandardised. `TBR-HW-01` selects the board, so the map is configuration and is empty today. |
+| **Not portable at all** | Thermal throttling. Linux has no general flag; it is per-SoC. The probe is injected, and a platform with none reports `None`, never `False`. |
+| **Not yet possible** | Battery, enclosure and ambient temperature. Those need a BMS and an enclosure that do not exist. `TBR-PWR-01`, `TBR-THERM-01`, `TBR-CARRIER-01`. |
+
+Nothing in it has run against real hardware. Its tests build a synthetic sysfs
+tree, faithful to the documented interface and silent about any board. A capture
+from a real node belongs in `test/fixtures/`, with the node identifier, capture
+date and image build recorded.
 
 ## Run time here, build time in `tools/`
 

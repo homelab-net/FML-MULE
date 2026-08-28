@@ -5,6 +5,8 @@ Five small modules, one question each:
 - `bearers.py` - which radios can a node have, and which does it need?
 - `power.py` - how long can the node keep running, and can it say?
 - `thermal.py` - is the node inside its thermal envelope, and can it tell?
+- `sysfs.py` - reading the machine's own sensors. The one module here
+  that produces readings rather than judging them.
 - `timekeeping.py` - can the clock be trusted?
 - `admission.py` - may this device join the network?
 - `services.py` - what does this node offer, and by what name?

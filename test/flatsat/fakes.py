@@ -137,14 +137,18 @@ class FakeThermal:
     """
 
     sensors: dict[Sensor, float | None] = field(default_factory=dict)
-    is_throttling: bool = False
+    is_throttling: bool | None = None
 
     def temperatures_c(self) -> dict[Sensor, float | None]:
         """Each fitted sensor's reading, or None where it did not report."""
         return dict(self.sensors)
 
-    def throttling_reported(self) -> bool:
-        """Whether the compute element reports that it is throttling."""
+    def throttling_reported(self) -> bool | None:
+        """Whether the compute element reports that it is throttling.
+
+        None by default: a scenario that did not script this has not said the
+        node is running unthrottled, and the fake must not say it either.
+        """
         return self.is_throttling
 
     @classmethod
