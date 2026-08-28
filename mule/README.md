@@ -17,10 +17,11 @@ question you can ask in plain English.
 | `timekeeping.py` | Can the clock be trusted? |
 | `admission.py` | May this device join the network? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
+| `modes.py` | Which operating modes is the node in, and which can it not tell? |
 | `status.py` | What do we tell the operator? |
 
-That is the whole package. If a sixth file appears, it should be because there
-is a sixth question, not because a file got long.
+That is the whole package. If another file appears, it should be because there
+is another question, not because a file got long.
 
 ## One file is not a decision
 

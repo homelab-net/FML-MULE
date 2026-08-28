@@ -203,7 +203,7 @@ def test_amateur_enabled_profile_is_rejected(build_node: NodeFactory) -> None:
 def test_emcon_is_reported_even_when_everything_else_is_healthy(
     build_node: NodeFactory,
 ) -> None:
-    node = build_node(emcon=True)
+    node = build_node(emission="EMCON-SILENT")
     node.power_on()
     status = node.status()
 

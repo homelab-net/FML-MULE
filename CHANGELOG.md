@@ -14,6 +14,47 @@ this program needs them visible:
 
 ## Unreleased
 
+### The node knows which operating modes it is in
+
+CONOPS section 50 names thirteen operating modes, never says whether more than
+one may hold at once, and gives no entry or exit criteria. `CCR-01` raises both
+gaps and establishes `CCR-##` for CONOPS change requests.
+
+The modes are concurrent, and the CONOPS demonstrates it rather than stating
+it: section 51 lets exercise control "force degradation states", which a mode
+exclusive of degradation could not do. `mule/modes.py` implements the part of
+`CCR-01` that adds no binding clause, placing the node on **nine concurrent
+axes**. Hysteresis belongs to the part that is not approved, and is not built.
+
+Only two axes are derived. The capability ladder needs no new readings: CONOPS
+section 5.5's rungs map onto the bearer set, so bearer association places the
+node, and section 50.9's ISOLATED is an access point still serving with no
+inter-node bearer linked. Association gives the ceiling; link quality may lower
+it once `TBR-RF-01` and `TBR-RF-02` supply thresholds.
+
+Three axes report `None`. A node not hosting cannot see whether a peer is
+(`TBR-TAK-01`), nothing reports WAN reachability, and the energy axis needs both
+a measured model and an economy threshold (`TBR-PWR-01`). Every axis names its
+nominal value explicitly so that "undetermined" and "unremarkable" cannot
+collapse into each other, which is the defect this repository has now shipped
+four times.
+
+`mule/status.py` reads EMCON and the ladder from the axes rather than deciding
+either again, and `LOW-BANDWIDTH` becomes reachable: SAD section 22 named the
+operator state and nothing could produce it.
+
+### The boundary between `mule/` and the blocked services
+
+`FML-ADR-052`. `FML-ADR-051` said `mule/` shall not acquire the four blocked
+components in `services/`, which was a rule about directories. `mule/status.py`
+had already implemented what `services/status-aggregator/` describes, and
+nobody noticed.
+
+The aggregator's stated hazard is **inventing a state taxonomy**, not reasoning
+about state, so a pure decision function is permitted on four conditions. Check
+18 enforces the fourth, and found a pairing nobody had recorded: `mission-trust`
+against `FML-ADR-042`, which `mule/timekeeping.py` decides.
+
 ### Readings must come from a known interface, and say what unit they are in
 
 Two more checks, both generalising the readings register.

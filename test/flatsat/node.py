@@ -35,9 +35,17 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from mule import power, services, status, thermal
+from mule import modes, power, services, status, thermal
 from mule.admission import AdmissionDecision, decide
 from mule.bearers import Bearer
+from mule.modes import (
+    DataMarking,
+    EmissionPosture,
+    Environment,
+    LifecyclePosture,
+    ModeAssessment,
+    ModeInputs,
+)
 from mule.power import PowerModel, PowerReadings
 from mule.status import NodeStatus, Observations
 from mule.thermal import ThermalLimits, ThermalReadings
@@ -111,8 +119,12 @@ class FlatSatNode:
         power_model: PowerModel | None = None,
         thermal_limits: ThermalLimits | None = None,
         *,
-        emcon: bool = False,
-        wan: bool = False,
+        environment: Environment = "LAB",
+        lifecycle: LifecyclePosture = "OPERATIONAL",
+        emission: EmissionPosture = "NORMAL-EMISSION",
+        data_marking: DataMarking = "LIVE",
+        economy_below_minutes: int | None = None,
+        wan: bool | None = None,
     ) -> None:
         """Compose a node from a region profile, a mission package and fakes."""
         self._region_profile = region_profile
@@ -126,7 +138,16 @@ class FlatSatNode:
         self._power_model = power_model
         # None while TBR-THERM-01 is open. See mule/thermal.py.
         self._thermal_limits = thermal_limits
-        self._emcon = emcon
+        # The four axes a node is told rather than observes. The flat-sat runs
+        # on a bench, so LAB is the honest default; CCR-01 makes environment
+        # configuration, not observation.
+        self._environment = environment
+        self._lifecycle = lifecycle
+        self._emission = emission
+        self._data_marking = data_marking
+        # None while TBR-PWR-01 is open. See mule/modes.py.
+        self._economy_below_minutes = economy_below_minutes
+        # None means nothing reports WAN reachability, which is today's state.
         self._wan = wan
 
         self._booted = False
@@ -236,6 +257,33 @@ class FlatSatNode:
 
     # --- status ------------------------------------------------------------
 
+    def modes(self) -> ModeAssessment:
+        """Gather what the node observed and let `mule.modes` place it.
+
+        The fake supplies bearer association only. It never supplies a rung: a
+        fixture that named the rung would let the ladder tests assert that the
+        fixture agrees with itself, which is how the time tests failed before
+        `FML-ADR-051`.
+        """
+        return modes.assess(
+            ModeInputs(
+                environment=self._environment,
+                enumerated=tuple(self._enumerated()),
+                associated=tuple(self._associated()),
+                hosting_shared_services=bool(self._shared_services),
+                wan_reachable=self._wan,
+                power=power.assess(
+                    self._power,
+                    self._power_model,
+                    hosting_shared_services=bool(self._shared_services),
+                ),
+                lifecycle=self._lifecycle,
+                emission=self._emission,
+                data_marking=self._data_marking,
+            ),
+            economy_below_minutes=self._economy_below_minutes,
+        )
+
     def status(self) -> NodeStatus:
         """Gather what the node observed and let `mule.status` interpret it."""
         return status.derive(
@@ -256,8 +304,8 @@ class FlatSatNode:
                 # No shared service is hosted: the TAK service plane waits on
                 # TBR-TAK-01 and the stand-in is local only.
                 hosting_shared_services=bool(self._shared_services),
-                emcon=self._emcon,
-                wan_available=self._wan,
+                modes=self.modes(),
+                wan_available=bool(self._wan),
             )
         )
 

@@ -76,8 +76,41 @@ Insert as a new section 50.0, before 50.1:
 > compounds of the environment and deployment-context axes. They are retained as
 > aliases for FIELD with STANDALONE and FIELD with NETWORKED respectively.
 
-The bearer-capability axis is ordered, and is the degradation ladder CONOPS
-section 5.5 describes. The other axes are unordered.
+The bearer-capability axis is ordered. The other axes are unordered.
+
+### The bearer-capability axis and the section 5.5 ladder
+
+Also editorial, and part of the same point revision. Insert after the section
+50.0 table:
+
+> The bearer-capability axis is the graceful-degradation ladder of section 5.5,
+> named in mode terms. The two lists are not the same length and the
+> correspondence is stated here so that it is not inferred:
+>
+> | Section 5.5 rung | Bearer function | Axis value |
+> | --- | --- | --- |
+> | High-throughput IP | Conventional Wi-Fi mesh | (nominal) |
+> | Range-oriented IP | Sub-GHz long-range IP | DEGRADED-IP |
+> | LoRa / Meshtastic | LoRa | LOW-BANDWIDTH |
+> | Local digital operation | End user access point only | ISOLATED |
+> | Analog / manual PACE | None | not a node state |
+>
+> The lowest rung of section 5.5 is a team procedure, not a condition a node
+> reports. A node that has reached it has no bearer to report through.
+>
+> A node's axis value is bounded by the highest-capability bearer that has
+> formed a link. Link quality may place it lower; bearer association alone can
+> never place it higher.
+
+Section 50.9 corroborates the bottom node-reportable rung directly: ISOLATED is
+where "the team retains local EUD and node capability only", which is the
+condition of an access point still serving with no inter-node bearer linked.
+
+This clarification is what allows a node to determine the axis today. Bearer
+association is already observable; the link-quality refinement in the last
+sentence needs thresholds from `TBR-RF-01` and `TBR-RF-02` and readings that do
+not yet exist, and until those arrive a node reports the bound rather than
+claiming precision it does not have.
 
 Splitting environment from deployment context is what allows the LAB values the
 CONOPS already implies. Section 50.1 lists interoperability testing among LAB

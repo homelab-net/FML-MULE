@@ -314,3 +314,44 @@ def test_a_scripted_failure_reports_the_reading_not_a_verdict(
     scenarios above are exercising the decision rather than selecting it.
     """
     assert FakeClock.dead_backup_cell(time_policy).rtc_backup_cell_ok() is False
+
+
+# --- the capability ladder reaches the operator ----------------------------
+
+
+def test_a_node_down_to_lora_tells_the_operator_low_bandwidth(
+    build_node: NodeFactory,
+) -> None:
+    """SAD section 22 names LOW-BANDWIDTH, and CONOPS section 50.8 defines it.
+
+    Before `mule/modes.py` existed the operator state could never take this
+    value: the vocabulary was there and nothing could produce it. A node whose
+    only inter-node reach is LoRa is the situation it was named for.
+    """
+    node = build_node(
+        radio=FakeRadio(present=["wifi_ap", "lora"], linked=["wifi_ap", "lora"])
+    )
+    node.power_on()
+
+    assert node.modes().bearer_capability == "LOW-BANDWIDTH"
+    assert node.status().state == "LOW-BANDWIDTH"
+
+
+def test_a_node_on_the_mesh_is_not_reported_low_bandwidth(
+    build_node: NodeFactory,
+) -> None:
+    """The other half. A check that only ever fires one way has not been tested.
+
+    Without this, hardcoding the state to LOW-BANDWIDTH would pass the suite,
+    which is the shape the red-team pass found in six of sixteen mutations.
+    """
+    node = build_node(
+        radio=FakeRadio(
+            present=["wifi_ap", "wifi_mesh", "lora"],
+            linked=["wifi_ap", "wifi_mesh", "lora"],
+        )
+    )
+    node.power_on()
+
+    assert node.modes().bearer_capability == "NOMINAL-IP"
+    assert node.status().state != "LOW-BANDWIDTH"

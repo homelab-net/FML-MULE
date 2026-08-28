@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .bearers import Bearer, inter_node_present, missing_required
+from .modes import ModeAssessment
 from .power import PowerAssessment
 from .thermal import ThermalAssessment
 from .timekeeping import TimeAssessment
@@ -67,7 +68,11 @@ class Observations:
     power: PowerAssessment
     thermal: ThermalAssessment
     hosting_shared_services: bool
-    emcon: bool
+    #: The nine CONOPS section 50 axes, from mule/modes.py. EMCON and the
+    #: capability ladder are read from here rather than decided again: two
+    #: deciders for one question eventually disagree, and the test that would
+    #: catch it is the one asserting that two literals match.
+    modes: ModeAssessment
     wan_available: bool
 
 
@@ -135,7 +140,10 @@ def _state(
     2. Any other fault is `DEGRADED`.
     3. `EMCON` is a deliberate posture, so it outranks a mere degradation, but
        it never hides a fault: a silent node is a choice, a broken one is not.
-    4. Thermal throttling degrades without faulting. The node works, slower.
+    4. `LOW-BANDWIDTH` is the capability ladder's LoRa rung, named the same way
+       in SAD section 22 and CONOPS section 50.8. It is more informative than a
+       bare `DEGRADED`, so it is reported in preference to one.
+    5. Thermal throttling degrades without faulting. The node works, slower.
        This is reported even when the thermal state is UNKNOWN, because the
        hardware states it rather than the node inferring it.
     """
@@ -143,8 +151,10 @@ def _state(
         return "FAULT"
     if fault is not None:
         return "DEGRADED"
-    if observed.emcon:
+    if observed.modes.emission == "EMCON-SILENT":
         return "EMCON"
+    if observed.modes.bearer_capability == "LOW-BANDWIDTH":
+        return "LOW-BANDWIDTH"
     if observed.thermal.throttling:
         return "DEGRADED"
     return "GREEN"
@@ -157,11 +167,13 @@ def _network_degraded(observed: Observations) -> bool:
     no inter-node radio at all is **not**: it was never meant to mesh, which is
     the ROADMAP v0.0.1 configuration. Reporting that node as permanently
     degraded would make the first milestone's own hardware look broken.
+
+    The deployment axis alone cannot answer this. It reports STANDALONE for both
+    situations, because operationally they are the same fact; only the fitment
+    check separates the broken node from the one that never had a radio.
     """
     fitted = inter_node_present(observed.enumerated)
-    return bool(fitted) and not any(
-        bearer in set(observed.associated) for bearer in fitted
-    )
+    return bool(fitted) and observed.modes.deployment == "STANDALONE"
 
 
 def derive(observed: Observations) -> NodeStatus:
@@ -188,7 +200,7 @@ def derive(observed: Observations) -> NodeStatus:
         network_degraded=_network_degraded(observed),
         lora_available="lora" in observed.enumerated and "lora" in observed.associated,
         wan_available=observed.wan_available,
-        emcon_active=observed.emcon,
+        emcon_active=observed.modes.emission == "EMCON-SILENT",
         fault=fault,
         authority_reason=None if hosting else "NO_SAFE_AUTHORITY",
         state=_state(observed, missing, fault),

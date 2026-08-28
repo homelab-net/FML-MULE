@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from mule.modes import EmissionPosture
 from mule.power import PowerModel
 from mule.thermal import ThermalLimits
 from mule.timekeeping import TimePolicy
@@ -97,8 +98,9 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         thermal: FakeThermal | None = None,
         power_model: PowerModel | None = None,
         thermal_limits: ThermalLimits | None = None,
-        emcon: bool = False,
-        wan: bool = False,
+        emission: EmissionPosture = "NORMAL-EMISSION",
+        economy_below_minutes: int | None = None,
+        wan: bool | None = None,
     ) -> FlatSatNode:
         return FlatSatNode(
             region_profile=profile,
@@ -110,7 +112,8 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
             time_policy=time_policy,
             power_model=power_model,
             thermal_limits=thermal_limits,
-            emcon=emcon,
+            emission=emission,
+            economy_below_minutes=economy_below_minutes,
             wan=wan,
         )
 

@@ -66,6 +66,7 @@ which is production code held to production standards:
 | Can the clock be trusted? | `mule/timekeeping.py` |
 | May this device join? | `mule/admission.py` |
 | What does this node offer, and by what name? | `mule/services.py` |
+| Which operating modes is the node in? | `mule/modes.py` |
 | What do we tell the operator? | `mule/status.py` |
 | Which radios matter? | `mule/bearers.py` |
 
@@ -191,6 +192,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 | `fakes.py` | The four fakes above, and nothing else. |
 | `node.py` | `FlatSatNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
+| `test_modes.py` | Unit tests for `mule/modes.py`, the nine CONOPS section 50 axes. |
 | `test_timekeeping.py` | Unit tests for `mule/timekeeping.py`. Moves with it if it moves again. |
 | `scenarios/` | The user-visible flows, written in CONOPS vocabulary. |
 | `mutations.yml` | What the suite is required to be able to detect. |
