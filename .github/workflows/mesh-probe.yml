@@ -21,12 +21,18 @@
 # value TBR-RF-01, TBR-RF-02 and TBR-RF-03 exist to measure is absent. A mesh
 # that forms here says nothing about a mesh forming in a car park.
 #
-# Manual dispatch only. It is a probe; it does not gate anything.
+# It is a probe and gates nothing. It runs on manual dispatch, and on a push
+# that changes this file, so that editing the probe re-answers the question.
+# The push trigger is also what lets it run at all before it reaches the
+# default branch, which is where workflow_dispatch requires a file to live.
 
 name: Mesh probe
 
 "on":
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/mesh-probe.yml"
 
 permissions:
   contents: read
