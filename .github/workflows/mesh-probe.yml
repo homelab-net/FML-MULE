@@ -1,30 +1,35 @@
 ---
-# Can a real 802.11s mesh with batman-adv form on a CI runner, with no radios?
+# Does batman-adv actually route between nodes, with no radios?
 #
-# THIS IS A CAPABILITY PROBE, NOT A TEST OF THIS REPOSITORY. It answers one
-# question: does a GitHub runner provide mac80211_hwsim and the batman-adv
-# module, and can two simulated nodes in separate network namespaces form a
-# mesh and pass traffic?
+# The network plane is the only part of this system nobody without hardware can
+# review, and os/config/batman-adv.conf.template is entirely TBD. This forms a
+# real three-node batman-adv mesh in network namespaces and routes traffic two
+# hops across it. No radios, no hardware, ordinary Linux.
 #
-# If it can, the network plane becomes reviewable by someone with no hardware,
-# which is the property AGENTS.md asks for and the one part of the system that
-# has never had it.
+# WHAT THIS DOES AND DOES NOT COVER
 #
-# WHAT A GREEN RUN WOULD AND WOULD NOT MEAN
+# Covered, and real: the batman-adv module, BATMAN_V as the routing algorithm
+# (FML-ADR-024), originator and neighbour exchange, translation-table learning,
+# and multi-hop forwarding. The kernel code path is the one a node runs.
 #
-# It would mean 802.11s association, batman-adv originator exchange and IP
-# forwarding work against a simulated PHY. That is real: the kernel code path
-# is the same one a node runs.
+# NOT covered: 802.11s association, and everything RF. The link layer here is a
+# veth pair, which is a perfect wire: no propagation, no loss, no contention, no
+# rate adaptation, no desense, no range. Every quantity TBR-RF-01, TBR-RF-02 and
+# TBR-RF-03 exist to measure is absent, and a mesh that forms here says nothing
+# about a mesh forming in a car park.
 #
-# It would NOT mean anything about RF. mac80211_hwsim has no propagation, no
-# noise, no interference, no desense, no range and no throughput limit. Every
-# value TBR-RF-01, TBR-RF-02 and TBR-RF-03 exist to measure is absent. A mesh
-# that forms here says nothing about a mesh forming in a car park.
+# WHY NOT 802.11s HERE
 #
-# It is a probe and gates nothing. It runs on manual dispatch, and on a push
-# that changes this file, so that editing the probe re-answers the question.
-# The push trigger is also what lets it run at all before it reaches the
-# default branch, which is where workflow_dispatch requires a file to live.
+# Recorded from two probe runs rather than assumed. GitHub hosted runners use an
+# Azure kernel flavour with no wireless stack at all:
+#
+#   /lib/modules/6.17.0-1022-azure/kernel/drivers/net/wireless/  does not exist
+#   /lib/modules/6.17.0-1022-azure/kernel/net/batman-adv/        batman-adv.ko.zst
+#
+# Installing linux-modules-extra does not add it. So mac80211_hwsim cannot load
+# and 802.11s cannot be exercised on a hosted runner. It needs a machine with an
+# ordinary distribution kernel. The step below records that state on every run,
+# so the day it changes, this file finds out rather than someone guessing.
 
 name: Mesh probe
 
@@ -38,109 +43,137 @@ permissions:
   contents: read
 
 jobs:
-  probe:
-    name: Simulated 802.11s mesh
+  batman:
+    name: Three-node batman-adv mesh
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Record the runner kernel
-        run: |
-          uname -a
-          echo "--- loadable module support ---"
-          ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/ || true
-          ls /lib/modules/"$(uname -r)"/kernel/net/batman-adv/ || true
-
-      - name: Install the radio userspace and the extra kernel modules
+      - name: Install batctl and iproute2
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq iw batctl wireless-tools iproute2
-          # The Azure kernel on a runner ships a trimmed module set:
-          # mac80211_hwsim and batman-adv are in linux-modules-extra, which is
-          # not installed by default. Without this the probe fails at modprobe
-          # with "not found in directory /lib/modules/<kernel>", which is what
-          # the first run did.
-          sudo apt-get install -y -qq "linux-modules-extra-$(uname -r)"
-          echo "--- modules now present ---"
-          ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/virtual/ || \
-            ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/ || true
-          ls /lib/modules/"$(uname -r)"/kernel/net/batman-adv/ || true
-          echo "--- versions, which are the compatibility set on this runner ---"
-          iw --version
+          sudo apt-get install -y -qq batctl iproute2 iw
           batctl -v
 
-      - name: Load mac80211_hwsim with two radios
+      - name: Record whether a wireless stack exists on this runner
         run: |
-          sudo modprobe mac80211_hwsim radios=2
-          echo "--- phys ---"
-          sudo iw dev
-          test "$(sudo iw dev | grep -c Interface)" -eq 2
+          echo "kernel: $(uname -r)"
+          if [ -d "/lib/modules/$(uname -r)/kernel/drivers/net/wireless" ]; then
+            echo "WIRELESS PRESENT. mac80211_hwsim may now be possible;"
+            echo "802.11s association could be added to this probe."
+            ls "/lib/modules/$(uname -r)/kernel/drivers/net/wireless/"
+          else
+            echo "NO WIRELESS STACK. 802.11s cannot be exercised on this runner."
+            echo "This is the expected state; see the header of this file."
+          fi
 
-      - name: Load batman-adv
+      - name: Load batman-adv and select BATMAN_V
         run: |
           sudo modprobe batman-adv
           lsmod | grep batman
+          # Must be set before any mesh interface exists. FML-ADR-024 selects
+          # BATMAN_V; this asserts the module honours that rather than assuming.
           sudo batctl routing_algo BATMAN_V
-          sudo batctl routing_algo
+          sudo batctl routing_algo | tee /tmp/algo
+          grep -q BATMAN_V /tmp/algo
 
-      - name: Put each radio in its own network namespace
+      - name: Build a line topology, node1 - node2 - node3
         run: |
-          sudo ip netns add node1
-          sudo ip netns add node2
-          # phy names are not guaranteed to be phy0/phy1; read them.
-          phys=$(sudo iw dev | awk '/^phy#/{gsub("#","",$1); print $1}')
-          echo "phys found: $phys"
-          set -- $phys
-          sudo iw phy "$1" set netns name node1
-          sudo iw phy "$2" set netns name node2
-          echo "--- node1 ---"; sudo ip netns exec node1 iw dev
-          echo "--- node2 ---"; sudo ip netns exec node2 iw dev
+          # A line, not a full mesh: node1 and node3 share no link, so reaching
+          # node3 from node1 requires batman-adv to route through node2. A full
+          # mesh would prove only that two directly wired hosts can ping.
+          for n in 1 2 3; do sudo ip netns add "node$n"; done
 
-      - name: Join both nodes to one 802.11s mesh
-        run: |
-          for ns in node1 node2; do
-            dev=$(sudo ip netns exec "$ns" iw dev | awk '/Interface/{print $2}')
-            echo "$ns uses $dev"
-            sudo ip netns exec "$ns" ip link set "$dev" down
-            sudo ip netns exec "$ns" iw dev "$dev" set type mp
-            sudo ip netns exec "$ns" ip link set "$dev" up
-            sudo ip netns exec "$ns" iw dev "$dev" mesh join fml-probe freq 2412
+          sudo ip link add veth12 type veth peer name veth21
+          sudo ip link add veth23 type veth peer name veth32
+
+          sudo ip link set veth12 netns node1
+          sudo ip link set veth21 netns node2
+          sudo ip link set veth23 netns node2
+          sudo ip link set veth32 netns node3
+
+          for n in 1 2 3; do
+            sudo ip netns exec "node$n" ip link set lo up
           done
-          sleep 5
-          echo "--- node1 mesh peers ---"
-          dev1=$(sudo ip netns exec node1 iw dev | awk '/Interface/{print $2}')
-          sudo ip netns exec node1 iw dev "$dev1" station dump
+          sudo ip netns exec node1 ip link set veth12 up
+          sudo ip netns exec node2 ip link set veth21 up
+          sudo ip netns exec node2 ip link set veth23 up
+          sudo ip netns exec node3 ip link set veth32 up
 
-      - name: Attach the mesh interface to batman-adv on both nodes
+      - name: Attach each node to the mesh
         run: |
-          i=1
-          for ns in node1 node2; do
-            dev=$(sudo ip netns exec "$ns" iw dev | awk '/Interface/{print $2}')
-            sudo ip netns exec "$ns" batctl meshif bat0 interface add "$dev"
-            sudo ip netns exec "$ns" ip link set up dev "$dev"
-            sudo ip netns exec "$ns" ip link set up dev bat0
-            sudo ip netns exec "$ns" ip addr add "10.0.0.$i/24" dev bat0
-            i=$((i + 1))
+          attach() {
+            ns=$1; shift
+            sudo ip netns exec "$ns" batctl routing_algo BATMAN_V
+            for hard in "$@"; do
+              sudo ip netns exec "$ns" batctl meshif bat0 interface add "$hard"
+            done
+            sudo ip netns exec "$ns" ip link set bat0 up
+          }
+          attach node1 veth12
+          attach node2 veth21 veth23
+          attach node3 veth32
+
+          # Addresses go on bat0, never on the hard interfaces. batman-adv is a
+          # layer 2 protocol: the mesh is one flat broadcast domain and IP sits
+          # on top of it. Addressing the hard interfaces instead is the mistake
+          # that makes a mesh look like it works while bypassing it entirely.
+          sudo ip netns exec node1 ip addr add 10.42.0.1/24 dev bat0
+          sudo ip netns exec node2 ip addr add 10.42.0.2/24 dev bat0
+          sudo ip netns exec node3 ip addr add 10.42.0.3/24 dev bat0
+
+      - name: Wait for the mesh to converge
+        run: |
+          # Originator messages are periodic, so convergence is not instant.
+          # Poll rather than sleeping a guessed interval.
+          for i in $(seq 1 30); do
+            if sudo ip netns exec node1 batctl meshif bat0 originators \
+                 | grep -qE '^[* ]'; then
+              echo "originators present after ${i}s"
+              break
+            fi
+            sleep 1
           done
-          sleep 10
           echo "--- node1 originators ---"
           sudo ip netns exec node1 batctl meshif bat0 originators
           echo "--- node1 neighbours ---"
           sudo ip netns exec node1 batctl meshif bat0 neighbors
+          echo "--- node1 translation table, global ---"
+          sudo ip netns exec node1 batctl meshif bat0 translocal || true
 
-      - name: Pass traffic across the mesh
+      - name: Route traffic two hops, node1 to node3
         run: |
-          sudo ip netns exec node1 ping -c 5 -W 5 10.0.0.2
+          sudo ip netns exec node1 ping -c 5 -W 10 10.42.0.3
           echo
-          echo "MESH FORMED AND TRAFFIC PASSED."
+          echo "--- the path node1 takes to node3 ---"
+          mac3=$(sudo ip netns exec node3 cat /sys/class/net/bat0/address)
+          echo "node3 bat0 is $mac3"
+          sudo ip netns exec node1 batctl meshif bat0 traceroute "$mac3" || true
+
+      - name: Confirm the second hop was really used
+        run: |
+          # A ping proves reachability, not that batman-adv routed it. node1 has
+          # no link to node3, so the only path is through node2; assert that
+          # node1's next hop towards node3 is in fact node2.
+          mac2=$(sudo ip netns exec node2 cat /sys/class/net/bat0/address)
+          mac3=$(sudo ip netns exec node3 cat /sys/class/net/bat0/address)
+          echo "node2 bat0 $mac2 / node3 bat0 $mac3"
+          sudo ip netns exec node1 batctl meshif bat0 originators | tee /tmp/orig
+          # The originator line for node3 names the next hop towards it.
+          line=$(grep -i "$mac3" /tmp/orig | head -1)
+          echo "node3 originator line: $line"
+          echo "$line" | grep -qi "$mac2"
+          echo
+          echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
 
       - name: Diagnostics on failure
         if: failure()
         run: |
-          for ns in node1 node2; do
-            echo "=============== $ns ==============="
-            sudo ip netns exec "$ns" ip addr || true
-            sudo ip netns exec "$ns" iw dev || true
-            sudo ip netns exec "$ns" batctl meshif bat0 originators || true
+          for n in 1 2 3; do
+            echo "=============== node$n ==============="
+            sudo ip netns exec "node$n" ip addr || true
+            sudo ip netns exec "node$n" batctl meshif bat0 interface || true
+            sudo ip netns exec "node$n" batctl meshif bat0 originators || true
+            sudo ip netns exec "node$n" batctl meshif bat0 neighbors || true
           done
-          sudo dmesg | tail -60 || true
+          sudo dmesg | grep -i batman | tail -30 || true
