@@ -217,8 +217,19 @@ jobs:
           # tcpdump -tt gives an absolute epoch timestamp per frame, so the
           # first ARP request, the first ARP reply and the first ICMP reply are
           # each locatable to the microsecond.
+          #
+          # node2 is captured for the first time here. Run 19 established that
+          # node1 asks for its peer once a second for thirty seconds and is not
+          # answered, which is one question short of an answer: watching only
+          # the asking end cannot say whether the request arrives and goes
+          # unanswered, or never arrives at all. Those are different faults in
+          # different layers and this separates them.
           sudo ip netns exec node1 tcpdump -tt -n -i bat0 \
             >/tmp/wire.txt 2>/dev/null &
+          sudo ip netns exec node2 tcpdump -tt -n -i bat0 \
+            >/tmp/wire2.txt 2>/dev/null &
+          sudo ip netns exec node2 tcpdump -tt -n -i veth21 \
+            >/tmp/wire2v.txt 2>/dev/null &
 
           # ping -D prefixes each reply with [epoch.usec]. Five per second, so the
           # sampling interval is 200ms rather than three seconds, and the ping
@@ -284,18 +295,29 @@ jobs:
           first_at /tmp/neigh.txt '10\.42\.0\.3 .*(REACHABLE|STALE)' 'neigh .3 resolved'
           first_at /tmp/neigh.txt 'FAILED' 'neigh FAILED'
           echo
-          # Run 18 saw sequence 101 as the first echo request on the wire, so a
-          # hundred packets were emitted before one reached bat0. Whether ping
-          # was sending into a black hole or being told the host is
-          # unreachable is visible in its own output and nowhere else.
-          echo "=== node1 ping to 10.42.0.2, first 6 lines ==="
-          head -6 /tmp/p2.txt || true
+          echo "=== the same question, seen at node2 ==="
+          first_at /tmp/wire2.txt 'ARP, Request who-has 10\.42\.0\.2' 'request arrives'
+          first_at /tmp/wire2.txt 'ARP, Reply 10\.42\.0\.2 is-at' 'node2 answers'
+          first_at /tmp/wire2v.txt '.' 'any frame, veth21'
           echo
-          echo "=== node1 neighbour transitions, first 12 ==="
-          head -12 /tmp/neigh.txt || true
+          # These are read rather than assumed. The attach step sets two of
+          # them and leaves every other one at whatever the module compiled in,
+          # which is exactly the sort of thing that holds client broadcast for
+          # thirty seconds while every table looks correct.
+          echo "=== batman-adv settings in force on node1 ==="
+          for setting in aggregation bridge_loop_avoidance \
+                         distributed_arp_table fragmentation multicast_mode \
+                         network_coding orig_interval; do
+            printf '  %-24s %s\n' "$setting" \
+              "$(sudo ip netns exec node1 batctl meshif bat0 "$setting" 2>&1 |
+                 head -1)"
+          done
           echo
-          echo "=== node1 bat0, first 12 frames ==="
-          head -12 /tmp/wire.txt || true
+          echo "=== node2 bat0, first 8 frames ==="
+          head -8 /tmp/wire2.txt || true
+          echo
+          echo "=== node1 neighbour transitions, first 4 ==="
+          head -4 /tmp/neigh.txt || true
           } | tee /tmp/warmup.txt
 
           test -s /tmp/p2.txt
