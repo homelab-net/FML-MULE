@@ -43,6 +43,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
 | `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
+| `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
 
 ### SELECTED PRINCIPLE
 

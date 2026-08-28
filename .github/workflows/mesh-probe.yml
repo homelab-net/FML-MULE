@@ -54,29 +54,8 @@ permissions:
 
 jobs:
   batman:
-    name: "Mesh: bridge-loop-avoidance=${{ matrix.bla }}"
+    name: Mesh
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # One variable, a fresh mesh per value. Warm-up can only be asked once
-        # per mesh: the moment traffic flows the tables are warm and the
-        # question is gone, so each value gets its own runner.
-        #
-        # Bridge loop avoidance, because run 20 localised the warm-up to
-        # batman-adv not delivering node1's ARP request to node2 for thirty
-        # seconds, and BLA is the one thing enabled here that holds client
-        # traffic back on purpose. The arithmetic fits: BLA works in ten
-        # second periods and waits three of them before it will pass client
-        # frames, and the measured figure is 31.5 seconds.
-        #
-        # That is a hypothesis with a number attached, not a conclusion. This
-        # run decides it.
-        #
-        # Gratuitous ARP drops out. It measured 31.655, 31.231, 31.662 and
-        # 31.464 seconds across runs 18 to 20, both settings, which is no
-        # effect rather than a small one. It can come back if BLA is not it.
-        bla: ["on", "off"]
     steps:
       - uses: actions/checkout@v4
 
@@ -180,18 +159,17 @@ jobs:
             # there is no mesh-wide multicast story to optimise for yet.
             sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
-            # Bridge loop avoidance stops a mesh bridged to a common LAN from
-            # forming a loop, and it is on by default. It was never chosen
-            # here. Run 20 measured node2 receiving node1's first ARP request
-            # 31.463 seconds after attach and answering it 34 microseconds
-            # later, so something upstream of node2's stack held that frame,
-            # and BLA is the only thing enabled that does so deliberately.
-            sudo ip netns exec "$ns" batctl meshif bat0 bridge_loop_avoidance \
-              "$BLA_VALUE"
+            # FML-ADR-054. Bridge loop avoidance protects a mesh bridged to
+            # a common wired segment, and it is enabled by default. bat0 is
+            # bridged to nothing here, and it was costing the entire warm-up:
+            # 31.5s to first reply against 2.150s with it off, one variable,
+            # a fresh mesh per value, both legs of run 21. It withholds client
+            # frames until its claim mechanism settles, which is why every
+            # batctl table read correct while nothing passed.
+            sudo ip netns exec "$ns" batctl meshif bat0 \
+              bridge_loop_avoidance 0
             sudo ip netns exec "$ns" ip link set bat0 up
           }
-          if [ "${{ matrix.bla }}" = "off" ]; then BLA_VALUE=0; else BLA_VALUE=1; fi
-
           attach node1 veth12
           attach node2 veth21 veth23
           attach node3 veth32
@@ -285,7 +263,6 @@ jobs:
           {
           echo
           echo "=== warm-up, measured from t0 at wire timestamps ==="
-          echo "  bridge loop avoidance: ${{ matrix.bla }}"
           echo "  first reply one hop:  $(since "$(first_reply /tmp/p2.txt)")"
           echo "  first reply two hops: $(since "$(first_reply /tmp/p3.txt)")"
           echo
@@ -331,6 +308,25 @@ jobs:
           test -s /tmp/p2.txt
           grep -q 'bytes from' /tmp/p2.txt
           grep -q 'bytes from' /tmp/p3.txt
+
+          # A cold mesh that carries nothing for half a minute while every
+          # table reads correct is a field defect, so the figure is asserted
+          # rather than printed and left for someone to notice.
+          #
+          # Ten seconds is a bound, not a target. The measured figure is 2.2s
+          # one hop and 4.4s two hops, so this fires on a regression rather
+          # than on jitter. THIS CHECK HAS BEEN WATCHED TO FAIL: the
+          # configuration FML-ADR-054 replaced measures 31.5s against it, in
+          # both legs of run 21 and in runs 18, 19 and 20.
+          WARM_UP_BOUND_SECONDS=10
+          for stream in /tmp/p2.txt /tmp/p3.txt; do
+            at=$(since "$(first_reply "$stream")")
+            awk -v got="${at%s}" -v bound="$WARM_UP_BOUND_SECONDS" -v s="$stream" \
+              'BEGIN { if (got + 0 > bound) {
+                 printf "%s: first reply at %ss, bound is %ss\n", s, got, bound
+                 exit 1 } }'
+          done
+          echo "Warm-up within ${WARM_UP_BOUND_SECONDS}s on both streams."
 
       - name: Pin both ARP caches
         run: |

@@ -70,12 +70,13 @@ hard_interface_mtu=1560
 # --- Parameters -------------------------------------------------------------
 orig_interval=TBD              # Originator message interval, ms. Default 1000.
                                #
-                               # 24s, 22s and 23s at 1000, 500 and 200ms in a
-                               # polled measurement with about three seconds of
-                               # resolution. That spread is well inside the
-                               # instrument, so it is NOT evidence that the
-                               # interval does not matter; it is evidence that
-                               # this instrument cannot see whether it does.
+                               # 24s, 22s and 23s at 1000, 500 and 200ms, from
+                               # an instrument that could not resolve three
+                               # seconds, on a mesh whose warm-up was dominated
+                               # by bridge loop avoidance at every setting. So
+                               # those figures measured neither this parameter
+                               # nor anything else, and are recorded only so
+                               # nobody re-derives them.
                                #
                                # Still TBD, because the question this value
                                # actually decides is convergence after a
@@ -105,24 +106,28 @@ multicast_mode=0               # Multicast optimisation OFF.
                                # EUD broadcast is not free.
 
 # --- Announce, do not wait to be discovered ---------------------------------
-# MEASURED. A node that sends an unsolicited ARP when bat0 comes up reaches its
-# peers about six seconds sooner than one that waits to be asked:
+# NOT A MEASURED BENEFIT. This block previously claimed that an unsolicited ARP
+# at bring-up reached peers about six seconds sooner, quoting 28s against 22s.
+# That came from a polling loop costing three seconds per iteration, so the
+# "six seconds" was two iterations, inside the instrument's own resolution. The
+# claim was retracted once, and the retraction was appended below the claim
+# instead of replacing it, so the file went on asserting both.
 #
-#   gratuitous ARP off   28s from converged originators to first reply
-#   gratuitous ARP on    22s
+# Measured properly, at wire timestamps, it does nothing:
 #
-# Replicated at both distributed_arp_table settings. Three frames per node at
-# bring-up, and it belongs in the interface unit rather than a daemon:
+#   gratuitous ARP off   31.655s, 31.662s
+#   gratuitous ARP on    31.231s, 31.464s
+#
+# Four runs, two settings, a spread of 0.4s on a 31s figure. The reason it
+# could not help is now known: the delay was bridge loop avoidance holding
+# client frames, and an unsolicited ARP is a client frame like any other.
+#
+# It is kept at yes because announcing rather than waiting to be asked is
+# sound on a bearer where airtime is scarce and it costs three frames per node
+# at bring-up. That is a reasoned default and NOT a performance claim. It
+# belongs in the interface unit rather than a daemon:
 #
 #   arping -A -c 3 -I bat0 <address>
-#
-# WHAT IS ACTUALLY KNOWN ABOUT WARM-UP: a cold three-node mesh becomes usable
-# somewhere between about three and twenty-four seconds after the interfaces
-# are attached. The upper figure is roughly seven iterations of a polling loop
-# that costs three seconds per iteration, and the loop cannot resolve the true
-# value any further.
-#
-# No configuration setting has been shown to change it. Three were tried.
 gratuitous_arp_on_bringup=yes
 
 distributed_arp_table=0        # Distributed ARP table OFF.
@@ -144,9 +149,32 @@ distributed_arp_table=0        # Distributed ARP table OFF.
                                # and it was disabled here on that reasoning
                                # before anything was measured at all.
 
-fragmentation=TBD
-distributed_arp_table=TBD
-bridge_loop_avoidance=TBD
+fragmentation=TBD              # Reads back enabled by default. Undecided here:
+                               # what it costs on a bearer that fragments is
+                               # TBR-RF-01's question, and hard_interface_mtu
+                               # above is the setting that avoids needing it.
+
+bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-054.
+                               #
+                               # MEASURED, and the single largest effect found
+                               # on this mesh. One variable, a fresh mesh per
+                               # value, both legs of the same run:
+                               #
+                               #   enabled    31.5s to first reply, one hop
+                               #   disabled    2.150s one hop, 4.391s two hops
+                               #
+                               # It withholds client frames until its claim
+                               # mechanism settles. node2 did not see node1's
+                               # first ARP request for 31.463 seconds and then
+                               # answered it in 34 microseconds, while every
+                               # table read correct throughout.
+                               #
+                               # It protects a mesh bridged to a common wired
+                               # segment. bat0 is bridged to nothing here: the
+                               # EUD access point is a separate logical radio
+                               # function per FML-ADR-045. ANYTHING THAT
+                               # BRIDGES bat0 MAKES THIS UNSAFE and shall
+                               # revisit FML-ADR-054 first.
 
 # --- Notes ------------------------------------------------------------------
 # Bring-up ordering matters: batman-adv attached to an interface that is not
