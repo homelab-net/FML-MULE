@@ -201,6 +201,19 @@ jobs:
           t0=$(date +%s.%N)
           echo "t0 = $t0"
 
+          # Every observer starts before any traffic and records an absolute
+          # epoch timestamp, so each stage sits on the same clock as t0.
+          #
+          # ip monitor neigh is the one run 18 was missing. It prints every
+          # neighbour state transition, so the moment a peer address goes
+          # INCOMPLETE, FAILED or REACHABLE is recorded rather than inferred
+          # from what did or did not appear on the wire. Run 18 inferred it and
+          # got two ARP replies that were not replies.
+          sudo ip netns exec node1 ip monitor neigh 2>/dev/null |
+            while IFS= read -r l; do
+              printf '%s %s\n' "$(date +%s.%N)" "$l"
+            done >/tmp/neigh.txt &
+
           # tcpdump -tt gives an absolute epoch timestamp per frame, so the
           # first ARP request, the first ARP reply and the first ICMP reply are
           # each locatable to the microsecond.
@@ -227,6 +240,7 @@ jobs:
           sleep 40
           sudo pkill -f tcpdump || true
           sudo pkill -f "ping -i 0.2" || true
+          sudo pkill -f "ip monitor" || true
           sleep 1
 
           first_reply() {
@@ -237,6 +251,17 @@ jobs:
             [ -n "$1" ] || { echo "never"; return; }
             awk -v a="$1" -v b="$t0" 'BEGIN{printf "%.3fs", a-b}'
           }
+          # Both the wire log and the neighbour log carry an epoch timestamp in
+          # the first field, so one reader serves both.
+          first_at() {
+            line=$(grep -m1 -E "$2" "$1" 2>/dev/null || true)
+            if [ -z "$line" ]; then
+              printf '  %-18s never seen\n' "$3"
+              return
+            fi
+            printf '  %-18s %-10s %s\n' "$3" "$(since "${line%% *}")" \
+              "$(echo "$line" | cut -c1-84)"
+          }
 
           {
           echo
@@ -245,21 +270,33 @@ jobs:
           echo "  first reply one hop:  $(since "$(first_reply /tmp/p2.txt)")"
           echo "  first reply two hops: $(since "$(first_reply /tmp/p3.txt)")"
           echo
-          echo "=== first of each frame type on node1 bat0 ==="
-          for pat in 'ARP, Request' 'ARP, Reply' 'echo request' 'echo reply'; do
-            line=$(grep -m1 "$pat" /tmp/wire.txt || true)
-            if [ -n "$line" ]; then
-              ts=${line%% *}
-              printf '  %-14s %s   %s\n' "$pat" \
-                "$(since "$ts")" "$(echo "$line" | cut -c1-96)"
-            else
-              printf '  %-14s never seen\n' "$pat"
-            fi
-          done
-          } | tee /tmp/warmup.txt
+          echo "=== stages on node1 ==="
+          first_at /tmp/wire.txt 'ARP, Request' 'ARP request'
+          # Run 18 timed an ARP reply at 9.9s that was a batman-adv frame
+          # decoded as ARP by its ethertype, and another at 1.0s that was
+          # node1's own gratuitous ARP coming back on its own bat0. Neither is
+          # a peer answering, and a peer answering is the only reply worth
+          # timing, so this matches the peer addresses rather than the word.
+          first_at /tmp/wire.txt 'ARP, Reply 10\.42\.0\.[23] is-at' 'ARP reply from peer'
+          first_at /tmp/wire.txt 'echo request' 'echo request'
+          first_at /tmp/wire.txt 'echo reply' 'echo reply'
+          first_at /tmp/neigh.txt '10\.42\.0\.2 .*(REACHABLE|STALE)' 'neigh .2 resolved'
+          first_at /tmp/neigh.txt '10\.42\.0\.3 .*(REACHABLE|STALE)' 'neigh .3 resolved'
+          first_at /tmp/neigh.txt 'FAILED' 'neigh FAILED'
           echo
-          echo "=== first 25 frames ==="
-          head -25 /tmp/wire.txt || true
+          # Run 18 saw sequence 101 as the first echo request on the wire, so a
+          # hundred packets were emitted before one reached bat0. Whether ping
+          # was sending into a black hole or being told the host is
+          # unreachable is visible in its own output and nowhere else.
+          echo "=== node1 ping to 10.42.0.2, first 6 lines ==="
+          head -6 /tmp/p2.txt || true
+          echo
+          echo "=== node1 neighbour transitions, first 12 ==="
+          head -12 /tmp/neigh.txt || true
+          echo
+          echo "=== node1 bat0, first 12 frames ==="
+          head -12 /tmp/wire.txt || true
+          } | tee /tmp/warmup.txt
 
           test -s /tmp/p2.txt
           grep -q 'bytes from' /tmp/p2.txt
