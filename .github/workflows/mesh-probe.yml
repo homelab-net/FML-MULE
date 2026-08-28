@@ -229,6 +229,33 @@ jobs:
           sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
           echo "TWO HOPS OK."
 
+      - name: Prove it works with real ARP, not pinned entries
+        run: |
+          # THE ONE THAT MATTERS FOR THE PRODUCT. Everything above ran with
+          # static neighbour entries, installed to take ARP out of the question
+          # while the forwarding fault was being chased. A MULE in a car park
+          # has no such entries: it has to resolve its peers itself.
+          #
+          # A mesh that only carries traffic when someone has pre-populated the
+          # ARP cache is not a working mesh, and a suite that only ever tests
+          # the pinned case would never notice.
+          for n in node1 node2 node3; do
+            sudo ip netns exec "$n" ip neigh flush dev bat0 || true
+          done
+          echo "--- caches after flush, all three nodes ---"
+          for n in node1 node2 node3; do
+            printf '%s: ' "$n"
+            sudo ip netns exec "$n" ip neigh show dev bat0 | tr '\n' ' '
+            echo
+          done
+
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
+          echo
+          echo "--- resolved by ARP, unaided ---"
+          sudo ip netns exec node1 ip neigh show dev bat0
+          echo "ARP RESOLVES ACROSS THE MESH."
+
       - name: Confirm the second hop was really used
         run: |
           # A successful ping proves reachability, not that batman-adv routed
