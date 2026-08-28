@@ -54,21 +54,21 @@ permissions:
 
 jobs:
   batman:
-    name: "Mesh: orig_interval=${{ matrix.orig_interval }}ms"
+    name: "Mesh: gratuitous-ARP=${{ matrix.garp }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # One variable per axis, a fresh mesh per combination. Cold-start can
-        # only be asked once per mesh: the moment traffic flows the translation
-        # tables are warm and the question is gone. So each combination gets its
-        # own runner rather than being sequenced in one job.
-        # gratuitous ARP is settled: measured six seconds better, so it is on
-        # everywhere now. DAT is settled too: measured no difference. The open
-        # variable is the originator message interval, which is how often a
-        # node advertises itself and therefore how fast anything converges.
-        # batman-adv defaults to 1000ms.
-        orig_interval: [1000, 500, 200]
+        # One variable, a fresh mesh per value. Warm-up can only be asked once
+        # per mesh: the moment traffic flows the tables are warm and the
+        # question is gone, so each value gets its own runner.
+        #
+        # Gratuitous ARP is the only claim being tested, because it is the only
+        # one previously reported as a result. The earlier verdicts on
+        # distributed_arp_table and orig_interval came from an instrument that
+        # could not resolve three seconds, so they mean nothing in either
+        # direction and are not re-run until this instrument is trusted.
+        garp: ["off", "on"]
     steps:
       - uses: actions/checkout@v4
 
@@ -171,8 +171,6 @@ jobs:
             # and CONOPS section 35 keeps LoRa a separate non-IP plane, so
             # there is no mesh-wide multicast story to optimise for yet.
             sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
-            sudo ip netns exec "$ns" batctl meshif bat0 \
-              orig_interval "${{ matrix.orig_interval }}"
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
             sudo ip netns exec "$ns" ip link set bat0 up
           }
@@ -188,99 +186,82 @@ jobs:
           sudo ip netns exec node2 ip addr add 10.42.0.2/24 dev bat0
           sudo ip netns exec node3 ip addr add 10.42.0.3/24 dev bat0
 
-          # A node that announces itself does not have to be discovered. This
-          # is the candidate fix for the warm-up window: an unsolicited ARP
-          # tells every peer the address-to-MAC mapping immediately instead of
-          # each of them having to ask and wait for a flood to come back.
+      - name: Measure warm-up passively, at wire timestamps
+        run: |
+          # The previous version polled with two one-second blocking pings and
+          # a one-second sleep, so every iteration cost about three seconds and
+          # the reported figure was seven iterations rather than a time. Every
+          # conclusion drawn from it, including a "six second" gratuitous-ARP
+          # improvement written into the config template, was inside its own
+          # resolution.
           #
-          # It costs three frames per node at bring-up and belongs in the
-          # interface unit, not in a daemon.
-          if true; then
+          # This one does not poll. It starts observers, marks t0, and reads
+          # timestamps off the wire afterwards.
+
+          t0=$(date +%s.%N)
+          echo "t0 = $t0"
+
+          # tcpdump -tt gives an absolute epoch timestamp per frame, so the
+          # first ARP request, the first ARP reply and the first ICMP reply are
+          # each locatable to the microsecond.
+          sudo ip netns exec node1 tcpdump -tt -n -i bat0 \
+            >/tmp/wire.txt 2>/dev/null &
+
+          # ping -D prefixes each reply with [epoch.usec]. Five per second, so the
+          # sampling interval is 200ms rather than three seconds, and the ping
+          # runs continuously instead of being retried.
+          sudo ip netns exec node1 ping -i 0.2 -D 10.42.0.2 >/tmp/p2.txt 2>&1 &
+          sudo ip netns exec node1 ping -i 0.2 -D 10.42.0.3 >/tmp/p3.txt 2>&1 &
+          sleep 1
+
+          if [ "${{ matrix.garp }}" = "on" ]; then
             i=1
             for n in node1 node2 node3; do
               sudo ip netns exec "$n" arping -A -c 3 -I bat0 "10.42.0.$i" \
                 >/dev/null 2>&1 || true
               i=$((i + 1))
             done
-            echo "gratuitous ARP sent by all three nodes"
+            echo "gratuitous ARP sent"
           fi
 
-      - name: Wait for the mesh to converge
-        run: |
-          # Convergence is not instant: originator messages are periodic. Poll
-          # for the real thing rather than sleeping a guessed interval.
-          #
-          # The check counts originator ENTRIES, which batctl prefixes with
-          # " * ". An earlier version matched '^[* ]', which also matches the
-          # column header, so it reported convergence after one second and
-          # pinged a mesh that had not formed. A check that passes on a header
-          # is not a check.
-          converged=no
-          for i in $(seq 1 45); do
-            n=$(sudo ip netns exec node1 batctl meshif bat0 originators |
-                  grep -cE '^ \* +([0-9a-f]{2}:){5}[0-9a-f]{2}' || true)
-            if [ "$n" -ge 2 ]; then
-              echo "node1 sees $n originators after ${i}s"
-              converged=yes
-              break
-            fi
-            sleep 1
-          done
-          echo "--- node1 originators ---"
-          sudo ip netns exec node1 batctl meshif bat0 originators
-          echo "--- node1 neighbours ---"
-          sudo ip netns exec node1 batctl meshif bat0 neighbors
-          echo "--- node1 global translation table ---"
-          sudo ip netns exec node1 batctl meshif bat0 transglobal || true
-          test "$converged" = yes
+          sleep 40
+          sudo pkill -f tcpdump || true
+          sudo pkill -f "ping -i 0.2" || true
+          sleep 1
 
-      - name: Measure how long until the mesh is usable, cold, no pinning
-        run: |
-          # Instrumented. The previous version reported one total and nothing
-          # else, which said the warm-up was 22 seconds and gave no way to
-          # attack it. This prints a line per attempt so the SHAPE is visible:
-          # how many originators are known, how many peer clients are in the
-          # global translation table, and whether each target answers yet.
-          #
-          # If the table fills long before the ping succeeds, the delay is not
-          # discovery. If they fill together, it is.
-          #
-          # The pings themselves generate traffic, which warms the mesh. That
-          # is deliberate and it is the operational question: how long until a
-          # node that is TRYING to communicate can.
-          start=$(date +%s)
-          one=-1
-          two=-1
-          echo "  t  originators  transglobal  1hop  2hop"
-          for _ in $(seq 1 40); do
-            t=$(( $(date +%s) - start ))
-            orig=$(sudo ip netns exec node1 batctl meshif bat0 originators |
-                     grep -cE '^ \* +([0-9a-f]{2}:){5}' || true)
-            tg=$(sudo ip netns exec node1 batctl meshif bat0 transglobal |
-                   grep -cE '([0-9a-f]{2}:){5}' || true)
-            if [ "$one" -lt 0 ] &&
-               sudo ip netns exec node1 ping -c 1 -W 1 10.42.0.2 >/dev/null 2>&1
-            then one=$t; fi
-            if [ "$two" -lt 0 ] &&
-               sudo ip netns exec node1 ping -c 1 -W 1 10.42.0.3 >/dev/null 2>&1
-            then two=$t; fi
-            printf '%3ds  %11s  %11s  %4s  %4s\n' \
-              "$t" "$orig" "$tg" \
-              "$( [ "$one" -ge 0 ] && echo OK || echo . )" \
-              "$( [ "$two" -ge 0 ] && echo OK || echo . )"
-            [ "$one" -ge 0 ] && [ "$two" -ge 0 ] && break
-            sleep 1
-          done
+          first_reply() {
+            grep -m1 'bytes from' "$1" 2>/dev/null |
+              sed -n 's/^\[\([0-9.]*\)\].*/\1/p'
+          }
+          since() {
+            [ -n "$1" ] || { echo "never"; return; }
+            awk -v a="$1" -v b="$t0" 'BEGIN{printf "%.3fs", a-b}'
+          }
 
           echo
-          echo "COLD MESH, NO PINNED ARP."
-          echo "  orig_interval:  ${{ matrix.orig_interval }} ms"
-          echo "  first reply one hop:  ${one}s"
-          echo "  first reply two hops: ${two}s"
-          if [ "$one" -lt 0 ] || [ "$two" -lt 0 ]; then
-            echo "NEVER BECAME USABLE. That is a defect, not a test artifact."
-            exit 1
-          fi
+          echo "=== warm-up, measured from t0 at wire timestamps ==="
+          echo "  gratuitous ARP: ${{ matrix.garp }}"
+          echo "  first reply one hop:  $(since "$(first_reply /tmp/p2.txt)")"
+          echo "  first reply two hops: $(since "$(first_reply /tmp/p3.txt)")"
+          echo
+          echo "=== first of each frame type on node1 bat0 ==="
+          for pat in 'ARP, Request' 'ARP, Reply' 'echo request' 'echo reply'; do
+            line=$(grep -m1 "$pat" /tmp/wire.txt || true)
+            if [ -n "$line" ]; then
+              ts=${line%% *}
+              printf '  %-14s %s   %s\n' "$pat" \
+                "$(since "$ts")" "$(echo "$line" | cut -c1-96)"
+            else
+              printf '  %-14s never seen\n' "$pat"
+            fi
+          done
+          echo
+          echo "=== first 25 frames ==="
+          head -25 /tmp/wire.txt || true
+
+          test -s /tmp/p2.txt
+          grep -q 'bytes from' /tmp/p2.txt
+          grep -q 'bytes from' /tmp/p3.txt
 
       - name: Pin both ARP caches
         run: |
