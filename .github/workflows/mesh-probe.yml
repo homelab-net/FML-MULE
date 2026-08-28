@@ -246,6 +246,10 @@ jobs:
           fi
 
           wait "$cap" 2>/dev/null || true
+          for n in node1 node2; do
+            echo "--- $n batman-adv counters ---"
+            sudo ip netns exec "$n" batctl meshif bat0 statistics || true
+          done
           echo "--- frames seen on node2 veth21 ---"
           cat /tmp/cap.txt || true
           cat /tmp/cap.err || true
@@ -314,16 +318,13 @@ jobs:
       - name: Diagnostics on failure
         if: failure()
         run: |
-          for n in 1 2 3; do
-            echo "=============== node$n ==============="
-            sudo ip netns exec "node$n" ip addr || true
-            sudo ip netns exec "node$n" batctl meshif bat0 interface || true
-            sudo ip netns exec "node$n" batctl meshif bat0 originators || true
-            sudo ip netns exec "node$n" batctl meshif bat0 neighbors || true
-            echo "--- translocal ---"
-            sudo ip netns exec "node$n" batctl meshif bat0 translocal || true
-            echo "--- transglobal ---"
-            sudo ip netns exec "node$n" batctl meshif bat0 transglobal || true
-            sudo ip netns exec "node$n" ip neigh || true
+          # Deliberately narrow. An earlier version dumped every table for all
+          # three nodes and buried the isolation verdict under ninety lines,
+          # which made the run harder to read than the one before it.
+          for n in node1 node2; do
+            echo "=============== $n ==============="
+            sudo ip netns exec "$n" ip -brief addr || true
+            sudo ip netns exec "$n" ip neigh || true
+            sudo ip netns exec "$n" batctl meshif bat0 statistics || true
           done
-          sudo dmesg | grep -i batman | tail -30 || true
+          sudo dmesg | grep -i batman | tail -12 || true
