@@ -28,7 +28,11 @@ block parent-system integration baseline closure.
 
 | ID | Subject | Status |
 | --- | --- | --- |
+| `CCR-01` | CONOPS section 50 operating modes are concurrent axes, and need transition criteria | `OPEN` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |
+
+CONOPS change requests are numbered `CCR-##`. Like every identifier in this
+program the numbers are permanent and never reused.
 
 ## When a CONOPS change request is the right answer
 
