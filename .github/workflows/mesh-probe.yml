@@ -181,6 +181,18 @@ jobs:
           sudo ip netns exec node1 batctl meshif bat0 transglobal || true
           test "$converged" = yes
 
+      - name: Single hop first, node1 to node2
+        run: |
+          # A control. If this fails too, the problem is IP over bat0 rather
+          # than multi-hop routing, and the two-hop result below would be
+          # uninterpretable. Diagnosing the wrong layer is how five runs get
+          # spent on the wrong thing.
+          echo "--- node1 local translation table ---"
+          sudo ip netns exec node1 batctl meshif bat0 translocal || true
+          echo "--- node1 global translation table ---"
+          sudo ip netns exec node1 batctl meshif bat0 transglobal || true
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+
       - name: Route traffic two hops, node1 to node3
         run: |
           # ARP across the mesh has to resolve before the first echo, so allow
@@ -247,5 +259,10 @@ jobs:
             sudo ip netns exec "node$n" batctl meshif bat0 interface || true
             sudo ip netns exec "node$n" batctl meshif bat0 originators || true
             sudo ip netns exec "node$n" batctl meshif bat0 neighbors || true
+            echo "--- translocal ---"
+            sudo ip netns exec "node$n" batctl meshif bat0 translocal || true
+            echo "--- transglobal ---"
+            sudo ip netns exec "node$n" batctl meshif bat0 transglobal || true
+            sudo ip netns exec "node$n" ip neigh || true
           done
           sudo dmesg | grep -i batman | tail -30 || true
