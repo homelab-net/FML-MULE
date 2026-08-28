@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from mule.bearers import Bearer
+from mule.thermal import Sensor
 from mule.timekeeping import TimePolicy
 
 #: Offsets used to build scripted clock readings. Expressed relative to the
@@ -119,23 +120,49 @@ class FakePower:
 
 @dataclass
 class FakeThermal:
-    """Scripted thermal state.
+    """Scripted raw thermal readings.
 
-    Simulates: a throttle flag and an in-envelope flag.
-    Does not simulate: temperature, heat flow, ambient sensitivity or the
+    Simulates: what each fitted sensor reports, and whether the compute element
+    says it is throttling.
+    Does not simulate: heat flow, ambient sensitivity, solar load, or the
     enclosure. TBR-THERM-01 measures those and needs hardware.
+
+    **It reaches no conclusion.** Whether a temperature is inside an envelope is
+    `mule.thermal.assess`'s decision, made against limits that do not exist yet.
+    An earlier version returned `within_envelope=True` by default, so a node
+    with no defined envelope asserted it was inside one.
+
+    The default is an empty sensor set: a node reports the sensors it has, and
+    which sensors a build carries is TBR-HW-01 and TBR-THERM-01.
     """
 
-    is_throttled: bool = False
-    in_envelope: bool = True
+    sensors: dict[Sensor, float | None] = field(default_factory=dict)
+    is_throttling: bool = False
 
-    def throttled(self) -> bool:
-        """Whether the compute element is currently thermally throttled."""
-        return self.is_throttled
+    def temperatures_c(self) -> dict[Sensor, float | None]:
+        """Each fitted sensor's reading, or None where it did not report."""
+        return dict(self.sensors)
 
-    def within_envelope(self) -> bool:
-        """Whether all monitored sensors are inside their stated limits."""
-        return self.in_envelope
+    def throttling_reported(self) -> bool:
+        """Whether the compute element reports that it is throttling."""
+        return self.is_throttling
+
+    @classmethod
+    def at(cls, temperature_c: float, **kwargs: object) -> FakeThermal:
+        """Build a node whose every SAD section 25.7 sensor reads the same.
+
+        A convenience for scenarios about one temperature. Real nodes do not
+        have a single temperature, which is why the general form takes a
+        mapping.
+        """
+        sensors: dict[Sensor, float | None] = {
+            "processor": temperature_c,
+            "radio": temperature_c,
+            "battery": temperature_c,
+            "enclosure": temperature_c,
+            "ambient": temperature_c,
+        }
+        return cls(sensors=sensors, **kwargs)  # type: ignore[arg-type]
 
 
 @dataclass

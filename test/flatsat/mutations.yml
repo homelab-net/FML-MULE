@@ -18,7 +18,6 @@ mutations:
   # --- trust: FML-ADR-042 fail-closed behaviour ---------------------------
   - id: M01
     file: mule/admission.py
-
     describe: admission stops checking time at all, and so fails open
     find: "    if time.degraded:"
     replace: "    if False:"
@@ -62,14 +61,12 @@ mutations:
   # --- admission ----------------------------------------------------------
   - id: M07
     file: mule/admission.py
-
     describe: a node that never booted still admits devices
     find: "    if not booted:"
     replace: "    if False:"
 
   - id: M08
     file: mule/admission.py
-
     describe: admission ignores whether the required bearers are serving
     find: "    if not_serving:"
     replace: "    if False:"
@@ -109,14 +106,12 @@ mutations:
 
   - id: M14
     file: test/flatsat/node.py
-
     describe: services come from a list in the node rather than the package
     find: '                    self._params["mission"]["services"],'
     replace: '                    ["portal.field"],'
 
   - id: M15
     file: test/flatsat/node.py
-
     describe: radios come up even with no lawful configuration
     find: "enumerated = [str(b) for b in self._enumerated()] if resolved else []"
     replace: "enumerated = [str(b) for b in self._enumerated()]"
@@ -155,21 +150,18 @@ mutations:
   # --- the status surface -------------------------------------------------
   - id: M16
     file: mule/status.py
-
     describe: status invents a projected runtime
     find: "projected_runtime_minutes=observed.power.projected_runtime_minutes,"
     replace: "projected_runtime_minutes=90,"
 
   - id: M17
     file: mule/status.py
-
     describe: the network is always reported healthy
     find: "network_degraded=_network_degraded(observed),"
     replace: "network_degraded=False,"
 
   - id: M18
     file: mule/status.py
-
     describe: the battery is always reported healthy
     find: >-
       battery_healthy=observed.battery_healthy if observed.battery_present
@@ -178,7 +170,6 @@ mutations:
 
   - id: M19
     file: mule/status.py
-
     describe: LoRa is always reported available
     find: >-
       lora_available="lora" in observed.enumerated and "lora" in
@@ -187,31 +178,51 @@ mutations:
 
   - id: M20
     file: mule/status.py
-
     describe: a sensor outside its envelope no longer raises a fault
-    find: "    if not observed.within_thermal_envelope:"
+    find: "    if observed.thermal.outside_envelope:"
     replace: "    if False:"
 
   - id: M21
     file: mule/status.py
-
     describe: thermal throttling no longer degrades the reported state
-    find: "    if observed.thermally_throttled:"
+    find: "    if observed.thermal.throttling:"
     replace: "    if False:"
 
   - id: M22
     file: mule/status.py
-
     describe: EMCON is never reported
     find: "emcon_active=observed.emcon,"
     replace: "emcon_active=False,"
 
   - id: M23
     file: mule/status.py
-
     describe: a node missing a required bearer is not faulted
     find: "    if not observed.booted or missing:"
     replace: "    if not observed.booted:"
+
+  - id: M31
+    file: mule/thermal.py
+    describe: a node with no limits claims to be inside an envelope anyway
+    find: "    if limits is None:"
+    replace: "    if False:"
+
+  - id: M32
+    file: mule/thermal.py
+    describe: per-sensor limits are ignored, so a battery gets processor limits
+    find: "        for name, warn, critical in self.per_sensor:"
+    replace: "        for name, warn, critical in ():"
+
+  - id: M33
+    file: mule/thermal.py
+    describe: a sensor exactly at its critical limit is treated as inside it
+    find: "        if value >= critical_at:"
+    replace: "        if value > critical_at:"
+
+  - id: M34
+    file: mule/thermal.py
+    describe: throttling is withheld when the thermal state is unknown
+    find: "    throttling = readings.throttling_reported()"
+    replace: "    throttling = False"
 
   # --- fixture honesty ----------------------------------------------------
   - id: M24

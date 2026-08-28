@@ -57,30 +57,15 @@ class RadioState(Protocol):
         ...
 
 
-@runtime_checkable
-class ThermalState(Protocol):
-    """Read-only thermal state."""
-
-    def throttled(self) -> bool:
-        """Whether the compute element is currently thermally throttled."""
-        ...
-
-    def within_envelope(self) -> bool:
-        """Whether all monitored sensors are inside their stated limits.
-
-        What those limits are is TBR-THERM-01. A fake answers from its script;
-        a real implementation cannot answer at all until that trade closes.
-        """
-        ...
-
-
-# Power state is not here either: `mule/power.py` splits it into raw
-# `PowerReadings` and an `assess` that turns them into a runtime estimate,
-# for the same reason as time. Deciding how long a node will keep running
-# is a judgement, and a fake making it on the node's behalf is untestable.
+# Time, power and thermal state are deliberately **not** here. Each lives in
+# `mule/`, split into raw readings and an `assess` that decides what they mean:
+# `timekeeping.py`, `power.py`, `thermal.py`.
 #
-# Time state is deliberately **not** here. It lives in `timekeeping.py`, split
-# into raw `TimeReadings` and an `assess` function that decides what they mean.
-# The two interfaces above report facts a sensor can state directly; time
-# credibility is a judgement, and a judgement a fake makes on the node's behalf
-# is a judgement nobody has tested. See `FML-ADR-042`.
+# The split is always the same question. Can a sensor state this directly, or
+# does somebody have to judge it? Whether a radio has associated is a fact.
+# Whether retained time is credible, how long a battery will last, and whether
+# a temperature is inside an envelope are judgements, and a judgement a fake
+# makes on the node's behalf is a judgement nobody has tested.
+#
+# `RadioState` is the only interface left here, and the location note above
+# says why it stays.

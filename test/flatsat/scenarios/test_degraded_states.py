@@ -17,7 +17,12 @@ import pytest
 from mule.bearers import REQUIRED_BEARERS
 from mule.timekeeping import TimePolicy
 
-from ..conftest import EUD, FIXTURE_POWER_MODEL, NodeFactory
+from ..conftest import (
+    EUD,
+    FIXTURE_POWER_MODEL,
+    FIXTURE_THERMAL_LIMITS,
+    NodeFactory,
+)
 from ..fakes import (
     FakeClock,
     FakePower,
@@ -40,13 +45,44 @@ SERVICE = "example-service-a.example.invalid"
 def test_a_sensor_outside_its_envelope_raises_a_fault(
     build_node: NodeFactory,
 ) -> None:
-    node = build_node(thermal=FakeThermal(in_envelope=False))
+    """Naming the breached sensor, because "too hot" is not an action.
+
+    An operator who is told the battery is over its limit shades the pack. One
+    who is told the processor is puts the node somewhere cooler. The fault says
+    which.
+    """
+    node = build_node(
+        thermal=FakeThermal(sensors={"processor": 95.0, "ambient": 20.0}),
+        thermal_limits=FIXTURE_THERMAL_LIMITS,
+    )
     node.power_on()
     status = node.status()
 
     assert status.fault is not None
     assert status.fault.startswith("THERMAL_DEGRADED")
+    assert "processor" in status.fault
+    assert "ambient" not in status.fault
     assert status.state == "DEGRADED"
+
+
+def test_a_node_with_no_limits_does_not_claim_to_be_within_them(
+    build_node: NodeFactory,
+) -> None:
+    """The bug this module was written to remove.
+
+    Before, the fake reported `within_envelope=True` by default and the node
+    passed it on, so a node with no defined thermal envelope asserted it was
+    inside one. TBR-THERM-01 has not closed. The node cannot know, and now it
+    does not pretend to.
+    """
+    node = build_node(thermal=FakeThermal.at(95.0))
+    node.power_on()
+    status = node.status()
+
+    # No THERMAL_DEGRADED fault, because there is no envelope to be outside of.
+    assert status.fault is None
+    # And equally no claim of being inside one: the assessment says UNKNOWN.
+    assert node.thermal_state() == "UNKNOWN"
 
 
 def test_thermal_throttling_degrades_the_node_without_a_fault(
@@ -55,9 +91,10 @@ def test_thermal_throttling_degrades_the_node_without_a_fault(
     """Throttling is not a fault: the node is working, just more slowly.
 
     Reporting it as GREEN would hide the most common cause of a node that is
-    up but inexplicably slow.
+    up but inexplicably slow. It is reported with no limits configured, because
+    the hardware states it rather than the node inferring it.
     """
-    node = build_node(thermal=FakeThermal(is_throttled=True))
+    node = build_node(thermal=FakeThermal(is_throttling=True))
     node.power_on()
     status = node.status()
 

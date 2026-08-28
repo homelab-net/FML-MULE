@@ -35,14 +35,15 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from mule import power, services, status
+from mule import power, services, status, thermal
 from mule.admission import AdmissionDecision, decide
 from mule.bearers import Bearer
 from mule.power import PowerModel, PowerReadings
 from mule.status import NodeStatus, Observations
+from mule.thermal import ThermalLimits, ThermalReadings
 from mule.timekeeping import TimeAssessment, TimePolicy, TimeReadings, assess
 
-from .interfaces import RadioState, ThermalState
+from .interfaces import RadioState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -104,10 +105,11 @@ class FlatSatNode:
         mission_package: Path,
         radio: RadioState,
         power: PowerReadings,
-        thermal: ThermalState,
+        thermal: ThermalReadings,
         clock: TimeReadings,
         time_policy: TimePolicy,
         power_model: PowerModel | None = None,
+        thermal_limits: ThermalLimits | None = None,
         *,
         emcon: bool = False,
         wan: bool = False,
@@ -122,6 +124,8 @@ class FlatSatNode:
         self._time_policy = time_policy
         # None while TBR-PWR-01 is open. See mule/power.py.
         self._power_model = power_model
+        # None while TBR-THERM-01 is open. See mule/thermal.py.
+        self._thermal_limits = thermal_limits
         self._emcon = emcon
         self._wan = wan
 
@@ -248,8 +252,7 @@ class FlatSatNode:
                     self._power_model,
                     hosting_shared_services=bool(self._shared_services),
                 ),
-                within_thermal_envelope=self._thermal.within_envelope(),
-                thermally_throttled=self._thermal.throttled(),
+                thermal=thermal.assess(self._thermal, self._thermal_limits),
                 # No shared service is hosted: the TAK service plane waits on
                 # TBR-TAK-01 and the stand-in is local only.
                 hosting_shared_services=bool(self._shared_services),
@@ -257,6 +260,15 @@ class FlatSatNode:
                 wan_available=self._wan,
             )
         )
+
+    def thermal_state(self) -> str:
+        """Return what `mule.thermal` concluded, for scenarios needing the detail.
+
+        `NodeStatus` deliberately does not carry this: CONOPS section 67 asks
+        thirteen questions and none of them is "what is the thermal state".
+        It reaches the operator as a fault or as nothing.
+        """
+        return thermal.assess(self._thermal, self._thermal_limits).state
 
     @property
     def parameters(self) -> dict[str, Any] | None:

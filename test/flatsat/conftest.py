@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from mule.power import PowerModel
+from mule.thermal import ThermalLimits
 from mule.timekeeping import TimePolicy
 
 from .fakes import FakeClock, FakePower, FakeRadio, FakeThermal
@@ -54,6 +55,16 @@ FIXTURE_POWER_MODEL = PowerModel(
     cold_derating=((0.0, 0.5),),
 )
 
+#: Synthetic thermal limits. Every number is invented; TBR-THERM-01 owns the
+#: real ones. The battery override exists because SAD section 25.7 measures the
+#: pack separately from the processor, and a single envelope across both would
+#: be wrong in a way that looks reasonable.
+FIXTURE_THERMAL_LIMITS = ThermalLimits(
+    warn_above_c=60.0,
+    critical_above_c=80.0,
+    per_sensor=(("battery", 40.0, 50.0),),
+)
+
 #: The device identity used by scenarios that need one. Any string works today,
 #: which is itself a finding recorded in test/flatsat/README.md.
 EUD = "eud-example-01"
@@ -85,6 +96,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         power: FakePower | None = None,
         thermal: FakeThermal | None = None,
         power_model: PowerModel | None = None,
+        thermal_limits: ThermalLimits | None = None,
         emcon: bool = False,
         wan: bool = False,
     ) -> FlatSatNode:
@@ -97,6 +109,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
             clock=clock if clock is not None else FakeClock.credible(time_policy),
             time_policy=time_policy,
             power_model=power_model,
+            thermal_limits=thermal_limits,
             emcon=emcon,
             wan=wan,
         )

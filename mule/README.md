@@ -12,6 +12,7 @@ question you can ask in plain English.
 | --- | --- |
 | `bearers.py` | Which radios can a node have, and which ones does it need to do its job? |
 | `power.py` | How long can the node keep running, and can it even say? |
+| `thermal.py` | Is the node inside its thermal envelope, and can it tell? |
 | `timekeeping.py` | Can the clock be trusted? |
 | `admission.py` | May this device join the network? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
@@ -73,9 +74,17 @@ thirteen CONOPS section 67 questions stop answering "cannot say" because
 somebody measured a battery, not because somebody wrote software.
 
 The same shape holds for `timekeeping.py`, where `TimePolicy` carries the
-bounds `TBR-TIME-01` will set. **An open trade blocks a value, not a
-decision.** Where you can name the procedure, write it; where you would have to
-name a number, take it as a parameter.
+bounds `TBR-TIME-01` will set, and for `thermal.py`, where `ThermalLimits`
+carries `TBR-THERM-01`'s. **An open trade blocks a value, not a decision.**
+Where you can name the procedure, write it; where you would have to name a
+number, take it as a parameter.
+
+Each of the three also draws the same line through its inputs: what a sensor
+can state directly is a **reading**, and what somebody has to conclude is a
+**decision**. A radio has associated, an RTC holds a timestamp, a pack reports
+a charge, an SoC says it throttled: readings. Whether time is credible, how long
+the battery lasts, whether a temperature is inside an envelope: decisions. Fakes
+supply the first kind only, which is what makes the second kind testable.
 
 - **`None` means "the node cannot say".** It is not a missing value or a
   placeholder. Several questions genuinely have no answer yet, because the

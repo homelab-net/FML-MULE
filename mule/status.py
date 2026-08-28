@@ -25,6 +25,7 @@ from typing import Literal
 
 from .bearers import Bearer, inter_node_present, missing_required
 from .power import PowerAssessment
+from .thermal import ThermalAssessment
 from .timekeeping import TimeAssessment
 
 #: The states an operator sees, from SAD section 22.
@@ -60,8 +61,7 @@ class Observations:
     battery_present: bool
     battery_healthy: bool
     power: PowerAssessment
-    within_thermal_envelope: bool
-    thermally_throttled: bool
+    thermal: ThermalAssessment
     hosting_shared_services: bool
     emcon: bool
     wan_available: bool
@@ -110,8 +110,12 @@ def _fault(observed: Observations, missing: list[Bearer]) -> str | None:
         return f"RADIO_ABSENT: required bearer(s) {', '.join(missing)}"
     if observed.time.degraded:
         return f"TIME_DEGRADED: {observed.time.reason}"
-    if not observed.within_thermal_envelope:
-        return "THERMAL_DEGRADED: outside stated envelope"
+    if observed.thermal.outside_envelope:
+        return (
+            "THERMAL_DEGRADED: "
+            + ", ".join(observed.thermal.breaches)
+            + " outside stated limits"
+        )
     return None
 
 
@@ -128,6 +132,8 @@ def _state(
     3. `EMCON` is a deliberate posture, so it outranks a mere degradation, but
        it never hides a fault: a silent node is a choice, a broken one is not.
     4. Thermal throttling degrades without faulting. The node works, slower.
+       This is reported even when the thermal state is UNKNOWN, because the
+       hardware states it rather than the node inferring it.
     """
     if not observed.booted or missing:
         return "FAULT"
@@ -135,7 +141,7 @@ def _state(
         return "DEGRADED"
     if observed.emcon:
         return "EMCON"
-    if observed.thermally_throttled:
+    if observed.thermal.throttling:
         return "DEGRADED"
     return "GREEN"
 

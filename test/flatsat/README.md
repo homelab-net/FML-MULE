@@ -98,7 +98,7 @@ derive one from.
 | --- | --- | --- | --- | --- |
 | `FakeRadio` | `RadioState` | Driver attachment, link formation, peer visibility | RF propagation, throughput, desense, multicast scaling, coexistence | `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03` |
 | `FakePower` | `mule.power.PowerReadings` | Pack presence, pack health, reported charge, pack temperature | Discharge behaviour, capacity fade, load, endurance | `TBR-PWR-01` |
-| `FakeThermal` | `ThermalState` | A throttle flag and an in-envelope flag | Temperature, heat flow, ambient sensitivity, the enclosure | `TBR-THERM-01` |
+| `FakeThermal` | `mule.thermal.ThermalReadings` | What each fitted sensor reports, and whether the compute element says it is throttling | Heat flow, ambient sensitivity, solar load, the enclosure | `TBR-THERM-01` |
 | `FakeClock` | `mule.timekeeping.TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
 
 `FakePower` no longer answers how long the node will run. That is
@@ -113,7 +113,11 @@ being present, or reporting peers while absent - by raising
 against a node state no hardware can produce, which voids the only claim the
 flat-sat makes.
 
-### Why `FakeClock` is different
+### Why the fakes report rather than conclude
+
+`FakeClock`, `FakePower` and `FakeThermal` all supply raw readings and reach no
+verdict. Whether the readings mean anything is decided by `mule/timekeeping.py`,
+`mule/power.py` and `mule/thermal.py`, which are production code under test.
 
 It supplies raw readings and reaches no verdict. Whether they are credible is
 decided by `mule.timekeeping.assess`, which is production code in the sense
@@ -121,13 +125,20 @@ decided by `mule.timekeeping.assess`, which is production code in the sense
 held to production lint and docstring standards rather than the test tree's
 relaxations.
 
-This was not always so, and the reason it changed is worth keeping. When the
-fake returned `CREDIBLE` or `DEGRADED` directly, the fail-closed tests asserted
-that a fixture agreed with itself: no code decided anything, so `FML-ADR-042`
-could not fail a test. SAD section 24.5.1 warns that a node restoring a
-plausible-looking time from its last shutdown is worse than one with no clock,
-*because it looks valid* - and detecting that is precisely the part a fake
-returning the answer skips.
+None of them started that way, and each cost something before it changed:
+
+- `FakeClock` returned `CREDIBLE` or `DEGRADED` directly, so the fail-closed
+  tests asserted that a fixture agreed with itself. No code decided anything, so
+  `FML-ADR-042` could not fail a test.
+- `FakePower` returned `None` for projected runtime unconditionally, which was
+  the right answer for the wrong reason: it was a stub, not a refusal, and it
+  would have kept returning `None` after `TBR-PWR-01` closed.
+- `FakeThermal` returned `within_envelope=True` by default, so a node with no
+  defined thermal envelope **asserted it was inside one**. That is a claim about
+  a limit nobody has measured.
+
+The last is the clearest case for the rule. A fake that concludes does not just
+make the conclusion untestable; it can make the node state something untrue.
 
 ## Stand-ins, which are not fakes
 

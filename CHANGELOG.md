@@ -14,6 +14,56 @@ this program needs them visible:
 
 ## Unreleased
 
+### mule/thermal.py, and the last fake that reached a verdict
+
+`FakeThermal` returned `within_envelope=True` by default and the node passed it
+straight through, so **a node with no defined thermal envelope asserted it was
+inside one**. `TBR-THERM-01` has not closed. There is no envelope. The node was
+making a claim about a limit nobody has measured, which is the single thing this
+repository exists to not do.
+
+It was the last of three. `FakeClock` used to return `CREDIBLE` or `DEGRADED`
+directly; `FakePower` returned `None` for runtime as a stub rather than a
+refusal. Each is now a readings fake with the decision in `mule/`.
+
+SAD section 25.7 draws the line for you: it lists processor, radio, battery,
+enclosure and ambient temperature **and thermal throttling** among the things
+`TBR-THERM-01` measures. Throttling is a reading - the compute element states
+it. Being inside an envelope is a decision, because it compares a reading
+against a limit. So the comparison is written now and the limits arrive later,
+as `ThermalLimits`.
+
+With no limits the state is `UNKNOWN`, however hot the node is. Not knowing is
+not the same as being fine and not the same as failing. Throttling is still
+reported in that state, because it is the one thermal fact available without a
+measured envelope and withholding it would hide the clearest signal the node
+has.
+
+#### Added
+
+- `mule/thermal.py`: `ThermalReadings`, `ThermalLimits` (no defaults, all
+  `TBR-THERM-01`'s), `assess`. 100% covered, four new mutations, all caught.
+- Per-sensor limits, because SAD section 25.7 measures the pack separately from
+  the processor and one envelope across both would be wrong in a way that looks
+  reasonable: comfortable for the processor, dangerous for the battery.
+- A fault that **names the breached sensor**. "Too hot" is not an action; an
+  operator told the battery is over its limit shades the pack, one told the
+  processor is moves the node.
+- `test/flatsat/test_thermal.py`, including that a sensor exactly at its
+  critical figure is a breach. A limit is where the envelope ends, not the last
+  temperature inside it.
+
+#### Changed
+
+- `ThermalState` left `test/flatsat/interfaces.py` for `mule/thermal.py`.
+  `RadioState` is now the only interface left there, and the location note
+  already says why it stays.
+- `FakeThermal` reports a sensor mapping and a throttling flag. A sensor absent
+  from the mapping is not fitted; one present with `None` is fitted and did not
+  answer, and an operator would act differently on each.
+
+34 of 34 mutations caught.
+
 ### mule/power.py: the procedure, written before the numbers exist
 
 An open trade blocks a **value**, not a **decision**. That distinction had been
