@@ -4,6 +4,7 @@
 **Status:** `OPEN`
 **Section affected:** CONOPS v1.01 section 50, Operating modes
 **Raised by:** node mode determination work, `FML-ADR-052` condition 2
+**Revised:** 2026-08-28, folding in Program Owner direction on axis structure
 **Blocks:** `mule/modes.py`, and any status surface that reports a mode
 **Does not block:** the rest of `mule/`, the SAD, the TRD or prototype work
 
@@ -58,7 +59,8 @@ Insert as a new section 50.0, before 50.1:
 >
 > | Axis | Values | Section |
 > | --- | --- | --- |
-> | Deployment context | LAB, FIELD-STANDALONE, FIELD-NETWORKED | 50.1-50.3 |
+> | Environment | LAB, FIELD | 50.1 |
+> | Deployment context | STANDALONE, NETWORKED | 50.2-50.3 |
 > | Shared TAK service | SERVERLESS-TAK, SERVER-ENHANCED | 50.4-50.5 |
 > | WAN reachability | (none), WAN-ENHANCED | 50.6 |
 > | Bearer capability | (nominal), DEGRADED-IP, LOW-BANDWIDTH, ISOLATED | 50.7-50.9 |
@@ -69,9 +71,19 @@ Insert as a new section 50.0, before 50.1:
 >
 > A parenthesised value is the unremarkable state of that axis. It is named so
 > that every axis always has a value, and is not reported to the operator.
+>
+> The names FIELD-STANDALONE and FIELD-NETWORKED in sections 50.2 and 50.3 are
+> compounds of the environment and deployment-context axes. They are retained as
+> aliases for FIELD with STANDALONE and FIELD with NETWORKED respectively.
 
 The bearer-capability axis is ordered, and is the degradation ladder CONOPS
 section 5.5 describes. The other axes are unordered.
+
+Splitting environment from deployment context is what allows the LAB values the
+CONOPS already implies. Section 50.1 lists interoperability testing among LAB
+activities, and interoperability testing requires more than one node, so a bench
+node must be able to be both LAB and NETWORKED. A single three-valued axis
+cannot express that.
 
 ## Proposed text, part B: transition criteria
 
@@ -111,30 +123,66 @@ proposed here. They are measurements nobody has taken. `TBR-RF-01` and
 This change request asks for the criteria to exist and to be hysteretic; the
 trades supply the numbers.
 
-## Questions this change request cannot answer
+## The three ambiguities, and how each was settled
 
-Three ambiguities in the current text need the signatories, not an editor.
+The first draft of this change request raised three questions and assumed an
+answer to each. All three are now settled, from two different sources, and the
+distinction between those sources matters at signature.
 
-1. **Section 50.2 FIELD-STANDALONE says "No WAN, NOMAD, or home dependency."**
-   That constrains the WAN axis from inside a deployment-context value. Either
-   FIELD-STANDALONE means "no inter-MULE network" and the WAN clause is
-   descriptive of the common case, or the two axes are coupled. Part A assumes
-   the former.
-2. **Whether SERVER-ENHANCED and WAN-ENHANCED are independent.** A node with a
-   local shared TAK service and an approved WAN path appears to be both. Part A
-   assumes they are separate axes.
-3. **Whether LAB is a deployment context or a lifecycle posture.** Section 50.1
-   describes activities rather than a network condition. Part A places it with
-   FIELD-STANDALONE and FIELD-NETWORKED because those three answer "where is
-   this node and what is it connected to."
+**1. Does section 50.2's "No WAN, NOMAD, or home dependency" couple the
+deployment-context and WAN axes?** No, and this was never ambiguous. The
+document answers it three times, and the first draft simply had not read far
+enough.
 
-Each assumption is recorded in `mule/modes.py` as a comment citing this file, so
-that a different answer is a findable change rather than a rediscovery.
+- Section 41, WAN independence: "WAN is optional", and `[SHALL]` loss of WAN
+  shall not remove local EUD access, local mesh, peer ATAK, local S0 and S1
+  services, or LoRa/Meshtastic degraded communications.
+- Section 5.4, Local first: `[SHALL]` required field capability shall not depend
+  on Internet, cellular, Starlink, an overlay, home connectivity, NOMAD or a
+  central TAK Server. "WAN enhances the local environment but does not create
+  it."
+- Section 2: `[SHALL]` the system shall be local-first and WAN-independent.
+
+WAN is an enhancer program-wide. Section 50.2's clause describes the situation
+in which a node finds itself, not a constraint one axis places on another. The
+axes are independent, and no capability may be predicated on the WAN axis
+holding any particular value.
+
+**2. Are SERVER-ENHANCED and WAN-ENHANCED independent?** Yes. Program Owner
+direction, 2026-08-28:
+
+- SERVER-ENHANCED means a MULE or another mesh device is running a shared TAK
+  service, which enables additional capability.
+- WAN-ENHANCED means the internet is reachable **in the mesh**, which enables
+  further additional capability.
+
+Both may hold at once, and neither implies the other. This has a consequence for
+what a node observes, recorded here because it is easy to get backwards: the WAN
+axis is a property of the **mesh**, not of this node's own uplink. Section 42
+makes any standard MULE capable of the authorized local WAN-gateway role, with
+one active gateway at a time in the initial baseline. So a node with no uplink of
+its own is WAN-ENHANCED when an authorized gateway is reachable through the mesh.
+The observation is reachability, not possession.
+
+**3. Is LAB a deployment context or a lifecycle posture?** Neither. Program
+Owner direction, 2026-08-28: LAB is an **environment**, a test bench. It is
+therefore its own axis, opposed to FIELD, and the table above reflects that.
+
+### What this means at signature
+
+Answer 1 is a reading of the baseline and changes nothing. Answers 2 and 3 are
+program direction recorded in conversation, not yet in a signed document. They
+are the reason the axis table takes the shape it does, and a signatory who
+disagrees with either should expect the table to change rather than the code to
+absorb the difference quietly.
+
+`mule/modes.py` cites this file at each point where it relies on answer 2 or 3.
 
 ## Downstream documents affected
 
 | Document | Effect |
 | --- | --- |
+| CONOPS sections 50.2, 50.3 | Mode names shortened; old names retained as aliases |
 | SAD section 22 | The operator status surface reports axes, not one mode |
 | `docs/verification/requirements.md` | Part B adds four binding clauses to decompose |
 | `test/stages/stage-10-exercise-and-aar/` | Exercise concurrency becomes explicit |
