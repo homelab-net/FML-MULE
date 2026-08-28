@@ -238,6 +238,7 @@ jobs:
             awk -v a="$1" -v b="$t0" 'BEGIN{printf "%.3fs", a-b}'
           }
 
+          {
           echo
           echo "=== warm-up, measured from t0 at wire timestamps ==="
           echo "  gratuitous ARP: ${{ matrix.garp }}"
@@ -255,6 +256,7 @@ jobs:
               printf '  %-14s never seen\n' "$pat"
             fi
           done
+          } | tee /tmp/warmup.txt
           echo
           echo "=== first 25 frames ==="
           head -25 /tmp/wire.txt || true
@@ -382,3 +384,12 @@ jobs:
             sudo ip netns exec "$n" batctl meshif bat0 statistics 2>/dev/null |
               grep -vE ' 0$' || true
           done
+
+      - name: Warm-up result
+        if: always()
+        run: |
+          # Last step on purpose. The log API returns a bounded window from the
+          # end, and the measurement summary kept falling outside it behind the
+          # regression steps that run after it. The number this job exists to
+          # produce should not need archaeology to read.
+          cat /tmp/warmup.txt 2>/dev/null || echo "no warm-up result recorded"
