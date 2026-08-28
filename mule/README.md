@@ -11,6 +11,7 @@ question you can ask in plain English.
 | File | The question it answers |
 | --- | --- |
 | `bearers.py` | Which radios can a node have, and which ones does it need to do its job? |
+| `power.py` | How long can the node keep running, and can it even say? |
 | `timekeeping.py` | Can the clock be trusted? |
 | `admission.py` | May this device join the network? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
@@ -55,6 +56,26 @@ and why the answer matters. The comments explain **why**, not what: what the
 code does should be readable from the code.
 
 Two habits you will see repeatedly, both deliberate:
+
+### Code before numbers
+
+`power.py` is the pattern this package is built on, and it is worth
+understanding before adding anything here.
+
+CONOPS sections 59 to 61 specify a complete **procedure**: pack capacity, a
+reserve margin, a service-host power penalty, cold derating. `TBR-PWR-01` has
+measured none of the **inputs**. So the procedure is written now and the inputs
+arrive later, as a `PowerModel` the caller supplies. With no model the node says
+it cannot tell, and names the trade. With one, it answers.
+
+Nothing about the node changes on the day that trade closes. Two of the
+thirteen CONOPS section 67 questions stop answering "cannot say" because
+somebody measured a battery, not because somebody wrote software.
+
+The same shape holds for `timekeeping.py`, where `TimePolicy` carries the
+bounds `TBR-TIME-01` will set. **An open trade blocks a value, not a
+decision.** Where you can name the procedure, write it; where you would have to
+name a number, take it as a parameter.
 
 - **`None` means "the node cannot say".** It is not a missing value or a
   placeholder. Several questions genuinely have no answer yet, because the

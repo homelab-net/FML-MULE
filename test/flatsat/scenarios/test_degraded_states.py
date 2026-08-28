@@ -17,7 +17,7 @@ import pytest
 from mule.bearers import REQUIRED_BEARERS
 from mule.timekeeping import TimePolicy
 
-from ..conftest import EUD, NodeFactory
+from ..conftest import EUD, FIXTURE_POWER_MODEL, NodeFactory
 from ..fakes import (
     FakeClock,
     FakePower,
@@ -71,9 +71,9 @@ def test_thermal_throttling_degrades_the_node_without_a_fault(
 @pytest.mark.parametrize(
     ("power", "expected"),
     [
-        (FakePower(battery=False), None),
-        (FakePower(battery=True, healthy=True), True),
-        (FakePower(battery=True, healthy=False), False),
+        (FakePower(pack=False), None),
+        (FakePower(pack=True, healthy=True), True),
+        (FakePower(pack=True, healthy=False), False),
     ],
     ids=["no-pack-fitted", "pack-healthy", "pack-unhealthy"],
 )
@@ -94,7 +94,51 @@ def test_battery_health_reports_all_three_answers(
 
 def test_projected_runtime_stays_unanswerable(build_node: NodeFactory) -> None:
     """TBR-PWR-01 has not closed, so there is no number to give."""
-    node = build_node(power=FakePower(battery=True, healthy=True))
+    node = build_node(power=FakePower(pack=True, healthy=True, charge=1.0))
+    node.power_on()
+    status = node.status()
+
+    assert status.projected_runtime_minutes is None
+    assert status.hosting_reduces_runtime is None
+
+
+def test_the_operator_gets_a_runtime_the_day_a_model_arrives(
+    build_node: NodeFactory,
+) -> None:
+    """The same node, the same code, one object supplied.
+
+    This is what closing TBR-PWR-01 does: nothing in the node changes. Two of
+    the thirteen CONOPS section 67 questions stop answering "cannot say" because
+    somebody measured a battery, not because somebody wrote software.
+
+    The numbers come from FIXTURE_POWER_MODEL and are invented. What is being
+    checked is that the answer becomes available, not what it is.
+    """
+    node = build_node(
+        power=FakePower(pack=True, healthy=True, charge=1.0),
+        power_model=FIXTURE_POWER_MODEL,
+    )
+    node.power_on()
+    status = node.status()
+
+    assert status.projected_runtime_minutes is not None
+    assert status.projected_runtime_minutes > 0
+    assert status.hosting_reduces_runtime is True
+
+
+def test_a_pack_that_cannot_report_its_charge_still_yields_no_runtime(
+    build_node: NodeFactory,
+) -> None:
+    """A measured model is necessary and not sufficient.
+
+    A fitted pack with no readable gauge is a configuration the programme has
+    to handle, not one it can assume away, and the node says so rather than
+    assuming a full charge.
+    """
+    node = build_node(
+        power=FakePower(pack=True, healthy=True, charge=None),
+        power_model=FIXTURE_POWER_MODEL,
+    )
     node.power_on()
 
     assert node.status().projected_runtime_minutes is None

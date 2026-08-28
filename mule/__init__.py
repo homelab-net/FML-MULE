@@ -3,6 +3,7 @@
 Five small modules, one question each:
 
 - `bearers.py` - which radios can a node have, and which does it need?
+- `power.py` - how long can the node keep running, and can it say?
 - `timekeeping.py` - can the clock be trusted?
 - `admission.py` - may this device join the network?
 - `services.py` - what does this node offer, and by what name?

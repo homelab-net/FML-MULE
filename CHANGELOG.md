@@ -14,6 +14,54 @@ this program needs them visible:
 
 ## Unreleased
 
+### mule/power.py: the procedure, written before the numbers exist
+
+An open trade blocks a **value**, not a **decision**. That distinction had been
+getting lost, and the repository's own rule already made it: code written now is
+expected to be correct, exercised against fakes, and to work when it meets real
+hardware; it just cannot be *known* to.
+
+CONOPS sections 59 to 61 specify a complete procedure - pack capacity, reserve
+margin, the service-host power penalty, cold derating - and are explicit that
+the eight-hour figure is a planning objective and not a verified minimum.
+`TBR-PWR-01` has measured none of the inputs. So the procedure is written now
+and the inputs arrive later, as a `PowerModel` the caller supplies.
+
+With no model the node says it cannot tell and names the trade. With one, it
+answers. **Nothing in the node changes the day `TBR-PWR-01` closes**: two of the
+thirteen CONOPS section 67 questions stop answering "cannot say" because
+somebody measured a battery, not because somebody wrote software.
+
+Three ways of not knowing are kept distinct, because an operator acts
+differently on each: no pack fitted, no measured model, and a fitted pack that
+cannot report its own charge. Collapsing them into one `None` would tell nobody
+anything.
+
+#### Added
+
+- `mule/power.py`: `PowerReadings` (raw), `PowerModel` (measured inputs, no
+  defaults, all `TBR-PWR-01`'s), and `assess`. 100% covered, four new mutations,
+  all caught.
+- `test/flatsat/test_power.py`, and scenarios showing the same node answering
+  `None` today and a real estimate once a fixture model is supplied.
+- Cold derating as a caller-supplied table, per CONOPS section 61. An
+  uninstrumented pack gets no derating, which is optimistic and deliberately
+  visible rather than a penalty invented for a temperature nobody read.
+
+#### Changed
+
+- `PowerState` left `test/flatsat/interfaces.py` for `mule/power.py` as
+  `PowerReadings`, the same move time made: deciding how long a node will keep
+  running is a judgement, and a fake making it is untestable.
+- `FakePower` reports charge and pack temperature and reaches no conclusion.
+- The fixture model deliberately does **not** produce the CONOPS eight-hour
+  objective. A fixture landing on the objective would invite someone to read
+  arithmetic on invented numbers as confirmation of it.
+
+Writing the tests immediately caught a real bug: `assess` passed the
+`pack_temperature_c` **method** rather than calling it, so cold derating never
+ran.
+
 ### tools/lint.sh now runs the shell tests, which it never did
 
 CI's first run on the repository found two `bats` tests failing. They had been

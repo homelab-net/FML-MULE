@@ -127,11 +127,37 @@ mutations:
     find: 'return f"{name}.{local_domain}" if local_domain else name'
     replace: "return name"
 
+  - id: M27
+    file: mule/power.py
+    describe: the reserve margin is spent, inflating every runtime estimate
+    find: "        * (1.0 - model.reserve_fraction)"
+    replace: "        * 1.0"
+
+  - id: M28
+    file: mule/power.py
+    describe: hosting shared services no longer costs anything
+    find: >-
+      model.hosting_load_w if hosting_shared_services else 0.0
+    replace: "0.0"
+
+  - id: M29
+    file: mule/power.py
+    describe: cold no longer derates the estimate
+    find: "        for threshold, fraction in self.cold_derating:"
+    replace: "        for threshold, fraction in ():"
+
+  - id: M30
+    file: mule/power.py
+    describe: a node with no measured model invents a runtime anyway
+    find: "    if model is None:"
+    replace: "    if False:"
+
   # --- the status surface -------------------------------------------------
   - id: M16
-    file: test/flatsat/node.py
+    file: mule/status.py
+
     describe: status invents a projected runtime
-    find: "projected_runtime_minutes=self._power.projected_runtime_minutes(),"
+    find: "projected_runtime_minutes=observed.power.projected_runtime_minutes,"
     replace: "projected_runtime_minutes=90,"
 
   - id: M17

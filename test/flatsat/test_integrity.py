@@ -19,9 +19,11 @@ from pathlib import Path
 
 import pytest
 
+from mule.power import PowerReadings
+
 from . import node
 from .fakes import FakePower, FakeRadio, FakeThermal
-from .interfaces import PowerState, RadioState, ThermalState
+from .interfaces import RadioState, ThermalState
 from .node import REPO_ROOT
 
 REAL_GENERATOR = REPO_ROOT / "tools" / "gen-config.py"
@@ -54,7 +56,7 @@ def test_the_generator_is_loaded_not_reimplemented() -> None:
     ("fake", "protocol"),
     [
         (FakeRadio(), RadioState),
-        (FakePower(), PowerState),
+        (FakePower(), PowerReadings),
         (FakeThermal(), ThermalState),
     ],
     ids=["radio", "power", "thermal"],

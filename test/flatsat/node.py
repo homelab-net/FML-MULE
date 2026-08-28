@@ -35,13 +35,14 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from mule import services, status
+from mule import power, services, status
 from mule.admission import AdmissionDecision, decide
 from mule.bearers import Bearer
+from mule.power import PowerModel, PowerReadings
 from mule.status import NodeStatus, Observations
 from mule.timekeeping import TimeAssessment, TimePolicy, TimeReadings, assess
 
-from .interfaces import PowerState, RadioState, ThermalState
+from .interfaces import RadioState, ThermalState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -102,10 +103,11 @@ class FlatSatNode:
         region_profile: Path,
         mission_package: Path,
         radio: RadioState,
-        power: PowerState,
+        power: PowerReadings,
         thermal: ThermalState,
         clock: TimeReadings,
         time_policy: TimePolicy,
+        power_model: PowerModel | None = None,
         *,
         emcon: bool = False,
         wan: bool = False,
@@ -118,6 +120,8 @@ class FlatSatNode:
         self._thermal = thermal
         self._clock = clock
         self._time_policy = time_policy
+        # None while TBR-PWR-01 is open. See mule/power.py.
+        self._power_model = power_model
         self._emcon = emcon
         self._wan = wan
 
@@ -237,9 +241,13 @@ class FlatSatNode:
                 time=self._assess_time(),
                 enumerated=self._enumerated(),
                 associated=self._associated(),
-                battery_present=self._power.battery_present(),
-                battery_healthy=self._power.battery_healthy(),
-                projected_runtime_minutes=self._power.projected_runtime_minutes(),
+                battery_present=self._power.pack_present(),
+                battery_healthy=self._power.pack_healthy(),
+                power=power.assess(
+                    self._power,
+                    self._power_model,
+                    hosting_shared_services=bool(self._shared_services),
+                ),
                 within_thermal_envelope=self._thermal.within_envelope(),
                 thermally_throttled=self._thermal.throttled(),
                 # No shared service is hosted: the TAK service plane waits on

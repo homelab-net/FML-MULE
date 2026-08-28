@@ -58,29 +58,6 @@ class RadioState(Protocol):
 
 
 @runtime_checkable
-class PowerState(Protocol):
-    """Read-only power and battery state."""
-
-    def battery_present(self) -> bool:
-        """Whether a protected battery assembly is fitted."""
-        ...
-
-    def battery_healthy(self) -> bool:
-        """Whether the pack reports itself within its operating envelope."""
-        ...
-
-    def projected_runtime_minutes(self) -> int | None:
-        """Projected runtime, or None where no power model exists.
-
-        None is the correct answer today. TBR-PWR-01 has not closed, there is no
-        measured load model, and a number here would be invented. CONOPS
-        section 67 asks the operator-facing question; the honest answer until
-        that trade closes is that the node cannot say.
-        """
-        ...
-
-
-@runtime_checkable
 class ThermalState(Protocol):
     """Read-only thermal state."""
 
@@ -97,8 +74,13 @@ class ThermalState(Protocol):
         ...
 
 
+# Power state is not here either: `mule/power.py` splits it into raw
+# `PowerReadings` and an `assess` that turns them into a runtime estimate,
+# for the same reason as time. Deciding how long a node will keep running
+# is a judgement, and a fake making it on the node's behalf is untestable.
+#
 # Time state is deliberately **not** here. It lives in `timekeeping.py`, split
 # into raw `TimeReadings` and an `assess` function that decides what they mean.
-# The other three interfaces above report facts a sensor can state directly; time
+# The two interfaces above report facts a sensor can state directly; time
 # credibility is a judgement, and a judgement a fake makes on the node's behalf
 # is a judgement nobody has tested. See `FML-ADR-042`.

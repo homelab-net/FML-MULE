@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .bearers import Bearer, inter_node_present, missing_required
+from .power import PowerAssessment
 from .timekeeping import TimeAssessment
 
 #: The states an operator sees, from SAD section 22.
@@ -58,7 +59,7 @@ class Observations:
     associated: list[Bearer]
     battery_present: bool
     battery_healthy: bool
-    projected_runtime_minutes: int | None
+    power: PowerAssessment
     within_thermal_envelope: bool
     thermally_throttled: bool
     hosting_shared_services: bool
@@ -164,11 +165,12 @@ def derive(observed: Observations) -> NodeStatus:
         # None where no pack is fitted: the question does not apply, which is
         # not the same as a pack in poor health.
         battery_healthy=observed.battery_healthy if observed.battery_present else None,
-        # No power model exists. TBR-PWR-01.
-        projected_runtime_minutes=observed.projected_runtime_minutes,
+        # Both answers come from mule/power.py, which returns None with a
+        # reason while TBR-PWR-01 leaves it without a measured model. The
+        # procedure is written; only the numbers are missing.
+        projected_runtime_minutes=observed.power.projected_runtime_minutes,
         hosting_shared_services=hosting,
-        # Unanswerable without the power model above.
-        hosting_reduces_runtime=None,
+        hosting_reduces_runtime=observed.power.hosting_reduces_runtime,
         tak_available=hosting,
         # No continuity mechanism exists. TBR-TAK-01, TBR-HA-01.
         shared_data_authoritative=None,

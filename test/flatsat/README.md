@@ -97,13 +97,15 @@ derive one from.
 | Fake | Interface | Simulates | Does not simulate | Trade that replaces it |
 | --- | --- | --- | --- | --- |
 | `FakeRadio` | `RadioState` | Driver attachment, link formation, peer visibility | RF propagation, throughput, desense, multicast scaling, coexistence | `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03` |
-| `FakePower` | `PowerState` | External source presence, pack presence, pack health flag | Consumption, endurance, projected runtime, charge behaviour | `TBR-PWR-01` |
+| `FakePower` | `mule.power.PowerReadings` | Pack presence, pack health, reported charge, pack temperature | Discharge behaviour, capacity fade, load, endurance | `TBR-PWR-01` |
 | `FakeThermal` | `ThermalState` | A throttle flag and an in-envelope flag | Temperature, heat flow, ambient sensitivity, the enclosure | `TBR-THERM-01` |
 | `FakeClock` | `mule.timekeeping.TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
 
-`FakePower.projected_runtime_minutes()` returns `None` unconditionally. That is
-not a stub awaiting a number; it is the correct answer until `TBR-PWR-01`
-closes, and the scenarios assert it.
+`FakePower` no longer answers how long the node will run. That is
+`mule.power.assess`, which returns `None` with a reason naming `TBR-PWR-01`
+while no measured model exists, and a real estimate once one is supplied. The
+scenarios assert both: that the node refuses today, and that the same code
+answers the day the trade closes.
 
 `FakeRadio` **rejects hardware that cannot exist** - a bearer linked without
 being present, or reporting peers while absent - by raising

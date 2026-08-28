@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from mule.power import PowerModel
 from mule.timekeeping import TimePolicy
 
 from .fakes import FakeClock, FakePower, FakeRadio, FakeThermal
@@ -37,6 +38,21 @@ FIXTURE_IMAGE_BUILD_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 #: no node should ever be configured from them.
 FIXTURE_MAX_PLAUSIBLE_FORWARD = timedelta(days=3650)
 FIXTURE_MAX_SYSTEM_RTC_SKEW = timedelta(minutes=15)
+
+#: A synthetic power model. Every number is invented and none is measured.
+#: TBR-PWR-01 owns the real ones, and until it closes and its evidence is
+#: accepted, no node is configured from anything like this.
+#:
+#: The values deliberately do NOT produce the CONOPS section 59 eight-hour
+#: planning objective. A fixture that landed on the objective would invite
+#: someone to read arithmetic on invented numbers as confirmation of it.
+FIXTURE_POWER_MODEL = PowerModel(
+    pack_capacity_wh=100.0,
+    reserve_fraction=0.25,
+    baseline_load_w=12.5,
+    hosting_load_w=5.0,
+    cold_derating=((0.0, 0.5),),
+)
 
 #: The device identity used by scenarios that need one. Any string works today,
 #: which is itself a finding recorded in test/flatsat/README.md.
@@ -68,6 +84,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         radio: FakeRadio | None = None,
         power: FakePower | None = None,
         thermal: FakeThermal | None = None,
+        power_model: PowerModel | None = None,
         emcon: bool = False,
         wan: bool = False,
     ) -> FlatSatNode:
@@ -79,6 +96,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
             thermal=thermal if thermal is not None else FakeThermal(),
             clock=clock if clock is not None else FakeClock.credible(time_policy),
             time_policy=time_policy,
+            power_model=power_model,
             emcon=emcon,
             wan=wan,
         )

@@ -79,28 +79,42 @@ class FakeRadio:
 
 @dataclass
 class FakePower:
-    """Scripted power state.
+    """Scripted raw power readings.
 
-    Simulates: pack presence and pack health.
-    Does not simulate: consumption, endurance or runtime. `projected_runtime`
-    returns None because TBR-PWR-01 has not closed and no measured load model
-    exists.
+    Simulates: pack presence, pack health, reported charge, pack temperature.
+    Does not simulate: discharge behaviour, capacity fade, load. There is no
+    measured curve to model and inventing one would put a plausible number into
+    a test that later gets quoted. TBR-PWR-01 measures those.
+
+    **It reaches no conclusion.** How long the node will keep running is
+    `mule.power.assess`'s decision, made from these readings and a measured
+    model that does not exist yet.
+
+    `charge` and `temperature_c` default to None: a pack that cannot report its
+    own charge, and one that is not temperature-instrumented, are configurations
+    the program has to handle rather than assume away.
     """
 
-    battery: bool = False
+    pack: bool = False
     healthy: bool = True
+    charge: float | None = None
+    temperature_c: float | None = None
 
-    def battery_present(self) -> bool:
+    def pack_present(self) -> bool:
         """Whether a protected battery assembly is fitted."""
-        return self.battery
+        return self.pack
 
-    def battery_healthy(self) -> bool:
+    def pack_healthy(self) -> bool:
         """Whether the pack reports itself within its operating envelope."""
-        return self.battery and self.healthy
+        return self.pack and self.healthy
 
-    def projected_runtime_minutes(self) -> int | None:
-        """Return None always. No power model exists; see TBR-PWR-01."""
-        return None
+    def state_of_charge(self) -> float | None:
+        """Fraction of capacity remaining, or None where nothing reports it."""
+        return self.charge
+
+    def pack_temperature_c(self) -> float | None:
+        """Pack temperature, or None where it is not instrumented."""
+        return self.temperature_c
 
 
 @dataclass
