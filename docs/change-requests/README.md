@@ -29,6 +29,7 @@ block parent-system integration baseline closure.
 | ID | Subject | Status |
 | --- | --- | --- |
 | `CCR-01` | CONOPS section 50 operating modes are concurrent axes, and need transition criteria | `OPEN` |
+| `CCR-02` | CONOPS section 9 does not state the service shedding order below S3 | `OPEN` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |
 
 CONOPS change requests are numbered `CCR-##`. Like every identifier in this

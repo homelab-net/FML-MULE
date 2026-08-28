@@ -82,6 +82,33 @@ raised to prevent.
 - **Section 9.4:** S3 services are the first class stopped under constrained
   battery, thermal, bandwidth or compute conditions.
 
+## Assessed against `FML-ADR-052`, and deliberately not started
+
+A pure function in `mule/` answering "which service classes are permitted right
+now" was assessed against the four `FML-ADR-052` conditions on 2026-08-28 and
+**declined by the Program Owner**. It is not written, and it should not be
+written until `TBR-HA-01` closes.
+
+The assessment is recorded because the conditions arguably permitted it, and an
+argument that was made once will be made again. It ran: the hazard this README
+names is a restart loop, a classifier commands nothing and cannot cause one, and
+section 5.8's damping clause governs *moving* a service, which is an actuator's
+act rather than a classifier's.
+
+The decision went the other way, and the reasoning is worth keeping. Service
+lifecycle is one subject, not two. Splitting the judgement from the actuation
+would put the two halves under different trades and different reviewers, and
+`TBR-HA-01` exists precisely because getting the relationship between them wrong
+turns a single service fault into total node loss. A classifier nothing consumes
+is also a classifier nothing validates.
+
+What this leaves undone is real and is named rather than hidden: the section 9.4
+`[SHALL]` making S3 the first class stopped has no implementation, and will not
+have one until this component exists.
+
+`CCR-02` records the shedding order below S3, which section 9 never stated, so
+that the order is settled before anyone implements it rather than during.
+
 ## What can be done now
 
 - **Close `TBR-HA-01`.** Its fault injection runs largely against fakes on an
