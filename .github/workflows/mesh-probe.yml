@@ -120,10 +120,15 @@ jobs:
           for n in 1 2 3; do
             sudo ip netns exec "node$n" ip link set lo up
           done
-          sudo ip netns exec node1 ip link set veth12 up
-          sudo ip netns exec node2 ip link set veth21 up
-          sudo ip netns exec node2 ip link set veth23 up
-          sudo ip netns exec node3 ip link set veth32 up
+          # batman-adv adds its own header, so a 1500 byte hard interface makes
+          # every full-size frame fragment at layer 2. The module says so on
+          # every interface add: "Setting the MTU to 1560 would solve the
+          # problem." This is a real configuration value, not a probe detail,
+          # and it belongs in os/config/batman-adv.conf.template.
+          sudo ip netns exec node1 ip link set veth12 mtu 1560 up
+          sudo ip netns exec node2 ip link set veth21 mtu 1560 up
+          sudo ip netns exec node2 ip link set veth23 mtu 1560 up
+          sudo ip netns exec node3 ip link set veth32 mtu 1560 up
 
       - name: Attach each node to the mesh
         run: |
@@ -149,12 +154,21 @@ jobs:
 
       - name: Wait for the mesh to converge
         run: |
-          # Originator messages are periodic, so convergence is not instant.
-          # Poll rather than sleeping a guessed interval.
-          for i in $(seq 1 30); do
-            if sudo ip netns exec node1 batctl meshif bat0 originators \
-                 | grep -qE '^[* ]'; then
-              echo "originators present after ${i}s"
+          # Convergence is not instant: originator messages are periodic. Poll
+          # for the real thing rather than sleeping a guessed interval.
+          #
+          # The check counts originator ENTRIES, which batctl prefixes with
+          # " * ". An earlier version matched '^[* ]', which also matches the
+          # column header, so it reported convergence after one second and
+          # pinged a mesh that had not formed. A check that passes on a header
+          # is not a check.
+          converged=no
+          for i in $(seq 1 45); do
+            n=$(sudo ip netns exec node1 batctl meshif bat0 originators |
+                  grep -cE '^ \* +([0-9a-f]{2}:){5}[0-9a-f]{2}' || true)
+            if [ "$n" -ge 2 ]; then
+              echo "node1 sees $n originators after ${i}s"
+              converged=yes
               break
             fi
             sleep 1
@@ -163,12 +177,15 @@ jobs:
           sudo ip netns exec node1 batctl meshif bat0 originators
           echo "--- node1 neighbours ---"
           sudo ip netns exec node1 batctl meshif bat0 neighbors
-          echo "--- node1 translation table, global ---"
-          sudo ip netns exec node1 batctl meshif bat0 translocal || true
+          echo "--- node1 global translation table ---"
+          sudo ip netns exec node1 batctl meshif bat0 transglobal || true
+          test "$converged" = yes
 
       - name: Route traffic two hops, node1 to node3
         run: |
-          sudo ip netns exec node1 ping -c 5 -W 10 10.42.0.3
+          # ARP across the mesh has to resolve before the first echo, so allow
+          # a few attempts rather than declaring failure on the first.
+          sudo ip netns exec node1 ping -c 10 -i 1 -W 5 10.42.0.3
           echo
           echo "--- the path node1 takes to node3 ---"
           mac3=$(sudo ip netns exec node3 cat /sys/class/net/bat0/address)
