@@ -28,12 +28,16 @@ from .power import PowerAssessment
 from .thermal import ThermalAssessment
 from .timekeeping import TimeAssessment
 
-#: The states an operator sees, from SAD section 22.
+#: The states an operator sees. Transcribed from SAD section 22, which is
+#: `FML-ADR-046`, the status aggregator. That component is approved and blocked
+#: on `TBR-TAK-01`; `FML-ADR-052` sets out why this module may name its states
+#: anyway, and what it may not do. In short: these are copied, not invented, and
+#: the questions `TBR-TAK-01` governs are answered `None` below.
 OperatorState = Literal[
     "GREEN", "DEGRADED", "LOW-BANDWIDTH", "NON-AUTHORITATIVE", "EMCON", "FAULT"
 ]
 
-#: Why shared data is not authoritative, from SAD section 22.
+#: Why shared data is not authoritative. Also SAD section 22, `FML-ADR-046`.
 AuthorityReason = Literal[
     "PARTITION",
     "STATE_LAG",

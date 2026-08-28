@@ -38,6 +38,11 @@ A change is not done until all five hold. Say which ones you actually ran.
    `mission-trust/`, `service-controller/`, `gateways/` hold a README and
    nothing else, by decision. Their interfaces depend on open trades. Each
    README names the trade that must close first. `[review]`
+
+   A pure decision function in `mule/` **may** reason about their subject
+   matter, on the four conditions in `FML-ADR-052`. Being in a different
+   directory is not one of them, and was the rule this program tried first.
+   `[review]`, with the cross-reference obligation `[CI]`.
 2. **Inventing a specification.** Compute module, enclosure, battery, antenna,
    channel plan, power budget, memory budget: all unselected. `[review]`
 3. **Claiming something is verified.** Nothing here has met hardware. The word
@@ -63,7 +68,8 @@ A change is not done until all five hold. Say which ones you actually ran.
 | A hardware reading interface | Say where the value really comes from on a Debian node, and what the platform returns when it cannot answer. If "nothing" is possible, the type is `T \| None`. Add the row to `docs/readings.md`. `[CI]` |
 | A reading's source | Prefer a kernel interface (`sysfs`, `procfs`) to a command. A command is a package in the image, a fork per reading, and output that is not ABI-stable. Where only a command exists, name the package that provides it. `[CI]` |
 | A reading that returns a number | Put the unit in the method name. Linux reports the same quantity in millidegrees, tenths and percents depending on the subsystem, and every conversion is a factor-of-a-hundred error that produces a plausible number. `[CI]` |
-| A new check | Prove it can fail. Break something on purpose and watch it fire. |
+| Code touching a blocked `services/` component's subject matter | Check it against all four `FML-ADR-052` conditions: pure function, no invented vocabulary, `None` where the blocking trade decides, no interface an open trade governs. Then name the module in that component's README. `[CI]` |
+| A new check | Prove it can fail. Break something on purpose and watch it fire. **Remove every instance of what it looks for**, not one. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 
 ## What the evidence supports

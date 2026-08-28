@@ -3,6 +3,10 @@
 **APPROVED, NOT YET IMPLEMENTABLE. This directory contains this `README.md` and
 nothing else.**
 
+The fail-closed time decision this component depends on already exists as a
+pure function in `mule/`, under `FML-ADR-052`. See "what already exists in
+`mule/`" below.
+
 `FML-ADR-047` approves the Mission Trust Service as **thin original software**,
 and states that it **is not a CA**.
 
@@ -38,6 +42,26 @@ From SAD section 29.5:
 > Not a CA; validates and distributes signed mission trust state.
 
 **Owner:** Security / Identity.
+
+## What already exists in `mule/`
+
+Two modules act on `FML-ADR-042`, the fail-closed time decision this component
+depends on. Neither is part of this component, and both are named here so that
+a reader does not conclude the decision is unimplemented.
+
+- `mule/timekeeping.py` decides whether the node's own clock is credible, and
+  refuses with a diagnosable reason when it is not.
+- `mule/admission.py` consumes that assessment, so a node with untrustworthy
+  time does not admit a user.
+
+`FML-ADR-042` binds any component that validates trust, and this one will
+inherit those functions rather than repeat them: a second implementation of
+"is the time credible" is a second answer, and the two would eventually differ.
+
+Nothing else here exists. No trust bundle, no revocation record, no expiry
+policy, no propagation, and no signature validation of any kind. `mule/` decides
+nothing about trust; it decides whether the clock underneath trust can be
+believed, which is a precondition, not a part.
 
 ## What must close before implementation starts
 

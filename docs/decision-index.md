@@ -48,12 +48,13 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-043` | SELECTED PRINCIPLE | *not yet* | `docs/glossary.md`, `docs/verification/requirements.md`, `test/stages/stage-09-identity-and-capture/README.md` |
 | `FML-ADR-044` | SELECTED PRINCIPLE | *not yet* | `docs/glossary.md`, `docs/verification/FML-MULE-ITEP-v0.1.md`, `test/stages/stage-09-identity-and-capture/README.md` |
 | `FML-ADR-045` | SELECTED PLANNING BASELINE | `mule/bearers.py`, `test/flatsat/interfaces.py` | `docs/glossary.md`, `docs/verification/FML-MULE-ITEP-v0.1.md`, `hardware/prototype/README.md`, `os/config/README.md`, `regions/_template/profile.yml`, `regions/us-915/profile.yml`, `test/stages/stage-04-high-throughput-ip/README.md`, `test/stages/stage-07-sustainment/README.md`, `test/stages/stage-08-physical-field-qualification/README.md` |
-| `FML-ADR-046` | SELECTED | *not yet* | `docs/verification/requirements.md`, `hardware/prototype/README.md`, `services/README.md`, `services/status-aggregator/README.md`, `test/stages/stage-01-local-node/README.md`, `test/stages/stage-10-exercise-and-aar/README.md` |
+| `FML-ADR-046` | SELECTED | `mule/status.py` | `docs/verification/requirements.md`, `hardware/prototype/README.md`, `services/README.md`, `services/status-aggregator/README.md`, `test/stages/stage-01-local-node/README.md`, `test/stages/stage-10-exercise-and-aar/README.md` |
 | `FML-ADR-047` | SELECTED | *not yet* | `docs/verification/requirements.md`, `services/README.md`, `services/identity/README.md`, `services/mission-trust/README.md`, `test/stages/stage-09-identity-and-capture/README.md` |
 | `FML-ADR-048` | SELECTED | *not yet* | `docs/verification/requirements.md`, `services/README.md`, `services/gateways/README.md`, `test/stages/stage-11-external-interoperability/README.md` |
 | `FML-ADR-049` | SELECTED | *not yet* | `docs/verification/requirements.md`, `services/README.md`, `services/ingress/README.md`, `services/status-aggregator/README.md`, `test/stages/stage-05-tak-service-continuity/README.md` |
 | `FML-ADR-050` | SELECTED PRINCIPLE | *not yet* | `docs/NON-GOALS.md`, `docs/glossary.md`, `docs/verification/FML-MULE-ITEP-v0.1.md`, `docs/verification/requirements.md`, `hardware/prototype/README.md`, `test/stages/stage-13-program-and-fleet-readiness/README.md` |
 | `FML-ADR-051` | SELECTED PRINCIPLE | `mule/__init__.py`, `mule/power.py`, `mule/thermal.py`, `mule/timekeeping.py`, `test/flatsat/interfaces.py`, `test/flatsat/node.py`, `test/flatsat/test_integrity.py` | `AGENTS.md`, `README.md`, `mule/README.md`, `test/flatsat/README.md` |
+| `FML-ADR-052` | SELECTED PRINCIPLE | `mule/status.py`, `tools/validate-docs.sh` | `AGENTS.md`, `services/mission-trust/README.md`, `services/status-aggregator/README.md` |
 
 ## Trades
 

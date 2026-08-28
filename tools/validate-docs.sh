@@ -21,6 +21,7 @@
 #  15. Every hardware reading in mule/ is accounted for in docs/readings.md.
 #  16. Every numeric reading carries its unit in its name.
 #  17. Every reading declares a source kind; command sources name a package.
+#  18. A blocked service README names the mule/ modules that act on its ADR.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -537,6 +538,49 @@ if [ -f "$READINGS_DOC" ] && [ -x tools/list-readings.py ]; then
 else
   info "no readings register found; hardware readings not checked"
 fi
+
+# --- 18: a blocked service names the mule/ modules that act on its decision ---
+#
+# FML-ADR-052 permits a pure decision function in mule/ to reason about subject
+# matter a blocked services/ component describes, on four conditions. The fourth
+# obligation falls on the blocked component: its README names what already
+# exists, so a reader arriving at a directory that says "this contains nothing
+# else" learns that part of the behaviour lives elsewhere.
+#
+# Fires on a pairing, not on prose: a blocked README citing an ADR that a mule/
+# module also cites, without naming that module.
+
+blocked_count=0
+pairing_count=0
+
+for readme in services/*/README.md; do
+  [ -f "$readme" ] || continue
+  grep -q 'NOT YET IMPLEMENTABLE' "$readme" || continue
+  blocked_count=$((blocked_count + 1))
+
+  # FML-ADR-052 is excluded from its own scan. It is the rule, not a subject: a
+  # README cites it to explain this cross-reference, and a mule/ module cites it
+  # to declare which conditions it meets. Pairing those two would demand a link
+  # between every blocked component and every module in mule/, which is the
+  # false-link failure this repository has had before.
+  #
+  # Split on whitespace deliberately. An identifier contains none, and an
+  # intermediate variable keeps this a list of IDs rather than a pipeline whose
+  # loop body would run in a subshell and lose the counters.
+  adrs=$(grep -o 'FML-ADR-[0-9][0-9][0-9]' "$readme" | sort -u | grep -v '^FML-ADR-052$' || true)
+
+  for adr in $adrs; do
+    for module in mule/*.py; do
+      [ -f "$module" ] || continue
+      grep -q "$adr" "$module" || continue
+      pairing_count=$((pairing_count + 1))
+      grep -q "$module" "$readme" ||
+        fail "$readme cites $adr, and $module acts on it, but $readme does not name $module. FML-ADR-052."
+    done
+  done
+done
+
+info "$blocked_count blocked service(s); $pairing_count mule/ module pairing(s) checked"
 
 # --- result -----------------------------------------------------------------
 printf '\n'
