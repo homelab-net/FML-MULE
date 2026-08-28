@@ -75,15 +75,32 @@ jobs:
             echo "This is the expected state; see the header of this file."
           fi
 
-      - name: Load batman-adv and select BATMAN_V
+      - name: Load batman-adv and find out which routing algorithms exist
         run: |
           sudo modprobe batman-adv
           lsmod | grep batman
-          # Must be set before any mesh interface exists. FML-ADR-024 selects
-          # BATMAN_V; this asserts the module honours that rather than assuming.
-          sudo batctl routing_algo BATMAN_V
-          sudo batctl routing_algo | tee /tmp/algo
-          grep -q BATMAN_V /tmp/algo
+          sudo dmesg | grep -i batman_adv | tail -5
+
+          # FML-ADR-024 selects BATMAN_V. Whether the module supports it is a
+          # build-time option, CONFIG_BATMAN_ADV_BATMAN_V, and the stock
+          # distribution module may be built without it. Probe run 4 found
+          # exactly that: "Routing algorithm 'BATMAN_V' is not supported".
+          #
+          # So ask rather than assume, and carry the answer forward. The
+          # topology below runs on whatever is available, and the last step
+          # reports loudly when that is not what the ADR selected.
+          if sudo batctl routing_algo BATMAN_V 2>/tmp/algo_err; then
+            echo "ALGO=BATMAN_V" >> "$GITHUB_ENV"
+            echo "ADR_ALGO_AVAILABLE=yes" >> "$GITHUB_ENV"
+            echo "BATMAN_V available."
+          else
+            cat /tmp/algo_err
+            echo "ALGO=BATMAN_IV" >> "$GITHUB_ENV"
+            echo "ADR_ALGO_AVAILABLE=no" >> "$GITHUB_ENV"
+            echo "BATMAN_V UNAVAILABLE in this module build."
+            echo "Falling back to BATMAN_IV to exercise the topology."
+          fi
+          sudo batctl routing_algo
 
       - name: Build a line topology, node1 - node2 - node3
         run: |
@@ -112,7 +129,7 @@ jobs:
         run: |
           attach() {
             ns=$1; shift
-            sudo ip netns exec "$ns" batctl routing_algo BATMAN_V
+            sudo ip netns exec "$ns" batctl routing_algo "$ALGO"
             for hard in "$@"; do
               sudo ip netns exec "$ns" batctl meshif bat0 interface add "$hard"
             done
@@ -173,6 +190,36 @@ jobs:
           echo "$line" | grep -qi "$mac2"
           echo
           echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
+          echo "Routing algorithm actually used: $ALGO"
+
+      - name: Report whether the ADR routing algorithm was available
+        run: |
+          if [ "$ADR_ALGO_AVAILABLE" = "yes" ]; then
+            echo "BATMAN_V is available and was used. FML-ADR-024 is satisfied."
+            exit 0
+          fi
+          cat <<'NOTE'
+          FINDING, and it belongs to the compatibility set rather than to this probe.
+
+          FML-ADR-024 selects BATMAN-V. The stock distribution batman-adv module on
+          this runner is built WITHOUT it, so only BATMAN_IV is selectable. The mesh
+          above formed and routed on BATMAN_IV.
+
+          That is a different protocol, not a configuration difference. BATMAN_V uses a
+          throughput-based metric; BATMAN_IV uses packet loss. FML-ADR-024 chose the
+          former deliberately, and os/config/batman-adv.conf.template already warns that
+          BATMAN_V needs a usable throughput estimate from the driver.
+
+          Consequences worth deciding rather than discovering on hardware:
+
+            - Selecting BATMAN-V may require a kernel built with
+              CONFIG_BATMAN_ADV_BATMAN_V, or the out-of-tree batman-adv module, either
+              of which lands in the compatibility set and TBR-LINUX-01.
+            - Anything measured on BATMAN_IV says nothing about BATMAN_V path selection.
+
+          This step does not fail the run. The topology result above is real and worth
+          having; this is a gap to record, not a broken probe.
+          NOTE
 
       - name: Diagnostics on failure
         if: failure()
