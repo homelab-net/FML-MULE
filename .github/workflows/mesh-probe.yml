@@ -54,15 +54,24 @@ permissions:
 
 jobs:
   batman:
-    name: Three-node batman-adv mesh
+    name: "Mesh: DAT=${{ matrix.dat }} gratuitous-ARP=${{ matrix.garp }}"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # One variable per axis, a fresh mesh per combination. Cold-start can
+        # only be asked once per mesh: the moment traffic flows the translation
+        # tables are warm and the question is gone. So each combination gets its
+        # own runner rather than being sequenced in one job.
+        dat: [0, 1]
+        garp: ["off", "on"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Install batctl, iproute2 and the extra kernel modules
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq batctl iproute2 iw tcpdump
+          sudo apt-get install -y -qq batctl iproute2 iw tcpdump iputils-arping
           # batman-adv is NOT in the runner's base module set. It ships in
           # linux-modules-extra, and without this modprobe fails with "not
           # found in directory /lib/modules/<kernel>". Dropping this line is
@@ -157,7 +166,8 @@ jobs:
             # os/config/batman-adv.conf.template carries multicast_mode as TBD,
             # and CONOPS section 35 keeps LoRa a separate non-IP plane, so
             # there is no mesh-wide multicast story to optimise for yet.
-            sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
+            sudo ip netns exec "$ns" batctl meshif bat0 \
+              distributed_arp_table "${{ matrix.dat }}"
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
             sudo ip netns exec "$ns" ip link set bat0 up
           }
@@ -172,6 +182,23 @@ jobs:
           sudo ip netns exec node1 ip addr add 10.42.0.1/24 dev bat0
           sudo ip netns exec node2 ip addr add 10.42.0.2/24 dev bat0
           sudo ip netns exec node3 ip addr add 10.42.0.3/24 dev bat0
+
+          # A node that announces itself does not have to be discovered. This
+          # is the candidate fix for the warm-up window: an unsolicited ARP
+          # tells every peer the address-to-MAC mapping immediately instead of
+          # each of them having to ask and wait for a flood to come back.
+          #
+          # It costs three frames per node at bring-up and belongs in the
+          # interface unit, not in a daemon.
+          if [ "${{ matrix.garp }}" = "on" ]; then
+            i=1
+            for n in node1 node2 node3; do
+              sudo ip netns exec "$n" arping -A -c 3 -I bat0 "10.42.0.$i" \
+                >/dev/null 2>&1 || true
+              i=$((i + 1))
+            done
+            echo "gratuitous ARP sent by all three nodes"
+          fi
 
       - name: Wait for the mesh to converge
         run: |
@@ -239,7 +266,9 @@ jobs:
           one=$(probe 10.42.0.2)
           two=$(probe 10.42.0.3)
           echo
-          echo "COLD MESH, NO PINNED ARP:"
+          echo "COLD MESH, NO PINNED ARP."
+          echo "  distributed_arp_table: ${{ matrix.dat }}"
+          echo "  gratuitous ARP:        ${{ matrix.garp }}"
           echo "  seconds from converged to first reply, one hop:  $one"
           echo "  seconds from converged to first reply, two hops: $two"
           echo
@@ -299,15 +328,27 @@ jobs:
           # A mesh that only carries traffic when someone has pre-populated the
           # ARP cache is not a working mesh, and a suite that only ever tests
           # the pinned case would never notice.
+          # "ip neigh flush" does NOT remove NUD_PERMANENT entries. An earlier
+          # version used it, the static entries survived untouched, the pings
+          # succeeded on them, and the step printed "ARP RESOLVES ACROSS THE
+          # MESH". It could not fail. Delete them by address instead, and
+          # assert the cache is actually empty before claiming anything.
           for n in node1 node2 node3; do
-            sudo ip netns exec "$n" ip neigh flush dev bat0 || true
+            for a in 10.42.0.1 10.42.0.2 10.42.0.3; do
+              sudo ip netns exec "$n" ip neigh del "$a" dev bat0 2>/dev/null || true
+            done
           done
-          echo "--- caches after flush, all three nodes ---"
+          echo "--- caches after delete, all three nodes ---"
           for n in node1 node2 node3; do
             printf '%s: ' "$n"
             sudo ip netns exec "$n" ip neigh show dev bat0 | tr '\n' ' '
             echo
           done
+          if sudo ip netns exec node1 ip neigh show dev bat0 | grep -q PERMANENT
+          then
+            echo "STILL PINNED. This step would prove nothing; failing instead."
+            exit 1
+          fi
 
           sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
           sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
