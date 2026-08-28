@@ -60,6 +60,7 @@ A change is not done until all five hold. Say which ones you actually ran.
 | A value that is genuinely fixed | Bind it to a named constant carrying the ADR or trade that set it. |
 | A requirement | `shall` binds and is verifiable. `should` is waiverable with recorded rationale. `may` creates no obligation. Never `will`, `must`, or `needs to`. |
 | A test assertion | Assert against data or a named constant, never against a literal the code under test also hardcodes. That proves only that two literals match. |
+| A hardware reading interface | Say where the value really comes from on a Debian node, and what the platform returns when it cannot answer. If "nothing" is possible, the type is `T \| None`. Add the row to `docs/readings.md`. `[CI]` |
 | A new check | Prove it can fail. Break something on purpose and watch it fire. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 
@@ -201,9 +202,23 @@ Real, from this repository. Recognise the shape.
    `tail -1`, which prints the last test rather than the result, so the run
    looked green while its exit code was 1.
 
+5. **A type that could not say "I cannot tell".** `FakeThermal` defaulted to
+   `within_envelope=True`, so a node with no measured envelope asserted it was
+   inside one. Fixing it, the replacement interface returned
+   `throttling_reported() -> bool`, forcing a board with no throttle signal to
+   answer `False` - the same claim, one field over. Four instances so far.
+   Every reading a platform might be unable to provide is `T | None`.
+
 The common shape: **something looked verified because nobody asked what would
 have to break for the check to notice.** Ask it. And when you check, read the
 signal that means success, not the one that looks like it.
+
+Two of these now have machine checks, because both recurred. Coverage of
+`mule/` is held at 100% `[CI]`, since the unreachable ones were single lines in
+otherwise well-covered files and any threshold below would have hidden them.
+And every reading in `mule/` needs a row in `docs/readings.md` `[CI]`, which is
+the "how does this read on real hardware?" question asked in advance rather
+than after the interface is wrong.
 
 ## Where the reasoning lives
 

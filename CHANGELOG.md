@@ -14,6 +14,64 @@ this program needs them visible:
 
 ## Unreleased
 
+### Two recurring defects get machine checks
+
+Both shapes below had happened more than once, and both were caught by a person
+noticing rather than by anything in the repository. `AGENTS.md` says that when a
+`[review]` rule is found broken it becomes `[CI]` in the same change. These are
+overdue.
+
+**Shape one: a type that cannot say "I cannot tell".** Four instances.
+`FakeClock` returned a credibility verdict; `FakePower` returned `None` as a
+stub rather than a refusal; `FakeThermal` defaulted to `within_envelope=True`,
+so a node with no measured envelope asserted it was inside one. Fixing that
+last one, the replacement interface returned `throttling_reported() -> bool`,
+forcing a board with no throttle signal to answer `False` - **the same claim,
+one field over, in the module written to remove it.**
+
+**Shape two: unreachable defensive code.** Two instances. The EIRP check that
+compared a value against the field it had been copied from, and the `except
+OSError` around `Path.glob`, which does not raise for a missing directory. Both
+read as safety nets.
+
+#### Added
+
+- `docs/readings.md`: every value the node reads from its own hardware, where
+  it really comes from on a Debian node (`FML-ADR-022`), its units, and whether
+  a reader exists. **Check 15** in `tools/validate-docs.sh` requires a row for
+  every reading method in `mule/`, so a decision cannot be written without
+  someone having asked what the platform can actually provide. That is the
+  question that found the defect above, asked in advance.
+- `tools/coverage-check.sh` and `tools/list-readings.py`, both wired into
+  `tools/lint.sh` and CI.
+
+`mule/` is now held at **100% statement coverage**. Not a number somebody
+liked: both unreachable lines were single statements in otherwise well-covered
+files, so any threshold below would have hidden both. An uncovered line in
+decision code is a decision nobody tested or code nobody can reach. A line that
+genuinely cannot be exercised takes an explicit `# pragma: no cover` with a
+reason, which is a visible decision rather than a silent gap. `tools/` and
+`test/` are deliberately excluded.
+
+Both gates were watched failing before being committed. The first attempt at
+proving the coverage gate used `if False:`, which Python's compiler elides
+entirely, so coverage never saw it - the probe was wrong, not the gate.
+
+#### Findings recorded in `docs/readings.md`
+
+- **The power supply class reports temperature in tenths of a degree**, where
+  the thermal framework uses millidegrees. Reading one as the other is a
+  hundred-fold error that looks entirely plausible.
+- **`rtc_backup_cell_ok` has no standard Linux interface.** The RTC class ABI
+  defines no battery-low node; some drivers expose one, most do not. That
+  reading underpins `FakeClock.dead_backup_cell()`, the scenario `FML-ADR-042`
+  was written for. On a board that cannot report it the node still fails
+  closed, but by noticing the time is implausible rather than by being told the
+  cell is flat - a weaker and slower signal, and a cell that has just failed on
+  a node that has not yet drifted looks fine. Whether the selected RTC exposes
+  that flag is a **selection criterion** for `TBR-TIME-01` and `TBR-HW-01`, not
+  an implementation detail.
+
 ### mule/sysfs.py: how a temperature actually reaches the node
 
 `mule/thermal.py` decided what readings mean. Nothing produced them. Asking how

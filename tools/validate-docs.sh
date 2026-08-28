@@ -18,6 +18,7 @@
 #  12. Every directory has a README, or is named in its parent's README.
 #  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
 #  14. Every decision ID cited anywhere resolves to a real ADR or trade.
+#  15. Every hardware reading in mule/ is accounted for in docs/readings.md.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -469,6 +470,36 @@ while read -r id; do
 done </tmp/fml-cited.$$
 rm -f /tmp/fml-cited.$$
 info "$cited_count distinct decision IDs cited"
+
+# --- 15: every reading is accounted for --------------------------------------
+#
+# mule/thermal.py was written with a complete decision and no way to obtain the
+# readings it judged. Nobody noticed until someone asked how it would read on
+# real hardware, and the question immediately found a defect: an interface that
+# could not express "this platform cannot tell me".
+#
+# So the question is asked in advance, for every reading, in docs/readings.md.
+# This requires a row to exist. It cannot check that the row is true; what it
+# prevents is a reading being added without anyone having thought about where
+# the value comes from.
+
+READINGS_DOC=docs/readings.md
+
+if [ -f "$READINGS_DOC" ] && [ -x tools/list-readings.py ]; then
+  reading_count=0
+  tools/list-readings.py >/tmp/fml-readings.$$
+  while read -r reading; do
+    [ -n "$reading" ] || continue
+    reading_count=$((reading_count + 1))
+    if ! grep -q "\`$reading\`" "$READINGS_DOC"; then
+      fail "$reading is read by mule/ but has no row in $READINGS_DOC."
+    fi
+  done </tmp/fml-readings.$$
+  rm -f /tmp/fml-readings.$$
+  info "$reading_count hardware readings checked against $READINGS_DOC"
+else
+  info "no readings register found; hardware readings not checked"
+fi
 
 # --- result -----------------------------------------------------------------
 printf '\n'

@@ -132,6 +132,17 @@ else
   skip "mutation-check" python3
 fi
 
+# --- coverage of the production package -------------------------------------
+# An uncovered line in mule/ is a decision nobody tested or code nobody can
+# reach, and this repository has shipped the second kind twice. See the
+# reasoning at the top of the script.
+
+if have python3 && python3 -c "import coverage, pytest" 2>/dev/null; then
+  run "coverage-check" sh tools/coverage-check.sh
+else
+  skip "coverage-check" coverage
+fi
+
 # --- shell unit tests -------------------------------------------------------
 # These plant violations in a throwaway copy of the tree and assert each check
 # catches them. They belong here rather than only in CI: AGENTS.md says a change
