@@ -37,4 +37,34 @@
 # The two must agree. Keeping the human-readable set summary in PINS.md and the
 # machine-readable pins here is deliberate; a mismatch between them is a defect.
 
-# --- No packages selected. ---
+# WHAT IS ALREADY KNOWN TO BE REQUIRED
+#
+# No package can be pinned yet, because no kernel or userland release is
+# selected. These are recorded so that whoever pins them does not have to
+# rediscover them, and because one of them was found the hard way.
+#
+#   batman-adv (KERNEL MODULE, not a package of its own)
+#     NOT in the base module set of a stock cloud kernel. On Ubuntu it ships in
+#     linux-modules-extra-<release>, and without that package modprobe fails
+#     with "Module batman-adv not found in directory /lib/modules/<kernel>".
+#     Whatever kernel TBR-LINUX-01 selects, the image shall guarantee this
+#     module, either through the equivalent extra-modules package or through an
+#     explicit kernel configuration. FML-ADR-053.
+#
+#     If the program ever revisits BATMAN-V, the kernel option required is
+#     CONFIG_BATMAN_ADV_BATMAN_V. The stock build leaves it off, which is why
+#     FML-ADR-053 supersedes FML-ADR-024.
+#
+#   batctl
+#     Userspace control and diagnostics for the above. Part of the
+#     compatibility set: its version and the module version must agree.
+#     FML-ADR-040.
+#
+#   iw, wpa_supplicant, hostapd
+#     Radio userspace, already named in the header above.
+#
+#   chrony
+#     FML-ADR-042 names it as the time daemon, and docs/readings.md depends on
+#     "chronyc tracking" for the synchronized reading.
+#
+# --- No packages pinned. ---

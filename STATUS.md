@@ -26,7 +26,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-021` | Single primary compute / single Debian host with logical plane isolation | TBR-COMP-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
 | `FML-ADR-022` | Debian stable as production host OS | TBR-LINUX-01, TBR-HW-01 |
 | `FML-ADR-023` | Consume OpenMANET as reference/configuration source, not mandatory production firmware | TBR-LINUX-01, TBR-RF-01 |
-| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 | `FML-ADR-025` | High-throughput conventional Wi-Fi as an additional IP bearer | TBR-RF-01, TBR-RF-03 |
 | `FML-ADR-026` | Meshtastic/LoRa remains a separate non-IP degraded plane | TBR-RF-02 |
 | `FML-ADR-027` | RF coexistence controlled through supported host/radio interfaces; no assumed openmanetd primitive | TBR-RF-02, TBR-RF-03 |
@@ -67,6 +66,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
+| `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 
 ### PREFERRED
 
@@ -80,6 +80,12 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+
+### SUPERSEDED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 
 ### RETIRED
 

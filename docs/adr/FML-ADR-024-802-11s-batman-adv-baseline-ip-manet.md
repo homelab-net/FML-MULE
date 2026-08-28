@@ -1,10 +1,10 @@
 ---
 id: FML-ADR-024
 title: IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET
-status: SELECTED
+status: SUPERSEDED
 date: 2026-08-25
 supersedes: none
-superseded-by: none
+superseded-by: FML-ADR-053
 trades: [TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01]
 verification: Stage 2
 ---
@@ -86,7 +86,14 @@ HaLow remains the baseline MANET fabric.
 
 ## Superseded by
 
-None.
+`FML-ADR-053`, which keeps everything here except the routing algorithm.
+
+The first time the program ran `batman-adv`, the stock module reported
+`Routing algorithm 'BATMAN_V' is not supported`: it is a kernel build option the
+distribution leaves off. The consequence recorded above, that BATMAN-V needs a
+driver throughput estimate that may not exist, made the kernel work a certain
+cost for an uncertain benefit. `FML-ADR-053` baselines on BATMAN-IV and states
+what evidence would bring BATMAN-V back.
 
 ## Verification dependency
 

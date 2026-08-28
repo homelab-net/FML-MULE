@@ -1,10 +1,14 @@
 # batman-adv configuration template - MULE
 #
-# Configures layer 2 mesh routing. batman-adv in BATMAN-V mode is the baseline
-# IP MANET routing for the range-oriented sub-GHz bearer; see FML-ADR-024.
+# Configures layer 2 mesh routing. batman-adv in BATMAN-IV mode is the baseline
+# IP MANET routing for the range-oriented sub-GHz bearer; see FML-ADR-053,
+# which supersedes FML-ADR-024 on the algorithm and nothing else.
 #
-# STATUS: TEMPLATE. Every value below is TBD. This file is an input to
-# configuration generation, not a file to be edited on a node.
+# STATUS: TEMPLATE. Values marked TBD are undecided. Values that are set have
+# been observed on a running three-node mesh by
+# .github/workflows/mesh-probe.yml, which is SIMULATED: veth is a perfect wire
+# and nothing here has met a radio. This file is an input to configuration
+# generation, not a file to be edited on a node.
 #
 # batman-adv routes Ethernet frames rather than IP packets, so the mesh appears
 # as one flat broadcast domain. Two consequences that shape everything else:
@@ -20,16 +24,20 @@
 # os/kernel/PINS.md. They must match. See FML-ADR-040.
 
 # --- Routing algorithm ------------------------------------------------------
-# BATMAN-V uses a throughput-based metric rather than packet loss.
+# BATMAN-IV uses a transmit-quality metric derived from packet loss.
 #
-# WARNING, UNVERIFIED: BATMAN-V needs a usable throughput estimate from the
-# driver. Whether the out-of-tree HaLow driver provides one is unknown and is
-# part of TBR-LINUX-01. If it does not, the metric falls back to a default and
-# path selection may be effectively arbitrary, which would undermine
-# FML-ADR-024. Confirm with batctl before assuming the metric works.
+# FML-ADR-053 selects it over BATMAN-V, which the stock distribution module does
+# not provide: loading batman-adv 2025.3 and asking for BATMAN_V reports
+# "Routing algorithm 'BATMAN_V' is not supported". It is the kernel build option
+# CONFIG_BATMAN_ADV_BATMAN_V, and enabling it means a custom kernel or the
+# out-of-tree module in the compatibility set, permanently.
+#
+# That cost was being paid for a metric whose benefit is contingent: BATMAN-V
+# needs a usable throughput estimate from the driver, and whether the
+# out-of-tree HaLow driver supplies one is still unknown under TBR-LINUX-01.
 #
 # Must be set BEFORE any interface is added to the mesh.
-routing_algo=BATMAN_V
+routing_algo=BATMAN_IV
 
 # --- Mesh interface ---------------------------------------------------------
 mesh_interface=TBD             # e.g. bat0
@@ -41,6 +49,24 @@ mesh_interface=TBD             # e.g. bat0
 # function; see FML-ADR-045.
 hard_interfaces=TBD
 
+# --- Hard interface MTU -----------------------------------------------------
+# batman-adv prepends its own header, so a 1500 byte hard interface cannot carry
+# a full-size frame without fragmenting it at layer 2. The module says so on
+# every interface add, and names the figure:
+#
+#   batman_adv: bat0: The MTU of interface veth12 is too small (1500) to handle
+#   the transport of batman-adv packets. Packets going over this interface will
+#   be fragmented on layer2 which could impact the performance. Setting the MTU
+#   to 1560 would solve the problem.
+#
+# Observed, not derived. It applies to every interface added to the mesh, and
+# bat0 itself then presents 1500 to IP, which is what everything above expects.
+#
+# Whether the selected radios can carry a 1560 byte frame is NOT established.
+# An interface that cannot will fragment regardless, and TBR-RF-01 and
+# TBR-LINUX-01 own that question.
+hard_interface_mtu=1560
+
 # --- Parameters -------------------------------------------------------------
 orig_interval=TBD              # Originator message interval, ms.
                                # Directly trades convergence time against
@@ -51,10 +77,38 @@ hop_penalty=TBD                # TBR-RF-01
 gw_mode=TBD                    # Gateway mode. Local-first means there is
                                # usually no gateway; see docs/NON-GOALS.md.
 
-multicast_mode=TBD             # Multicast optimisation. Matters more here than
-                               # in a conventional mesh, because a flat layer 2
-                               # domain over a low-rate bearer makes broadcast
-                               # expensive.
+multicast_mode=0               # Multicast optimisation OFF.
+                               #
+                               # It suppresses flooding to nodes not known to
+                               # want a group, which is an optimisation for a
+                               # mesh-wide multicast story this program does not
+                               # have: FML-ADR-026 keeps LoRa/Meshtastic a
+                               # separate non-IP plane, so there is no
+                               # cross-bearer multicast to optimise for.
+                               #
+                               # A REASONED DEFAULT, NOT A MEASURED ONE. It was
+                               # disabled during mesh-probe fault isolation and
+                               # changed nothing, so this is not evidence that
+                               # it helps; it is a statement that nothing yet
+                               # needs it. Revisit under TBR-RF-01 once
+                               # broadcast load on a real bearer is measured,
+                               # since FML-ADR-024 already warns that ordinary
+                               # EUD broadcast is not free.
+
+distributed_arp_table=0        # Distributed ARP table OFF.
+                               #
+                               # DAT answers ARP from a mesh-wide cache instead
+                               # of flooding. That trades correctness under
+                               # partition for airtime, and this system is built
+                               # to partition: CONOPS section 29 prefers losing
+                               # shared-service authority over serving divergent
+                               # state, and a cached ARP answer from a node that
+                               # has since become unreachable is the same shape
+                               # of error one layer down.
+                               #
+                               # Also a REASONED DEFAULT. Disabling it did not
+                               # resolve the probe's ARP failure, so it is not
+                               # implicated and not exonerated.
 
 fragmentation=TBD
 distributed_arp_table=TBD

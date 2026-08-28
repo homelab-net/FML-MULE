@@ -82,7 +82,12 @@ make_sandbox() {
 @test "validate-docs detects an ADR with a status outside the vocabulary" {
   make_sandbox
   target="$SANDBOX/docs/adr/FML-ADR-024-802-11s-batman-adv-baseline-ip-manet.md"
-  sed -i 's/^status: SELECTED$/status: PROBABLY FINE/' "$target"
+  # Replace whatever status this ADR currently carries, rather than one
+  # particular value. Naming SELECTED here meant the test silently stopped
+  # planting anything the day FML-ADR-053 superseded this ADR: the sed matched
+  # nothing, the tree stayed valid, and the check could not fire.
+  sed -i 's/^status: .*$/status: PROBABLY FINE/' "$target"
+  grep -q '^status: PROBABLY FINE$' "$target"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -ne 0 ]
