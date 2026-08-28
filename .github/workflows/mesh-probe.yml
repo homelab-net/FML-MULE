@@ -1,0 +1,130 @@
+---
+# Can a real 802.11s mesh with batman-adv form on a CI runner, with no radios?
+#
+# THIS IS A CAPABILITY PROBE, NOT A TEST OF THIS REPOSITORY. It answers one
+# question: does a GitHub runner provide mac80211_hwsim and the batman-adv
+# module, and can two simulated nodes in separate network namespaces form a
+# mesh and pass traffic?
+#
+# If it can, the network plane becomes reviewable by someone with no hardware,
+# which is the property AGENTS.md asks for and the one part of the system that
+# has never had it.
+#
+# WHAT A GREEN RUN WOULD AND WOULD NOT MEAN
+#
+# It would mean 802.11s association, batman-adv originator exchange and IP
+# forwarding work against a simulated PHY. That is real: the kernel code path
+# is the same one a node runs.
+#
+# It would NOT mean anything about RF. mac80211_hwsim has no propagation, no
+# noise, no interference, no desense, no range and no throughput limit. Every
+# value TBR-RF-01, TBR-RF-02 and TBR-RF-03 exist to measure is absent. A mesh
+# that forms here says nothing about a mesh forming in a car park.
+#
+# Manual dispatch only. It is a probe; it does not gate anything.
+
+name: Mesh probe
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Simulated 802.11s mesh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record the runner kernel
+        run: |
+          uname -a
+          echo "--- loadable module support ---"
+          ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/ || true
+          ls /lib/modules/"$(uname -r)"/kernel/net/batman-adv/ || true
+
+      - name: Install the radio userspace
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq iw batctl wireless-tools iproute2
+          echo "--- versions, which are the compatibility set on this runner ---"
+          iw --version
+          batctl -v
+
+      - name: Load mac80211_hwsim with two radios
+        run: |
+          sudo modprobe mac80211_hwsim radios=2
+          echo "--- phys ---"
+          sudo iw dev
+          test "$(sudo iw dev | grep -c Interface)" -eq 2
+
+      - name: Load batman-adv
+        run: |
+          sudo modprobe batman-adv
+          lsmod | grep batman
+          sudo batctl routing_algo BATMAN_V
+          sudo batctl routing_algo
+
+      - name: Put each radio in its own network namespace
+        run: |
+          sudo ip netns add node1
+          sudo ip netns add node2
+          # phy names are not guaranteed to be phy0/phy1; read them.
+          phys=$(sudo iw dev | awk '/^phy#/{gsub("#","",$1); print $1}')
+          echo "phys found: $phys"
+          set -- $phys
+          sudo iw phy "$1" set netns name node1
+          sudo iw phy "$2" set netns name node2
+          echo "--- node1 ---"; sudo ip netns exec node1 iw dev
+          echo "--- node2 ---"; sudo ip netns exec node2 iw dev
+
+      - name: Join both nodes to one 802.11s mesh
+        run: |
+          for ns in node1 node2; do
+            dev=$(sudo ip netns exec "$ns" iw dev | awk '/Interface/{print $2}')
+            echo "$ns uses $dev"
+            sudo ip netns exec "$ns" ip link set "$dev" down
+            sudo ip netns exec "$ns" iw dev "$dev" set type mp
+            sudo ip netns exec "$ns" ip link set "$dev" up
+            sudo ip netns exec "$ns" iw dev "$dev" mesh join fml-probe freq 2412
+          done
+          sleep 5
+          echo "--- node1 mesh peers ---"
+          dev1=$(sudo ip netns exec node1 iw dev | awk '/Interface/{print $2}')
+          sudo ip netns exec node1 iw dev "$dev1" station dump
+
+      - name: Attach the mesh interface to batman-adv on both nodes
+        run: |
+          i=1
+          for ns in node1 node2; do
+            dev=$(sudo ip netns exec "$ns" iw dev | awk '/Interface/{print $2}')
+            sudo ip netns exec "$ns" batctl meshif bat0 interface add "$dev"
+            sudo ip netns exec "$ns" ip link set up dev "$dev"
+            sudo ip netns exec "$ns" ip link set up dev bat0
+            sudo ip netns exec "$ns" ip addr add "10.0.0.$i/24" dev bat0
+            i=$((i + 1))
+          done
+          sleep 10
+          echo "--- node1 originators ---"
+          sudo ip netns exec node1 batctl meshif bat0 originators
+          echo "--- node1 neighbours ---"
+          sudo ip netns exec node1 batctl meshif bat0 neighbors
+
+      - name: Pass traffic across the mesh
+        run: |
+          sudo ip netns exec node1 ping -c 5 -W 5 10.0.0.2
+          echo
+          echo "MESH FORMED AND TRAFFIC PASSED."
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          for ns in node1 node2; do
+            echo "=============== $ns ==============="
+            sudo ip netns exec "$ns" ip addr || true
+            sudo ip netns exec "$ns" iw dev || true
+            sudo ip netns exec "$ns" batctl meshif bat0 originators || true
+          done
+          sudo dmesg | tail -60 || true
