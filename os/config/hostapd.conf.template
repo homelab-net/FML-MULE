@@ -27,6 +27,27 @@ interface=TBD
 
 driver=TBD
 
+# --- Data path for associated devices ---------------------------------------
+# TBD, AND THE QUESTION WAS PREVIOUSLY UNASKED RATHER THAN OPEN. This line did
+# not exist, so nothing in this repository recorded that a choice was being
+# made, and bridge=br0 is the textbook way to build a hostapd access point. A
+# default nobody chose is how bridge loop avoidance came to be in force for
+# twenty probe runs while presenting as an RF fault.
+#
+# The choice is between bridging associated devices onto a segment and routing
+# to them. FML-ADR-054 disables bridge loop avoidance on bat0, which is safe
+# only while bat0 is bridged to nothing.
+#
+# THIS IS NOT HYPOTHETICAL. The program owner records that multiple MULE nodes
+# are likely to sit on one LAN during configuration, during over-the-air
+# update, and in a tactical operations centre. That is the exact topology
+# bridge loop avoidance exists for, so a bridge naming bat0 in those settings
+# forms a loop that bridge loop avoidance is no longer there to break.
+#
+# Setting this to a bridge that also carries bat0 shall revisit FML-ADR-054
+# first. tools/validate-docs.sh enforces the pairing.
+bridge=TBD
+
 # --- Identity ---------------------------------------------------------------
 ssid=TBD
 # From the mission configuration package. Not a fixed value: two independently

@@ -170,11 +170,24 @@ bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-054.
                                # table read correct throughout.
                                #
                                # It protects a mesh bridged to a common wired
-                               # segment. bat0 is bridged to nothing here: the
-                               # EUD access point is a separate logical radio
-                               # function per FML-ADR-045. ANYTHING THAT
-                               # BRIDGES bat0 MAKES THIS UNSAFE and shall
-                               # revisit FML-ADR-054 first.
+                               # segment, and THAT TOPOLOGY IS PLANNED: several
+                               # nodes are expected to share one LAN during
+                               # configuration, during over-the-air update and
+                               # in a tactical operations centre.
+                               #
+                               # Sharing a LAN is safe. Bridging that LAN into
+                               # the mesh is not, and nothing about sharing one
+                               # requires bridging it. So this setting rests on
+                               # a companion rule: bat0 shall not be a member
+                               # of a bridge carrying a shared segment. The EUD
+                               # access point is a separate logical radio
+                               # function per FML-ADR-045, and its data path is
+                               # the open question, recorded as bridge= in
+                               # hostapd.conf.template.
+                               #
+                               # tools/validate-docs.sh check 19 enforces the
+                               # pairing. FML-ADR-054 records the fallback if a
+                               # topology ever needs both.
 
 # --- Notes ------------------------------------------------------------------
 # Bring-up ordering matters: batman-adv attached to an interface that is not

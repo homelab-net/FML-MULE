@@ -63,6 +63,16 @@ layer, which reported `Destination Host Unreachable` and backed off.
 Nothing chose this setting. It has been in force by default since the mesh was
 first brought up, and `os/config/batman-adv.conf.template` carried it as `TBD`.
 
+One further fact shapes this decision, recorded from the program owner after
+the measurement and before this ADR was accepted: **several MULE nodes are
+likely to share one LAN during configuration, during over-the-air update, and
+in a tactical operations centre.** That is the exact topology bridge loop
+avoidance exists for, so the protection being given up is not one this program
+was never going to need. What makes disabling it safe is narrower than
+"nothing is bridged today": it is that the mesh interface is not a member of a
+bridge carrying that shared segment, which is a separate decision, and one this
+repository had not written down anywhere.
+
 ## Decision
 
 Bridge loop avoidance shall be disabled on the mesh interface.
@@ -89,7 +99,8 @@ Every table reads correct while nothing passes, which is the hardest kind of
 fault to diagnose in a car park with no laptop.
 
 The loop protection is genuinely given up, and the condition under which it
-matters is not hypothetical. `FML-ADR-045` keeps the EUD access point a
+matters is a planned operating condition rather than a hypothetical.
+`FML-ADR-045` keeps the EUD access point a
 separate logical radio function and `os/config/batman-adv.conf.template` records
 that the access point does not join the mesh, so today nothing bridges `bat0` to
 anything and there is no loop to avoid. The moment anything does bridge `bat0`
@@ -99,16 +110,30 @@ revisited before that bridge is built.
 
 ## Accepted cost
 
-Two MULE nodes cabled to the same wired segment while both are attached to the
-mesh would form a forwarding loop that batman-adv would no longer break. This
-is a foreseeable field mistake rather than an exotic one: two nodes on a folding
-table sharing a switch for convenience is exactly the situation a volunteer
-would create without thinking about it.
+Two or more MULE nodes bridging the mesh interface onto one shared segment form
+a forwarding loop that batman-adv no longer breaks, and on a low-rate bearer a
+broadcast storm takes the mesh down rather than slowing it. Worse, it presents
+as a radio fault: this is the same shape as the defect this ADR came from,
+where every table read correct while nothing passed.
 
-The program accepts that cost because the protection was buying nothing in the
-topology this system actually has, and was costing thirty seconds of dead air on
-every join. A protection that is never exercised and always charged is the wrong
-trade.
+An earlier draft of this section called that a foreseeable field mistake. That
+was wrong, and it is corrected here rather than softened. The program owner
+states that several nodes sharing one LAN is expected during configuration,
+during over-the-air update, and in a tactical operations centre. It is a normal
+operating condition, and calling it a mistake would have understated it to
+exactly the reader who most needs the warning.
+
+What the program accepts is therefore narrower than it first appears. It is not
+"a loop is unlikely". It is that **the mesh interface shall not be a member of
+a bridge carrying a shared segment**, which holds the loop off by construction
+in every one of those settings, and which is independently the right choice: a
+flat layer 2 spanning the mesh and a shared LAN puts all of that segment's
+broadcast onto a low-rate bearer, which this template already records as
+unsolved work. Two nodes on one LAN is safe. Two nodes bridging that LAN into
+the mesh is not, and nothing about sharing a LAN requires bridging it.
+
+The cost of being wrong about that is the loop. The cost of the protection was
+thirty seconds of dead air on every join, in every deployment, forever.
 
 ## Fallback
 
@@ -117,9 +142,21 @@ would call for it is any design that bridges `bat0`, and the fallback is not
 merely re-enabling it but pairing it with a measured warm-up figure, because
 this decision records what that costs.
 
-If a topology needs both fast join and loop protection, the alternative is to
-prevent the loop by construction rather than by protocol: keep `bat0` unbridged
-and route rather than bridge between the mesh and any other segment.
+If a topology needs both fast join and loop protection, there are two better
+answers than a global re-enable.
+
+Prevent the loop by construction: keep the mesh interface unbridged and route
+rather than bridge between the mesh and any other segment. This is the
+preferred answer, and the one the accepted cost above relies on.
+
+Failing that, make the setting a function of topology rather than a constant.
+It is a runtime setting, so a node that brings the mesh interface up inside a
+bridge may enable loop avoidance and one that does not may leave it off. That
+pays the thirty seconds only where it buys something, which is the tactical
+operations centre and the update bench rather than every field join. This is
+recorded as available, not selected: it is more machinery than a program with
+no networking configuration yet should build, and it should be decided when
+that configuration is written.
 
 ## Superseded by
 
@@ -128,6 +165,14 @@ None.
 ## Verification dependency
 
 `TBD`, pending `TBR-RF-01`.
+
+The condition above is enforced rather than merely written down.
+`tools/validate-docs.sh` check 19 fails when any configuration under `os/` puts
+the mesh interface in a bridge while loop avoidance is disabled, and when the
+access point is bridged onto a named bridge whose membership nothing records.
+It has been watched to fire on all five spellings of bridge membership, and the
+first version of it silently passed `ip link set bat0 master br0`, which is the
+most common one.
 
 The warm-up figure is asserted on every run of
 `.github/workflows/mesh-probe.yml`, which fails if a cold mesh does not carry

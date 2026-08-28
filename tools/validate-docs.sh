@@ -582,6 +582,91 @@ done
 
 info "$blocked_count blocked service(s); $pairing_count mule/ module pairing(s) checked"
 
+# --- 19: nothing bridges the mesh interface while loop avoidance is off -----
+#
+# FML-ADR-054 disables bridge_loop_avoidance because it was costing the entire
+# warm-up, 31.5s against 2.150s, and bat0 is bridged to nothing. That is safe
+# only while that stays true, and the ADR states the condition in prose, which
+# makes it a rule nothing enforces.
+#
+# The topology it guards is a PLANNED operating condition rather than a field
+# mistake. The program owner records that several nodes are likely to share one
+# LAN during configuration, during over-the-air update, and in a tactical
+# operations centre. Two nodes bridging the mesh interface onto one segment
+# form a loop, and on a low-rate bearer a broadcast storm takes the mesh down
+# rather than slowing it.
+
+bla_setting=$(sed -n 's/^bridge_loop_avoidance=\([^ 	]*\).*/\1/p' \
+  os/config/batman-adv.conf.template)
+mesh_if=$(sed -n 's/^mesh_interface=\([^ 	]*\).*/\1/p' \
+  os/config/batman-adv.conf.template)
+
+# While mesh_interface is TBD, bat0 is the name every template, workflow and
+# ADR uses, and therefore the name a bridge would be written against.
+if [ -z "$mesh_if" ] || [ "$mesh_if" = TBD ]; then
+  mesh_if=bat0
+fi
+
+if [ "$bla_setting" = 0 ]; then
+  # Bridge membership, in the forms it is actually written: an ip link master,
+  # a systemd-networkd Bridge=, an Ansible bridge_ports, a hostapd bridge=.
+  # Comment lines are excluded, which is what makes the ADR and this check
+  # able to discuss the thing they forbid.
+  # Collected first, then acted on, for the reason check 18 records: a while
+  # loop on the right of a pipe runs in a subshell, so fail() called inside one
+  # would increment a counter that dies with it. Command substitution keeps the
+  # list and leaves the reporting in this shell.
+  bridged=$(find os -type f \
+    \( -name '*.template' -o -name '*.conf' -o -name '*.yml' \) |
+    while IFS= read -r conf; do
+      # Three filters rather than one pattern, because the two halves appear in
+      # either order and a single regex spelling both orders is unreadable.
+      # "ip link set bat0 master br0" puts the interface first and is the most
+      # common spelling of all; the first version of this check required the
+      # keyword first, passed that line silently, and was caught by watching it
+      # fail rather than by reading it.
+      if grep -vE '^[ 	]*#' "$conf" |
+        grep -E '(master|[Bb]ridge|bridge_ports|brctl)' |
+        grep -qE "\<$mesh_if\>"; then
+        printf '%s\n' "$conf"
+      fi
+    done)
+
+  # Split on whitespace deliberately; a path here contains none.
+  for conf in $bridged; do
+    fail "$conf puts $mesh_if in a bridge while bridge_loop_avoidance=0. Two nodes bridging $mesh_if onto one segment form a loop with nothing left to break it. FML-ADR-054."
+  done
+
+  # WHAT THIS DOES NOT CATCH: a bridge declared across several lines of a
+  # structured file, as netplan and similar write it:
+  #
+  #   bridges:
+  #     br0:
+  #       interfaces: [bat0]
+  #
+  # The keyword and the interface are on different lines, and finding that
+  # needs a YAML parser rather than a grep. Reading the file as a whole instead
+  # of line by line was tried and is wrong: batman-adv.conf.template names the
+  # setting on one line and the interface on another, so it reports itself.
+  #
+  # The gap closes when configuration generation exists and this check moves to
+  # the generated output, where bridge membership resolves to one line. Until
+  # then the hostapd check below covers the likely route to such a bridge.
+
+  # The access point is the likely route to that bridge, and this repository
+  # has nowhere that declares a bridge's members, so it cannot tell what the
+  # named bridge carries. Firing on any resolved value is deliberate: the
+  # answer is to record what the bridge contains, and the question is the
+  # thing that was missing.
+  ap_bridge=$(sed -n 's/^bridge=\([^ 	]*\).*/\1/p' \
+    os/config/hostapd.conf.template)
+  if [ -n "$ap_bridge" ] && [ "$ap_bridge" != TBD ]; then
+    fail "os/config/hostapd.conf.template bridges the access point onto $ap_bridge while bridge_loop_avoidance=0, and nothing records whether $ap_bridge carries $mesh_if. FML-ADR-054."
+  fi
+fi
+
+info "mesh interface $mesh_if, bridge_loop_avoidance=${bla_setting:-unset}, bridge membership checked"
+
 # --- result -----------------------------------------------------------------
 printf '\n'
 if [ "$fail_count" -gt 0 ]; then

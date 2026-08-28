@@ -177,6 +177,51 @@ PATCH
   [ "$status" -eq 0 ]
 }
 
+@test "validate-docs detects the mesh interface bridged with loop avoidance off" {
+  make_sandbox
+  # FML-ADR-054. The program owner records that several nodes are likely to
+  # share one LAN during configuration, during over-the-air update and in a
+  # tactical operations centre, which is the exact topology bridge loop
+  # avoidance exists for. Two nodes bridging bat0 onto that segment form a loop
+  # with nothing left to break it.
+  #
+  # This spelling specifically: the interface comes BEFORE the keyword, and the
+  # first version of the check required the keyword first and passed it in
+  # silence. It is the most common way to put an interface in a bridge.
+  printf '\n    ip link set bat0 master br0\n' \
+    >> "$SANDBOX/os/config/batman-adv.conf.template"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FML-ADR-054"* ]]
+}
+
+@test "validate-docs detects the access point bridged with loop avoidance off" {
+  make_sandbox
+  # The likely route to a bridge that carries bat0, and the reason the question
+  # is asked in hostapd.conf.template at all: bridge=br0 is the textbook way to
+  # build an access point, and nothing here can see what br0 carries.
+  sed -i 's/^bridge=TBD$/bridge=br0/' "$SANDBOX/os/config/hostapd.conf.template"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FML-ADR-054"* ]]
+}
+
+@test "validate-docs allows bridging when loop avoidance is on" {
+  make_sandbox
+  # The check fires on a PAIRING, not on the word bridge. Bridging with loop
+  # avoidance enabled is what the feature is for, and a check that forbade it
+  # outright would be wrong about the design rather than strict about it.
+  sed -i 's/^bridge_loop_avoidance=0/bridge_loop_avoidance=1/' \
+    "$SANDBOX/os/config/batman-adv.conf.template"
+  printf '\n    ip link set bat0 master br0\n' \
+    >> "$SANDBOX/os/config/batman-adv.conf.template"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
 @test "gen-status --check detects a hand-edited STATUS.md" {
   make_sandbox
   # STATUS.md is generated and never hand-edited. A stale status page is how a
