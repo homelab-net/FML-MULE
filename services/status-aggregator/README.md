@@ -3,6 +3,10 @@
 **APPROVED, NOT YET IMPLEMENTABLE. This directory contains this `README.md` and
 nothing else.**
 
+Part of the reasoning this component would do already exists as a pure
+function in `mule/`, under `FML-ADR-052`. See "what already exists in
+`mule/`" below before concluding that nothing has been written.
+
 `FML-ADR-046` approves the MULE Status Aggregator as **thin original software**.
 `FML-ADR-049` folds the Service Authority Registry into it rather than creating a
 sixth standalone daemon.
@@ -53,6 +57,36 @@ From the MULE-original software inventory, SAD section 29.5:
 > authority or provide broad configuration authority.
 
 **Owner:** Platform / Field UX / SRE.
+
+## What already exists in `mule/`
+
+`mule/status.py` answers the thirteen CONOPS section 67 questions and uses the
+operator states and authority reason codes named above. It is a pure function:
+it is handed everything it reasons about, collects nothing, serves nothing, and
+holds no state.
+
+`mule/modes.py` sits beside it and places the node on the nine CONOPS section
+50 operating-mode axes, per `CCR-01`. `mule/status.py` reads EMCON and the
+capability ladder from it rather than deciding either a second time.
+
+`FML-ADR-052` sets out the four conditions that permit both, and why they leave
+the reason for this block intact. The short version is that the hazard named
+under "why not build it anyway" is **inventing a state taxonomy**, and that
+module invents none. It transcribes SAD section 22, and it returns `None`, not
+a guess, for `shared_data_authoritative` and `data_stale` - the two answers
+`TBR-TAK-01` governs.
+
+So the reasoning exists and is exercised. What does not exist, and what this
+directory still means, is everything else: the collection of host, RF, network,
+mission-service, trust, storage and power state from the subsystems that hold
+it; the local HTTP/JSON or Unix-socket interface; the schema and freshness
+timestamp; the Service Authority Registry; and the I2C display module. Those
+are the component. A function that reasons about values somebody else gathered
+is not.
+
+Whoever builds this should expect to own `mule/status.py` and `mule/modes.py`,
+and may find their signatures wrong for their purposes. `FML-ADR-052` records
+that cost.
 
 ## What must close before implementation starts
 

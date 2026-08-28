@@ -38,6 +38,11 @@ A change is not done until all five hold. Say which ones you actually ran.
    `mission-trust/`, `service-controller/`, `gateways/` hold a README and
    nothing else, by decision. Their interfaces depend on open trades. Each
    README names the trade that must close first. `[review]`
+
+   A pure decision function in `mule/` **may** reason about their subject
+   matter, on the four conditions in `FML-ADR-052`. Being in a different
+   directory is not one of them, and was the rule this program tried first.
+   `[review]`, with the cross-reference obligation `[CI]`.
 2. **Inventing a specification.** Compute module, enclosure, battery, antenna,
    channel plan, power budget, memory budget: all unselected. `[review]`
 3. **Claiming something is verified.** Nothing here has met hardware. The word
@@ -60,7 +65,11 @@ A change is not done until all five hold. Say which ones you actually ran.
 | A value that is genuinely fixed | Bind it to a named constant carrying the ADR or trade that set it. |
 | A requirement | `shall` binds and is verifiable. `should` is waiverable with recorded rationale. `may` creates no obligation. Never `will`, `must`, or `needs to`. |
 | A test assertion | Assert against data or a named constant, never against a literal the code under test also hardcodes. That proves only that two literals match. |
-| A new check | Prove it can fail. Break something on purpose and watch it fire. |
+| A hardware reading interface | Say where the value really comes from on a Debian node, and what the platform returns when it cannot answer. If "nothing" is possible, the type is `T \| None`. Add the row to `docs/readings.md`. `[CI]` |
+| A reading's source | Prefer a kernel interface (`sysfs`, `procfs`) to a command. A command is a package in the image, a fork per reading, and output that is not ABI-stable. Where only a command exists, name the package that provides it. `[CI]` |
+| A reading that returns a number | Put the unit in the method name. Linux reports the same quantity in millidegrees, tenths and percents depending on the subsystem, and every conversion is a factor-of-a-hundred error that produces a plausible number. `[CI]` |
+| Code touching a blocked `services/` component's subject matter | Check it against all four `FML-ADR-052` conditions: pure function, no invented vocabulary, `None` where the blocking trade decides, no interface an open trade governs. Then name the module in that component's README. `[CI]` |
+| A new check | Prove it can fail. Break something on purpose and watch it fire. **Remove every instance of what it looks for**, not one. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 
 ## What the evidence supports
@@ -201,9 +210,23 @@ Real, from this repository. Recognise the shape.
    `tail -1`, which prints the last test rather than the result, so the run
    looked green while its exit code was 1.
 
+5. **A type that could not say "I cannot tell".** `FakeThermal` defaulted to
+   `within_envelope=True`, so a node with no measured envelope asserted it was
+   inside one. Fixing it, the replacement interface returned
+   `throttling_reported() -> bool`, forcing a board with no throttle signal to
+   answer `False` - the same claim, one field over. Four instances so far.
+   Every reading a platform might be unable to provide is `T | None`.
+
 The common shape: **something looked verified because nobody asked what would
 have to break for the check to notice.** Ask it. And when you check, read the
 signal that means success, not the one that looks like it.
+
+Two of these now have machine checks, because both recurred. Coverage of
+`mule/` is held at 100% `[CI]`, since the unreachable ones were single lines in
+otherwise well-covered files and any threshold below would have hidden them.
+And every reading in `mule/` needs a row in `docs/readings.md` `[CI]`, which is
+the "how does this read on real hardware?" question asked in advance rather
+than after the interface is wrong.
 
 ## Where the reasoning lives
 

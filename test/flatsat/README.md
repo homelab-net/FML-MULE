@@ -66,6 +66,7 @@ which is production code held to production standards:
 | Can the clock be trusted? | `mule/timekeeping.py` |
 | May this device join? | `mule/admission.py` |
 | What does this node offer, and by what name? | `mule/services.py` |
+| Which operating modes is the node in? | `mule/modes.py` |
 | What do we tell the operator? | `mule/status.py` |
 | Which radios matter? | `mule/bearers.py` |
 
@@ -97,13 +98,15 @@ derive one from.
 | Fake | Interface | Simulates | Does not simulate | Trade that replaces it |
 | --- | --- | --- | --- | --- |
 | `FakeRadio` | `RadioState` | Driver attachment, link formation, peer visibility | RF propagation, throughput, desense, multicast scaling, coexistence | `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03` |
-| `FakePower` | `PowerState` | External source presence, pack presence, pack health flag | Consumption, endurance, projected runtime, charge behaviour | `TBR-PWR-01` |
-| `FakeThermal` | `ThermalState` | A throttle flag and an in-envelope flag | Temperature, heat flow, ambient sensitivity, the enclosure | `TBR-THERM-01` |
+| `FakePower` | `mule.power.PowerReadings` | Pack presence, pack health, reported charge, pack temperature | Discharge behaviour, capacity fade, load, endurance | `TBR-PWR-01` |
+| `FakeThermal` | `mule.thermal.ThermalReadings` | What each fitted sensor reports, and whether the compute element says it is throttling | Heat flow, ambient sensitivity, solar load, the enclosure | `TBR-THERM-01` |
 | `FakeClock` | `mule.timekeeping.TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
 
-`FakePower.projected_runtime_minutes()` returns `None` unconditionally. That is
-not a stub awaiting a number; it is the correct answer until `TBR-PWR-01`
-closes, and the scenarios assert it.
+`FakePower` no longer answers how long the node will run. That is
+`mule.power.assess`, which returns `None` with a reason naming `TBR-PWR-01`
+while no measured model exists, and a real estimate once one is supplied. The
+scenarios assert both: that the node refuses today, and that the same code
+answers the day the trade closes.
 
 `FakeRadio` **rejects hardware that cannot exist** - a bearer linked without
 being present, or reporting peers while absent - by raising
@@ -111,7 +114,11 @@ being present, or reporting peers while absent - by raising
 against a node state no hardware can produce, which voids the only claim the
 flat-sat makes.
 
-### Why `FakeClock` is different
+### Why the fakes report rather than conclude
+
+`FakeClock`, `FakePower` and `FakeThermal` all supply raw readings and reach no
+verdict. Whether the readings mean anything is decided by `mule/timekeeping.py`,
+`mule/power.py` and `mule/thermal.py`, which are production code under test.
 
 It supplies raw readings and reaches no verdict. Whether they are credible is
 decided by `mule.timekeeping.assess`, which is production code in the sense
@@ -119,13 +126,20 @@ decided by `mule.timekeeping.assess`, which is production code in the sense
 held to production lint and docstring standards rather than the test tree's
 relaxations.
 
-This was not always so, and the reason it changed is worth keeping. When the
-fake returned `CREDIBLE` or `DEGRADED` directly, the fail-closed tests asserted
-that a fixture agreed with itself: no code decided anything, so `FML-ADR-042`
-could not fail a test. SAD section 24.5.1 warns that a node restoring a
-plausible-looking time from its last shutdown is worse than one with no clock,
-*because it looks valid* - and detecting that is precisely the part a fake
-returning the answer skips.
+None of them started that way, and each cost something before it changed:
+
+- `FakeClock` returned `CREDIBLE` or `DEGRADED` directly, so the fail-closed
+  tests asserted that a fixture agreed with itself. No code decided anything, so
+  `FML-ADR-042` could not fail a test.
+- `FakePower` returned `None` for projected runtime unconditionally, which was
+  the right answer for the wrong reason: it was a stub, not a refusal, and it
+  would have kept returning `None` after `TBR-PWR-01` closed.
+- `FakeThermal` returned `within_envelope=True` by default, so a node with no
+  defined thermal envelope **asserted it was inside one**. That is a claim about
+  a limit nobody has measured.
+
+The last is the clearest case for the rule. A fake that concludes does not just
+make the conclusion untestable; it can make the node state something untrue.
 
 ## Stand-ins, which are not fakes
 
@@ -178,6 +192,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 | `fakes.py` | The four fakes above, and nothing else. |
 | `node.py` | `FlatSatNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
+| `test_modes.py` | Unit tests for `mule/modes.py`, the nine CONOPS section 50 axes. |
 | `test_timekeeping.py` | Unit tests for `mule/timekeeping.py`. Moves with it if it moves again. |
 | `scenarios/` | The user-visible flows, written in CONOPS vocabulary. |
 | `mutations.yml` | What the suite is required to be able to detect. |

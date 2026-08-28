@@ -18,6 +18,10 @@
 #  12. Every directory has a README, or is named in its parent's README.
 #  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
 #  14. Every decision ID cited anywhere resolves to a real ADR or trade.
+#  15. Every hardware reading in mule/ is accounted for in docs/readings.md.
+#  16. Every numeric reading carries its unit in its name.
+#  17. Every reading declares a source kind; command sources name a package.
+#  18. A blocked service README names the mule/ modules that act on its ADR.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -469,6 +473,114 @@ while read -r id; do
 done </tmp/fml-cited.$$
 rm -f /tmp/fml-cited.$$
 info "$cited_count distinct decision IDs cited"
+
+# --- 15: every reading is accounted for --------------------------------------
+#
+# mule/thermal.py was written with a complete decision and no way to obtain the
+# readings it judged. Nobody noticed until someone asked how it would read on
+# real hardware, and the question immediately found a defect: an interface that
+# could not express "this platform cannot tell me".
+#
+# So the question is asked in advance, for every reading, in docs/readings.md.
+# This requires a row to exist. It cannot check that the row is true; what it
+# prevents is a reading being added without anyone having thought about where
+# the value comes from.
+
+READINGS_DOC=docs/readings.md
+
+if [ -f "$READINGS_DOC" ] && [ -x tools/list-readings.py ]; then
+  reading_count=0
+  command_count=0
+  pinned_count=0
+  tools/list-readings.py >/tmp/fml-readings.$$
+  while IFS="$(printf '\t')" read -r reading verdict; do
+    [ -n "$reading" ] || continue
+    reading_count=$((reading_count + 1))
+
+    # 16: a numeric reading whose name does not state its unit. Linux reports
+    # the same quantity in millidegrees, tenths and percents depending on the
+    # subsystem, and every conversion is a place to be wrong by a factor of a
+    # hundred while producing a plausible number.
+    if [ "$verdict" = "needs-unit" ]; then
+      fail "$reading returns a number but its name does not state the unit."
+    fi
+
+    row=$(grep "^| \`$reading\`" "$READINGS_DOC" || true)
+    if [ -z "$row" ]; then
+      fail "$reading is read by mule/ but has no row in $READINGS_DOC."
+      continue
+    fi
+
+    # 17: a reading is served by a kernel interface, by a command that must be
+    # in the image, or by nothing. A command row names the package that
+    # provides it, so the image build has something to guarantee.
+    case "$row" in
+      *'| `kernel` |'*) ;;
+      *'| `none` |'*) ;;
+      *'| `command` |'*)
+        command_count=$((command_count + 1))
+        if ! printf '%s' "$row" | grep -q 'package `'; then
+          fail "$reading is a command source but names no package in $READINGS_DOC."
+        else
+          for pkg in $(printf '%s' "$row" | sed -n 's/.*package `\([a-z0-9.+-]*\)`.*/\1/p'); do
+            grep -q "^$pkg=" os/image/manifest/packages.list 2>/dev/null &&
+              pinned_count=$((pinned_count + 1))
+          done
+        fi
+        ;;
+      *) fail "$reading has no source kind in $READINGS_DOC. Use kernel, command or none." ;;
+    esac
+  done </tmp/fml-readings.$$
+  rm -f /tmp/fml-readings.$$
+  info "$reading_count hardware readings checked against $READINGS_DOC"
+  # Reported, not failed: nothing is pinned yet by decision. TBR-LINUX-01.
+  info "$command_count reading(s) need a command; $pinned_count of those packages are pinned"
+else
+  info "no readings register found; hardware readings not checked"
+fi
+
+# --- 18: a blocked service names the mule/ modules that act on its decision ---
+#
+# FML-ADR-052 permits a pure decision function in mule/ to reason about subject
+# matter a blocked services/ component describes, on four conditions. The fourth
+# obligation falls on the blocked component: its README names what already
+# exists, so a reader arriving at a directory that says "this contains nothing
+# else" learns that part of the behaviour lives elsewhere.
+#
+# Fires on a pairing, not on prose: a blocked README citing an ADR that a mule/
+# module also cites, without naming that module.
+
+blocked_count=0
+pairing_count=0
+
+for readme in services/*/README.md; do
+  [ -f "$readme" ] || continue
+  grep -q 'NOT YET IMPLEMENTABLE' "$readme" || continue
+  blocked_count=$((blocked_count + 1))
+
+  # FML-ADR-052 is excluded from its own scan. It is the rule, not a subject: a
+  # README cites it to explain this cross-reference, and a mule/ module cites it
+  # to declare which conditions it meets. Pairing those two would demand a link
+  # between every blocked component and every module in mule/, which is the
+  # false-link failure this repository has had before.
+  #
+  # Split on whitespace deliberately. An identifier contains none, and an
+  # intermediate variable keeps this a list of IDs rather than a pipeline whose
+  # loop body would run in a subshell and lose the counters.
+  adrs=$(grep -o 'FML-ADR-[0-9][0-9][0-9]' "$readme" | sort -u | grep -v '^FML-ADR-052$' || true)
+
+  for adr in $adrs; do
+    for module in mule/*.py; do
+      [ -f "$module" ] || continue
+      grep -q "$adr" "$module" || continue
+      pairing_count=$((pairing_count + 1))
+      grep -q "$module" "$readme" ||
+        fail "$readme cites $adr, and $module acts on it, but $readme does not name $module. FML-ADR-052."
+    done
+  done
+done
+
+info "$blocked_count blocked service(s); $pairing_count mule/ module pairing(s) checked"
 
 # --- result -----------------------------------------------------------------
 printf '\n'

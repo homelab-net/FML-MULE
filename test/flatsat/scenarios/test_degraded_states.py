@@ -17,7 +17,12 @@ import pytest
 from mule.bearers import REQUIRED_BEARERS
 from mule.timekeeping import TimePolicy
 
-from ..conftest import EUD, NodeFactory
+from ..conftest import (
+    EUD,
+    FIXTURE_POWER_MODEL,
+    FIXTURE_THERMAL_LIMITS,
+    NodeFactory,
+)
 from ..fakes import (
     FakeClock,
     FakePower,
@@ -40,13 +45,44 @@ SERVICE = "example-service-a.example.invalid"
 def test_a_sensor_outside_its_envelope_raises_a_fault(
     build_node: NodeFactory,
 ) -> None:
-    node = build_node(thermal=FakeThermal(in_envelope=False))
+    """Naming the breached sensor, because "too hot" is not an action.
+
+    An operator who is told the battery is over its limit shades the pack. One
+    who is told the processor is puts the node somewhere cooler. The fault says
+    which.
+    """
+    node = build_node(
+        thermal=FakeThermal(sensors={"processor": 95.0, "ambient": 20.0}),
+        thermal_limits=FIXTURE_THERMAL_LIMITS,
+    )
     node.power_on()
     status = node.status()
 
     assert status.fault is not None
     assert status.fault.startswith("THERMAL_DEGRADED")
+    assert "processor" in status.fault
+    assert "ambient" not in status.fault
     assert status.state == "DEGRADED"
+
+
+def test_a_node_with_no_limits_does_not_claim_to_be_within_them(
+    build_node: NodeFactory,
+) -> None:
+    """The bug this module was written to remove.
+
+    Before, the fake reported `within_envelope=True` by default and the node
+    passed it on, so a node with no defined thermal envelope asserted it was
+    inside one. TBR-THERM-01 has not closed. The node cannot know, and now it
+    does not pretend to.
+    """
+    node = build_node(thermal=FakeThermal.at(95.0))
+    node.power_on()
+    status = node.status()
+
+    # No THERMAL_DEGRADED fault, because there is no envelope to be outside of.
+    assert status.fault is None
+    # And equally no claim of being inside one: the assessment says UNKNOWN.
+    assert node.thermal_state() == "UNKNOWN"
 
 
 def test_thermal_throttling_degrades_the_node_without_a_fault(
@@ -55,9 +91,10 @@ def test_thermal_throttling_degrades_the_node_without_a_fault(
     """Throttling is not a fault: the node is working, just more slowly.
 
     Reporting it as GREEN would hide the most common cause of a node that is
-    up but inexplicably slow.
+    up but inexplicably slow. It is reported with no limits configured, because
+    the hardware states it rather than the node inferring it.
     """
-    node = build_node(thermal=FakeThermal(is_throttled=True))
+    node = build_node(thermal=FakeThermal(is_throttling=True))
     node.power_on()
     status = node.status()
 
@@ -71,9 +108,9 @@ def test_thermal_throttling_degrades_the_node_without_a_fault(
 @pytest.mark.parametrize(
     ("power", "expected"),
     [
-        (FakePower(battery=False), None),
-        (FakePower(battery=True, healthy=True), True),
-        (FakePower(battery=True, healthy=False), False),
+        (FakePower(pack=False), None),
+        (FakePower(pack=True, healthy=True), True),
+        (FakePower(pack=True, healthy=False), False),
     ],
     ids=["no-pack-fitted", "pack-healthy", "pack-unhealthy"],
 )
@@ -94,7 +131,51 @@ def test_battery_health_reports_all_three_answers(
 
 def test_projected_runtime_stays_unanswerable(build_node: NodeFactory) -> None:
     """TBR-PWR-01 has not closed, so there is no number to give."""
-    node = build_node(power=FakePower(battery=True, healthy=True))
+    node = build_node(power=FakePower(pack=True, healthy=True, charge=1.0))
+    node.power_on()
+    status = node.status()
+
+    assert status.projected_runtime_minutes is None
+    assert status.hosting_reduces_runtime is None
+
+
+def test_the_operator_gets_a_runtime_the_day_a_model_arrives(
+    build_node: NodeFactory,
+) -> None:
+    """The same node, the same code, one object supplied.
+
+    This is what closing TBR-PWR-01 does: nothing in the node changes. Two of
+    the thirteen CONOPS section 67 questions stop answering "cannot say" because
+    somebody measured a battery, not because somebody wrote software.
+
+    The numbers come from FIXTURE_POWER_MODEL and are invented. What is being
+    checked is that the answer becomes available, not what it is.
+    """
+    node = build_node(
+        power=FakePower(pack=True, healthy=True, charge=1.0),
+        power_model=FIXTURE_POWER_MODEL,
+    )
+    node.power_on()
+    status = node.status()
+
+    assert status.projected_runtime_minutes is not None
+    assert status.projected_runtime_minutes > 0
+    assert status.hosting_reduces_runtime is True
+
+
+def test_a_pack_that_cannot_report_its_charge_still_yields_no_runtime(
+    build_node: NodeFactory,
+) -> None:
+    """A measured model is necessary and not sufficient.
+
+    A fitted pack with no readable gauge is a configuration the programme has
+    to handle, not one it can assume away, and the node says so rather than
+    assuming a full charge.
+    """
+    node = build_node(
+        power=FakePower(pack=True, healthy=True, charge=None),
+        power_model=FIXTURE_POWER_MODEL,
+    )
     node.power_on()
 
     assert node.status().projected_runtime_minutes is None
@@ -233,3 +314,44 @@ def test_a_scripted_failure_reports_the_reading_not_a_verdict(
     scenarios above are exercising the decision rather than selecting it.
     """
     assert FakeClock.dead_backup_cell(time_policy).rtc_backup_cell_ok() is False
+
+
+# --- the capability ladder reaches the operator ----------------------------
+
+
+def test_a_node_down_to_lora_tells_the_operator_low_bandwidth(
+    build_node: NodeFactory,
+) -> None:
+    """SAD section 22 names LOW-BANDWIDTH, and CONOPS section 50.8 defines it.
+
+    Before `mule/modes.py` existed the operator state could never take this
+    value: the vocabulary was there and nothing could produce it. A node whose
+    only inter-node reach is LoRa is the situation it was named for.
+    """
+    node = build_node(
+        radio=FakeRadio(present=["wifi_ap", "lora"], linked=["wifi_ap", "lora"])
+    )
+    node.power_on()
+
+    assert node.modes().bearer_capability == "LOW-BANDWIDTH"
+    assert node.status().state == "LOW-BANDWIDTH"
+
+
+def test_a_node_on_the_mesh_is_not_reported_low_bandwidth(
+    build_node: NodeFactory,
+) -> None:
+    """The other half. A check that only ever fires one way has not been tested.
+
+    Without this, hardcoding the state to LOW-BANDWIDTH would pass the suite,
+    which is the shape the red-team pass found in six of sixteen mutations.
+    """
+    node = build_node(
+        radio=FakeRadio(
+            present=["wifi_ap", "wifi_mesh", "lora"],
+            linked=["wifi_ap", "wifi_mesh", "lora"],
+        )
+    )
+    node.power_on()
+
+    assert node.modes().bearer_capability == "NOMINAL-IP"
+    assert node.status().state != "LOW-BANDWIDTH"

@@ -14,9 +14,12 @@ The mutations live in ``test/flatsat/mutations.yml``, not in this file. They are
 the specification of what the suite must detect, so they are reviewable data
 rather than literals buried in a script.
 
-**This tool edits files in place and restores them.** It restores on success,
-on failure and on interrupt. If it is ever killed hard enough to skip that,
-``git diff`` shows exactly one mutation to revert.
+**This tool never touches the working tree.** It copies the tracked files into
+a temporary directory and mutates the copy, the same way ``test/unit`` plants
+its violations. An earlier version edited in place and restored afterwards,
+which was correct but made ``git status`` report phantom modifications for the
+length of a run: a stop hook and a concurrent test run were both misled by it
+before this changed.
 
 Exit codes: 0 every mutation was caught, 1 at least one survived, 2 a mutation
 no longer applies and the list needs updating.
@@ -25,8 +28,12 @@ no longer applies and the list needs updating.
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
+import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -47,14 +54,50 @@ class Mutation:
     describe: str
 
 
-def load_mutations() -> list[Mutation]:
-    """Read the mutation specification."""
+@contextmanager
+def tracked_copy() -> Iterator[Path]:
+    """Yield a temporary copy of the tracked tree, removed on the way out.
+
+    Tracked files only, so a stray build artifact or a half-finished scratch
+    file cannot change what the suite sees. The mutation run then has a tree of
+    its own and the real one stays readable by anything else looking at it.
+    """
+    # Resolved rather than spelled "git", so the subprocess cannot pick up
+    # something else named git from a caller's PATH.
+    git = shutil.which("git")
+    if git is None:
+        message = "git is not on PATH, so the tracked file list cannot be read."
+        raise RuntimeError(message)
+
+    # S603 flags any subprocess whose executable is not a literal. Here it is
+    # the resolved path of git and the arguments are constants, so there is no
+    # untrusted input to check. Suppressed on this line only.
+    listing = subprocess.run(  # noqa: S603
+        [git, "ls-files", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    with tempfile.TemporaryDirectory(prefix="fml-mutation-") as tmp:
+        root = Path(tmp)
+        for name in listing.stdout.split("\0"):
+            if not name:
+                continue
+            destination = root / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(REPO_ROOT / name, destination)
+        yield root
+
+
+def load_mutations(root: Path) -> list[Mutation]:
+    """Read the mutation specification, resolving paths against `root`."""
     with MUTATIONS.open(encoding="utf-8") as handle:
         document = yaml.safe_load(handle)
     return [
         Mutation(
             id=entry["id"],
-            path=REPO_ROOT / entry["file"],
+            path=root / entry["file"],
             # Block scalars carry a trailing newline that is an artifact of the
             # YAML, not part of the code being matched.
             find=entry["find"].rstrip("\n"),
@@ -71,11 +114,11 @@ PYTEST_ALL_PASSED = 0
 PYTEST_TESTS_FAILED = 1
 
 
-def run_suite() -> int:
-    """Run the test suite quietly and return pytest's exit code."""
+def run_suite(root: Path) -> int:
+    """Run the test suite quietly in `root` and return pytest's exit code."""
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "-q", "--no-header", "-x"],
-        cwd=REPO_ROOT,
+        cwd=root,
         capture_output=True,
         text=True,
         check=False,
@@ -83,7 +126,7 @@ def run_suite() -> int:
     return result.returncode
 
 
-def apply_and_test(mutation: Mutation) -> str:
+def apply_and_test(mutation: Mutation, root: Path) -> str:
     """Apply one mutation, run the suite, restore the file, report the verdict.
 
     Returns "killed" when a test failed, "SURVIVED" when the suite still
@@ -97,7 +140,7 @@ def apply_and_test(mutation: Mutation) -> str:
         mutation.path.write_text(
             original.replace(mutation.find, mutation.replace, 1), encoding="utf-8"
         )
-        code = run_suite()
+        code = run_suite(root)
     finally:
         mutation.path.write_text(original, encoding="utf-8")
 
@@ -123,28 +166,37 @@ def main(argv: list[str]) -> int:
     )
     args = parser.parse_args(argv)
 
-    mutations = load_mutations()
-    if args.only:
-        wanted = {m.strip() for m in args.only.split(",")}
-        mutations = [m for m in mutations if m.id in wanted]
+    # Listing needs no copy: it reads the specification and nothing else.
     if args.list:
-        for mutation in mutations:
-            print(f"{mutation.id}  {mutation.describe}")
+        for mutation in load_mutations(REPO_ROOT):
+            if not args.only or mutation.id in {
+                m.strip() for m in args.only.split(",")
+            }:
+                print(f"{mutation.id}  {mutation.describe}")
         return 0
 
-    if run_suite() != PYTEST_ALL_PASSED:
-        print("ERROR: the suite fails before any mutation is applied.", file=sys.stderr)
-        return 2
+    with tracked_copy() as root:
+        mutations = load_mutations(root)
+        if args.only:
+            wanted = {m.strip() for m in args.only.split(",")}
+            mutations = [m for m in mutations if m.id in wanted]
 
-    survivors: list[Mutation] = []
-    stale: list[Mutation] = []
-    for mutation in mutations:
-        verdict = apply_and_test(mutation)
-        print(f"  {mutation.id} {verdict:11s} {mutation.describe}")
-        if verdict == "SURVIVED":
-            survivors.append(mutation)
-        elif verdict in {"NOT-APPLIED", "BROKE-SUITE"}:
-            stale.append(mutation)
+        if run_suite(root) != PYTEST_ALL_PASSED:
+            print(
+                "ERROR: the suite fails before any mutation is applied.",
+                file=sys.stderr,
+            )
+            return 2
+
+        survivors: list[Mutation] = []
+        stale: list[Mutation] = []
+        for mutation in mutations:
+            verdict = apply_and_test(mutation, root)
+            print(f"  {mutation.id} {verdict:11s} {mutation.describe}")
+            if verdict == "SURVIVED":
+                survivors.append(mutation)
+            elif verdict in {"NOT-APPLIED", "BROKE-SUITE"}:
+                stale.append(mutation)
 
     caught = len(mutations) - len(survivors) - len(stale)
     print(f"\n{caught}/{len(mutations)} mutations caught.")
@@ -158,7 +210,8 @@ def main(argv: list[str]) -> int:
             file=sys.stderr,
         )
         for mutation in stale:
-            print(f"  {mutation.id} in {mutation.path}", file=sys.stderr)
+            relative = mutation.path.relative_to(root)
+            print(f"  {mutation.id} in {relative}", file=sys.stderr)
         return 2
 
     if survivors:

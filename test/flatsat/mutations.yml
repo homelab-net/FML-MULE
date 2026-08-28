@@ -18,7 +18,6 @@ mutations:
   # --- trust: FML-ADR-042 fail-closed behaviour ---------------------------
   - id: M01
     file: mule/admission.py
-
     describe: admission stops checking time at all, and so fails open
     find: "    if time.degraded:"
     replace: "    if False:"
@@ -62,14 +61,12 @@ mutations:
   # --- admission ----------------------------------------------------------
   - id: M07
     file: mule/admission.py
-
     describe: a node that never booted still admits devices
     find: "    if not booted:"
     replace: "    if False:"
 
   - id: M08
     file: mule/admission.py
-
     describe: admission ignores whether the required bearers are serving
     find: "    if not_serving:"
     replace: "    if False:"
@@ -109,14 +106,12 @@ mutations:
 
   - id: M14
     file: test/flatsat/node.py
-
     describe: services come from a list in the node rather than the package
     find: '                    self._params["mission"]["services"],'
     replace: '                    ["portal.field"],'
 
   - id: M15
     file: test/flatsat/node.py
-
     describe: radios come up even with no lawful configuration
     find: "enumerated = [str(b) for b in self._enumerated()] if resolved else []"
     replace: "enumerated = [str(b) for b in self._enumerated()]"
@@ -127,23 +122,46 @@ mutations:
     find: 'return f"{name}.{local_domain}" if local_domain else name'
     replace: "return name"
 
+  - id: M27
+    file: mule/power.py
+    describe: the reserve margin is spent, inflating every runtime estimate
+    find: "        * (1.0 - model.reserve_fraction)"
+    replace: "        * 1.0"
+
+  - id: M28
+    file: mule/power.py
+    describe: hosting shared services no longer costs anything
+    find: >-
+      model.hosting_load_w if hosting_shared_services else 0.0
+    replace: "0.0"
+
+  - id: M29
+    file: mule/power.py
+    describe: cold no longer derates the estimate
+    find: "        for threshold, fraction in self.cold_derating:"
+    replace: "        for threshold, fraction in ():"
+
+  - id: M30
+    file: mule/power.py
+    describe: a node with no measured model invents a runtime anyway
+    find: "    if model is None:"
+    replace: "    if False:"
+
   # --- the status surface -------------------------------------------------
   - id: M16
-    file: test/flatsat/node.py
+    file: mule/status.py
     describe: status invents a projected runtime
-    find: "projected_runtime_minutes=self._power.projected_runtime_minutes(),"
+    find: "projected_runtime_minutes=observed.power.projected_runtime_minutes,"
     replace: "projected_runtime_minutes=90,"
 
   - id: M17
     file: mule/status.py
-
     describe: the network is always reported healthy
     find: "network_degraded=_network_degraded(observed),"
     replace: "network_degraded=False,"
 
   - id: M18
     file: mule/status.py
-
     describe: the battery is always reported healthy
     find: >-
       battery_healthy=observed.battery_healthy if observed.battery_present
@@ -152,7 +170,6 @@ mutations:
 
   - id: M19
     file: mule/status.py
-
     describe: LoRa is always reported available
     find: >-
       lora_available="lora" in observed.enumerated and "lora" in
@@ -161,31 +178,142 @@ mutations:
 
   - id: M20
     file: mule/status.py
-
     describe: a sensor outside its envelope no longer raises a fault
-    find: "    if not observed.within_thermal_envelope:"
+    find: "    if observed.thermal.outside_envelope:"
     replace: "    if False:"
 
   - id: M21
     file: mule/status.py
-
     describe: thermal throttling no longer degrades the reported state
-    find: "    if observed.thermally_throttled:"
+    find: "    if observed.thermal.throttling:"
     replace: "    if False:"
 
   - id: M22
     file: mule/status.py
-
     describe: EMCON is never reported
-    find: "emcon_active=observed.emcon,"
-    replace: "emcon_active=False,"
+    find: "        emcon_active=observed.modes.emission == \"EMCON-SILENT\","
+    replace: "        emcon_active=False,"
 
   - id: M23
     file: mule/status.py
-
     describe: a node missing a required bearer is not faulted
     find: "    if not observed.booted or missing:"
     replace: "    if not observed.booted:"
+
+  - id: M31
+    file: mule/thermal.py
+    describe: a node with no limits claims to be inside an envelope anyway
+    find: "    if limits is None:"
+    replace: "    if False:"
+
+  - id: M32
+    file: mule/thermal.py
+    describe: per-sensor limits are ignored, so a battery gets processor limits
+    find: "        for name, warn, critical in self.per_sensor:"
+    replace: "        for name, warn, critical in ():"
+
+  - id: M33
+    file: mule/thermal.py
+    describe: a sensor exactly at its critical limit is treated as inside it
+    find: "        if value >= critical_at:"
+    replace: "        if value > critical_at:"
+
+  - id: M34
+    file: mule/thermal.py
+    describe: throttling is withheld when the thermal state is unknown
+    find: "    throttling = readings.throttling_reported()"
+    replace: "    throttling = False"
+
+  - id: M35
+    file: mule/sysfs.py
+    describe: millidegrees are read as degrees, off by a factor of a thousand
+    find: "        return int(raw) / MILLIDEGREES_PER_DEGREE"
+    replace: "        return float(int(raw))"
+
+  - id: M36
+    file: mule/sysfs.py
+    describe: an unmapped thermal zone is guessed at instead of skipped
+    find: "if sensor is None:\n                continue"
+    replace: "if sensor is None:\n                sensor = 'processor'"
+
+  - id: M37
+    file: mule/sysfs.py
+    describe: a platform with no throttle probe claims it is not throttling
+    find: "            return None\n        return self._throttling_probe()"
+    replace: "            return False\n        return self._throttling_probe()"
+
+  # --- mule/modes.py ------------------------------------------------------
+  - id: M38
+    file: mule/modes.py
+    describe: fitment is treated as capability, so an unlinked radio raises the rung
+    find: "    linked = set(associated)"
+    replace: "    linked = set(associated) | {'wifi_mesh'}"
+
+  - id: M39
+    file: mule/modes.py
+    describe: the ladder is read worst first, putting a connected node on LoRa
+    find: "    for bearer, rung in CAPABILITY_LADDER:"
+    replace: "    for bearer, rung in reversed(CAPABILITY_LADDER):"
+
+  - id: M40
+    file: mule/modes.py
+    describe: a node with nothing linked is reported at the top of the ladder
+    find: "    return \"ISOLATED\""
+    replace: "    return \"NOMINAL-IP\""
+
+  - id: M41
+    file: mule/modes.py
+    describe: a node that cannot see a peer host claims there is none
+    find: "        shared_tak = None\n        undetermined.append("
+    replace: "        shared_tak = \"SERVERLESS-TAK\"\n        undetermined.append("
+
+  - id: M42
+    file: mule/modes.py
+    describe: nothing reporting WAN is read as WAN confirmed absent
+    find: "    if inputs.wan_reachable is None:"
+    replace: "    if False:"
+
+  - id: M43
+    file: mule/modes.py
+    describe: a node with no measured power model reports itself energy nominal
+    find: "    if runtime is None:\n        energy = None"
+    replace: "    if runtime is None:\n        energy = \"NOMINAL-ENERGY\""
+
+  - id: M44
+    file: mule/modes.py
+    describe: with no economy threshold the node assumes it has energy to spare
+    find: "    elif economy_below_minutes is None:\n        energy = None"
+    replace: "    elif economy_below_minutes is None:\n        energy = \"NOMINAL-ENERGY\""
+
+  - id: M45
+    file: mule/modes.py
+    describe: the deployment axis ignores whether an inter-node bearer linked
+    find: "if any(bearer in linked for bearer in fitted)"
+    replace: "if fitted"
+
+  - id: M46
+    file: mule/modes.py
+    describe: a commanded axis is hardcoded instead of carried from its input
+    find: "        emission=inputs.emission,"
+    replace: "        emission=\"NORMAL-EMISSION\","
+
+  - id: M47
+    file: mule/modes.py
+    describe: the environment axis is hardcoded instead of carried
+    find: "        environment=inputs.environment,"
+    replace: "        environment=\"LAB\","
+
+  - id: M48
+    file: mule/status.py
+    describe: EMCON is decided again in status instead of read from the mode axes
+    find: "    if observed.modes.emission == \"EMCON-SILENT\":"
+    replace: "    if False:"
+
+  - id: M49
+    file: mule/status.py
+    describe: the LoRa rung no longer reaches the operator as LOW-BANDWIDTH
+    find: "    if observed.modes.bearer_capability == \"LOW-BANDWIDTH\":"
+    replace: "    if False:"
 
   # --- fixture honesty ----------------------------------------------------
   - id: M24

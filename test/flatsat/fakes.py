@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from mule.bearers import Bearer
+from mule.thermal import Sensor
 from mule.timekeeping import TimePolicy
 
 #: Offsets used to build scripted clock readings. Expressed relative to the
@@ -79,49 +80,93 @@ class FakeRadio:
 
 @dataclass
 class FakePower:
-    """Scripted power state.
+    """Scripted raw power readings.
 
-    Simulates: pack presence and pack health.
-    Does not simulate: consumption, endurance or runtime. `projected_runtime`
-    returns None because TBR-PWR-01 has not closed and no measured load model
-    exists.
+    Simulates: pack presence, pack health, reported charge, pack temperature.
+    Does not simulate: discharge behaviour, capacity fade, load. There is no
+    measured curve to model and inventing one would put a plausible number into
+    a test that later gets quoted. TBR-PWR-01 measures those.
+
+    **It reaches no conclusion.** How long the node will keep running is
+    `mule.power.assess`'s decision, made from these readings and a measured
+    model that does not exist yet.
+
+    `charge` and `temperature_c` default to None: a pack that cannot report its
+    own charge, and one that is not temperature-instrumented, are configurations
+    the program has to handle rather than assume away.
     """
 
-    battery: bool = False
+    pack: bool = False
     healthy: bool = True
+    charge: float | None = None
+    temperature_c: float | None = None
 
-    def battery_present(self) -> bool:
+    def pack_present(self) -> bool:
         """Whether a protected battery assembly is fitted."""
-        return self.battery
+        return self.pack
 
-    def battery_healthy(self) -> bool:
+    def pack_healthy(self) -> bool:
         """Whether the pack reports itself within its operating envelope."""
-        return self.battery and self.healthy
+        return self.pack and self.healthy
 
-    def projected_runtime_minutes(self) -> int | None:
-        """Return None always. No power model exists; see TBR-PWR-01."""
-        return None
+    def state_of_charge_fraction(self) -> float | None:
+        """Fraction of capacity remaining, or None where nothing reports it."""
+        return self.charge
+
+    def pack_temperature_c(self) -> float | None:
+        """Pack temperature, or None where it is not instrumented."""
+        return self.temperature_c
 
 
 @dataclass
 class FakeThermal:
-    """Scripted thermal state.
+    """Scripted raw thermal readings.
 
-    Simulates: a throttle flag and an in-envelope flag.
-    Does not simulate: temperature, heat flow, ambient sensitivity or the
+    Simulates: what each fitted sensor reports, and whether the compute element
+    says it is throttling.
+    Does not simulate: heat flow, ambient sensitivity, solar load, or the
     enclosure. TBR-THERM-01 measures those and needs hardware.
+
+    **It reaches no conclusion.** Whether a temperature is inside an envelope is
+    `mule.thermal.assess`'s decision, made against limits that do not exist yet.
+    An earlier version returned `within_envelope=True` by default, so a node
+    with no defined envelope asserted it was inside one.
+
+    The default is an empty sensor set: a node reports the sensors it has, and
+    which sensors a build carries is TBR-HW-01 and TBR-THERM-01.
     """
 
-    is_throttled: bool = False
-    in_envelope: bool = True
+    sensors: dict[Sensor, float | None] = field(default_factory=dict)
+    is_throttling: bool | None = None
 
-    def throttled(self) -> bool:
-        """Whether the compute element is currently thermally throttled."""
-        return self.is_throttled
+    def temperatures_c(self) -> dict[Sensor, float | None]:
+        """Each fitted sensor's reading, or None where it did not report."""
+        return dict(self.sensors)
 
-    def within_envelope(self) -> bool:
-        """Whether all monitored sensors are inside their stated limits."""
-        return self.in_envelope
+    def throttling_reported(self) -> bool | None:
+        """Whether the compute element reports that it is throttling.
+
+        None by default: a scenario that did not script this has not said the
+        node is running unthrottled, and the fake must not say it either.
+        """
+        return self.is_throttling
+
+    @classmethod
+    def at(cls, temperature_c: float, **kwargs: object) -> FakeThermal:
+        """Build a node whose every SAD section 25.7 sensor reads the same.
+
+        A convenience for scenarios about one temperature. Real nodes do not
+        have a single temperature, which is why the general form takes a
+        mapping.
+        """
+        sensors: dict[Sensor, float | None] = {
+            "processor": temperature_c,
+            "radio": temperature_c,
+            "battery": temperature_c,
+            "enclosure": temperature_c,
+            "ambient": temperature_c,
+        }
+        return cls(sensors=sensors, **kwargs)  # type: ignore[arg-type]
 
 
 @dataclass

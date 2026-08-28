@@ -14,6 +14,299 @@ this program needs them visible:
 
 ## Unreleased
 
+### The node knows which operating modes it is in
+
+CONOPS section 50 names thirteen operating modes, never says whether more than
+one may hold at once, and gives no entry or exit criteria. `CCR-01` raises both
+gaps and establishes `CCR-##` for CONOPS change requests.
+
+The modes are concurrent, and the CONOPS demonstrates it rather than stating
+it: section 51 lets exercise control "force degradation states", which a mode
+exclusive of degradation could not do. `mule/modes.py` implements the part of
+`CCR-01` that adds no binding clause, placing the node on **nine concurrent
+axes**. Hysteresis belongs to the part that is not approved, and is not built.
+
+Only two axes are derived. The capability ladder needs no new readings: CONOPS
+section 5.5's rungs map onto the bearer set, so bearer association places the
+node, and section 50.9's ISOLATED is an access point still serving with no
+inter-node bearer linked. Association gives the ceiling; link quality may lower
+it once `TBR-RF-01` and `TBR-RF-02` supply thresholds.
+
+Three axes report `None`. A node not hosting cannot see whether a peer is
+(`TBR-TAK-01`), nothing reports WAN reachability, and the energy axis needs both
+a measured model and an economy threshold (`TBR-PWR-01`). Every axis names its
+nominal value explicitly so that "undetermined" and "unremarkable" cannot
+collapse into each other, which is the defect this repository has now shipped
+four times.
+
+`mule/status.py` reads EMCON and the ladder from the axes rather than deciding
+either again, and `LOW-BANDWIDTH` becomes reachable: SAD section 22 named the
+operator state and nothing could produce it.
+
+### The boundary between `mule/` and the blocked services
+
+`FML-ADR-052`. `FML-ADR-051` said `mule/` shall not acquire the four blocked
+components in `services/`, which was a rule about directories. `mule/status.py`
+had already implemented what `services/status-aggregator/` describes, and
+nobody noticed.
+
+The aggregator's stated hazard is **inventing a state taxonomy**, not reasoning
+about state, so a pure decision function is permitted on four conditions. Check
+18 enforces the fourth, and found a pairing nobody had recorded: `mission-trust`
+against `FML-ADR-042`, which `mule/timekeeping.py` decides.
+
+### Readings must come from a known interface, and say what unit they are in
+
+Two more checks, both generalising the readings register.
+
+**Kernel interface or command.** `docs/readings.md` named `chronyc`, `hwclock`,
+`timedatectl` and `vcgencmd` without recording that these are a different kind
+of thing from a `sysfs` path. A `sysfs` read costs nothing: it is kernel ABI,
+stable across distributions and present on every node. A command is a package in
+the image, a fork per reading, and output that is **not** ABI-stable.
+
+`os/image/manifest/packages.list` is empty. So four readings depended on
+binaries nothing guaranteed would exist, and a node in the field would have
+found out first.
+
+Every reading now declares a kind - `kernel`, `command` or `none` - and a
+`command` row names the package that provides it. Check 17 enforces both and
+**reports** how many of those packages are pinned: one reading needs a command,
+zero pinned, because nothing is pinned at all pending `TBR-LINUX-01`. Reported
+rather than failed, since that gap cannot be closed yet.
+
+Writing it moved two rows off commands entirely. `rtc_time` reads
+`/sys/class/rtc/rtc0/time` rather than shelling out to `hwclock`, which drops a
+`util-linux` dependency for nothing. `vcgencmd` is recorded as what it is:
+Raspberry Pi VideoCore userland, not a Debian package, so a reading needing it
+constrains `TBR-HW-01`.
+
+**Units belong in the name.** `state_of_charge` returned a fraction while Linux
+reports `/sys/class/power_supply/<supply>/capacity` as a **percent**. The unit
+lived in a docstring, where a reader writing the conversion would not see it. It
+is now `state_of_charge_fraction`, and check 16 requires every numeric reading
+to end in a unit suffix.
+
+That trap is not hypothetical here: the thermal framework reports millidegrees
+and the power supply class reports tenths of a degree, a hundred-fold
+difference between two adjacent subsystems both called "temp".
+
+#### Added
+
+- Checks 16 and 17 in `tools/validate-docs.sh`; `tools/list-readings.py` now
+  emits a unit verdict per reading. All three failure modes were watched firing.
+- Two rows in the `AGENTS.md` trigger table: prefer a kernel interface to a
+  command and name the package when only a command exists; put the unit in the
+  name of any reading that returns a number.
+
+### Two recurring defects get machine checks
+
+Both shapes below had happened more than once, and both were caught by a person
+noticing rather than by anything in the repository. `AGENTS.md` says that when a
+`[review]` rule is found broken it becomes `[CI]` in the same change. These are
+overdue.
+
+**Shape one: a type that cannot say "I cannot tell".** Four instances.
+`FakeClock` returned a credibility verdict; `FakePower` returned `None` as a
+stub rather than a refusal; `FakeThermal` defaulted to `within_envelope=True`,
+so a node with no measured envelope asserted it was inside one. Fixing that
+last one, the replacement interface returned `throttling_reported() -> bool`,
+forcing a board with no throttle signal to answer `False` - **the same claim,
+one field over, in the module written to remove it.**
+
+**Shape two: unreachable defensive code.** Two instances. The EIRP check that
+compared a value against the field it had been copied from, and the `except
+OSError` around `Path.glob`, which does not raise for a missing directory. Both
+read as safety nets.
+
+#### Added
+
+- `docs/readings.md`: every value the node reads from its own hardware, where
+  it really comes from on a Debian node (`FML-ADR-022`), its units, and whether
+  a reader exists. **Check 15** in `tools/validate-docs.sh` requires a row for
+  every reading method in `mule/`, so a decision cannot be written without
+  someone having asked what the platform can actually provide. That is the
+  question that found the defect above, asked in advance.
+- `tools/coverage-check.sh` and `tools/list-readings.py`, both wired into
+  `tools/lint.sh` and CI.
+
+`mule/` is now held at **100% statement coverage**. Not a number somebody
+liked: both unreachable lines were single statements in otherwise well-covered
+files, so any threshold below would have hidden both. An uncovered line in
+decision code is a decision nobody tested or code nobody can reach. A line that
+genuinely cannot be exercised takes an explicit `# pragma: no cover` with a
+reason, which is a visible decision rather than a silent gap. `tools/` and
+`test/` are deliberately excluded.
+
+Both gates were watched failing before being committed. The first attempt at
+proving the coverage gate used `if False:`, which Python's compiler elides
+entirely, so coverage never saw it - the probe was wrong, not the gate.
+
+#### Findings recorded in `docs/readings.md`
+
+- **The power supply class reports temperature in tenths of a degree**, where
+  the thermal framework uses millidegrees. Reading one as the other is a
+  hundred-fold error that looks entirely plausible.
+- **`rtc_backup_cell_ok` has no standard Linux interface.** The RTC class ABI
+  defines no battery-low node; some drivers expose one, most do not. That
+  reading underpins `FakeClock.dead_backup_cell()`, the scenario `FML-ADR-042`
+  was written for. On a board that cannot report it the node still fails
+  closed, but by noticing the time is implausible rather than by being told the
+  cell is flat - a weaker and slower signal, and a cell that has just failed on
+  a node that has not yet drifted looks fine. Whether the selected RTC exposes
+  that flag is a **selection criterion** for `TBR-TIME-01` and `TBR-HW-01`, not
+  an implementation detail.
+
+### mule/sysfs.py: how a temperature actually reaches the node
+
+`mule/thermal.py` decided what readings mean. Nothing produced them. Asking how
+thermal would read on the selected hardware exposed two things.
+
+**A defect, one field over from the one just fixed.** `throttling_reported()`
+returned `bool`, so a board with no throttle signal had to answer `False` -
+which is a claim that the node is *not* throttling, not the absence of a claim.
+The same shape as `within_envelope=True` by default. It is now `bool | None`,
+and `FakeThermal` defaults to `None`, because a scenario that did not script
+throttling has not said the node is running unthrottled.
+
+**A dead branch.** `temperatures_c` guarded `Path.glob` with `except OSError`.
+`Path.glob` returns empty for a missing or non-directory root rather than
+raising, so the branch was unreachable code that read like a safety net. Same
+shape as the EIRP check. Removed, and a comment says why there is nothing to
+guard.
+
+#### What is decided, and what is not
+
+- **Decided:** `/sys/class/thermal/thermal_zone<N>/temp` in millidegrees
+  Celsius, `type` naming the zone. Kernel ABI, identical on every Debian-family
+  node (`FML-ADR-022`), the same on a Pi and an x86 box. No trade gates it.
+- **Per board:** which zone is the processor. Zone type strings are
+  driver-supplied and unstandardised - `cpu-thermal`, `bcm2711_thermal`,
+  `soc_thermal`. `TBR-HW-01` selects the board, so `ZoneMap` is configuration
+  and is **empty today**: the node reports no temperatures rather than assuming
+  `thermal_zone0` is its processor.
+- **Not portable at all:** throttling. Linux has no general flag. The probe is
+  injected; a platform with none reports `None`.
+- **Not yet possible:** battery, enclosure and ambient readings need a BMS and
+  an enclosure that do not exist.
+
+Matching is on zone `type`, never zone number: numbering follows driver probe
+order and moves between kernel versions, which is the class of bug that works on
+the bench and fails after an update.
+
+#### Added
+
+- `mule/sysfs.py` and `test/flatsat/test_sysfs.py`. 100% covered, three new
+  mutations, all caught. 37 of 37 overall.
+- A test that reads `48250` as `48.25`, because getting millidegrees wrong
+  faults a healthy machine instantly, and one that reads `-15000` as `-15.0`,
+  because CONOPS section 61 makes cold first-order and a sign error would be
+  wrong exactly when it matters most.
+
+**Nothing here has run against real hardware.** The tests build a synthetic
+sysfs tree, faithful to the documented interface and silent about any board.
+This container exposes no `/sys/class/thermal` at all, which is itself why the
+missing-root case is tested. A capture from a real node belongs in
+`test/fixtures/` with node identifier, capture date and image build recorded.
+
+### mule/thermal.py, and the last fake that reached a verdict
+
+`FakeThermal` returned `within_envelope=True` by default and the node passed it
+straight through, so **a node with no defined thermal envelope asserted it was
+inside one**. `TBR-THERM-01` has not closed. There is no envelope. The node was
+making a claim about a limit nobody has measured, which is the single thing this
+repository exists to not do.
+
+It was the last of three. `FakeClock` used to return `CREDIBLE` or `DEGRADED`
+directly; `FakePower` returned `None` for runtime as a stub rather than a
+refusal. Each is now a readings fake with the decision in `mule/`.
+
+SAD section 25.7 draws the line for you: it lists processor, radio, battery,
+enclosure and ambient temperature **and thermal throttling** among the things
+`TBR-THERM-01` measures. Throttling is a reading - the compute element states
+it. Being inside an envelope is a decision, because it compares a reading
+against a limit. So the comparison is written now and the limits arrive later,
+as `ThermalLimits`.
+
+With no limits the state is `UNKNOWN`, however hot the node is. Not knowing is
+not the same as being fine and not the same as failing. Throttling is still
+reported in that state, because it is the one thermal fact available without a
+measured envelope and withholding it would hide the clearest signal the node
+has.
+
+#### Added
+
+- `mule/thermal.py`: `ThermalReadings`, `ThermalLimits` (no defaults, all
+  `TBR-THERM-01`'s), `assess`. 100% covered, four new mutations, all caught.
+- Per-sensor limits, because SAD section 25.7 measures the pack separately from
+  the processor and one envelope across both would be wrong in a way that looks
+  reasonable: comfortable for the processor, dangerous for the battery.
+- A fault that **names the breached sensor**. "Too hot" is not an action; an
+  operator told the battery is over its limit shades the pack, one told the
+  processor is moves the node.
+- `test/flatsat/test_thermal.py`, including that a sensor exactly at its
+  critical figure is a breach. A limit is where the envelope ends, not the last
+  temperature inside it.
+
+#### Changed
+
+- `ThermalState` left `test/flatsat/interfaces.py` for `mule/thermal.py`.
+  `RadioState` is now the only interface left there, and the location note
+  already says why it stays.
+- `FakeThermal` reports a sensor mapping and a throttling flag. A sensor absent
+  from the mapping is not fitted; one present with `None` is fitted and did not
+  answer, and an operator would act differently on each.
+
+34 of 34 mutations caught.
+
+### mule/power.py: the procedure, written before the numbers exist
+
+An open trade blocks a **value**, not a **decision**. That distinction had been
+getting lost, and the repository's own rule already made it: code written now is
+expected to be correct, exercised against fakes, and to work when it meets real
+hardware; it just cannot be *known* to.
+
+CONOPS sections 59 to 61 specify a complete procedure - pack capacity, reserve
+margin, the service-host power penalty, cold derating - and are explicit that
+the eight-hour figure is a planning objective and not a verified minimum.
+`TBR-PWR-01` has measured none of the inputs. So the procedure is written now
+and the inputs arrive later, as a `PowerModel` the caller supplies.
+
+With no model the node says it cannot tell and names the trade. With one, it
+answers. **Nothing in the node changes the day `TBR-PWR-01` closes**: two of the
+thirteen CONOPS section 67 questions stop answering "cannot say" because
+somebody measured a battery, not because somebody wrote software.
+
+Three ways of not knowing are kept distinct, because an operator acts
+differently on each: no pack fitted, no measured model, and a fitted pack that
+cannot report its own charge. Collapsing them into one `None` would tell nobody
+anything.
+
+#### Added
+
+- `mule/power.py`: `PowerReadings` (raw), `PowerModel` (measured inputs, no
+  defaults, all `TBR-PWR-01`'s), and `assess`. 100% covered, four new mutations,
+  all caught.
+- `test/flatsat/test_power.py`, and scenarios showing the same node answering
+  `None` today and a real estimate once a fixture model is supplied.
+- Cold derating as a caller-supplied table, per CONOPS section 61. An
+  uninstrumented pack gets no derating, which is optimistic and deliberately
+  visible rather than a penalty invented for a temperature nobody read.
+
+#### Changed
+
+- `PowerState` left `test/flatsat/interfaces.py` for `mule/power.py` as
+  `PowerReadings`, the same move time made: deciding how long a node will keep
+  running is a judgement, and a fake making it is untestable.
+- `FakePower` reports charge and pack temperature and reaches no conclusion.
+- The fixture model deliberately does **not** produce the CONOPS eight-hour
+  objective. A fixture landing on the objective would invite someone to read
+  arithmetic on invented numbers as confirmation of it.
+
+Writing the tests immediately caught a real bug: `assess` passed the
+`pack_temperature_c` **method** rather than calling it, so cold derating never
+ran.
+
 ### tools/lint.sh now runs the shell tests, which it never did
 
 CI's first run on the repository found two `bats` tests failing. They had been

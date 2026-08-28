@@ -142,6 +142,36 @@ PATCH
   [ "$status" -ne 0 ]
 }
 
+@test "validate-docs detects a blocked service that hides what mule/ already does" {
+  make_sandbox
+  # FML-ADR-052. The failure this catches is a reader arriving at a directory
+  # whose README says it contains nothing else, and concluding that none of the
+  # component has been written, when a decision function in mule/ already
+  # implements part of it. Strip every mention of the module from the blocked
+  # README and the pairing must be reported.
+  sed -i 's|mule/status\.py|that module|g' \
+    "$SANDBOX/services/status-aggregator/README.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"does not name mule/status.py"* ]]
+}
+
+@test "validate-docs does not pair a blocked service with mule/ through FML-ADR-052 itself" {
+  make_sandbox
+  # The rule ADR is cited by every blocked README that carries a cross-reference
+  # and by every mule/ module that declares which conditions it meets. Pairing
+  # on it would demand a link between all of them, which is a false link: the
+  # exact defect shape this repository has recorded twice. Cite it from a
+  # blocked README that has no other reason to name a module, and the check must
+  # stay quiet.
+  printf '\nSee `FML-ADR-052` for the boundary rule.\n' \
+    >> "$SANDBOX/services/gateways/README.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
 @test "gen-status --check detects a hand-edited STATUS.md" {
   make_sandbox
   # STATUS.md is generated and never hand-edited. A stale status page is how a
