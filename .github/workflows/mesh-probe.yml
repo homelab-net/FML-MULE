@@ -51,10 +51,20 @@ jobs:
           ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/ || true
           ls /lib/modules/"$(uname -r)"/kernel/net/batman-adv/ || true
 
-      - name: Install the radio userspace
+      - name: Install the radio userspace and the extra kernel modules
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq iw batctl wireless-tools iproute2
+          # The Azure kernel on a runner ships a trimmed module set:
+          # mac80211_hwsim and batman-adv are in linux-modules-extra, which is
+          # not installed by default. Without this the probe fails at modprobe
+          # with "not found in directory /lib/modules/<kernel>", which is what
+          # the first run did.
+          sudo apt-get install -y -qq "linux-modules-extra-$(uname -r)"
+          echo "--- modules now present ---"
+          ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/virtual/ || \
+            ls /lib/modules/"$(uname -r)"/kernel/drivers/net/wireless/ || true
+          ls /lib/modules/"$(uname -r)"/kernel/net/batman-adv/ || true
           echo "--- versions, which are the compatibility set on this runner ---"
           iw --version
           batctl -v
