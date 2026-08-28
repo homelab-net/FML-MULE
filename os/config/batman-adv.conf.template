@@ -68,9 +68,23 @@ hard_interfaces=TBD
 hard_interface_mtu=1560
 
 # --- Parameters -------------------------------------------------------------
-orig_interval=TBD              # Originator message interval, ms.
-                               # Directly trades convergence time against
-                               # airtime on a low-rate bearer. TBR-RF-01.
+orig_interval=TBD              # Originator message interval, ms. Default 1000.
+                               #
+                               # MEASURED NOT TO AFFECT WARM-UP, which was the
+                               # reason to touch it. Time from mesh formation to
+                               # first reply, cold, three nodes on veth:
+                               #
+                               #   1000ms  24s     500ms  22s     200ms  23s
+                               #
+                               # So the delay before a node can reach a peer is
+                               # not originator propagation, and lowering this
+                               # buys nothing while costing airtime, which is
+                               # the scarce thing on the real bearer.
+                               #
+                               # Still TBD, because the question this value
+                               # actually decides is convergence after a
+                               # TOPOLOGY CHANGE on a lossy link, which veth
+                               # cannot pose. TBR-RF-01 owns that.
 
 hop_penalty=TBD                # TBR-RF-01
 
@@ -106,8 +120,13 @@ multicast_mode=0               # Multicast optimisation OFF.
 #
 #   arping -A -c 3 -I bat0 <address>
 #
-# The remaining ~22s is NOT ARP and is not explained. Do not assume this is the
-# whole warm-up story.
+# The remaining ~22s is NOT ARP, NOT the distributed ARP table, and NOT the
+# originator interval. All three were measured and only gratuitous ARP moved it.
+#
+# Note the measurement's own limit before quoting the figure: the probe polls
+# with two one-second pings and a one-second sleep, so a failing iteration costs
+# about three seconds and 22s is roughly seven iterations. The true time is
+# somewhere inside that granularity. It is a bound, not a stopwatch.
 gratuitous_arp_on_bringup=yes
 
 distributed_arp_table=0        # Distributed ARP table OFF.
