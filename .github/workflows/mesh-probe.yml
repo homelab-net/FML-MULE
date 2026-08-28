@@ -54,7 +54,7 @@ permissions:
 
 jobs:
   batman:
-    name: "Mesh: DAT=${{ matrix.dat }} gratuitous-ARP=${{ matrix.garp }}"
+    name: "Mesh: orig_interval=${{ matrix.orig_interval }}ms"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -63,8 +63,12 @@ jobs:
         # only be asked once per mesh: the moment traffic flows the translation
         # tables are warm and the question is gone. So each combination gets its
         # own runner rather than being sequenced in one job.
-        dat: [0, 1]
-        garp: ["off", "on"]
+        # gratuitous ARP is settled: measured six seconds better, so it is on
+        # everywhere now. DAT is settled too: measured no difference. The open
+        # variable is the originator message interval, which is how often a
+        # node advertises itself and therefore how fast anything converges.
+        # batman-adv defaults to 1000ms.
+        orig_interval: [1000, 500, 200]
     steps:
       - uses: actions/checkout@v4
 
@@ -166,8 +170,9 @@ jobs:
             # os/config/batman-adv.conf.template carries multicast_mode as TBD,
             # and CONOPS section 35 keeps LoRa a separate non-IP plane, so
             # there is no mesh-wide multicast story to optimise for yet.
+            sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
             sudo ip netns exec "$ns" batctl meshif bat0 \
-              distributed_arp_table "${{ matrix.dat }}"
+              orig_interval "${{ matrix.orig_interval }}"
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
             sudo ip netns exec "$ns" ip link set bat0 up
           }
@@ -190,7 +195,7 @@ jobs:
           #
           # It costs three frames per node at bring-up and belongs in the
           # interface unit, not in a daemon.
-          if [ "${{ matrix.garp }}" = "on" ]; then
+          if true; then
             i=1
             for n in node1 node2 node3; do
               sudo ip netns exec "$n" arping -A -c 3 -I bat0 "10.42.0.$i" \
@@ -231,57 +236,51 @@ jobs:
 
       - name: Measure how long until the mesh is usable, cold, no pinning
         run: |
-          # THE MEASUREMENT THAT MATTERS. Everything below runs with static
-          # neighbour entries, which is scaffolding no field node has. This runs
-          # first, on a cold mesh, with nothing pinned, because once traffic has
-          # flowed the translation tables are warm and the question cannot be
-          # asked again in the same run.
+          # Instrumented. The previous version reported one total and nothing
+          # else, which said the warm-up was 22 seconds and gave no way to
+          # attack it. This prints a line per attempt so the SHAPE is visible:
+          # how many originators are known, how many peer clients are in the
+          # global translation table, and whether each target answers yet.
           #
-          # Runs 9 and 10 both reported, in their own words, "unicast forwarding
-          # WORKS with both caches pinned, ARP resolution is the entire fault".
-          # That verdict was correct and was misread as its opposite. This turns
-          # it into a number instead of a verdict.
+          # If the table fills long before the ping succeeds, the delay is not
+          # discovery. If they fill together, it is.
           #
-          # The convergence gate above waits for two originators. That is
-          # evidently NOT sufficient for a client to reach a peer, and if this
-          # step reports a long delay then mule/modes.py reporting NOMINAL-IP on
-          # originator presence alone is reporting a capability the node does
-          # not yet have.
+          # The pings themselves generate traffic, which warms the mesh. That
+          # is deliberate and it is the operational question: how long until a
+          # node that is TRYING to communicate can.
+          start=$(date +%s)
+          one=-1
+          two=-1
+          echo "  t  originators  transglobal  1hop  2hop"
+          for _ in $(seq 1 40); do
+            t=$(( $(date +%s) - start ))
+            orig=$(sudo ip netns exec node1 batctl meshif bat0 originators |
+                     grep -cE '^ \* +([0-9a-f]{2}:){5}' || true)
+            tg=$(sudo ip netns exec node1 batctl meshif bat0 transglobal |
+                   grep -cE '([0-9a-f]{2}:){5}' || true)
+            if [ "$one" -lt 0 ] &&
+               sudo ip netns exec node1 ping -c 1 -W 1 10.42.0.2 >/dev/null 2>&1
+            then one=$t; fi
+            if [ "$two" -lt 0 ] &&
+               sudo ip netns exec node1 ping -c 1 -W 1 10.42.0.3 >/dev/null 2>&1
+            then two=$t; fi
+            printf '%3ds  %11s  %11s  %4s  %4s\n' \
+              "$t" "$orig" "$tg" \
+              "$( [ "$one" -ge 0 ] && echo OK || echo . )" \
+              "$( [ "$two" -ge 0 ] && echo OK || echo . )"
+            [ "$one" -ge 0 ] && [ "$two" -ge 0 ] && break
+            sleep 1
+          done
 
-          probe() {
-            target=$1
-            start=$(date +%s)
-            for _ in $(seq 1 60); do
-              if sudo ip netns exec node1 ping -c 1 -W 1 "$target" >/dev/null 2>&1
-              then
-                echo "$(( $(date +%s) - start ))"
-                return 0
-              fi
-              sleep 1
-            done
-            echo "-1"
-            return 0
-          }
-
-          one=$(probe 10.42.0.2)
-          two=$(probe 10.42.0.3)
           echo
           echo "COLD MESH, NO PINNED ARP."
-          echo "  distributed_arp_table: ${{ matrix.dat }}"
-          echo "  gratuitous ARP:        ${{ matrix.garp }}"
-          echo "  seconds from converged to first reply, one hop:  $one"
-          echo "  seconds from converged to first reply, two hops: $two"
-          echo
-          sudo ip netns exec node1 ip neigh show dev bat0
-          echo
-          if [ "$one" = "-1" ] || [ "$two" = "-1" ]; then
-            echo "NEVER BECAME USABLE within 60s per target."
-            echo "This is a real defect, not a test artifact: a node that joins"
-            echo "a mesh cannot reach its peers, and the convergence gate above"
-            echo "would still have called the mesh ready."
+          echo "  orig_interval:  ${{ matrix.orig_interval }} ms"
+          echo "  first reply one hop:  ${one}s"
+          echo "  first reply two hops: ${two}s"
+          if [ "$one" -lt 0 ] || [ "$two" -lt 0 ]; then
+            echo "NEVER BECAME USABLE. That is a defect, not a test artifact."
             exit 1
           fi
-          echo "Mesh became usable without any manual ARP entry."
 
       - name: Pin both ARP caches
         run: |
