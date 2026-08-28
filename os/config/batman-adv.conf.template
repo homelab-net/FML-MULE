@@ -86,11 +86,10 @@ multicast_mode=0               # Multicast optimisation OFF.
                                # separate non-IP plane, so there is no
                                # cross-bearer multicast to optimise for.
                                #
-                               # A REASONED DEFAULT, NOT A MEASURED ONE. It was
-                               # disabled during mesh-probe fault isolation and
-                               # changed nothing, so this is not evidence that
-                               # it helps; it is a statement that nothing yet
-                               # needs it. Revisit under TBR-RF-01 once
+                               # A REASONED DEFAULT, NOT A MEASURED ONE. The
+                               # mesh does carry traffic with it disabled, which
+                               # is not the same as evidence that disabling it
+                               # helps. Revisit under TBR-RF-01 once
                                # broadcast load on a real bearer is measured,
                                # since FML-ADR-024 already warns that ordinary
                                # EUD broadcast is not free.
@@ -106,9 +105,10 @@ distributed_arp_table=0        # Distributed ARP table OFF.
                                # has since become unreachable is the same shape
                                # of error one layer down.
                                #
-                               # Also a REASONED DEFAULT. Disabling it did not
-                               # resolve the probe's ARP failure, so it is not
-                               # implicated and not exonerated.
+                               # Also a REASONED DEFAULT. ARP resolves across
+                               # the mesh with it disabled, which shows the
+                               # mesh does not depend on DAT. Whether DAT would
+                               # also work is untested.
 
 fragmentation=TBD
 distributed_arp_table=TBD

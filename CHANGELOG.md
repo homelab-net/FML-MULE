@@ -14,6 +14,32 @@ this program needs them visible:
 
 ## Unreleased
 
+### The mesh carries traffic
+
+`.github/workflows/mesh-probe.yml` forms a three-node batman-adv mesh in
+network namespaces and routes ICMP one hop and two hops across it, on an
+ordinary runner with no radios. `node1` and `node3` share no link, so the
+two-hop case can only succeed through `node2`, and the run asserts that
+`node1`'s originator entry for `node3` names `node2` as next hop.
+
+It also passes with every ARP cache flushed. That distinction matters: the
+earlier passing runs pinned static neighbour entries, and a field node has
+none, so a suite testing only the pinned case would have stepped over the
+defect that would actually strand a team.
+
+Three findings came out of it, and two are in `FML-ADR-053` and
+`os/config/batman-adv.conf.template`. The third is process: thirteen runs went
+into this, and runs 3 through 10 were spent reading `batctl` tables, which
+report what batman-adv believes about itself. They were correct every time and
+located nothing. One packet capture found in a single run what nine runs of
+table-reading could not, so the failure diagnostics now capture at four points
+between two nodes before printing any table.
+
+This is `SIMULATED`. veth is a perfect wire: no propagation, no loss, no
+contention, no rate adaptation. Every quantity `TBR-RF-01`, `TBR-RF-02` and
+`TBR-RF-03` exist to measure is absent, and 802.11s is untested because the
+hosted runner kernel has no wireless stack at all.
+
 ### The node knows which operating modes it is in
 
 CONOPS section 50 names thirteen operating modes, never says whether more than
