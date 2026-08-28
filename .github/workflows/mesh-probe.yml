@@ -138,6 +138,19 @@ jobs:
             for hard in "$@"; do
               sudo ip netns exec "$ns" batctl meshif bat0 interface add "$hard"
             done
+            # Both default to on and both intercept broadcast. The
+            # distributed ARP table answers ARP from a mesh-wide cache instead
+            # of flooding, and multicast optimisation suppresses flooding to
+            # nodes not known to want the group. Run 7 had correct originator
+            # and translation tables with a permanently empty ARP cache, which
+            # is what an ARP request that never gets answered looks like.
+            #
+            # Turning both off is also the right default to establish for MULE:
+            # os/config/batman-adv.conf.template carries multicast_mode as TBD,
+            # and CONOPS section 35 keeps LoRa a separate non-IP plane, so
+            # there is no mesh-wide multicast story to optimise for yet.
+            sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
+            sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
             sudo ip netns exec "$ns" ip link set bat0 up
           }
           attach node1 veth12
@@ -191,7 +204,28 @@ jobs:
           sudo ip netns exec node1 batctl meshif bat0 translocal || true
           echo "--- node1 global translation table ---"
           sudo ip netns exec node1 batctl meshif bat0 transglobal || true
-          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+          if sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2; then
+            echo "SINGLE HOP OK. IP over bat0 works."
+            exit 0
+          fi
+
+          # It failed. Separate "ARP cannot resolve" from "unicast cannot
+          # traverse the mesh" by removing ARP from the question entirely.
+          # If a static neighbour entry makes the ping work, the fault is
+          # broadcast handling; if it does not, it is forwarding.
+          echo "Single hop failed. Retrying with a static ARP entry."
+          mac2=$(sudo ip netns exec node2 cat /sys/class/net/bat0/address)
+          sudo ip netns exec node1 ip neigh replace 10.42.0.2 \
+            lladdr "$mac2" dev bat0 nud permanent
+          sudo ip netns exec node1 ip neigh
+          if sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2; then
+            echo "WORKS WITH STATIC ARP: unicast traverses the mesh,"
+            echo "and ARP broadcast is what does not. Fault isolated to"
+            echo "broadcast handling rather than forwarding."
+            exit 1
+          fi
+          echo "STILL FAILS WITH STATIC ARP: unicast forwarding is the fault."
+          exit 1
 
       - name: Route traffic two hops, node1 to node3
         run: |
