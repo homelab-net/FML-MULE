@@ -82,7 +82,50 @@ jobs:
       - name: Install the Meshtastic client
         run: |
           python3 -m pip install --quiet --upgrade meshtastic
-          python3 -c 'import meshtastic; print("meshtastic client", meshtastic.__version__)'
+          # importlib.metadata, not meshtastic.__version__. The package does not
+          # define that attribute and run 1 died here, on a line that printed a
+          # version rather than testing anything.
+          python3 -c 'from importlib.metadata import version; \
+            print("meshtastic client", version("meshtastic"))'
+
+          # One helper, because two of the checks below need structured data
+          # rather than the text a CLI happens to print this release. Asserting
+          # on scraped output is how the identity check in run 1 came to look
+          # for a field name that does not exist anywhere in the client.
+          cat > /tmp/mtctl.py <<'PY'
+          import sys, time
+          import meshtastic.tcp_interface
+
+          def connect(port):
+              return meshtastic.tcp_interface.TCPInterface(
+                  hostname="127.0.0.1", portNumber=int(port))
+
+          cmd = sys.argv[1]
+
+          if cmd == "nodenum":
+              iface = connect(sys.argv[2])
+              print(iface.myInfo.my_node_num)
+              iface.close()
+
+          elif cmd == "listen":
+              from pubsub import pub
+              port, marker, timeout = sys.argv[2], sys.argv[3], float(sys.argv[4])
+              seen = []
+
+              def on_receive(packet=None, interface=None):
+                  d = (packet or {}).get("decoded") or {}
+                  if d.get("portnum") == "TEXT_MESSAGE_APP":
+                      seen.append(d.get("text", ""))
+
+              pub.subscribe(on_receive, "meshtastic.receive")
+              iface = connect(port)
+              deadline = time.time() + timeout
+              while time.time() < deadline and not any(marker in t for t in seen):
+                  time.sleep(0.5)
+              iface.close()
+              print("text packets seen:", seen)
+              sys.exit(0 if any(marker in t for t in seen) else 1)
+          PY
 
       - name: Build two node identities on one segment
         run: |
@@ -159,10 +202,8 @@ jobs:
           # containers came up with one identity, every later step would pass
           # while proving nothing, because a node always receives its own
           # traffic.
-          id1=$(meshtastic --host 127.0.0.1:4403 --info 2>/dev/null |
-            sed -n 's/.*"myNodeNum": *\([0-9]*\).*/\1/p' | head -1)
-          id2=$(meshtastic --host 127.0.0.1:4404 --info 2>/dev/null |
-            sed -n 's/.*"myNodeNum": *\([0-9]*\).*/\1/p' | head -1)
+          id1=$(python3 /tmp/mtctl.py nodenum 4403)
+          id2=$(python3 /tmp/mtctl.py nodenum 4404)
           echo "node 1 num: ${id1:-unknown}"
           echo "node 2 num: ${id2:-unknown}"
           test -n "$id1" && test -n "$id2"
@@ -173,7 +214,7 @@ jobs:
           # UDP_BROADCAST is what carries mesh packets between nodes with no
           # radio. Without it the two daemons are running and deaf.
           for h in 127.0.0.1:4403 127.0.0.1:4404; do
-            meshtastic --host "$h" --set network.enabled_protocols 1
+            meshtastic --host "$h" --set network.enabled_protocols UDP_BROADCAST
           done
           sleep 20
           echo "=== node 1 sees ==="; meshtastic --host 127.0.0.1:4403 --nodes || true
@@ -181,31 +222,7 @@ jobs:
 
       - name: Send a message from node 1 and assert node 2 receives it
         run: |
-          cat > /tmp/listen.py <<'PY'
-          import sys, time
-          from pubsub import pub
-          import meshtastic.tcp_interface
-
-          marker, timeout = sys.argv[1], float(sys.argv[2])
-          seen = []
-
-          def on_receive(packet=None, interface=None):
-              d = (packet or {}).get("decoded") or {}
-              if d.get("portnum") == "TEXT_MESSAGE_APP":
-                  seen.append(d.get("text", ""))
-
-          pub.subscribe(on_receive, "meshtastic.receive")
-          iface = meshtastic.tcp_interface.TCPInterface(
-              hostname="127.0.0.1", portNumber=4404)
-          deadline = time.time() + timeout
-          while time.time() < deadline and not any(marker in t for t in seen):
-              time.sleep(0.5)
-          iface.close()
-          print("text packets seen by node 2:", seen)
-          sys.exit(0 if any(marker in t for t in seen) else 1)
-          PY
-
-          python3 /tmp/listen.py "$MARKER" 90 >/tmp/listen.out 2>&1 &
+          python3 /tmp/mtctl.py listen 4404 "$MARKER" 90 >/tmp/listen.out 2>&1 &
           listener=$!
           sleep 8
 
