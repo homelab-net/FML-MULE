@@ -132,9 +132,15 @@ changes the file discovers it rather than someone assuming it.
 
 ### 1.1 LoRa and Meshtastic — the largest hole
 
-**State:** nothing. One `Literal` in `mule/bearers.py`, two references in
-`mule/modes.py` and `mule/status.py`. No code, no configuration, no test, no
-ADR beyond `FML-ADR-026` deciding that it exists.
+**State:** step 1 done, step 2 blocked. `.github/workflows/lora-probe.yml`
+stands two meshtasticd nodes up in simulation on one segment and asserts a text
+message crosses between them. Three runs: the first died on a line of mine that
+printed a version and tested nothing, the second found that a configuration
+change reboots the daemon, the third passed. `SIMULATED`, and the transport is
+UDP on a Docker bridge, which is a perfect wire.
+
+Beyond that probe the plane is still one `Literal` in `mule/bearers.py` and two
+references to it. No interface, no fake, no configuration.
 
 **Why it is first:** `FML-ADR-026` makes LoRa the degraded-mode lifeline. It is
 what users fall back to when everything else has failed, which makes it the
@@ -142,9 +148,14 @@ bearer whose failure is least tolerable and the one with the least behind it.
 It is also testable in software, the same way batman-adv turned out to be:
 Meshtastic runs over a TCP or serial simulation with no radio present.
 
-**Blocked by:** nothing.
+**Blocked by:** step 2 is blocked on `TBR-NET-02`. The interface's shape depends
+on whether a node is one Meshtastic identity or a gateway fronting four to eight
+EUDs, and CONOPS section 6 baselines the second. Building it before that answer
+produces an interface that has to be replaced.
 
-**Read first:** `FML-ADR-026` for why it is a separate non-IP plane and what
+**Read first:** `TBR-NET-02` and `FML-ADR-055` before anything else, because
+they decide what the interface addresses. Then `FML-ADR-026` for why it is a
+separate non-IP plane and what
 that forbids. `docs/interfaces/` for what crosses between planes.
 `mule/bearers.py` for the vocabulary that already exists. CONOPS section 5.5
 for where LoRa sits on the degradation ladder, and section 9 for service
@@ -152,22 +163,28 @@ criticality, because what may cross this bearer is a criticality question.
 
 **Build, in this order:**
 
-1. A probe in CI, modelled on `.github/workflows/mesh-probe.yml`, that runs two
-   Meshtastic instances against each other in simulation and passes a message.
-   Answer "can this be exercised in software at all" before designing anything.
-2. Whatever narrow interface the answer justifies, with a fake, named in
-   `test/flatsat/README.md`. Not before: `FML-ADR-052` and the `mule/` rules
-   both bite here, and an interface designed ahead of the probe will be wrong.
-3. Only then, configuration templates under `os/config/`.
+1. ~~A probe in CI that runs two Meshtastic instances against each other in
+   simulation and passes a message.~~ Done. `.github/workflows/lora-probe.yml`.
+2. **`TBR-NET-02` first.** Not code. The answer decides whether the interface
+   addresses a node or a user behind one.
+3. Whatever narrow interface that justifies, with a fake, named in
+   `test/flatsat/README.md`. `FML-ADR-052` and the `mule/` rules both bite here.
+4. Only then, configuration templates under `os/config/`.
 
-**Done when:** two Meshtastic instances exchange a message in CI, the run
-asserts it rather than printing it, and `test/flatsat/README.md` names any fake
-added.
+**Done when:** the interface exists, the flat-sat exercises it, and
+`test/flatsat/README.md` names any fake added. Step 1's own gate — a message
+asserted across in CI rather than printed — is met.
 
 **Traps:** it is a *non-IP* plane by decision. Do not give it an address, do not
 bridge it to `bat0`, do not let it inherit the IP plane's vocabulary. If you
 find yourself wanting to, that is a change request against `FML-ADR-026`, not an
 implementation detail.
+
+Two things the probe established that cost a run each to find. **Changing a
+node's configuration reboots it**, and in the container image the re-exec fails,
+so the process exits; that is why the probe supervises its nodes and waits for
+the API to return. It belongs to item 1.2 as much as here. And **`Data.dest` is
+a node number**, not a user, which is the whole of `TBR-NET-02` in one field.
 
 ### 1.2 Interface bring-up sequencing
 
@@ -200,14 +217,26 @@ ADR.
 
 ### 1.3 The access point data path
 
-**State:** `os/config/hostapd.conf.template` now carries `bridge=TBD`. The
-question exists; the answer does not.
+**State:** two open questions in one file, and they are not the same question.
+`bridge=TBD` decides whether associated devices are bridged onto a segment or
+routed to. `ap_isolate=TBD` decides whether they reach each other directly or
+only through the node.
 
-**Blocked by:** nothing technical. It is a design decision.
+The second is now decided in principle. `FML-ADR-055` requires that EUD to EUD
+traffic transits the node, so `ap_isolate` may not be set to permit direct
+forwarding without superseding it. What that ADR deliberately leaves open is the
+exact value and, more importantly, how S1 peer-to-peer ATAK survives the
+decision, which needs a measurement on a wireless stack.
 
-**Read first:** `FML-ADR-054` and its accepted cost, `FML-ADR-045` for why the
-access point and the mesh are separate logical radio functions, and
-`TBR-NET-01`, because bridging or routing is partly an addressing question.
+**Blocked by:** nothing technical for `bridge=`. The `ap_isolate` half is
+decided in principle and blocked on measurement for its implementation.
+
+**Read first:** `FML-ADR-055` and its accepted cost, which is the one that
+creates work: peer-to-peer ATAK is an S1 service under CONOPS section 9.2 and
+this decision moves it from something the radio does for free to something the
+node must provide. Then `FML-ADR-054` and its accepted cost, `FML-ADR-045` for
+why the access point and the mesh are separate logical radio functions, and
+`TBR-NET-01` and `TBR-NET-02`, because both halves are addressing questions.
 
 **Why it matters now:** `FML-ADR-054` disables bridge loop avoidance, which is
 safe only while the mesh interface is not a member of a bridge carrying a shared
@@ -218,9 +247,40 @@ operations centre. Sharing a LAN is safe; bridging it into the mesh is not.
 if this is answered carelessly.
 
 **Done when:** an ADR decides bridged or routed, `bridge=` carries the answer,
-and check 19 still passes.
+check 19 still passes, and `ap_isolate` carries a value consistent with
+`FML-ADR-055` alongside whatever preserves peer-to-peer ATAK through the node.
 
-### 1.4 `TBR-NET-01`, the addressing plan
+### 1.4 `TBR-NET-02`, how a node addresses the EUDs behind it
+
+**State:** open, unowned, no hardware needed, and item 1.1 step 2 is blocked on
+it. This is the next thing to do on Track 1.
+
+**Blocked by:** nothing. `TBR-ID-01` is deliberately not a prerequisite: this
+trade exists to structure addressing so authentication can be added to it later
+rather than redesign it.
+
+**Read first:** the trade, then `FML-ADR-055`, which puts the node in the
+traffic path and without which no option in the trade is implementable. Then
+CONOPS section 6 for why the shared case is the normal one, section 23 for why
+a recipient tag is addressing rather than confidentiality, and section 9 for
+which services are even present when LoRa is carrying the traffic.
+
+**The shape of it:** three identity namespaces exist and nothing maps between
+them. ATAK has a CoT UID and callsign, browser services will have whatever
+`TBR-ID-01` decides, and Meshtastic has a node number. `Data.dest` addresses a
+node, so several users behind one MULE collapse to one address on the bearer
+CONOPS section 50.8 makes the lifeline.
+
+**Done when:** the four artifacts in the trade's closure evidence exist under
+`docs/evidence/TBR-NET-02/` and a named owner accepts them. See the Track 3
+blocker: no trade can close while every owner is `TBD-SRR`.
+
+**Traps:** the natural implementation of "cannot resolve the recipient" is to
+deliver to everyone. It looks like helpfulness and CONOPS section 23 makes it
+wrong, which is why the trade states the fail-closed rule as a gate rather than
+leaving it to the analysis.
+
+### 1.5 `TBR-NET-01`, the addressing plan
 
 **State:** open, cited by one file, no hardware needed.
 
@@ -236,7 +296,7 @@ prefix chosen once.
 **Done when:** evidence under `docs/evidence/TBR-NET-01/` accepted by a named
 owner. See the blocker in Track 3; today no trade can close.
 
-### 1.5 Turn `RadioState` into an implementation
+### 1.6 Turn `RadioState` into an implementation
 
 **State:** a `Protocol` in `test/flatsat/interfaces.py` with two methods,
 `enumerated()` and `associated()`, and a fake behind it.
@@ -262,7 +322,7 @@ instead of a fixture.
 - Every reading a platform might be unable to provide is `T | None`. A type
   that cannot say "I cannot tell" has been the same defect four times.
 
-### 1.6 802.11s, and the rest of the batman-adv template
+### 1.7 802.11s, and the rest of the batman-adv template
 
 **State:** unreachable in hosted CI. `orig_interval`, `hop_penalty`, `gw_mode`
 and `fragmentation` remain `TBD`, and the figures previously recorded against
@@ -351,9 +411,15 @@ minutes; the rest of Track 3 stays behind Track 1.
 
 The order within Track 1 is chosen so that each item is exercisable when it
 lands. 1.1 before 1.2 because the second waveform is the largest unknown and
-delaying it repeats how the first one went. 1.2 before 1.5 because reading radio
-state is worth little before something brings radios up in a known order. 1.4
+delaying it repeats how the first one went. 1.2 before 1.6 because reading radio
+state is worth little before something brings radios up in a known order. 1.5
 threads through all of them and can be worked in parallel by someone else.
+
+**Right now the order is not the whole story: 1.1 is blocked mid-item.** Step 1
+is done and step 2 waits on `TBR-NET-02`, which is item 1.4. So 1.4 is the next
+thing to work even though 1.2 and 1.3 sit above it, and 1.2 is the best thing to
+work in parallel because nothing gates it. An item's number is its dependency
+position, not a queue ticket.
 
 ## Definition of done for anything on this roadmap
 

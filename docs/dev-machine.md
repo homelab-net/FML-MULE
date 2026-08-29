@@ -33,13 +33,13 @@ one.
 
 | Capability | Why CI cannot | Roadmap item |
 | --- | --- | --- |
-| 802.11s association, via `mac80211_hwsim` | GitHub hosted runners ship no wireless stack at all | 1.6 |
+| 802.11s association, via `mac80211_hwsim` | GitHub hosted runners ship no wireless stack at all | 1.7 |
 | Real systemd units and boot ordering | No init, no boot | 1.2 |
-| Real `iw` and `batctl` against a live mesh | No wireless devices to read | 1.5 |
+| Real `iw` and `batctl` against a live mesh | No wireless devices to read | 1.6 |
 | Meshtastic natively, no CI round trip | Nothing, this is convenience | 1.1 |
 | The flat-sat, iterated in seconds | Nothing, this is convenience | all |
 
-Item 1.6 is the one that matters. It is blocked in `docs/ROADMAP-DEV.md`
+Item 1.7 is the one that matters. It is blocked in `docs/ROADMAP-DEV.md`
 specifically on "a machine with a wireless stack", and you are that machine.
 
 ## What it still cannot do, and must not claim
@@ -127,7 +127,7 @@ not a nuisance to work around.
 modinfo mac80211_hwsim
 ```
 
-It is the gate on roadmap item 1.6. If it is present, 802.11s becomes testable
+It is the gate on roadmap item 1.7. If it is present, 802.11s becomes testable
 for the first time in this program.
 
 Record each answer where it belongs — `packages.list`, `os/kernel/PINS.md`, or

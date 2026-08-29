@@ -55,6 +55,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 | `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
+| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
 
 ### SELECTED TARGET
 
@@ -119,8 +120,9 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no |
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes |
+| 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `TBD-SRR` | no |
 
-16 open trades. 16 have no named owner.
+17 open trades. 17 have no named owner.
 
 ## Critical path
 
