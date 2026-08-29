@@ -155,16 +155,26 @@ regions and 863-868 MHz in others; the bands are not interchangeable. See
 
 **802.11s** - the IEEE mesh networking amendment to Wi-Fi. Provides mesh
 association at layer 2. Used with `batman-adv` in this program
-(`FML-ADR-024`).
+(`FML-ADR-053`, carrying the association layer forward unchanged from the
+superseded `FML-ADR-024`).
 
 **batman-adv** - Better Approach To Mobile Ad-hoc Networking, advanced. A
 layer 2 mesh routing implementation in the Linux kernel. Routes Ethernet frames
 rather than IP packets, so the mesh appears as one flat broadcast domain.
 
+**BATMAN-IV** - the fourth routing algorithm version in `batman-adv`, using a
+transmit quality metric derived from packet loss. **The baseline this program
+runs on** (`FML-ADR-053`), because it is what the stock distribution module
+provides. On links of unequal rate but similar loss it may prefer a lossless
+slow path over a lossy fast one.
+
 **BATMAN-V** - the fifth routing algorithm version in `batman-adv`, using a
 throughput-based metric rather than packet loss. Requires a usable throughput
 estimate from the driver; whether the HaLow driver provides one is
-`UNVERIFIED`.
+`UNVERIFIED`. **Not the baseline.** `FML-ADR-024` selected it; `FML-ADR-053`
+superseded that after the module reported the algorithm as unsupported on a
+stock kernel, where enabling it is the build-time option
+`CONFIG_BATMAN_ADV_BATMAN_V`.
 
 **LoRa** - a long-range, low-bandwidth sub-GHz modulation. In MULE it carries
 an independent degraded-communications plane, not IP.

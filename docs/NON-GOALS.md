@@ -30,7 +30,7 @@ anyone already owns.
 
 ### No custom MANET routing protocol
 
-The program uses `batman-adv` in BATMAN-V mode; see `FML-ADR-024`.
+The program uses `batman-adv` in BATMAN-IV mode; see `FML-ADR-053`.
 
 *Reason:* routing protocols are subtle, and their failure modes appear at scale
 and under partition, which is exactly where this program cannot test.
