@@ -481,7 +481,13 @@ jobs:
             echo "the traffic and the next step would prove nothing."
             exit 1
           fi
-          echo "Correct: no path exists yet."
+          {
+            echo
+            echo "=== EUD leg, two MULEs ==="
+            echo "  negative control: HELD. With bat0 outside br-field the"
+            echo "  EUDs could not reach each other, so the bridge is what"
+            echo "  carries the traffic and the next result means something."
+          } | tee /tmp/eud-result.txt
 
       - name: An EUD behind node1 reaches an EUD behind node3, two hops away
         run: |
@@ -501,9 +507,12 @@ jobs:
           # The claim under test. Nothing is pinned; ARP resolves across the
           # mesh, which the earlier steps already showed it can.
           sudo ip netns exec eud1 ping -c 5 -i 1 -W 5 10.42.0.13
-          echo
-          echo "EUD TO EUD ACROSS TWO MULES: 10.42.0.11 reached 10.42.0.13."
-          echo "Path: eud1 - br-field(node1) - bat0 - node2 - bat0 - br-field(node3) - eud3"
+          {
+            echo "  MULE to MULE still works bridged."
+            echo "  EUD TO EUD ACROSS TWO MULES: 10.42.0.11 reached 10.42.0.13."
+            echo "  Path: eud1 - br-field(node1) - bat0 - node2 - bat0 -"
+            echo "        br-field(node3) - eud3"
+          } | tee -a /tmp/eud-result.txt
 
       - name: Confirm the EUD traffic really crossed the mesh
         run: |
@@ -519,7 +528,11 @@ jobs:
             awk '/link\/ether/ {print $2}')
           echo "eud1 MAC: $eud1mac"
           grep -qi "$eud1mac" /tmp/tg
-          echo "CONFIRMED: node3 learned the far EUD through the mesh."
+          {
+            echo "  CONFIRMED: node3 holds $eud1mac as a GLOBAL translation"
+            echo "  table entry, so it learned the far EUD through the mesh"
+            echo "  rather than locally. Reachability alone would not show that."
+          } | tee -a /tmp/eud-result.txt
 
       - name: Diagnostics on failure
         if: failure()
@@ -560,3 +573,4 @@ jobs:
           # regression steps that run after it. The number this job exists to
           # produce should not need archaeology to read.
           cat /tmp/warmup.txt 2>/dev/null || echo "no warm-up result recorded"
+          cat /tmp/eud-result.txt 2>/dev/null || echo "no EUD result recorded"
