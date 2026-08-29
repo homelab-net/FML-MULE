@@ -101,6 +101,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         emission: EmissionPosture = "NORMAL-EMISSION",
         economy_below_minutes: int | None = None,
         wan: bool | None = None,
+        peer_reachable: bool | None = None,
     ) -> FlatSatNode:
         return FlatSatNode(
             region_profile=profile,
@@ -115,6 +116,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
             emission=emission,
             economy_below_minutes=economy_below_minutes,
             wan=wan,
+            peer_reachable=peer_reachable,
         )
 
     return factory

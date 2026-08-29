@@ -26,7 +26,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-021` | Single primary compute / single Debian host with logical plane isolation | TBR-COMP-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
 | `FML-ADR-022` | Debian stable as production host OS | TBR-LINUX-01, TBR-HW-01 |
 | `FML-ADR-023` | Consume OpenMANET as reference/configuration source, not mandatory production firmware | TBR-LINUX-01, TBR-RF-01 |
-| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 | `FML-ADR-025` | High-throughput conventional Wi-Fi as an additional IP bearer | TBR-RF-01, TBR-RF-03 |
 | `FML-ADR-026` | Meshtastic/LoRa remains a separate non-IP degraded plane | TBR-RF-02 |
 | `FML-ADR-027` | RF coexistence controlled through supported host/radio interfaces; no assumed openmanetd primitive | TBR-RF-02, TBR-RF-03 |
@@ -44,6 +43,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
 | `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
+| `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01, TBR-NET-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -55,6 +55,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 | `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
+| `FML-ADR-057` | What traffic transits the node and what does not | TBR-NET-02, TBR-ID-01 |
 
 ### SELECTED TARGET
 
@@ -67,6 +68,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
+| `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 
 ### PREFERRED
 
@@ -80,6 +82,14 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+
+### SUPERSEDED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
+| `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
+| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
 
 ### RETIRED
 
@@ -112,8 +122,9 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no |
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes |
+| 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `TBD-SRR` | no |
 
-16 open trades. 16 have no named owner.
+17 open trades. 17 have no named owner.
 
 ## Critical path
 

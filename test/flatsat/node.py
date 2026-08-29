@@ -125,6 +125,7 @@ class FlatSatNode:
         data_marking: DataMarking = "LIVE",
         economy_below_minutes: int | None = None,
         wan: bool | None = None,
+        peer_reachable: bool | None = None,
     ) -> None:
         """Compose a node from a region profile, a mission package and fakes."""
         self._region_profile = region_profile
@@ -149,6 +150,9 @@ class FlatSatNode:
         self._economy_below_minutes = economy_below_minutes
         # None means nothing reports WAN reachability, which is today's state.
         self._wan = wan
+        # None means nothing probes whether a peer answers, which is also
+        # today's state. See mule/modes.py: association is not capability.
+        self._peer_reachable = peer_reachable
 
         self._booted = False
         self._params: dict[str, Any] | None = None
@@ -272,6 +276,7 @@ class FlatSatNode:
                 associated=tuple(self._associated()),
                 hosting_shared_services=bool(self._shared_services),
                 wan_reachable=self._wan,
+                peer_reachable=self._peer_reachable,
                 power=power.assess(
                     self._power,
                     self._power_model,

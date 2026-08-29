@@ -1,0 +1,459 @@
+---
+# Does batman-adv actually route between nodes, with no radios?
+#
+# The network plane is the only part of this system nobody without hardware can
+# review, and os/config/batman-adv.conf.template is entirely TBD. This forms a
+# real three-node batman-adv mesh in network namespaces and routes traffic two
+# hops across it. No radios, no hardware, ordinary Linux.
+#
+# WHAT THIS DOES AND DOES NOT COVER
+#
+# Covered, and real: the batman-adv module, BATMAN_IV as the routing algorithm
+# (FML-ADR-053), originator and neighbour exchange, translation-table learning,
+# ARP resolution across the mesh, and multi-hop forwarding with traffic actually
+# passing. The kernel code path is the one a node runs.
+#
+# The mesh carries ICMP one hop and two hops, with ARP resolving unaided after
+# the caches are flushed, and with node1's originator entry for node3 naming
+# node2 as next hop. Reproduced across separate runs and a re-run of the same
+# commit. It took thirteen runs to get here and most of them were spent reading
+# batctl tables instead of looking at packets; the failure diagnostics below are
+# built the other way round for that reason.
+#
+# NOT covered: 802.11s association, and everything RF. The link layer here is a
+# veth pair, which is a perfect wire: no propagation, no loss, no contention, no
+# rate adaptation, no desense, no range. Every quantity TBR-RF-01, TBR-RF-02 and
+# TBR-RF-03 exist to measure is absent, and a mesh that forms here says nothing
+# about a mesh forming in a car park.
+#
+# WHY NOT 802.11s HERE
+#
+# Recorded from two probe runs rather than assumed. GitHub hosted runners use an
+# Azure kernel flavour with no wireless stack at all:
+#
+#   /lib/modules/6.17.0-1022-azure/kernel/drivers/net/wireless/  does not exist
+#   /lib/modules/6.17.0-1022-azure/kernel/net/batman-adv/        batman-adv.ko.zst
+#
+# Both of those readings are AFTER installing linux-modules-extra, which the
+# base runner image does not carry. That package supplies batman-adv and does
+# not supply any wireless driver, hwsim included. So mac80211_hwsim cannot load
+# and 802.11s cannot be exercised on a hosted runner. It needs a machine with an
+# ordinary distribution kernel. The step below records that state on every run,
+# so the day it changes, this file finds out rather than someone guessing.
+
+name: Mesh probe
+
+"on":
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/mesh-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  batman:
+    name: Mesh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install batctl, iproute2 and the extra kernel modules
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq batctl iproute2 iw tcpdump iputils-arping
+          # batman-adv is NOT in the runner's base module set. It ships in
+          # linux-modules-extra, and without this modprobe fails with "not
+          # found in directory /lib/modules/<kernel>". Dropping this line is
+          # what broke probe run 3.
+          sudo apt-get install -y -qq "linux-modules-extra-$(uname -r)"
+          batctl -v
+          ls "/lib/modules/$(uname -r)/kernel/net/batman-adv/"
+
+      - name: Record whether a wireless stack exists on this runner
+        run: |
+          echo "kernel: $(uname -r)"
+          if [ -d "/lib/modules/$(uname -r)/kernel/drivers/net/wireless" ]; then
+            echo "WIRELESS PRESENT. mac80211_hwsim may now be possible;"
+            echo "802.11s association could be added to this probe."
+            ls "/lib/modules/$(uname -r)/kernel/drivers/net/wireless/"
+          else
+            echo "NO WIRELESS STACK. 802.11s cannot be exercised on this runner."
+            echo "This is the expected state; see the header of this file."
+          fi
+
+      - name: Load batman-adv and find out which routing algorithms exist
+        run: |
+          sudo modprobe batman-adv
+          lsmod | grep batman
+          sudo dmesg | grep -i batman_adv | tail -5
+
+          # FML-ADR-024 selects BATMAN_V. Whether the module supports it is a
+          # build-time option, CONFIG_BATMAN_ADV_BATMAN_V, and the stock
+          # distribution module may be built without it. Probe run 4 found
+          # exactly that: "Routing algorithm 'BATMAN_V' is not supported".
+          #
+          # So ask rather than assume, and carry the answer forward. The
+          # topology below runs on whatever is available, and the last step
+          # reports loudly when that is not what the ADR selected.
+          if sudo batctl routing_algo BATMAN_V 2>/tmp/algo_err; then
+            echo "ALGO=BATMAN_V" >> "$GITHUB_ENV"
+            echo "ADR_ALGO_AVAILABLE=yes" >> "$GITHUB_ENV"
+            echo "BATMAN_V available."
+          else
+            cat /tmp/algo_err
+            echo "ALGO=BATMAN_IV" >> "$GITHUB_ENV"
+            echo "ADR_ALGO_AVAILABLE=no" >> "$GITHUB_ENV"
+            echo "BATMAN_V UNAVAILABLE in this module build."
+            echo "Falling back to BATMAN_IV to exercise the topology."
+          fi
+          sudo batctl routing_algo
+
+      - name: Build a line topology, node1 - node2 - node3
+        run: |
+          # A line, not a full mesh: node1 and node3 share no link, so reaching
+          # node3 from node1 requires batman-adv to route through node2. A full
+          # mesh would prove only that two directly wired hosts can ping.
+          for n in 1 2 3; do sudo ip netns add "node$n"; done
+
+          sudo ip link add veth12 type veth peer name veth21
+          sudo ip link add veth23 type veth peer name veth32
+
+          sudo ip link set veth12 netns node1
+          sudo ip link set veth21 netns node2
+          sudo ip link set veth23 netns node2
+          sudo ip link set veth32 netns node3
+
+          for n in 1 2 3; do
+            sudo ip netns exec "node$n" ip link set lo up
+          done
+          # batman-adv adds its own header, so a 1500 byte hard interface makes
+          # every full-size frame fragment at layer 2. The module says so on
+          # every interface add: "Setting the MTU to 1560 would solve the
+          # problem." This is a real configuration value, not a probe detail,
+          # and it belongs in os/config/batman-adv.conf.template.
+          sudo ip netns exec node1 ip link set veth12 mtu 1560 up
+          sudo ip netns exec node2 ip link set veth21 mtu 1560 up
+          sudo ip netns exec node2 ip link set veth23 mtu 1560 up
+          sudo ip netns exec node3 ip link set veth32 mtu 1560 up
+
+      - name: Attach each node to the mesh
+        run: |
+          attach() {
+            ns=$1; shift
+            sudo ip netns exec "$ns" batctl routing_algo "$ALGO"
+            for hard in "$@"; do
+              sudo ip netns exec "$ns" batctl meshif bat0 interface add "$hard"
+            done
+            # Both default to on and both intercept broadcast. The
+            # distributed ARP table answers ARP from a mesh-wide cache instead
+            # of flooding, and multicast optimisation suppresses flooding to
+            # nodes not known to want the group. Run 7 had correct originator
+            # and translation tables with a permanently empty ARP cache, which
+            # is what an ARP request that never gets answered looks like.
+            #
+            # Turning both off is also the right default to establish for MULE:
+            # os/config/batman-adv.conf.template carries multicast_mode as TBD,
+            # and CONOPS section 35 keeps LoRa a separate non-IP plane, so
+            # there is no mesh-wide multicast story to optimise for yet.
+            sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
+            sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
+            # FML-ADR-056, which supersedes FML-ADR-054. Bridge loop avoidance
+            # protects a mesh whose bridge also reaches a segment another node
+            # reaches, and it is enabled by default. Nothing here bridges bat0
+            # at all, and it was costing the entire warm-up:
+            # 31.5s to first reply against 2.150s with it off, one variable,
+            # a fresh mesh per value, both legs of run 21. It withholds client
+            # frames until its claim mechanism settles, which is why every
+            # batctl table read correct while nothing passed.
+            sudo ip netns exec "$ns" batctl meshif bat0 \
+              bridge_loop_avoidance 0
+            sudo ip netns exec "$ns" ip link set bat0 up
+          }
+          attach node1 veth12
+          attach node2 veth21 veth23
+          attach node3 veth32
+
+          # Addresses go on bat0, never on the hard interfaces. batman-adv is a
+          # layer 2 protocol: the mesh is one flat broadcast domain and IP sits
+          # on top of it. Addressing the hard interfaces instead is the mistake
+          # that makes a mesh look like it works while bypassing it entirely.
+          sudo ip netns exec node1 ip addr add 10.42.0.1/24 dev bat0
+          sudo ip netns exec node2 ip addr add 10.42.0.2/24 dev bat0
+          sudo ip netns exec node3 ip addr add 10.42.0.3/24 dev bat0
+
+      - name: Measure warm-up passively, at wire timestamps
+        run: |
+          # The previous version polled with two one-second blocking pings and
+          # a one-second sleep, so every iteration cost about three seconds and
+          # the reported figure was seven iterations rather than a time. Every
+          # conclusion drawn from it, including a "six second" gratuitous-ARP
+          # improvement written into the config template, was inside its own
+          # resolution.
+          #
+          # This one does not poll. It starts observers, marks t0, and reads
+          # timestamps off the wire afterwards.
+
+          t0=$(date +%s.%N)
+          echo "t0 = $t0"
+
+          # Every observer starts before any traffic and records an absolute
+          # epoch timestamp, so each stage sits on the same clock as t0.
+          #
+          # ip monitor neigh is the one run 18 was missing. It prints every
+          # neighbour state transition, so the moment a peer address goes
+          # INCOMPLETE, FAILED or REACHABLE is recorded rather than inferred
+          # from what did or did not appear on the wire. Run 18 inferred it and
+          # got two ARP replies that were not replies.
+          sudo ip netns exec node1 ip monitor neigh 2>/dev/null |
+            while IFS= read -r l; do
+              printf '%s %s\n' "$(date +%s.%N)" "$l"
+            done >/tmp/neigh.txt &
+
+          # tcpdump -tt gives an absolute epoch timestamp per frame, so the
+          # first ARP request, the first ARP reply and the first ICMP reply are
+          # each locatable to the microsecond.
+          #
+          # node2 is captured for the first time here. Run 19 established that
+          # node1 asks for its peer once a second for thirty seconds and is not
+          # answered, which is one question short of an answer: watching only
+          # the asking end cannot say whether the request arrives and goes
+          # unanswered, or never arrives at all. Those are different faults in
+          # different layers and this separates them.
+          sudo ip netns exec node1 tcpdump -tt -n -i bat0 \
+            >/tmp/wire.txt 2>/dev/null &
+          sudo ip netns exec node2 tcpdump -tt -n -i bat0 \
+            >/tmp/wire2.txt 2>/dev/null &
+          sudo ip netns exec node2 tcpdump -tt -n -i veth21 \
+            >/tmp/wire2v.txt 2>/dev/null &
+
+          # ping -D prefixes each reply with [epoch.usec]. Five per second, so the
+          # sampling interval is 200ms rather than three seconds, and the ping
+          # runs continuously instead of being retried.
+          sudo ip netns exec node1 ping -i 0.2 -D 10.42.0.2 >/tmp/p2.txt 2>&1 &
+          sudo ip netns exec node1 ping -i 0.2 -D 10.42.0.3 >/tmp/p3.txt 2>&1 &
+          sleep 1
+
+          sleep 40
+          sudo pkill -f tcpdump || true
+          sudo pkill -f "ping -i 0.2" || true
+          sudo pkill -f "ip monitor" || true
+          sleep 1
+
+          first_reply() {
+            grep -m1 'bytes from' "$1" 2>/dev/null |
+              sed -n 's/^\[\([0-9.]*\)\].*/\1/p'
+          }
+          since() {
+            [ -n "$1" ] || { echo "never"; return; }
+            awk -v a="$1" -v b="$t0" 'BEGIN{printf "%.3fs", a-b}'
+          }
+          # Both the wire log and the neighbour log carry an epoch timestamp in
+          # the first field, so one reader serves both.
+          first_at() {
+            line=$(grep -m1 -E "$2" "$1" 2>/dev/null || true)
+            if [ -z "$line" ]; then
+              printf '  %-18s never seen\n' "$3"
+              return
+            fi
+            printf '  %-18s %-10s %s\n' "$3" "$(since "${line%% *}")" \
+              "$(echo "$line" | cut -c1-84)"
+          }
+
+          {
+          echo
+          echo "=== warm-up, measured from t0 at wire timestamps ==="
+          echo "  first reply one hop:  $(since "$(first_reply /tmp/p2.txt)")"
+          echo "  first reply two hops: $(since "$(first_reply /tmp/p3.txt)")"
+          echo
+          echo "=== stages on node1 ==="
+          first_at /tmp/wire.txt 'ARP, Request' 'ARP request'
+          # Run 18 timed an ARP reply at 9.9s that was a batman-adv frame
+          # decoded as ARP by its ethertype, and another at 1.0s that was
+          # node1's own gratuitous ARP coming back on its own bat0. Neither is
+          # a peer answering, and a peer answering is the only reply worth
+          # timing, so this matches the peer addresses rather than the word.
+          first_at /tmp/wire.txt 'ARP, Reply 10\.42\.0\.[23] is-at' 'ARP reply from peer'
+          first_at /tmp/wire.txt 'echo request' 'echo request'
+          first_at /tmp/wire.txt 'echo reply' 'echo reply'
+          first_at /tmp/neigh.txt '10\.42\.0\.2 .*(REACHABLE|STALE)' 'neigh .2 resolved'
+          first_at /tmp/neigh.txt '10\.42\.0\.3 .*(REACHABLE|STALE)' 'neigh .3 resolved'
+          first_at /tmp/neigh.txt 'FAILED' 'neigh FAILED'
+          echo
+          echo "=== the same question, seen at node2 ==="
+          first_at /tmp/wire2.txt 'ARP, Request who-has 10\.42\.0\.2' 'request arrives'
+          first_at /tmp/wire2.txt 'ARP, Reply 10\.42\.0\.2 is-at' 'node2 answers'
+          first_at /tmp/wire2v.txt '.' 'any frame, veth21'
+          echo
+          # These are read rather than assumed. The attach step sets two of
+          # them and leaves every other one at whatever the module compiled in,
+          # which is exactly the sort of thing that holds client broadcast for
+          # thirty seconds while every table looks correct.
+          echo "=== batman-adv settings in force on node1 ==="
+          for setting in aggregation bridge_loop_avoidance \
+                         distributed_arp_table fragmentation multicast_mode \
+                         network_coding orig_interval; do
+            printf '  %-24s %s\n' "$setting" \
+              "$(sudo ip netns exec node1 batctl meshif bat0 "$setting" 2>&1 |
+                 head -1)"
+          done
+          echo
+          echo "=== node2 bat0, first 8 frames ==="
+          head -8 /tmp/wire2.txt || true
+          echo
+          echo "=== node1 neighbour transitions, first 4 ==="
+          head -4 /tmp/neigh.txt || true
+          } | tee /tmp/warmup.txt
+
+          test -s /tmp/p2.txt
+          grep -q 'bytes from' /tmp/p2.txt
+          grep -q 'bytes from' /tmp/p3.txt
+
+          # A cold mesh that carries nothing for half a minute while every
+          # table reads correct is a field defect, so the figure is asserted
+          # rather than printed and left for someone to notice.
+          #
+          # Ten seconds is a bound, not a target. The measured figure is 2.2s
+          # one hop and 4.4s two hops, so this fires on a regression rather
+          # than on jitter. THIS CHECK HAS BEEN WATCHED TO FAIL: the
+          # configuration FML-ADR-056 replaced measures 31.5s against it, in
+          # both legs of run 21 and in runs 18, 19 and 20.
+          WARM_UP_BOUND_SECONDS=10
+          for stream in /tmp/p2.txt /tmp/p3.txt; do
+            at=$(since "$(first_reply "$stream")")
+            awk -v got="${at%s}" -v bound="$WARM_UP_BOUND_SECONDS" -v s="$stream" \
+              'BEGIN { if (got + 0 > bound) {
+                 printf "%s: first reply at %ss, bound is %ss\n", s, got, bound
+                 exit 1 } }'
+          done
+          echo "Warm-up within ${WARM_UP_BOUND_SECONDS}s on both streams."
+
+      - name: Pin both ARP caches
+        run: |
+          # Run 9 established ARP is not the fault, so it stays out of the way.
+          mac1=$(sudo ip netns exec node1 cat /sys/class/net/bat0/address)
+          mac2=$(sudo ip netns exec node2 cat /sys/class/net/bat0/address)
+          mac3=$(sudo ip netns exec node3 cat /sys/class/net/bat0/address)
+          sudo ip netns exec node1 ip neigh replace 10.42.0.2 \
+            lladdr "$mac2" dev bat0 nud permanent
+          sudo ip netns exec node1 ip neigh replace 10.42.0.3 \
+            lladdr "$mac3" dev bat0 nud permanent
+          sudo ip netns exec node2 ip neigh replace 10.42.0.1 \
+            lladdr "$mac1" dev bat0 nud permanent
+          sudo ip netns exec node3 ip neigh replace 10.42.0.1 \
+            lladdr "$mac1" dev bat0 nud permanent
+          echo "node1 $mac1 / node2 $mac2 / node3 $mac3"
+
+      - name: Single hop, node1 to node2, with nothing watching
+        run: |
+          # THE CONTROL. Run 11 passed traffic for the first time, and it did so
+          # while four tcpdumps held every interface in promiscuous mode and the
+          # ping's exit code was discarded with "|| true". Neither of those may
+          # be load-bearing, and a result that depends on being observed is not
+          # a result.
+          #
+          # No capture here, and the exit code decides the step.
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+          echo "SINGLE HOP OK, unobserved."
+
+      - name: Two hops, node1 to node3
+        run: |
+          # node1 and node3 share no link, so this can only succeed by routing
+          # through node2.
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
+          echo "TWO HOPS OK."
+
+      - name: Prove it works with real ARP, not pinned entries
+        run: |
+          # THE ONE THAT MATTERS FOR THE PRODUCT. Everything above ran with
+          # static neighbour entries, installed to take ARP out of the question
+          # while the forwarding fault was being chased. A MULE in a car park
+          # has no such entries: it has to resolve its peers itself.
+          #
+          # A mesh that only carries traffic when someone has pre-populated the
+          # ARP cache is not a working mesh, and a suite that only ever tests
+          # the pinned case would never notice.
+          # "ip neigh flush" does NOT remove NUD_PERMANENT entries. An earlier
+          # version used it, the static entries survived untouched, the pings
+          # succeeded on them, and the step printed "ARP RESOLVES ACROSS THE
+          # MESH". It could not fail. Delete them by address instead, and
+          # assert the cache is actually empty before claiming anything.
+          for n in node1 node2 node3; do
+            for a in 10.42.0.1 10.42.0.2 10.42.0.3; do
+              sudo ip netns exec "$n" ip neigh del "$a" dev bat0 2>/dev/null || true
+            done
+          done
+          echo "--- caches after delete, all three nodes ---"
+          for n in node1 node2 node3; do
+            printf '%s: ' "$n"
+            sudo ip netns exec "$n" ip neigh show dev bat0 | tr '\n' ' '
+            echo
+          done
+          if sudo ip netns exec node1 ip neigh show dev bat0 | grep -q PERMANENT
+          then
+            echo "STILL PINNED. This step would prove nothing; failing instead."
+            exit 1
+          fi
+
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.2
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
+          echo
+          echo "--- resolved by ARP, unaided ---"
+          sudo ip netns exec node1 ip neigh show dev bat0
+          echo "ARP RESOLVES ACROSS THE MESH."
+
+      - name: Confirm the second hop was really used
+        run: |
+          # A successful ping proves reachability, not that batman-adv routed
+          # it. node1's originator entry for node3 must name node2 as next hop.
+          mac2if=$(sudo ip netns exec node2 cat /sys/class/net/veth21/address)
+          node3if=$(sudo ip netns exec node3 cat /sys/class/net/veth32/address)
+          echo "node2 veth21 $mac2if / node3 veth32 $node3if"
+          sudo ip netns exec node1 batctl meshif bat0 originators | tee /tmp/orig
+          line=$(grep -i "$node3if" /tmp/orig | head -1)
+          echo "node3 originator line: $line"
+          echo "$line" | grep -qi "$mac2if"
+          echo
+          echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
+          echo "Routing algorithm actually used: $ALGO"
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          # Watch the wire, not the mesh's opinion of itself. A packet from
+          # node1 to node2 crosses four observable points, and the last one to
+          # see it is where it died. Nine runs of reading batctl tables never
+          # located a fault; one capture did.
+          capture() {
+            sudo ip netns exec "$1" timeout 12 tcpdump -i "$2" -nn -c 30 \
+              >"/tmp/$1-$2.txt" 2>/dev/null &
+          }
+          capture node1 bat0
+          capture node1 veth12
+          capture node2 veth21
+          capture node2 bat0
+          sleep 2
+          sudo ip netns exec node1 ping -c 3 -i 1 -W 3 10.42.0.2 || true
+          wait 2>/dev/null || true
+          for f in node1-bat0 node1-veth12 node2-veth21 node2-bat0; do
+            echo "=========== $f ==========="
+            grep -i icmp "/tmp/$f.txt" | head -6 || true
+            echo "(total lines: $(wc -l <"/tmp/$f.txt"))"
+          done
+          for n in node1 node2; do
+            echo "=== $n ==="
+            sudo ip netns exec "$n" ip -brief addr || true
+            sudo ip netns exec "$n" ip neigh || true
+            sudo ip netns exec "$n" batctl meshif bat0 statistics 2>/dev/null |
+              grep -vE ' 0$' || true
+          done
+
+      - name: Warm-up result
+        if: always()
+        run: |
+          # Last step on purpose. The log API returns a bounded window from the
+          # end, and the measurement summary kept falling outside it behind the
+          # regression steps that run after it. The number this job exists to
+          # produce should not need archaeology to read.
+          cat /tmp/warmup.txt 2>/dev/null || echo "no warm-up result recorded"

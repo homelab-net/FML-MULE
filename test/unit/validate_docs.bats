@@ -82,7 +82,12 @@ make_sandbox() {
 @test "validate-docs detects an ADR with a status outside the vocabulary" {
   make_sandbox
   target="$SANDBOX/docs/adr/FML-ADR-024-802-11s-batman-adv-baseline-ip-manet.md"
-  sed -i 's/^status: SELECTED$/status: PROBABLY FINE/' "$target"
+  # Replace whatever status this ADR currently carries, rather than one
+  # particular value. Naming SELECTED here meant the test silently stopped
+  # planting anything the day FML-ADR-053 superseded this ADR: the sed matched
+  # nothing, the tree stayed valid, and the check could not fire.
+  sed -i 's/^status: .*$/status: PROBABLY FINE/' "$target"
+  grep -q '^status: PROBABLY FINE$' "$target"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -ne 0 ]
@@ -167,6 +172,54 @@ PATCH
   # stay quiet.
   printf '\nSee `FML-ADR-052` for the boundary rule.\n' \
     >> "$SANDBOX/services/gateways/README.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-docs detects the mesh interface bridged with an uplink" {
+  make_sandbox
+  # FML-ADR-056. A loop needs the mesh interface in a bridge AND a second path
+  # outside the mesh. Both halves on one line is the loop condition.
+  printf '\n  bridge_ports: bat0 eth0\n' >> "$SANDBOX/os/ansible/site.yml"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"FML-ADR-056"* ]]
+}
+
+@test "validate-docs detects a bridge written as a structured list" {
+  make_sandbox
+  # netplan and friends put the keyword on one line and the members on
+  # another. Requiring a bridge keyword in the filter passed this silently,
+  # while the check's own comment claimed it did not. Caught by watching it.
+  printf '\n      interfaces: [bat0, eth0]\n' >> "$SANDBOX/os/ansible/site.yml"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+}
+
+@test "validate-docs allows the access point bridged to the mesh interface" {
+  make_sandbox
+  # THE ARCHITECTURE, not a violation. SAD section 4.3 bridges local EUD access
+  # into the BATMAN domain so peer ATAK multicast traverses the mesh. The first
+  # version of this check forbade it, which would have fired the first time
+  # anyone implemented the design. A check that fires on correct configuration
+  # teaches people to work around checks.
+  printf '\n  bridge_ports: bat0 wlan_ap0\n' >> "$SANDBOX/os/ansible/site.yml"
+  sed -i 's/^bridge=TBD$/bridge=br-field/' "$SANDBOX/os/config/hostapd.conf.template"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-docs allows a wired link joined to the mesh with batctl" {
+  make_sandbox
+  # FML-ADR-056 requires a wired link carrying field traffic to join the mesh
+  # rather than the bridge, because batman-adv does its own loop-free path
+  # selection. That line names the mesh interface and an uplink together, so a
+  # naive check fires on the very fix the ADR mandates.
+  printf '\n  batctl meshif bat0 interface add eth0\n' >> "$SANDBOX/os/ansible/site.yml"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -eq 0 ]

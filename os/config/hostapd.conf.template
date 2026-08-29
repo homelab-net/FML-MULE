@@ -27,6 +27,31 @@ interface=TBD
 
 driver=TBD
 
+# --- Data path for associated devices ---------------------------------------
+# TBD, AND THE QUESTION WAS PREVIOUSLY UNASKED RATHER THAN OPEN. This line did
+# not exist, so nothing in this repository recorded that a choice was being
+# made, and bridge=br0 is the textbook way to build a hostapd access point. A
+# default nobody chose is how bridge loop avoidance came to be in force for
+# twenty probe runs while presenting as an RF fault.
+#
+# BRIDGING TO THE MESH INTERFACE IS THE DESIGN, not a hazard. SAD section 4.3
+# bridges local EUD access into the BATMAN domain so peer ATAK multicast
+# traverses the mesh, a team keeps local connectivity if the mesh fragments,
+# and clients need no MANET routing awareness. What remains open is the bridge
+# NAME and the interface naming around it, which wait on TBR-RF-03 and
+# TBR-LINUX-01.
+#
+# What FML-ADR-056 forbids is different and narrower: the bridge carrying bat0
+# shall hold only access point interfaces. Adding a wired uplink, a management
+# port or a venue LAN to it creates the loop that bridge loop avoidance is no
+# longer there to break, and the program owner records that several nodes
+# sharing one LAN is expected during configuration, over-the-air update and in
+# a tactical operations centre. Sharing that LAN is safe; bridging it into the
+# field domain is not.
+#
+# tools/validate-docs.sh check 19 enforces it.
+bridge=TBD
+
 # --- Identity ---------------------------------------------------------------
 ssid=TBD
 # From the mission configuration package. Not a fixed value: two independently

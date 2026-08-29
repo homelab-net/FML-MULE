@@ -82,6 +82,15 @@ That said, `TBR-TAK-01` can be closed in parallel by anyone, with no hardware,
 and doing so unblocks a large amount of what comes after. It is the best use of
 a contributor who is waiting.
 
+## This file and the development roadmap are different things
+
+`docs/ROADMAP-DEV.md` sequences what to build next and how not to get it wrong.
+It is hand-maintained and it changes often. This file holds the one milestone
+the program is aiming at, and it changes rarely.
+
+Neither reorders the other. A development roadmap that quietly grew into a
+schedule of milestones is how the section below stops being true.
+
 ## After `v0.0.1`
 
 **Nothing else is scheduled.** Not vaguely scheduled, not provisionally

@@ -17,6 +17,11 @@ is a decision nobody has earned the right to make yet.
    probably premature: propose an ADR first.
 3. Run `tools/lint.sh`. You need to know the tree was clean when you found it.
 
+**On a development machine rather than in CI, read `docs/dev-machine.md`
+first.** `tools/lint.sh` skips every tool that is not installed and still
+reports success, which is the first thing that will mislead you, and that file
+also lists the four facts to check before building anything.
+
 ## Done
 
 A change is not done until all five hold. Say which ones you actually ran.
@@ -69,6 +74,7 @@ A change is not done until all five hold. Say which ones you actually ran.
 | A reading's source | Prefer a kernel interface (`sysfs`, `procfs`) to a command. A command is a package in the image, a fork per reading, and output that is not ABI-stable. Where only a command exists, name the package that provides it. `[CI]` |
 | A reading that returns a number | Put the unit in the method name. Linux reports the same quantity in millidegrees, tenths and percents depending on the subsystem, and every conversion is a factor-of-a-hundred error that produces a plausible number. `[CI]` |
 | Code touching a blocked `services/` component's subject matter | Check it against all four `FML-ADR-052` conditions: pure function, no invented vocabulary, `None` where the blocking trade decides, no interface an open trade governs. Then name the module in that component's README. `[CI]` |
+| A test that exercises a multi-step path | Test the single-step case first. A failure in the interesting case is uninterpretable until the boring one passes, and this program spent five runs debugging multi-hop mesh routing when the fault was that no two nodes could exchange a packet at all. |
 | A new check | Prove it can fail. Break something on purpose and watch it fire. **Remove every instance of what it looks for**, not one. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 

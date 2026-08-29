@@ -200,13 +200,14 @@ throughout, per section 1.1.
 ### ITEP-C01 - Analysis, no hardware
 
 **Trades:** `TBR-TAK-01` (pri 9, CRITICAL), `TBR-NET-01` (15), `TBR-ID-01` (14),
-`TBR-SEC-01` analysis half (6), `TBR-COMP-01` service-plane half (2, CRITICAL)
+`TBR-SEC-01` analysis half (6), `TBR-COMP-01` service-plane half (2, CRITICAL),
+`TBR-NET-02` (no SAD register position; see its frontmatter notes)
 
 **Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
-`TBR-SEC-01/`, `TBR-COMP-01/`.
+`TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -235,6 +236,13 @@ programme.
    interfaces.
 5. **`TBR-ID-01` workflow analysis.** Whether the browser services need a common
    identity provider. Count authentication events with and without one.
+6. **`TBR-NET-02` addressing specification.** How a node decides which of the
+   four to eight EUDs behind it a message is for, across the CoT,
+   browser-service and Meshtastic namespaces. Produce the mapping table, one
+   worked end-to-end trace per plane, the LoRa tag encoding costed in bytes
+   against the 233-byte `DATA_PAYLOAD_LEN`, and the unresolved-recipient rule.
+   Runs before `TBR-ID-01` on purpose: it structures addressing so that
+   authentication can be added to it rather than redesign it.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The remaining four produce written

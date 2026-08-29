@@ -109,6 +109,10 @@ class ModeInputs:
     #: Whether an authorized WAN gateway is reachable through the mesh.
     #: `None` where the node has no way to tell.
     wan_reachable: bool | None
+    #: Whether any peer on the mesh actually answers. `None` where nothing
+    #: checks. See `_bearer_capability` for why association alone is not
+    #: enough to claim a rung.
+    peer_reachable: bool | None
     #: What `mule/power.py` concluded, which is where FIELD-ECONOMY comes from.
     power: PowerAssessment
     #: Authorized action, never automatic. `CCR-01` part B would bind that.
@@ -147,15 +151,31 @@ class ModeAssessment:
         return self.bearer_capability != "NOMINAL-IP"
 
 
-def _bearer_capability(associated: tuple[Bearer, ...]) -> BearerCapability:
+def _bearer_capability(
+    associated: tuple[Bearer, ...], peer_reachable: bool | None
+) -> BearerCapability:
     """Place the node on the capability ladder from what has linked.
 
-    The highest-capability bearer that has formed a link sets the rung. This is
-    a bound, not a measurement: a linked bearer performing badly belongs lower,
-    and detecting that needs link quality and the thresholds TBR-RF-01 and
-    TBR-RF-02 will set. Association can never place a node higher than it is,
-    which is the direction that matters for a fail-safe reading.
+    The highest-capability bearer that has formed a link sets the rung, and a
+    node that reaches no peer is ISOLATED whatever has linked.
+
+    **Association is not capability, and this module used to claim it was.** An
+    earlier version said association "can never place a node higher than it is,
+    which is the direction that matters for a fail-safe reading". That was
+    measured and it is false. On a freshly formed batman-adv mesh the
+    originator table converges in about four seconds and a client cannot reach
+    a peer for roughly twenty-five more; see `.github/workflows/mesh-probe.yml`.
+    For that whole window every bearer is associated and the node can carry
+    nothing, which is exactly the over-claim the old comment denied.
+
+    So a measured failure to reach a peer overrides the ladder. `None` does not:
+    nothing measures reachability on a real node yet, and downgrading on an
+    absent measurement would report ISOLATED for every node that has no probe.
+    `assess` records the gap instead, so a caller can tell "reaches peers" from
+    "nobody asked".
     """
+    if peer_reachable is False:
+        return "ISOLATED"
     linked = set(associated)
     for bearer, rung in CAPABILITY_LADDER:
         if bearer in linked:
@@ -204,6 +224,21 @@ def assess(inputs: ModeInputs, *, economy_below_minutes: int | None) -> ModeAsse
             )
         )
 
+    # Only where the rung actually rests on reaching a peer. An
+    # access-point-only node is ISOLATED by association alone, and attaching a
+    # reachability caveat to a rung association already settles would be noise
+    # on the one answer that needs no qualification.
+    rung = _bearer_capability(inputs.associated, inputs.peer_reachable)
+    if inputs.peer_reachable is None and rung != "ISOLATED":
+        undetermined.append(
+            (
+                "bearer_capability",
+                "Nothing checks whether a peer answers, so the rung is the "
+                "ceiling association allows rather than a measured capability. "
+                "A mesh takes about 25s after convergence to carry traffic.",
+            )
+        )
+
     wan: WanReachability | None
     if inputs.wan_reachable is None:
         wan = None
@@ -247,7 +282,7 @@ def assess(inputs: ModeInputs, *, economy_below_minutes: int | None) -> ModeAsse
         deployment=_deployment(inputs),
         shared_tak=shared_tak,
         wan=wan,
-        bearer_capability=_bearer_capability(inputs.associated),
+        bearer_capability=_bearer_capability(inputs.associated, inputs.peer_reachable),
         energy=energy,
         lifecycle=inputs.lifecycle,
         emission=inputs.emission,
