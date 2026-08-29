@@ -127,6 +127,23 @@ jobs:
               sys.exit(0 if any(marker in t for t in seen) else 1)
           PY
 
+          # Waiting for the API is now needed four times, not two: a config
+          # change reboots the node. Written once.
+          cat > /tmp/wait-api.sh <<'SH'
+          port=$1
+          limit=$2
+          end=$(( $(date +%s) + limit ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            if meshtastic --host "127.0.0.1:$port" --info >/dev/null 2>&1; then
+              echo "  port $port answered"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "  port $port did not answer within ${limit}s"
+          exit 1
+          SH
+
       - name: Build two node identities on one segment
         run: |
           # A user-defined bridge rather than the default one: the default
@@ -155,7 +172,19 @@ jobs:
 
       - name: Start node 1
         run: |
-          docker run -d --name lora1 --network lora-seg \
+          # --restart is load bearing, not hygiene. Run 2 established that
+          # meshtasticd reboots itself when its configuration changes, and that
+          # the re-exec fails in this image:
+          #
+          #   [Router] Reboot in 7 seconds
+          #   Rebooting
+          #   execv() returned -1!
+          #   error: No such file or directory
+          #
+          # Both nodes exited during the configuration step and the send had
+          # nothing to talk to. A real node needs a supervisor for the same
+          # reason; see docs/ROADMAP-DEV.md item 1.2.
+          docker run -d --name lora1 --network lora-seg --restart unless-stopped \
             -p 127.0.0.1:4403:4403 \
             -v "$PWD/cfg1/config.yaml:/etc/meshtasticd/config.yaml:ro" \
             "$MESHTASTICD_IMAGE" >/dev/null
@@ -170,31 +199,17 @@ jobs:
       # uninterpretable and every step after this would be guessing.
       - name: One node answers its own API
         run: |
-          for i in $(seq 1 24); do
-            if meshtastic --host 127.0.0.1:4403 --info >/tmp/info1.txt 2>&1; then
-              echo "node 1 answered on attempt $i"
-              head -25 /tmp/info1.txt
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "node 1 never answered its API in 120s"
-          tail -20 /tmp/info1.txt || true
-          exit 1
+          sh /tmp/wait-api.sh 4403 120
+          meshtastic --host 127.0.0.1:4403 --info | head -20
 
       - name: Start node 2
         run: |
-          docker run -d --name lora2 --network lora-seg \
+          docker run -d --name lora2 --network lora-seg --restart unless-stopped \
             -p 127.0.0.1:4404:4403 \
             -v "$PWD/cfg2/config.yaml:/etc/meshtasticd/config.yaml:ro" \
             "$MESHTASTICD_IMAGE" >/dev/null
-          for i in $(seq 1 24); do
-            meshtastic --host 127.0.0.1:4404 --info >/tmp/info2.txt 2>&1 && break
-            sleep 5
-          done
-          meshtastic --host 127.0.0.1:4404 --info >/dev/null 2>&1 || {
-            echo "node 2 never answered its API"; docker logs lora2 2>&1 | tail -30; exit 1; }
-          echo "node 2 answered"
+          sh /tmp/wait-api.sh 4404 120 || {
+            docker logs lora2 2>&1 | tail -30; exit 1; }
 
       - name: Confirm the two nodes are not the same node
         run: |
@@ -216,6 +231,15 @@ jobs:
           for h in 127.0.0.1:4403 127.0.0.1:4404; do
             meshtastic --host "$h" --set network.enabled_protocols UDP_BROADCAST
           done
+
+          # Each of those reboots its node. Wait for both to come back before
+          # asserting anything, rather than sleeping a guessed interval and
+          # hoping. Run 2 slept 20 seconds through both deaths.
+          echo "waiting for both nodes to return from the config reboot"
+          sh /tmp/wait-api.sh 4403 150
+          sh /tmp/wait-api.sh 4404 150
+
+          # Only now can they discover each other over the segment.
           sleep 20
           echo "=== node 1 sees ==="; meshtastic --host 127.0.0.1:4403 --nodes || true
           echo "=== node 2 sees ==="; meshtastic --host 127.0.0.1:4404 --nodes || true
