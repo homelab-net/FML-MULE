@@ -36,7 +36,7 @@ one.
 | 802.11s association, via `mac80211_hwsim` | GitHub hosted runners ship no wireless stack at all | 1.7 |
 | Real systemd units and boot ordering | No init, no boot | 1.2 |
 | Real `iw` and `batctl` against a live mesh | No wireless devices to read | 1.6 |
-| Meshtastic natively, no CI round trip | Nothing, this is convenience | 1.1 |
+| Meshtastic on real interfaces rather than a Docker bridge | CI has no radio and no serial | 1.1 |
 | The flat-sat, iterated in seconds | Nothing, this is convenience | all |
 
 Item 1.7 is the one that matters. It is blocked in `docs/ROADMAP-DEV.md`
@@ -130,6 +130,17 @@ modinfo mac80211_hwsim
 It is the gate on roadmap item 1.7. If it is present, 802.11s becomes testable
 for the first time in this program.
 
+**5. Is there a container runtime, and can it pull by digest?**
+
+```sh
+docker run --rm hello-world
+```
+
+`.github/workflows/lora-probe.yml` runs `meshtasticd` from an OCI image pinned
+by digest, because the daemon is in neither the Debian nor the Ubuntu archive.
+Reproducing that probe locally needs a runtime. If Debian's packaging differs
+from the runner's, say so in the probe rather than working around it silently.
+
 Record each answer where it belongs — `packages.list`, `os/kernel/PINS.md`, or
 an ADR — not in a chat reply. A finding that lives only in a conversation is
 lost the moment the session ends.
@@ -144,13 +155,33 @@ re-derive it nor over-trust it.
 | A three-node batman-adv mesh forms and routes two hops | `veth` in network namespaces, hosted CI, `.github/workflows/mesh-probe.yml` |
 | ARP resolves across the mesh unaided, caches deleted | Same run, asserted rather than printed |
 | Warm-up is 2.150s at one hop, 4.391s at two | Same, and asserted on every run against a ten second bound |
-| Bridge loop avoidance was the entire warm-up | 31.5s against 2.150s, one variable, both legs of one run, `FML-ADR-054` |
+| Bridge loop avoidance was the entire warm-up | 31.5s against 2.150s, one variable, both legs of one run, `FML-ADR-056` |
 | Hard interface MTU is 1560 | The kernel names the figure on every interface add |
 | `BATMAN_V` is unavailable | One kernel, not the baseline one. See check 2 above. |
+| The LoRa plane runs with no radio | Two `meshtasticd` nodes in simulation, a text message asserted across, `.github/workflows/lora-probe.yml` |
+| Changing a node's configuration reboots `meshtasticd` | Same probe. The re-exec fails in the container, so the process exits; the probe supervises its nodes for that reason |
 
 The link layer in every one of those is a `veth` pair: a perfect wire, with no
 propagation, loss, contention, rate adaptation, desense or range. Every quantity
 `TBR-RF-01`, `TBR-RF-02` and `TBR-RF-03` exist to measure is absent.
+
+## One thing to read before you touch networking
+
+**The EUD access point is bridged into the mesh's layer 2 domain.** SAD section
+4.3 says so directly, and it is the reason peer ATAK multicast traverses the
+mesh and clients need no MANET routing awareness. Two MULEs with five EUDs each
+are one flat broadcast domain: a frame from one team member to another two
+nodes away is a layer 2 path that `batman-adv` forwards.
+
+This was got wrong once, in this repository, by reading `FML-ADR-045` — which
+separates *radio functions* — as though it separated layer 2 domains. Two ADRs
+were written on the false premise and both are superseded, by `FML-ADR-056` and
+`FML-ADR-057`. A validation check was written from the same premise and
+forbade the baselined architecture until it was corrected.
+
+So before designing anything that touches the access point, the bridge, or
+addressing: read SAD section 4.3 first, then `FML-ADR-056`. They are short and
+they settle more than the surrounding ADRs do.
 
 ## Where things stand in git
 

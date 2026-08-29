@@ -115,7 +115,7 @@ each carries how it was obtained:
 | --- | --- |
 | `routing_algo=BATMAN_IV` | `FML-ADR-053`. BATMAN_V is absent from the stock module. |
 | `hard_interface_mtu=1560` | The kernel names the figure on every interface add. |
-| `bridge_loop_avoidance=0` | `FML-ADR-054`. Measured: 31.5s against 2.150s. |
+| `bridge_loop_avoidance=0` | `FML-ADR-056`. Measured: 31.5s against 2.150s. |
 | `multicast_mode=0` | Reasoned, not measured. Says so. |
 | `distributed_arp_table=0` | Reasoned, not measured. Says so. |
 
@@ -153,7 +153,7 @@ on whether a node is one Meshtastic identity or a gateway fronting four to eight
 EUDs, and CONOPS section 6 baselines the second. Building it before that answer
 produces an interface that has to be replaced.
 
-**Read first:** `TBR-NET-02` and `FML-ADR-055` before anything else, because
+**Read first:** `TBR-NET-02` and `FML-ADR-057` before anything else, because
 they decide what the interface addresses. Then `FML-ADR-026` for why it is a
 separate non-IP plane and what
 that forbids. `docs/interfaces/` for what crosses between planes.
@@ -253,11 +253,13 @@ what the node can and cannot see, `FML-ADR-045` for why the access point and
 the mesh are separate radio functions but not separate layer 2 domains, and
 `TBR-NET-01` and `TBR-NET-02`.
 
-**Why it matters now:** `FML-ADR-054` disables bridge loop avoidance, which is
-safe only while the mesh interface is not a member of a bridge carrying a shared
-segment. The Program Owner records that several nodes are likely to share one
-LAN during configuration, during over-the-air update, and in a tactical
-operations centre. Sharing a LAN is safe; bridging it into the mesh is not.
+**Why it matters now:** `FML-ADR-056` keeps bridge loop avoidance disabled, and
+what makes that safe is a rule rather than a measurement: the bridge carrying
+the mesh interface holds only access point interfaces, and anything reaching a
+segment another node reaches stays out of it. The Program Owner records that
+several nodes are likely to share one LAN during configuration, during
+over-the-air update, and in a tactical operations centre. Sharing a LAN is
+safe; bridging it into the mesh is not.
 `tools/validate-docs.sh` check 19 enforces the pairing and will fail the build
 if this is answered carelessly.
 
@@ -274,8 +276,9 @@ it. This is the next thing to do on Track 1.
 trade exists to structure addressing so authentication can be added to it later
 rather than redesign it.
 
-**Read first:** the trade, then `FML-ADR-055`, which puts the node in the
-traffic path and without which no option in the trade is implementable. Then
+**Read first:** the trade, then `FML-ADR-057`, which states which traffic the
+node may act on and which it may not, and therefore bounds every option in the
+trade. Then
 CONOPS section 6 for why the shared case is the normal one, section 23 for why
 a recipient tag is addressing rather than confidentiality, and section 9 for
 which services are even present when LoRa is carrying the traffic.

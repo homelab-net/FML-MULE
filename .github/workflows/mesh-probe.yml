@@ -159,9 +159,10 @@ jobs:
             # there is no mesh-wide multicast story to optimise for yet.
             sudo ip netns exec "$ns" batctl meshif bat0 distributed_arp_table 0
             sudo ip netns exec "$ns" batctl meshif bat0 multicast_mode 0
-            # FML-ADR-054. Bridge loop avoidance protects a mesh bridged to
-            # a common wired segment, and it is enabled by default. bat0 is
-            # bridged to nothing here, and it was costing the entire warm-up:
+            # FML-ADR-056, which supersedes FML-ADR-054. Bridge loop avoidance
+            # protects a mesh whose bridge also reaches a segment another node
+            # reaches, and it is enabled by default. Nothing here bridges bat0
+            # at all, and it was costing the entire warm-up:
             # 31.5s to first reply against 2.150s with it off, one variable,
             # a fresh mesh per value, both legs of run 21. It withholds client
             # frames until its claim mechanism settles, which is why every
@@ -316,7 +317,7 @@ jobs:
           # Ten seconds is a bound, not a target. The measured figure is 2.2s
           # one hop and 4.4s two hops, so this fires on a regression rather
           # than on jitter. THIS CHECK HAS BEEN WATCHED TO FAIL: the
-          # configuration FML-ADR-054 replaced measures 31.5s against it, in
+          # configuration FML-ADR-056 replaced measures 31.5s against it, in
           # both legs of run 21 and in runs 18, 19 and 20.
           WARM_UP_BOUND_SECONDS=10
           for stream in /tmp/p2.txt /tmp/p3.txt; do
