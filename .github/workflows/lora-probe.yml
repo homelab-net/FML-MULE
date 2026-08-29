@@ -1,0 +1,250 @@
+---
+# Can the LoRa plane be exercised in software, with no radio?
+#
+# FML-ADR-026 makes Meshtastic/LoRa a separate non-IP plane and the degraded
+# mode lifeline: it is what a team falls back to when every other bearer has
+# gone. It is also the least built thing in this repository. Before this file
+# there was one Literal in mule/bearers.py and nothing else. No code, no
+# configuration, no test.
+#
+# docs/ROADMAP-DEV.md item 1.1 says to answer one question before designing
+# anything: can this be exercised in software at all? An interface designed
+# ahead of that answer will be wrong, the same way the mesh probe's first five
+# runs were aimed at multi-hop routing while no two nodes could exchange a
+# packet.
+#
+# WHAT THIS DOES
+#
+# Two meshtasticd instances in simulation mode, each with its own node
+# identity, on one Docker bridge network. Meshtastic carries mesh packets over
+# UDP broadcast on a shared segment when network.enabled_protocols is
+# UDP_BROADCAST, so two simulated nodes can exchange real Meshtastic traffic
+# with no radio present. A text message is sent from one and asserted received
+# by the other.
+#
+# WHAT IT DOES AND DOES NOT COVER
+#
+# Covered, and real: the meshtasticd daemon, node identity, the Meshtastic
+# protocol stack, channel configuration, the TCP API, packet encode and decode,
+# and a text message crossing between two independent nodes.
+#
+# NOT covered, and it is most of what matters for a lifeline bearer: there is
+# no LoRa radio, no modulation, no spreading factor, no duty cycle, no airtime,
+# no range and no interference. UDP on a Docker bridge is a perfect wire with
+# effectively unlimited bandwidth, which is the opposite of the bearer this
+# plane exists for. Nothing here says anything about whether a message crosses
+# a valley. TBR-RF-02 owns sub-GHz behaviour and none of it is answered here.
+#
+# The result tier is SIMULATED. See AGENTS.md.
+#
+# WHY A CONTAINER
+#
+# meshtasticd is not packaged in the Debian or Ubuntu archives, so the image is
+# the only distribution channel that does not mean building the firmware. It is
+# referenced BY IMMUTABLE DIGEST, never by tag, per AGENTS.md.
+
+name: LoRa probe
+
+on:
+  push:
+    paths:
+      - .github/workflows/lora-probe.yml
+
+permissions:
+  contents: read
+
+env:
+  # meshtastic/meshtasticd:2.7.26-debian resolved 2026-08-29.
+  # Never replace this with a tag. A tag is not a version.
+  MESHTASTICD_IMAGE: >-
+    meshtastic/meshtasticd@sha256:23e92b1331a3a471eaef0c63cbca4365ca40b3111a9781cfdbe5a5114e5773d4
+  # Distinct from the default so a stray real node on a runner could not be
+  # mistaken for one of ours, and so the assertion cannot pass on chance.
+  MARKER: FML-LORA-PROBE-MARKER
+
+jobs:
+  lora:
+    name: LoRa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record what the image actually is
+        run: |
+          docker pull "$MESHTASTICD_IMAGE"
+          echo "=== image ==="
+          docker image inspect "$MESHTASTICD_IMAGE" \
+            --format '{{index .RepoDigests 0}}{{"\n"}}created {{.Created}}'
+          echo "=== meshtasticd version ==="
+          docker run --rm --entrypoint meshtasticd "$MESHTASTICD_IMAGE" --version ||
+            echo "(--version not supported; not fatal, the daemon is exercised below)"
+
+      - name: Install the Meshtastic client
+        run: |
+          python3 -m pip install --quiet --upgrade meshtastic
+          python3 -c 'import meshtastic; print("meshtastic client", meshtastic.__version__)'
+
+      - name: Build two node identities on one segment
+        run: |
+          # A user-defined bridge rather than the default one: the default
+          # bridge does not carry the broadcast traffic this depends on
+          # reliably, and being explicit is cheaper than diagnosing it.
+          docker network create --driver bridge lora-seg
+
+          # A node identity comes from its MAC. Two simulated nodes on one
+          # segment with the same identity are one node, and the message would
+          # then have nowhere to travel to.
+          mkdir -p cfg1 cfg2
+          for n in 1 2; do
+            cat > "cfg$n/config.yaml" <<CFG
+          Lora:
+            Module: sim
+          General:
+            MaxNodes: 200
+            MACAddress: "AA:BB:CC:DD:EE:0$n"
+            ConfigDirectory: /etc/meshtasticd/config.d/
+            AvailableDirectory: /etc/meshtasticd/available.d/
+          Logging:
+            LogLevel: info
+          CFG
+          done
+          echo "=== node 1 config ==="; cat cfg1/config.yaml
+
+      - name: Start node 1
+        run: |
+          docker run -d --name lora1 --network lora-seg \
+            -p 127.0.0.1:4403:4403 \
+            -v "$PWD/cfg1/config.yaml:/etc/meshtasticd/config.yaml:ro" \
+            "$MESHTASTICD_IMAGE" >/dev/null
+          sleep 10
+          echo "=== node 1 startup log ==="
+          docker logs lora1 2>&1 | tail -40
+
+      # The single-node case first, deliberately. AGENTS.md carries this rule
+      # because this program spent five runs on multi-hop mesh routing when the
+      # real fault was that no two nodes could exchange a packet at all. If one
+      # node cannot be reached over its own API, a two-node result is
+      # uninterpretable and every step after this would be guessing.
+      - name: One node answers its own API
+        run: |
+          for i in $(seq 1 24); do
+            if meshtastic --host 127.0.0.1:4403 --info >/tmp/info1.txt 2>&1; then
+              echo "node 1 answered on attempt $i"
+              head -25 /tmp/info1.txt
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "node 1 never answered its API in 120s"
+          tail -20 /tmp/info1.txt || true
+          exit 1
+
+      - name: Start node 2
+        run: |
+          docker run -d --name lora2 --network lora-seg \
+            -p 127.0.0.1:4404:4403 \
+            -v "$PWD/cfg2/config.yaml:/etc/meshtasticd/config.yaml:ro" \
+            "$MESHTASTICD_IMAGE" >/dev/null
+          for i in $(seq 1 24); do
+            meshtastic --host 127.0.0.1:4404 --info >/tmp/info2.txt 2>&1 && break
+            sleep 5
+          done
+          meshtastic --host 127.0.0.1:4404 --info >/dev/null 2>&1 || {
+            echo "node 2 never answered its API"; docker logs lora2 2>&1 | tail -30; exit 1; }
+          echo "node 2 answered"
+
+      - name: Confirm the two nodes are not the same node
+        run: |
+          # An assertion that could not fail is worse than no assertion. If both
+          # containers came up with one identity, every later step would pass
+          # while proving nothing, because a node always receives its own
+          # traffic.
+          id1=$(meshtastic --host 127.0.0.1:4403 --info 2>/dev/null |
+            sed -n 's/.*"myNodeNum": *\([0-9]*\).*/\1/p' | head -1)
+          id2=$(meshtastic --host 127.0.0.1:4404 --info 2>/dev/null |
+            sed -n 's/.*"myNodeNum": *\([0-9]*\).*/\1/p' | head -1)
+          echo "node 1 num: ${id1:-unknown}"
+          echo "node 2 num: ${id2:-unknown}"
+          test -n "$id1" && test -n "$id2"
+          test "$id1" != "$id2"
+
+      - name: Enable mesh over the shared segment
+        run: |
+          # UDP_BROADCAST is what carries mesh packets between nodes with no
+          # radio. Without it the two daemons are running and deaf.
+          for h in 127.0.0.1:4403 127.0.0.1:4404; do
+            meshtastic --host "$h" --set network.enabled_protocols 1
+          done
+          sleep 20
+          echo "=== node 1 sees ==="; meshtastic --host 127.0.0.1:4403 --nodes || true
+          echo "=== node 2 sees ==="; meshtastic --host 127.0.0.1:4404 --nodes || true
+
+      - name: Send a message from node 1 and assert node 2 receives it
+        run: |
+          cat > /tmp/listen.py <<'PY'
+          import sys, time
+          from pubsub import pub
+          import meshtastic.tcp_interface
+
+          marker, timeout = sys.argv[1], float(sys.argv[2])
+          seen = []
+
+          def on_receive(packet=None, interface=None):
+              d = (packet or {}).get("decoded") or {}
+              if d.get("portnum") == "TEXT_MESSAGE_APP":
+                  seen.append(d.get("text", ""))
+
+          pub.subscribe(on_receive, "meshtastic.receive")
+          iface = meshtastic.tcp_interface.TCPInterface(
+              hostname="127.0.0.1", portNumber=4404)
+          deadline = time.time() + timeout
+          while time.time() < deadline and not any(marker in t for t in seen):
+              time.sleep(0.5)
+          iface.close()
+          print("text packets seen by node 2:", seen)
+          sys.exit(0 if any(marker in t for t in seen) else 1)
+          PY
+
+          python3 /tmp/listen.py "$MARKER" 90 >/tmp/listen.out 2>&1 &
+          listener=$!
+          sleep 8
+
+          meshtastic --host 127.0.0.1:4403 --sendtext "$MARKER"
+          echo "sent from node 1"
+
+          # The listener's exit code is the verdict. It is not discarded, and
+          # nothing here falls back to printing success.
+          set +e
+          wait "$listener"; rc=$?
+          set -e
+          cat /tmp/listen.out
+
+          {
+            echo
+            echo "=== LoRa plane, software only ==="
+            if [ "$rc" -eq 0 ]; then
+              echo "  RESULT: a text message crossed from node 1 to node 2."
+              echo "  Transport: UDP broadcast on a Docker bridge. No radio."
+              echo "  Tier: SIMULATED. Says nothing about LoRa RF behaviour."
+            else
+              echo "  RESULT: node 2 did not receive the message within 90s."
+            fi
+          } | tee /tmp/lora-result.txt
+          exit "$rc"
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          # Built in from the start rather than added after nine runs. On the
+          # mesh probe, watching the wire located in one run what reading the
+          # daemon's own tables could not.
+          for c in lora1 lora2; do
+            echo "=== $c log ==="
+            docker logs "$c" 2>&1 | tail -60
+          done
+          echo "=== network ==="
+          docker network inspect lora-seg || true
+
+      - name: Result
+        if: always()
+        run: cat /tmp/lora-result.txt 2>/dev/null || echo "no result recorded"
