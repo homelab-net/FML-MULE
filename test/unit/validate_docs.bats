@@ -137,6 +137,36 @@ PATCH
   [ "$status" -eq 0 ]
 }
 
+# --- vendored directories ---------------------------------------------------
+#
+# tools/install-deps.sh creates a virtualenv at .venv, which .gitignore has
+# always declared. Its site-packages tree trips the two checks that walk the
+# filesystem rather than the tracked file list: every directory needs a README
+# (check 12), and nothing may reference a container image by mutable tag
+# (check 9). ansible-lint really does ship JSON schemas that do the latter.
+#
+# Planted rather than trusted to be absent, because the failure it guards
+# against is a contributor installing the documented toolchain and being told
+# their untouched tree has four hundred defects. Both halves are planted in one
+# test: they are one rule, and a second test saying the same thing would make
+# both easier to ignore.
+
+@test "validate-docs ignores a virtualenv in the working tree" {
+  make_sandbox
+  vendored="$SANDBOX/.venv/lib/python3.13/site-packages/planted"
+  mkdir -p "$vendored/schemas"
+  # A registry hostname outside the example.* exemption, so this line would
+  # fail check 9 if the virtualenv were scanned.
+  printf 'image: registry.planted.net/planted/tool:latest\n' \
+    > "$vendored/schemas/planted.json"
+  # A directory with no README, so this would fail check 12 the same way.
+  printf 'planted\n' > "$vendored/notes.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"All documentation checks passed."* ]]
+}
+
 @test "validate-docs detects an open trade with no ITEP campaign" {
   make_sandbox
   # A trade with no plan to close it is a trade that will not close. The plan
@@ -222,6 +252,32 @@ PATCH
   printf '\n  batctl meshif bat0 interface add eth0\n' >> "$SANDBOX/os/ansible/site.yml"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
+# --- generated files do not depend on the contributor's locale ----------------
+#
+# sort order is locale-dependent. Under en_US.UTF-8 punctuation and case are
+# largely ignored, so `docs/glossary.md` sorts before `docs/NON-GOALS.md` and
+# `.github/` moves; under C they do not. The generators feed files that are
+# committed and checked for drift, so an unpinned sort means a contributor on
+# an ordinary desktop regenerates a few hundred lines they never touched and
+# CI fails on drift they cannot explain. It is the same shape as a green run
+# that checked nothing: the tool, not the tree, was wrong.
+
+@test "gen-decision-index is stable across locales" {
+  if ! locale -a 2>/dev/null | grep -qi '^en_US\.utf8$'; then
+    skip "en_US.UTF-8 not available on this machine"
+  fi
+  LC_ALL=en_US.UTF-8 run sh "$REPO/tools/gen-decision-index.sh" --check
+  [ "$status" -eq 0 ]
+}
+
+@test "gen-traceability is stable across locales" {
+  if ! locale -a 2>/dev/null | grep -qi '^en_US\.utf8$'; then
+    skip "en_US.UTF-8 not available on this machine"
+  fi
+  LC_ALL=en_US.UTF-8 run sh "$REPO/tools/gen-traceability.sh" --check
   [ "$status" -eq 0 ]
 }
 
