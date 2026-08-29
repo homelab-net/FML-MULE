@@ -17,6 +17,11 @@ is a decision nobody has earned the right to make yet.
    probably premature: propose an ADR first.
 3. Run `tools/lint.sh`. You need to know the tree was clean when you found it.
 
+**On a development machine rather than in CI, read `docs/dev-machine.md`
+first.** `tools/lint.sh` skips every tool that is not installed and still
+reports success, which is the first thing that will mislead you, and that file
+also lists the four facts to check before building anything.
+
 ## Done
 
 A change is not done until all five hold. Say which ones you actually ran.
