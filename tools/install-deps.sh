@@ -48,12 +48,13 @@ SHFMT_SHA256_arm64=9d23013d56640e228732fd2a04a9ede0ab46bc2d764bf22a4a35fb1b14d70
 # system-wide. Debian marks its system Python externally managed, and a
 # contributor's other projects have no business sharing this one's linters.
 #
-# The versions are deliberately NOT pinned here, because the workflow does not
-# pin them either and a helper script must not invent a compatibility set of
-# its own. Pinning the development toolchain is a decision in the sense of
-# FML-ADR-040 and belongs in an ADR, not in this file.
+# Versions come from the lock file and from nowhere else (FML-ADR-058). The
+# file records the fully resolved set that was exercised, so that "lint.sh
+# passed" identifies which linters passed. Do not add package names here: a
+# version installed from this script rather than the lock is exactly the drift
+# the lock exists to prevent.
 VENV="$ROOT/.venv"
-PY_PACKAGES='ruff pytest jsonschema pyyaml coverage yamllint ansible-lint ansible-core'
+PY_LOCK="$ROOT/tools/requirements-dev.txt"
 
 # Debian packages. gitleaks is included because tools/lint.sh looks for the
 # binary on PATH; CI runs the gitleaks action instead, so the versions there
@@ -147,7 +148,7 @@ if ! have apt-get; then
   note 'authoritative list is .github/workflows/lint.yml.'
   note ''
   note "Debian packages:  $APT_PACKAGES"
-  note "Python packages:  $PY_PACKAGES"
+  note "Python packages:  from tools/requirements-dev.txt"
   note "shfmt:            v$SHFMT_VERSION from https://github.com/mvdan/sh"
   note 'Node:             markdownlint-cli2, installed globally with npm'
   exit 1
@@ -170,14 +171,17 @@ as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $APT_PACKAGES
 
 step 'Python virtualenv'
 note "$VENV"
+if [ ! -f "$PY_LOCK" ]; then
+  printf 'ERROR: %s is missing.\n' "$PY_LOCK" >&2
+  printf 'It carries the pinned toolchain (FML-ADR-058) and is not optional.\n' >&2
+  exit 1
+fi
 if [ ! -x "$VENV/bin/python" ]; then
   python3 -m venv "$VENV"
 fi
 "$VENV/bin/pip" install --quiet --upgrade pip
-# Word splitting is intended: PY_PACKAGES is a list, not one argument.
-# shellcheck disable=SC2086
-"$VENV/bin/pip" install --quiet --upgrade $PY_PACKAGES
-note 'Installed.'
+"$VENV/bin/pip" install --quiet --requirement "$PY_LOCK"
+note "Installed from tools/requirements-dev.txt."
 
 # --- shfmt ------------------------------------------------------------------
 

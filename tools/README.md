@@ -16,6 +16,7 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | Script | Purpose |
 | --- | --- |
 | `install-deps.sh` | Install the toolchain `lint.sh` runs. `--check` reports what is missing without installing. |
+| `requirements-dev.txt` | The pinned Python toolchain. Generated, never hand-edited. `FML-ADR-058`. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
@@ -47,9 +48,8 @@ tools/install-deps.sh [--check]
 
 Installs `shellcheck`, `bats`, `gitleaks` and Node from apt; `shfmt` from its
 release page, pinned by version and verified by SHA-256; `markdownlint-cli2`
-globally with npm; and the Python tools (`ruff`, `pytest`, `jsonschema`,
-`pyyaml`, `coverage`, `yamllint`, `ansible-lint`, `ansible-core`) into a
-virtualenv at `.venv`.
+globally with npm; and the Python toolchain into a virtualenv at `.venv`, at
+the exact versions recorded in `tools/requirements-dev.txt`.
 
 The virtualenv exists because Debian marks its system Python externally
 managed, and because one project's linters have no business being installed
@@ -57,18 +57,44 @@ system-wide. `lint.sh` puts `.venv/bin` on its `PATH` when the directory is
 there, so running the installer is enough; you do not have to activate it
 first. To run those tools by hand, `. .venv/bin/activate`.
 
-Two things it deliberately does not do. It does not pin the Python package
-versions, because `.github/workflows/lint.yml` does not pin them either and a
-helper script must not invent a compatibility set of its own; pinning the
-development toolchain is a decision of the kind `FML-ADR-040` governs and
-belongs in an ADR. And it installs only the tools that check this repository,
-not `batctl`, `iw`, `tcpdump` or `iputils-arping`, which the network plane work
-needs; see `docs/dev-machine.md`.
+It installs only the tools that check this repository, not `batctl`, `iw`,
+`tcpdump` or `iputils-arping`, which the network plane work needs; see
+`docs/dev-machine.md`.
 
-**`.github/workflows/lint.yml` remains the authoritative list.** This script
-mirrors it for convenience and the two are kept in step by review, not by
-machinery. Where they disagree, the workflow is right and the script is the
-defect.
+## `requirements-dev.txt`
+
+The pinned Python toolchain (`FML-ADR-058`). **Generated, never hand-edited.**
+
+It records the fully resolved set, all thirty-six packages rather than the
+eight direct ones, so that `tools/lint.sh` passing identifies which linters
+passed. Pinning only the direct dependencies would reproduce the same drift one
+layer down.
+
+The file's header carries the refresh procedure. The rule it exists to enforce:
+run `tools/lint.sh` and see it pass **before** capturing the set, because a set
+that has not been exercised is a guess with version numbers on it. Editing a
+version by hand produces exactly that.
+
+Refreshing it is an ordinary change, reviewed like any other, consistent with
+the dependency policy in `CONTRIBUTING.md`. What the pin does **not** give you
+is artifact integrity: `==` fixes the version, not the file behind it, which is
+weaker than the digest pinning this repository requires of container images.
+`FML-ADR-058` records that inconsistency rather than leaving it to be
+discovered.
+
+### Known divergence from CI
+
+`.github/workflows/lint.yml` does **not** yet install from this file. It runs
+`pip install --upgrade` against the eight direct package names, so continuous
+integration resolves its own versions on every run while a contributor gets the
+pinned set.
+
+That is a wider gap than existed before pinning, not a narrower one, and it is
+open deliberately rather than overlooked: closing it means editing the workflow,
+which is the same list in a second place. `FML-ADR-058` says the workflow
+**should** install from this file, and until it does, a disagreement between a
+local run and a CI run may be a version difference rather than a real one. Check
+that first.
 
 ## `validate-docs.sh`
 
