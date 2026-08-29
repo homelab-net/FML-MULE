@@ -34,18 +34,22 @@ driver=TBD
 # default nobody chose is how bridge loop avoidance came to be in force for
 # twenty probe runs while presenting as an RF fault.
 #
-# The choice is between bridging associated devices onto a segment and routing
-# to them. FML-ADR-054 disables bridge loop avoidance on bat0, which is safe
-# only while bat0 is bridged to nothing.
+# BRIDGING TO THE MESH INTERFACE IS THE DESIGN, not a hazard. SAD section 4.3
+# bridges local EUD access into the BATMAN domain so peer ATAK multicast
+# traverses the mesh, a team keeps local connectivity if the mesh fragments,
+# and clients need no MANET routing awareness. What remains open is the bridge
+# NAME and the interface naming around it, which wait on TBR-RF-03 and
+# TBR-LINUX-01.
 #
-# THIS IS NOT HYPOTHETICAL. The program owner records that multiple MULE nodes
-# are likely to sit on one LAN during configuration, during over-the-air
-# update, and in a tactical operations centre. That is the exact topology
-# bridge loop avoidance exists for, so a bridge naming bat0 in those settings
-# forms a loop that bridge loop avoidance is no longer there to break.
+# What FML-ADR-056 forbids is different and narrower: the bridge carrying bat0
+# shall hold only access point interfaces. Adding a wired uplink, a management
+# port or a venue LAN to it creates the loop that bridge loop avoidance is no
+# longer there to break, and the program owner records that several nodes
+# sharing one LAN is expected during configuration, over-the-air update and in
+# a tactical operations centre. Sharing that LAN is safe; bridging it into the
+# field domain is not.
 #
-# Setting this to a bridge that also carries bat0 shall revisit FML-ADR-054
-# first. tools/validate-docs.sh enforces the pairing.
+# tools/validate-docs.sh check 19 enforces it.
 bridge=TBD
 
 # --- Identity ---------------------------------------------------------------

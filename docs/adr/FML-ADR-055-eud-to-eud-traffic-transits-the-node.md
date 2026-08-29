@@ -1,10 +1,10 @@
 ---
 id: FML-ADR-055
 title: EUD to EUD traffic transits the node
-status: SELECTED PRINCIPLE
+status: SUPERSEDED
 date: 2026-08-29
 supersedes: none
-superseded-by: none
+superseded-by: FML-ADR-057
 trades: [TBR-NET-02, TBR-ID-01, TBR-RF-03]
 verification: TBD
 ---
@@ -126,7 +126,7 @@ hardware. That measurement is named in the status section and does not exist.
 
 ## Superseded by
 
-None.
+`FML-ADR-057`.
 
 ## Verification dependency
 

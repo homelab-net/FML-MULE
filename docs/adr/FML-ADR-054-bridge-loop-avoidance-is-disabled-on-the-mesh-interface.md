@@ -1,10 +1,10 @@
 ---
 id: FML-ADR-054
 title: Bridge loop avoidance is disabled on the mesh interface
-status: SELECTED
+status: SUPERSEDED
 date: 2026-08-28
 supersedes: none
-superseded-by: none
+superseded-by: FML-ADR-056
 trades: [TBR-RF-01]
 verification: TBD
 ---
@@ -160,7 +160,7 @@ that configuration is written.
 
 ## Superseded by
 
-None.
+`FML-ADR-056`.
 
 ## Verification dependency
 

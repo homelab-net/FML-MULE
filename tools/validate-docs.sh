@@ -582,19 +582,26 @@ done
 
 info "$blocked_count blocked service(s); $pairing_count mule/ module pairing(s) checked"
 
-# --- 19: nothing bridges the mesh interface while loop avoidance is off -----
+# --- 19: the mesh interface shares a bridge only with access points --------
 #
-# FML-ADR-054 disables bridge_loop_avoidance because it was costing the entire
-# warm-up, 31.5s against 2.150s, and bat0 is bridged to nothing. That is safe
-# only while that stays true, and the ADR states the condition in prose, which
-# makes it a rule nothing enforces.
+# FML-ADR-056. The mesh interface IS bridged, by design: SAD section 4.3
+# bridges local EUD access into the BATMAN domain so peer ATAK multicast
+# traverses the mesh and clients need no MANET routing awareness.
 #
-# The topology it guards is a PLANNED operating condition rather than a field
-# mistake. The program owner records that several nodes are likely to share one
-# LAN during configuration, during over-the-air update, and in a tactical
-# operations centre. Two nodes bridging the mesh interface onto one segment
-# form a loop, and on a low-rate bearer a broadcast storm takes the mesh down
-# rather than slowing it.
+# The first version of this check forbade any bridge containing the mesh
+# interface. That was written from FML-ADR-054's premise that the interface was
+# bridged to nothing, which was wrong, and the check therefore forbade the
+# baselined architecture. It would have fired the first time anyone implemented
+# section 4.3, and a check that fires on correct configuration teaches people to
+# work around checks.
+#
+# The real rule is narrower. A loop needs the mesh interface in a bridge AND a
+# second path between the same layer 2 domain outside the mesh. The first is the
+# architecture; the second is what FML-ADR-056 forbids. So an access point may
+# share the bridge, and anything reaching a segment shared with another node may
+# not: a wired uplink, a management port, a venue LAN. A wired link that should
+# carry field traffic joins the mesh as a batman-adv hard interface instead,
+# where batman-adv does its own loop-free path selection.
 
 bla_setting=$(sed -n 's/^bridge_loop_avoidance=\([^ 	]*\).*/\1/p' \
   os/config/batman-adv.conf.template)
@@ -607,62 +614,59 @@ if [ -z "$mesh_if" ] || [ "$mesh_if" = TBD ]; then
   mesh_if=bat0
 fi
 
+# Interfaces that reach a segment another node might also reach. Deliberately
+# shaped rather than exhaustive: it catches the names a person actually types.
+UPLINK_PATTERN='\<(eth[0-9]|en[a-z0-9]+|usb[0-9]|wan[0-9]?|uplink|mgmt|wired)\>'
+
 if [ "$bla_setting" = 0 ]; then
-  # Bridge membership, in the forms it is actually written: an ip link master,
-  # a systemd-networkd Bridge=, an Ansible bridge_ports, a hostapd bridge=.
-  # Comment lines are excluded, which is what makes the ADR and this check
-  # able to discuss the thing they forbid.
   # Collected first, then acted on, for the reason check 18 records: a while
   # loop on the right of a pipe runs in a subshell, so fail() called inside one
-  # would increment a counter that dies with it. Command substitution keeps the
-  # list and leaves the reporting in this shell.
-  bridged=$(find os -type f \
+  # would increment a counter that dies with it.
+  looped=$(find os -type f \
     \( -name '*.template' -o -name '*.conf' -o -name '*.yml' \) |
     while IFS= read -r conf; do
-      # Three filters rather than one pattern, because the two halves appear in
-      # either order and a single regex spelling both orders is unreadable.
-      # "ip link set bat0 master br0" puts the interface first and is the most
-      # common spelling of all; the first version of this check required the
-      # keyword first, passed that line silently, and was caught by watching it
-      # fail rather than by reading it.
+      # A bridge statement naming BOTH the mesh interface and an uplink is the
+      # loop condition, spelled on one line. Comments are stripped first, which
+      # is what lets the ADRs and this file discuss what they forbid.
+      # No bridge keyword in the filter, deliberately. A structured file puts
+      # the keyword on one line and the members on another:
+      #
+      #   bridges:
+      #     br-field:
+      #       interfaces: [bat0, eth0]
+      #
+      # Requiring the keyword passed that silently, and the comment above this
+      # check claimed it did not. Two names on one line is the signal instead.
+      #
+      # batctl lines are excluded because "batctl meshif bat0 interface add
+      # eth0" names both and is the CORRECT way to attach a wired link: it
+      # joins the mesh, where batman-adv does loop-free selection, rather than
+      # the bridge. FML-ADR-056 requires exactly that, so flagging it would
+      # fire on the fix.
       if grep -vE '^[ 	]*#' "$conf" |
-        grep -E '(master|[Bb]ridge|bridge_ports|brctl)' |
-        grep -qE "\<$mesh_if\>"; then
+        grep -vE '(batctl|interface add)' |
+        grep -E "\<$mesh_if\>" |
+        grep -qE "$UPLINK_PATTERN"; then
         printf '%s\n' "$conf"
       fi
     done)
 
   # Split on whitespace deliberately; a path here contains none.
-  for conf in $bridged; do
-    fail "$conf puts $mesh_if in a bridge while bridge_loop_avoidance=0. Two nodes bridging $mesh_if onto one segment form a loop with nothing left to break it. FML-ADR-054."
+  for conf in $looped; do
+    fail "$conf puts $mesh_if in a bridge with an uplink interface while bridge_loop_avoidance=0. Two nodes bridging one segment form a loop with nothing left to break it. A wired link carrying field traffic joins the mesh with batctl interface add instead. FML-ADR-056."
   done
 
-  # WHAT THIS DOES NOT CATCH: a bridge declared across several lines of a
-  # structured file, as netplan and similar write it:
+  # WHAT THIS DOES NOT CATCH: membership where the two interfaces never appear
+  # on the same line, which systemd-networkd produces by design, one file per
+  # member:
   #
-  #   bridges:
-  #     br0:
-  #       interfaces: [bat0]
+  #   /etc/systemd/network/10-bat0.network    [Network] Bridge=br-field
+  #   /etc/systemd/network/11-eth0.network     [Network] Bridge=br-field
   #
-  # The keyword and the interface are on different lines, and finding that
-  # needs a YAML parser rather than a grep. Reading the file as a whole instead
-  # of line by line was tried and is wrong: batman-adv.conf.template names the
-  # setting on one line and the interface on another, so it reports itself.
-  #
-  # The gap closes when configuration generation exists and this check moves to
-  # the generated output, where bridge membership resolves to one line. Until
-  # then the hostapd check below covers the likely route to such a bridge.
-
-  # The access point is the likely route to that bridge, and this repository
-  # has nowhere that declares a bridge's members, so it cannot tell what the
-  # named bridge carries. Firing on any resolved value is deliberate: the
-  # answer is to record what the bridge contains, and the question is the
-  # thing that was missing.
-  ap_bridge=$(sed -n 's/^bridge=\([^ 	]*\).*/\1/p' \
-    os/config/hostapd.conf.template)
-  if [ -n "$ap_bridge" ] && [ "$ap_bridge" != TBD ]; then
-    fail "os/config/hostapd.conf.template bridges the access point onto $ap_bridge while bridge_loop_avoidance=0, and nothing records whether $ap_bridge carries $mesh_if. FML-ADR-054."
-  fi
+  # Nothing here joins those. Doing so needs a model of the network stack,
+  # which is TBR-LINUX-01's territory and does not exist yet. The gap closes
+  # when configuration generation exists and this check moves to the generated
+  # output, where membership resolves to one place.
 fi
 
 info "mesh interface $mesh_if, bridge_loop_avoidance=${bla_setting:-unset}, bridge membership checked"

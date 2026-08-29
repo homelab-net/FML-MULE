@@ -210,6 +210,14 @@ hard interface MTU is 1560 **before** the add, not after.
 **Done when:** the units exist, the flat-sat exercises the sequence end to end,
 and a wrong order fails a test rather than producing a mesh that looks up.
 
+Two things belong here that were found elsewhere. `FML-ADR-056` gives up
+automatic loop protection and asks for a **loop detector** in exchange: a
+client address under more than one originator, or the node's own bridge address
+arriving from the mesh, are both readable with `batctl`. And the LoRa probe
+established that **changing a node's configuration reboots the daemon**, so
+whatever supervises `meshtasticd` needs a restart policy; a config push that
+leaves the lifeline bearer dead is the worst failure this system has.
+
 **Traps:** the network management stack is undecided, and
 `os/config/interfaces.conf.template` says so. Do not decide it silently by
 writing units for one. If the sequencing work forces that choice, it needs an
@@ -217,26 +225,33 @@ ADR.
 
 ### 1.3 The access point data path
 
-**State:** two open questions in one file, and they are not the same question.
-`bridge=TBD` decides whether associated devices are bridged onto a segment or
-routed to. `ap_isolate=TBD` decides whether they reach each other directly or
-only through the node.
+**State:** mostly decided, and the decisions were got wrong once. `FML-ADR-054`
+and `FML-ADR-055` were both written on the premise that the mesh interface is
+bridged to nothing. SAD section 4.3 bridges local EUD access into the BATMAN
+domain, so the premise was false and both are superseded, by `FML-ADR-056` and
+`FML-ADR-057`.
 
-The second is now decided in principle. `FML-ADR-055` requires that EUD to EUD
-traffic transits the node, so `ap_isolate` may not be set to permit direct
-forwarding without superseding it. What that ADR deliberately leaves open is the
-exact value and, more importantly, how S1 peer-to-peer ATAK survives the
-decision, which needs a measurement on a wireless stack.
+What is settled now: bridging the access point to the mesh interface **is** the
+design; the bridge carrying it holds only access point interfaces; a wired link
+carrying field traffic joins the mesh with `batctl` rather than the bridge; a
+management link is routed. Loop avoidance stays off, by Program Owner
+direction, and the shared-LAN case is handled by that structure rather than by
+paying the warm-up.
 
-**Blocked by:** nothing technical for `bridge=`. The `ap_isolate` half is
-decided in principle and blocked on measurement for its implementation.
+What is left in the file: the bridge **name** and the interface naming around
+it, which wait on `TBR-RF-03` and `TBR-LINUX-01`. `ap_isolate` follows
+`FML-ADR-057`: stations are not isolated, because that is what peer ATAK
+between two people at one MULE runs over.
 
-**Read first:** `FML-ADR-055` and its accepted cost, which is the one that
-creates work: peer-to-peer ATAK is an S1 service under CONOPS section 9.2 and
-this decision moves it from something the radio does for free to something the
-node must provide. Then `FML-ADR-054` and its accepted cost, `FML-ADR-045` for
-why the access point and the mesh are separate logical radio functions, and
-`TBR-NET-01` and `TBR-NET-02`, because both halves are addressing questions.
+**Blocked by:** naming only.
+
+**Read first:** SAD section 4.3, which is short and settles more than any of
+the ADRs around it. Then `FML-ADR-056` and its accepted cost, which is the one
+that creates work: loop protection is now structural rather than automatic, and
+the ADR calls for a loop detector that does not exist. Then `FML-ADR-057` for
+what the node can and cannot see, `FML-ADR-045` for why the access point and
+the mesh are separate radio functions but not separate layer 2 domains, and
+`TBR-NET-01` and `TBR-NET-02`.
 
 **Why it matters now:** `FML-ADR-054` disables bridge loop avoidance, which is
 safe only while the mesh interface is not a member of a bridge carrying a shared
@@ -246,9 +261,9 @@ operations centre. Sharing a LAN is safe; bridging it into the mesh is not.
 `tools/validate-docs.sh` check 19 enforces the pairing and will fail the build
 if this is answered carelessly.
 
-**Done when:** an ADR decides bridged or routed, `bridge=` carries the answer,
-check 19 still passes, and `ap_isolate` carries a value consistent with
-`FML-ADR-055` alongside whatever preserves peer-to-peer ATAK through the node.
+**Done when:** `bridge=` and `ap_isolate` carry values consistent with
+`FML-ADR-056` and `FML-ADR-057`, check 19 still passes, and the loop detector
+`FML-ADR-056` calls for either exists or is recorded as work with a home.
 
 ### 1.4 `TBR-NET-02`, how a node addresses the EUDs behind it
 

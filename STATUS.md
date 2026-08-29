@@ -43,7 +43,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
 | `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
-| `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
+| `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01, TBR-NET-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -55,7 +55,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 | `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
-| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
+| `FML-ADR-057` | What traffic transits the node and what does not | TBR-NET-02, TBR-ID-01 |
 
 ### SELECTED TARGET
 
@@ -88,6 +88,8 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
+| `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
+| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
 
 ### RETIRED
 

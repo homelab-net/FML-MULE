@@ -11,7 +11,7 @@ depends-on: []
 feeds: [TBR-ID-01]
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-02/
-adr: [FML-ADR-055, FML-ADR-026, FML-ADR-048]
+adr: [FML-ADR-057, FML-ADR-056, FML-ADR-026, FML-ADR-048]
 target-date: TBD-SRR
 ---
 
@@ -51,6 +51,25 @@ carries a CoT UID and callsign. Browser services will carry whatever
 Meshtastic carries a node number. The degradation ladder in CONOPS section 5.5
 deliberately moves traffic between planes as capability is lost, so the absence
 of a mapping is felt exactly when things are going badly.
+
+**The IP plane is not the problem, and an earlier draft of this trade said it
+was.** SAD section 4.3 bridges local EUD access into the BATMAN domain, so
+every EUD behind every MULE sits in one flat layer 2 domain with its own MAC
+and address. `EUD-A1` reaching `EUD-B3` two MULEs away is a layer 2 path that
+`batman-adv` forwards, with ARP resolving across the mesh. Delivery to a
+particular device is already solved there and needs nothing from this trade.
+
+What this trade owes the IP plane is narrower: **which user** a device belongs
+to, for policy and for gateway-mediated traffic. That is identity, not routing.
+
+**The cliff is at the plane boundary.** On IP each EUD is individually
+addressable. On LoRa only the MULE is, because `Data.dest` names a node and a
+MULE has one LoRa chain. CONOPS section 50.8 `LOW-BANDWIDTH` is where an
+operator crosses from one to the other, and **nothing in this repository
+records that person-to-person addressing is lost at that step.** Someone who
+can send to one teammate at 09:00 cannot at 09:05, and no document says so.
+Recording that, in terms an operator meets rather than a protocol field, is
+part of this trade's output whichever option is selected.
 
 `mule/admission.py` records the floor this sits on: there is no identity,
 credential or enrollment anywhere in this repository yet. That is `TBR-ID-01`.
@@ -104,18 +123,21 @@ containing all four of:
    naming a recipient, and an inbound Meshtastic packet, each followed from
    arrival at the node to delivery at one named EUD, with the resolution step
    shown at each hop.
-3. **The LoRa tag encoding and its cost in bytes**, stated against
+3. **A statement of what an operator loses at the plane boundary**, written for
+   the operator rather than the protocol: what addressing exists on IP, what
+   exists on LoRa, and what stops working at CONOPS section 50.8.
+4. **The LoRa tag encoding and its cost in bytes**, stated against
    `DATA_PAYLOAD_LEN`, which is 233 bytes in the Meshtastic protobuf. A tag
    whose cost is not stated is not a design.
-4. **The unresolved-recipient rule**, stating what the node does when it cannot
+5. **The unresolved-recipient rule**, stating what the node does when it cannot
    determine the intended EUD.
 
-The first three may be produced by analysis on rig R0 or R1. The fourth is a
+The first four may be produced by analysis on rig R0 or R1. The fifth is a
 decision and needs no rig.
 
 ## Closure gate
 
-A named owner accepts the specification when it satisfies all four items above
+A named owner accepts the specification when it satisfies all five items above
 and, in addition, states explicitly **what changes when `TBR-ID-01` closes and
 what does not**. That last condition is the point of running this trade before
 that one, and a specification that cannot answer it has not separated
@@ -134,8 +156,10 @@ it wrong. The same reasoning as `FML-ADR-042` for time.
   it rather than redesign it.
 - **Feeds:** `TBR-ID-01`, and `docs/ROADMAP-DEV.md` item 1.1 step 2, which
   cannot be shaped until this is answered.
-- **Related decisions:** `FML-ADR-055` places the node in the traffic path,
-  without which no option here is implementable. `FML-ADR-026` makes LoRa a
+- **Related decisions:** `FML-ADR-057` states which traffic the node may act on
+  and which it may not, which is what bounds every option here. `FML-ADR-056`
+  keeps the field domain flat and bridged, which is why the IP half of this
+  trade is identity rather than routing. `FML-ADR-026` makes LoRa a
   separate non-IP plane. `FML-ADR-048` fixes the gateway translation order.
   `FML-ADR-037` prefers application-native RBAC. `FML-ADR-042` is the
   fail-closed precedent the closure gate follows.

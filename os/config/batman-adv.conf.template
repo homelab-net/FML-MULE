@@ -154,7 +154,8 @@ fragmentation=TBD              # Reads back enabled by default. Undecided here:
                                # TBR-RF-01's question, and hard_interface_mtu
                                # above is the setting that avoids needing it.
 
-bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-054.
+bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-056,
+                               # which supersedes FML-ADR-054.
                                #
                                # MEASURED, and the single largest effect found
                                # on this mesh. One variable, a fresh mesh per
@@ -169,25 +170,34 @@ bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-054.
                                # answered it in 34 microseconds, while every
                                # table read correct throughout.
                                #
-                               # It protects a mesh bridged to a common wired
-                               # segment, and THAT TOPOLOGY IS PLANNED: several
-                               # nodes are expected to share one LAN during
-                               # configuration, during over-the-air update and
-                               # in a tactical operations centre.
+                               # bat0 IS bridged, by design. SAD section 4.3
+                               # bridges local EUD access into the BATMAN
+                               # domain so peer ATAK multicast traverses the
+                               # mesh and clients need no MANET routing
+                               # awareness. FML-ADR-054 claimed the opposite
+                               # and was wrong; FML-ADR-056 corrects it.
                                #
-                               # Sharing a LAN is safe. Bridging that LAN into
-                               # the mesh is not, and nothing about sharing one
-                               # requires bridging it. So this setting rests on
-                               # a companion rule: bat0 shall not be a member
-                               # of a bridge carrying a shared segment. The EUD
-                               # access point is a separate logical radio
-                               # function per FML-ADR-045, and its data path is
-                               # the open question, recorded as bridge= in
-                               # hostapd.conf.template.
+                               # A loop needs TWO things: bat0 in a bridge, and
+                               # a second path outside the mesh. The first is
+                               # the architecture. The second is what the rule
+                               # forbids:
                                #
-                               # tools/validate-docs.sh check 19 enforces the
-                               # pairing. FML-ADR-054 records the fallback if a
-                               # topology ever needs both.
+                               #   The bridge carrying bat0 holds only EUD
+                               #   access point interfaces. A wired link that
+                               #   carries field traffic joins the mesh with
+                               #   batctl interface add, where batman-adv does
+                               #   its own loop-free selection. A link for
+                               #   management, configuration or over-the-air
+                               #   update is routed, never a bridge port.
+                               #
+                               # That makes the tactical operations centre and
+                               # the update bench safe without loop avoidance:
+                               # several nodes share a switch, none bridges it
+                               # into the field domain.
+                               #
+                               # tools/validate-docs.sh check 19 enforces it.
+                               # FML-ADR-056 records the residual risk and the
+                               # loop detector it calls for.
 
 # --- Notes ------------------------------------------------------------------
 # Bring-up ordering matters: batman-adv attached to an interface that is not

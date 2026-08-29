@@ -56,8 +56,10 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-051` | SELECTED PRINCIPLE | `mule/__init__.py`, `mule/modes.py`, `mule/power.py`, `mule/thermal.py`, `mule/timekeeping.py`, `test/flatsat/interfaces.py`, `test/flatsat/node.py`, `test/flatsat/test_integrity.py`, `test/flatsat/test_modes.py` | `AGENTS.md`, `README.md`, `docs/ROADMAP-DEV.md`, `mule/README.md`, `test/flatsat/README.md` |
 | `FML-ADR-052` | SELECTED PRINCIPLE | `mule/modes.py`, `mule/status.py`, `tools/validate-docs.sh` | `AGENTS.md`, `docs/ROADMAP-DEV.md`, `docs/change-requests/CCR-01-operating-mode-structure.md`, `docs/change-requests/CCR-02-service-shedding-order.md`, `services/mission-trust/README.md`, `services/service-controller/README.md`, `services/status-aggregator/README.md` |
 | `FML-ADR-053` | SELECTED PLANNING BASELINE | *not yet* | `.github/workflows/mesh-probe.yml`, `docs/ROADMAP-DEV.md`, `docs/dev-machine.md` |
-| `FML-ADR-054` | SELECTED | `tools/validate-docs.sh` | `.github/workflows/mesh-probe.yml`, `docs/ROADMAP-DEV.md`, `docs/dev-machine.md` |
-| `FML-ADR-055` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md` |
+| `FML-ADR-054` | SUPERSEDED | `tools/validate-docs.sh` | `.github/workflows/mesh-probe.yml`, `docs/ROADMAP-DEV.md`, `docs/dev-machine.md` |
+| `FML-ADR-055` | SUPERSEDED | *not yet* | `docs/ROADMAP-DEV.md` |
+| `FML-ADR-056` | SELECTED | `tools/validate-docs.sh` | `docs/ROADMAP-DEV.md` |
+| `FML-ADR-057` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md` |
 
 ## Trades
 
