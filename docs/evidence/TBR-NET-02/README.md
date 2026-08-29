@@ -4,8 +4,18 @@
 
 **Trade file:** `docs/trades/TBR-NET-02-how-does-a-node-address-the-euds-behind-it.md`
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:**
+
+| Artifact | What it is |
+| --- | --- |
+| `2026-08-29-addressing-specification.md` | The analysis half: mapping table, a worked trace per plane, the operator-facing statement of what is lost at the plane boundary, the tag encoding costed against the 233-byte payload, and the unresolved-recipient rule. `UNVERIFIED`. |
+
+**This trade is still `OPEN`, and the artifact says so in its own first
+section.** Two things are missing. Every trade owner in this repository is
+`TBD-SRR`, and a trade closes when a **named** owner accepts the evidence. And
+the empirical half does not exist: nothing exercises an EUD behind one MULE
+reaching an EUD behind another, because `test/flatsat/` builds exactly one
+node.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,
