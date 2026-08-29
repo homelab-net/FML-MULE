@@ -418,6 +418,122 @@ jobs:
           echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
           echo "Routing algorithm actually used: $ALGO"
 
+      # --- the EUD leg -----------------------------------------------------
+      #
+      # Everything above proves MULE to MULE. Nothing proved the leg that
+      # actually carries a team's traffic: a device behind one MULE reaching a
+      # device behind another.
+      #
+      # SAD section 4.3 asserts it works, by bridging local EUD access into the
+      # BATMAN domain so peer ATAK multicast traverses the mesh and clients need
+      # no MANET routing awareness. FML-ADR-056 keeps that domain flat. The
+      # TBR-NET-02 addressing specification rests on it: its first finding is
+      # that the IP plane needs no recipient lookup because delivery is already
+      # solved at layer 2, and that finding is listed in the artifact's own
+      # "what would falsify this" section as untested.
+      #
+      # So it is tested here. node1 and node3 are the MULEs at opposite ends,
+      # node2 relays. Each grows a bridge holding its mesh interface and one
+      # veth standing in for an access point, and a separate namespace stands in
+      # for the EUD associated to it.
+      #
+      #   eud-a ==veth== [ br-field: ap-a + bat0 ] node1
+      #                                              |
+      #                                            node2
+      #                                              |
+      #   eud-b ==veth== [ br-field: ap-b + bat0 ] node3
+      #
+      # The address moves from bat0 to br-field, because an enslaved interface
+      # does not carry its own address usefully, and because that is where a
+      # real node's address would sit.
+      - name: Give node1 and node3 an access point and an EUD behind it
+        run: |
+          for n in 1 3; do
+            sudo ip netns add "eud$n"
+            sudo ip link add "eud$n" type veth peer name "ap$n"
+            sudo ip link set "eud$n" netns "eud$n"
+            sudo ip link set "ap$n" netns "node$n"
+
+            # br-field holds the access point side and, shortly, bat0. Nothing
+            # else may join it: FML-ADR-056, enforced by validate-docs check 19.
+            sudo ip netns exec "node$n" ip link add br-field type bridge
+            sudo ip netns exec "node$n" ip link set "ap$n" master br-field
+            sudo ip netns exec "node$n" ip link set "ap$n" up
+            sudo ip netns exec "node$n" ip link set br-field up
+
+            sudo ip netns exec "eud$n" ip link set lo up
+            sudo ip netns exec "eud$n" ip link set "eud$n" up
+            sudo ip netns exec "eud$n" ip addr add "10.42.0.1$n/24" dev "eud$n"
+          done
+          echo "eud1 is 10.42.0.11 behind node1; eud3 is 10.42.0.13 behind node3"
+
+      # The negative control, and it is the point of this pair of steps rather
+      # than a formality. AGENTS.md requires a new check to be watched failing,
+      # and a passing ping proves nothing unless the same ping fails when the
+      # thing under test is absent. bat0 is not in br-field yet, so the EUDs are
+      # on an island. If this step's ping SUCCEEDS, the next step's success
+      # would mean nothing.
+      - name: The EUDs cannot reach each other before the mesh is bridged in
+        run: |
+          if sudo ip netns exec eud1 ping -c 2 -i 0.5 -W 2 10.42.0.13; then
+            echo "NEGATIVE CONTROL FAILED: the EUDs already reach each other"
+            echo "with bat0 outside br-field, so the bridge is not what carries"
+            echo "the traffic and the next step would prove nothing."
+            exit 1
+          fi
+          {
+            echo
+            echo "=== EUD leg, two MULEs ==="
+            echo "  negative control: HELD. With bat0 outside br-field the"
+            echo "  EUDs could not reach each other, so the bridge is what"
+            echo "  carries the traffic and the next result means something."
+          } | tee /tmp/eud-result.txt
+
+      - name: An EUD behind node1 reaches an EUD behind node3, two hops away
+        run: |
+          for n in 1 3; do
+            # The address moves with the interface into the bridge.
+            sudo ip netns exec "node$n" ip addr del "10.42.0.$n/24" dev bat0
+            sudo ip netns exec "node$n" ip link set bat0 master br-field
+            sudo ip netns exec "node$n" ip addr add "10.42.0.$n/24" dev br-field
+          done
+
+          # The mesh itself must still work across the bridge before the EUD
+          # result is interpretable: a failure here is a bridging fault, not an
+          # EUD one, and the two would otherwise be indistinguishable.
+          sudo ip netns exec node1 ping -c 5 -i 1 -W 5 10.42.0.3
+          echo "MULE to MULE still works with bat0 bridged."
+
+          # The claim under test. Nothing is pinned; ARP resolves across the
+          # mesh, which the earlier steps already showed it can.
+          sudo ip netns exec eud1 ping -c 5 -i 1 -W 5 10.42.0.13
+          {
+            echo "  MULE to MULE still works bridged."
+            echo "  EUD TO EUD ACROSS TWO MULES: 10.42.0.11 reached 10.42.0.13."
+            echo "  Path: eud1 - br-field(node1) - bat0 - node2 - bat0 -"
+            echo "        br-field(node3) - eud3"
+          } | tee -a /tmp/eud-result.txt
+
+      - name: Confirm the EUD traffic really crossed the mesh
+        run: |
+          # A successful ping proves reachability, not the path, and the same
+          # rule that made the earlier next-hop assertion necessary applies
+          # here. node3 must have learned eud1's address through the mesh
+          # rather than locally, so batctl's translation table should carry it
+          # as a global entry.
+          echo "=== node3 global translation table ==="
+          sudo ip netns exec node3 batctl meshif bat0 translocal
+          sudo ip netns exec node3 batctl meshif bat0 transglobal | tee /tmp/tg
+          eud1mac=$(sudo ip netns exec eud1 ip link show eud1 |
+            awk '/link\/ether/ {print $2}')
+          echo "eud1 MAC: $eud1mac"
+          grep -qi "$eud1mac" /tmp/tg
+          {
+            echo "  CONFIRMED: node3 holds $eud1mac as a GLOBAL translation"
+            echo "  table entry, so it learned the far EUD through the mesh"
+            echo "  rather than locally. Reachability alone would not show that."
+          } | tee -a /tmp/eud-result.txt
+
       - name: Diagnostics on failure
         if: failure()
         run: |
@@ -457,3 +573,4 @@ jobs:
           # regression steps that run after it. The number this job exists to
           # produce should not need archaeology to read.
           cat /tmp/warmup.txt 2>/dev/null || echo "no warm-up result recorded"
+          cat /tmp/eud-result.txt 2>/dev/null || echo "no EUD result recorded"

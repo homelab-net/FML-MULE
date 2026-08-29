@@ -148,10 +148,17 @@ bearer whose failure is least tolerable and the one with the least behind it.
 It is also testable in software, the same way batman-adv turned out to be:
 Meshtastic runs over a TCP or serial simulation with no radio present.
 
-**Blocked by:** step 2 is blocked on `TBR-NET-02`. The interface's shape depends
-on whether a node is one Meshtastic identity or a gateway fronting four to eight
-EUDs, and CONOPS section 6 baselines the second. Building it before that answer
-produces an interface that has to be replaced.
+**Blocked by:** nothing any more, in substance. The question step 2 waited on —
+whether a node is one Meshtastic identity or a gateway fronting four to eight
+EUDs — is answered by
+`docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md`. A MULE is one
+Meshtastic node, several users behind it collapse to one address, and the
+recipient rides as a deployment-scoped one-byte tag inside the payload.
+
+The trade is still `OPEN` and cannot close, because every owner is `TBD-SRR`.
+That is a governance gap rather than a technical one: the specification is
+enough to shape an interface against, and an interface built to it will not have
+to be replaced by the act of a named owner signing the same document.
 
 **Read first:** `TBR-NET-02` and `FML-ADR-057` before anything else, because
 they decide what the interface addresses. Then `FML-ADR-026` for why it is a
@@ -165,8 +172,9 @@ criticality, because what may cross this bearer is a criticality question.
 
 1. ~~A probe in CI that runs two Meshtastic instances against each other in
    simulation and passes a message.~~ Done. `.github/workflows/lora-probe.yml`.
-2. **`TBR-NET-02` first.** Not code. The answer decides whether the interface
-   addresses a node or a user behind one.
+2. ~~**`TBR-NET-02` first.** Not code.~~ Done. The specification is under
+   `docs/evidence/TBR-NET-02/`, and it decides that the interface addresses a
+   node, with the user carried as a tag inside the payload.
 3. Whatever narrow interface that justifies, with a fake, named in
    `test/flatsat/README.md`. `FML-ADR-052` and the `mule/` rules both bite here.
 4. Only then, configuration templates under `os/config/`.
@@ -269,8 +277,16 @@ if this is answered carelessly.
 
 ### 1.4 `TBR-NET-02`, how a node addresses the EUDs behind it
 
-**State:** open, unowned, no hardware needed, and item 1.1 step 2 is blocked on
-it. This is the next thing to do on Track 1.
+**State:** the analysis half is produced and one of its findings is
+demonstrated. `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md`
+carries all five artifacts the closure gate lists. The mesh probe now proves the
+finding that artifact itself flagged as untested: an EUD behind one MULE reaches
+an EUD behind another, two hops away, and the far node holds it as a global
+translation-table entry rather than a local one.
+
+**The trade is still `OPEN` and cannot close.** Every owner in this repository
+is `TBD-SRR`, and a trade closes when a **named** owner accepts the evidence.
+Nothing technical is missing for the IP half.
 
 **Blocked by:** nothing. `TBR-ID-01` is deliberately not a prerequisite: this
 trade exists to structure addressing so authentication can be added to it later
@@ -433,11 +449,12 @@ delaying it repeats how the first one went. 1.2 before 1.6 because reading radio
 state is worth little before something brings radios up in a known order. 1.5
 threads through all of them and can be worked in parallel by someone else.
 
-**Right now the order is not the whole story: 1.1 is blocked mid-item.** Step 1
-is done and step 2 waits on `TBR-NET-02`, which is item 1.4. So 1.4 is the next
-thing to work even though 1.2 and 1.3 sit above it, and 1.2 is the best thing to
-work in parallel because nothing gates it. An item's number is its dependency
-position, not a queue ticket.
+**Right now the order is not the whole story.** Item 1.1's steps 1 and 2 are
+both done: the LoRa plane is proven exercisable in software, and the addressing
+specification that shapes its interface exists. So 1.1 step 3, the interface and
+its fake, is the next thing to work, with 1.2 the best thing to work in parallel
+because nothing gates it. An item's number is its dependency position, not a
+queue ticket.
 
 ## Definition of done for anything on this roadmap
 

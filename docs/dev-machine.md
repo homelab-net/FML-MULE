@@ -159,11 +159,24 @@ re-derive it nor over-trust it.
 | Hard interface MTU is 1560 | The kernel names the figure on every interface add |
 | `BATMAN_V` is unavailable | One kernel, not the baseline one. See check 2 above. |
 | The LoRa plane runs with no radio | Two `meshtasticd` nodes in simulation, a text message asserted across, `.github/workflows/lora-probe.yml` |
+| An EUD behind one MULE reaches an EUD behind another | Two hops over `veth`, with a negative control proving the bridge is what carries it, and the far node holding the EUD as a **global** translation-table entry |
 | Changing a node's configuration reboots `meshtasticd` | Same probe. The re-exec fails in the container, so the process exits; the probe supervises its nodes for that reason |
 
 The link layer in every one of those is a `veth` pair: a perfect wire, with no
 propagation, loss, contention, rate adaptation, desense or range. Every quantity
 `TBR-RF-01`, `TBR-RF-02` and `TBR-RF-03` exist to measure is absent.
+
+## The pattern worth copying
+
+Both probes assert rather than print, and the EUD test goes one better: it
+carries its **own negative control**. Before the mesh interface joins the
+bridge, the run fails if the two EUDs can already reach each other, because a
+passing ping afterwards would then prove nothing about the bridge.
+
+`AGENTS.md` requires a new check to be watched failing. That is usually done
+once, by hand, and then trusted forever. A check that watches itself fail on
+every run is strictly better, costs one extra step, and is the shape to reach
+for when you add the next one.
 
 ## One thing to read before you touch networking
 
