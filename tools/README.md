@@ -7,10 +7,15 @@ Everything here is POSIX `sh` except `validate-mission.py`, which is Python
 because JSON Schema validation in shell would be worse for everyone. No script
 requires anything beyond coreutils, `grep`, `sed`, `awk` and `git`.
 
+`install-deps.sh` is the one exception, and is not a validation script: it
+installs the toolchain the others are checked by, so it needs `apt-get`,
+`curl`, network access, and the ability to become root.
+
 ## Scripts
 
 | Script | Purpose |
 | --- | --- |
+| `install-deps.sh` | Install the toolchain `lint.sh` runs. `--check` reports what is missing without installing. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
@@ -22,11 +27,48 @@ requires anything beyond coreutils, `grep`, `sed`, `awk` and `git`.
 ## Before opening a pull request
 
 ```sh
+tools/install-deps.sh   # once per machine
 tools/lint.sh
 ```
 
-That runs the linters and the repository checks together. Install what it
-reports as skipped if you want the same coverage CI has.
+That runs the linters and the repository checks together. **Read the exit code,
+not the last line**: `lint.sh` skips every tool it cannot find and still prints
+a cheerful summary, so on a machine without the toolchain a green-looking run
+has checked almost nothing.
+
+`install-deps.sh` closes that gap. Run `tools/install-deps.sh --check` to see
+what is missing without installing anything.
+
+## `install-deps.sh`
+
+```sh
+tools/install-deps.sh [--check]
+```
+
+Installs `shellcheck`, `bats`, `gitleaks` and Node from apt; `shfmt` from its
+release page, pinned by version and verified by SHA-256; `markdownlint-cli2`
+globally with npm; and the Python tools (`ruff`, `pytest`, `jsonschema`,
+`pyyaml`, `coverage`, `yamllint`, `ansible-lint`, `ansible-core`) into a
+virtualenv at `.venv`.
+
+The virtualenv exists because Debian marks its system Python externally
+managed, and because one project's linters have no business being installed
+system-wide. `lint.sh` puts `.venv/bin` on its `PATH` when the directory is
+there, so running the installer is enough; you do not have to activate it
+first. To run those tools by hand, `. .venv/bin/activate`.
+
+Two things it deliberately does not do. It does not pin the Python package
+versions, because `.github/workflows/lint.yml` does not pin them either and a
+helper script must not invent a compatibility set of its own; pinning the
+development toolchain is a decision of the kind `FML-ADR-040` governs and
+belongs in an ADR. And it installs only the tools that check this repository,
+not `batctl`, `iw`, `tcpdump` or `iputils-arping`, which the network plane work
+needs; see `docs/dev-machine.md`.
+
+**`.github/workflows/lint.yml` remains the authoritative list.** This script
+mirrors it for convenience and the two are kept in step by review, not by
+machinery. Where they disagree, the workflow is right and the script is the
+defect.
 
 ## `validate-docs.sh`
 

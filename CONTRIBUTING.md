@@ -235,6 +235,9 @@ of the review.
 
 Before you open one:
 
+- `tools/install-deps.sh` has been run on this machine, so that `lint.sh` is
+  actually checking something. It skips every tool it cannot find and still
+  exits zero, which is the failure described in `docs/dev-machine.md`.
 - `tools/validate-docs.sh` passes.
 - `tools/lint.sh` passes.
 - If you touched ADR or trade frontmatter, you regenerated `STATUS.md` with

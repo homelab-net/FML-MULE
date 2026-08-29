@@ -15,6 +15,16 @@ set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
+# tools/install-deps.sh puts ruff, pytest, yamllint, ansible-lint and coverage
+# in a repository-local virtualenv, because Debian marks its system Python
+# externally managed. Prefer that virtualenv when it exists, so that having
+# run the installer is enough and a forgotten "activate" does not silently
+# turn those five checks back into skips.
+if [ -d "$ROOT/.venv/bin" ]; then
+  PATH="$ROOT/.venv/bin:$PATH"
+  export PATH
+fi
+
 failures=0
 skipped=''
 

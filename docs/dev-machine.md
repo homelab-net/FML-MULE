@@ -24,10 +24,17 @@ Read the wording. On a fresh machine that message appears after running almost
 nothing, and the exit code is zero.
 
 So: install the toolchain until `tools/lint.sh` reports nothing skipped.
-`.github/workflows/lint.yml` installs all of them and is the authoritative
-list. Until then a green run means nothing, and "a signal that looks like
-success" is this repository's signature failure. It is waiting for you on line
-one.
+
+```sh
+tools/install-deps.sh
+```
+
+`.github/workflows/lint.yml` installs all of them and remains the authoritative
+list; `install-deps.sh` mirrors it so you do not have to transcribe it by hand,
+and `tools/install-deps.sh --check` tells you what is still missing without
+installing anything. Until nothing is skipped a green run means nothing, and "a
+signal that looks like success" is this repository's signature failure. It is
+waiting for you on line one.
 
 ## What this machine can do that hosted CI cannot
 
@@ -62,7 +69,8 @@ specifically on "a machine with a wireless stack", and you are that machine.
 1. **Debian stable.** `FML-ADR-022` selects the current Debian stable release
    at build time; at SAD issue that is Debian 13.6 "trixie". Not OpenWrt, by
    decision. Not testing or unstable.
-2. **The lint toolchain**, until `tools/lint.sh` skips nothing. See above.
+2. **The lint toolchain**, until `tools/lint.sh` skips nothing.
+   `tools/install-deps.sh` installs it. See above.
 3. **`batctl`, `iw`, `tcpdump`, `iputils-arping`** for the network plane work.
 4. **Git identity, Conventional Commits and a `Signed-off-by` line.** See
    `CONTRIBUTING.md`. A `Refs:` trailer is required only where a change adds or
