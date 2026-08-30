@@ -80,6 +80,28 @@ confidential. Amateur egress is **disabled by default** and requires the
 distinct control operator role in CONOPS section 7.8. CONOPS section 46 forbids
 mirroring TAK update rates onto shared amateur networks. See `REGULATORY.md`.
 
+## What already exists in `mule/`
+
+Nothing here is part of this component, and it is named so that a reader
+arriving at a blocked directory does not conclude that nothing has been
+written. `FML-ADR-052` sets out the four conditions that permit it.
+
+- `mule/status.py` acts on `FML-ADR-026` in one narrow way: it decides whether
+  the LoRa plane is reporting itself able to carry, which is CONOPS section 67
+  question 10 and reaches the operator as `lora_available`. It is a pure
+  function of values handed to it.
+
+  It performs **no translation**, which is what this component is for. It does
+  not read a payload, address a recipient, map a callsign to a member, or move
+  anything between planes. The addressing those would need is `TBR-NET-02`,
+  which is open;
+  `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` specifies it
+  and deliberately implements none of it.
+
+  The interface it reads through, `LoRaPlane`, is in `test/flatsat/` rather
+  than `mule/`, because condition 4 keeps an interface whose shape an open
+  trade governs out of the production package.
+
 ## What can be done now
 
 - **Close `TBR-TAK-01`**, which needs no hardware.

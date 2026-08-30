@@ -25,6 +25,7 @@ from ..conftest import (
 )
 from ..fakes import (
     FakeClock,
+    FakeLoRaPlane,
     FakePower,
     FakeRadio,
     FakeThermal,
@@ -193,23 +194,45 @@ def test_an_inter_node_bearer_that_will_not_link_degrades_the_network(
     assert node.status().network_degraded
 
 
-@pytest.mark.parametrize(
-    ("radio", "expected"),
-    [
-        (FakeRadio(present=["wifi_ap"], linked=["wifi_ap"]), False),
-        (FakeRadio(present=["wifi_ap", "lora"], linked=["wifi_ap"]), False),
-        (FakeRadio(present=["wifi_ap", "lora"], linked=["wifi_ap", "lora"]), True),
-    ],
-    ids=["not-fitted", "fitted-not-linked", "fitted-and-linked"],
-)
-def test_lora_availability_tracks_the_radio(
-    build_node: NodeFactory, radio: FakeRadio, expected: bool
-) -> None:
-    """Track the radio, because LoRa is the degraded-plane bearer.
+#: A node with the LoRa chain fitted. Whether it carries is then a question
+#: for the plane, not for this radio state, which is the whole point below.
+_LORA_FITTED = FakeRadio(present=["wifi_ap", "lora"], linked=["wifi_ap", "lora"])
+_NO_LORA = FakeRadio(present=["wifi_ap"], linked=["wifi_ap"])
 
-    Claiming it when it is not fitted is being wrong at the worst moment.
+
+@pytest.mark.parametrize(
+    ("radio", "responding", "expected"),
+    [
+        (_NO_LORA, True, False),
+        (_LORA_FITTED, False, False),
+        (_LORA_FITTED, None, False),
+        (_LORA_FITTED, True, True),
+    ],
+    ids=[
+        "not-fitted",
+        "fitted-stack-silent",
+        "fitted-stack-unknown",
+        "fitted-and-carrying",
+    ],
+)
+def test_lora_availability_tracks_the_plane_not_the_association(
+    build_node: NodeFactory, radio: FakeRadio, responding: bool | None, expected: bool
+) -> None:
+    """Track the LoRa plane, because LoRa is the degraded-plane bearer.
+
+    Claiming it when it is not fitted is being wrong at the worst moment. So is
+    claiming it when the radio is fitted and nothing is carrying, which is the
+    case this test gained: it used to assert that a fitted-but-unassociated
+    radio meant no LoRa, which asked an 802.11 question of a plane FML-ADR-026
+    makes non-IP. Association is not a thing a LoRa chain does, so the answer
+    was meaningless whichever way it came back.
+
+    `fitted-stack-unknown` is the case worth having. A platform that cannot
+    tell whether its stack answers has not said yes, and on the bearer CONOPS
+    section 50.8 leaves an operator when everything else has gone, an
+    unverifiable "available" is the expensive direction to be wrong in.
     """
-    node = build_node(radio=radio)
+    node = build_node(radio=radio, lora_plane=FakeLoRaPlane(responding=responding))
     node.power_on()
 
     assert node.status().lora_available is expected

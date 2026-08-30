@@ -57,6 +57,48 @@ class RadioState(Protocol):
         ...
 
 
+@runtime_checkable
+class LoRaPlane(Protocol):
+    """Read-only state of the non-IP LoRa plane.
+
+    Separate from `RadioState` on purpose, and the separation is the point.
+    `FML-ADR-026` makes LoRa a distinct non-IP plane and states the trap
+    outright: do not let it inherit the IP plane's vocabulary.
+    `RadioState.associated` means "mesh peer, or AP serving". A LoRa chain does
+    neither. Asking it whether it has "associated" is asking an 802.11 question
+    of something that is not 802.11, and the answer means nothing.
+
+    What the node actually needs to know about this plane is narrower: whether
+    the stack that carries it is answering. `.github/workflows/lora-probe.yml`
+    established, at the cost of a run, that changing a node's configuration
+    reboots the daemon and that in the container image the re-exec fails and
+    the process exits. So a node can have a LoRa radio enumerated and attached
+    while nothing at all can carry a message over it.
+
+    That matters more here than it would elsewhere. `FML-ADR-026` makes this
+    the degraded-mode lifeline and CONOPS section 50.8 puts it at the bottom of
+    the ladder, so it is the bearer whose false "available" is least tolerable:
+    it is what an operator falls back to when everything else has gone.
+
+    Deliberately excludes anything that transmits, addresses or reconfigures.
+    Addressing on this plane is `TBR-NET-02`, which is open;
+    `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` specifies
+    it but a trade closes when a named owner accepts evidence, and every owner
+    is `TBD-SRR`. Nothing here encodes a member tag, a node number or a
+    recipient, because that is the open question and not this interface's.
+    """
+
+    def stack_responding(self) -> bool | None:
+        """Whether the LoRa stack answers, or None where that cannot be told.
+
+        `None` is not a polite "no". It is the platform saying it cannot
+        determine the state: no API endpoint configured, or a socket that
+        neither answers nor refuses. A caller deciding whether the lifeline is
+        usable must treat that as its own case and not as either answer.
+        """
+        ...
+
+
 # Time, power and thermal state are deliberately **not** here. Each lives in
 # `mule/`, split into raw readings and an `assess` that decides what they mean:
 # `timekeeping.py`, `power.py`, `thermal.py`.

@@ -73,6 +73,34 @@ section 59 requires a protected assembly; which one is `TBR-PWR-01` and
 `TBR-HW-01`. A pack behind a bare I2C fuel gauge with no driver exposes none of
 these, and `mule/power.py` already handles a pack that cannot report its charge.
 
+## LoRa plane
+
+`test/flatsat/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather
+than `mule/` because `FML-ADR-052` keeps an interface whose shape an open trade
+governs out of the production package, and addressing on this plane is
+`TBR-NET-02`. `tools/validate-docs.sh` therefore does not require this row; it
+is here because the question it asks -- where does this really come from on a
+Debian node, and what happens when the platform cannot answer -- is worth
+answering before the interface exists rather than after.
+
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `stack_responding` | `command` | Meshtastic exposes no kernel interface: the radio attaches over USB serial, UART or TCP (`FML-ADR-026`) and the stack is a userspace daemon. The reading is whether that daemon answers its API. Package is whatever `FML-ADR-048` settles on and **is not selected**; `meshtasticd` is what `.github/workflows/lora-probe.yml` runs. | flag | `NO READER`. Probe only. |
+
+**Why this is not a `kernel` reading, and why that costs something.** Every
+other row here can be answered from `sysfs`. This one cannot: there is no
+kernel object for "is the LoRa stack carrying". The node has to ask a userspace
+daemon, which means a package in the image, a process that can exit, and an
+answer that is not ABI-stable. `.github/workflows/lora-probe.yml` found the
+daemon exits when its configuration changes, so this is not a theoretical
+failure mode.
+
+**Why the type is `bool | None`.** A socket that neither answers nor refuses,
+or a node with no API endpoint configured, leaves the platform unable to tell.
+That is a third state and not a polite "no". `mule/status.py` reads `None` as
+not available, which is the fail-closed direction on the bearer CONOPS section
+50.8 leaves an operator when everything else has gone.
+
 ## Time
 
 `mule/timekeeping.py`. No reader exists.

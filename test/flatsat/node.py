@@ -51,7 +51,7 @@ from mule.status import NodeStatus, Observations
 from mule.thermal import ThermalLimits, ThermalReadings
 from mule.timekeeping import TimeAssessment, TimePolicy, TimeReadings, assess
 
-from .interfaces import RadioState
+from .interfaces import LoRaPlane, RadioState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -118,6 +118,7 @@ class FlatSatNode:
         time_policy: TimePolicy,
         power_model: PowerModel | None = None,
         thermal_limits: ThermalLimits | None = None,
+        lora_plane: LoRaPlane | None = None,
         *,
         environment: Environment = "LAB",
         lifecycle: LifecyclePosture = "OPERATIONAL",
@@ -135,6 +136,10 @@ class FlatSatNode:
         self._thermal = thermal
         self._clock = clock
         self._time_policy = time_policy
+        # Optional: a scenario that says nothing about the LoRa plane gets a
+        # node whose stack does not answer, which is the honest default. A
+        # scenario asserting the lifeline is up has to say so.
+        self._lora_plane = lora_plane
         # None while TBR-PWR-01 is open. See mule/power.py.
         self._power_model = power_model
         # None while TBR-THERM-01 is open. See mule/thermal.py.
@@ -311,8 +316,20 @@ class FlatSatNode:
                 hosting_shared_services=bool(self._shared_services),
                 modes=self.modes(),
                 wan_available=bool(self._wan),
+                lora_stack_responding=self._lora_stack_responding(),
             )
         )
+
+    def _lora_stack_responding(self) -> bool | None:
+        """Report what the LoRa plane says, or None when no plane was supplied.
+
+        A scenario that supplies no LoRa plane gets None, which mule/status.py
+        reads as not available. That is the honest default: a node nobody has
+        said anything about has not been shown to have a lifeline.
+        """
+        if self._lora_plane is None:
+            return None
+        return self._lora_plane.stack_responding()
 
     def thermal_state(self) -> str:
         """Return what `mule.thermal` concluded, for scenarios needing the detail.

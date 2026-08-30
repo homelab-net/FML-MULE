@@ -79,6 +79,32 @@ class FakeRadio:
 
 
 @dataclass
+class FakeLoRaPlane:
+    """Scripted state of the non-IP LoRa plane.
+
+    Simulates: whether the LoRa stack answers, including the case where the
+    platform cannot tell. That third case is the one worth having a fake for.
+    The probe found the daemon exits when its configuration changes, so
+    "radio present, nothing carrying" is a real state and not a hypothetical.
+
+    Does not simulate: airtime, duty cycle, range, collisions, or anything a
+    message crossing this plane would actually encounter. It carries no
+    messages at all. `.github/workflows/lora-probe.yml` passes a real message
+    between two meshtasticd instances, and even that runs over UDP on a Docker
+    bridge, which is a perfect wire.
+
+    Nothing here addresses a recipient. That is `TBR-NET-02` and it is open.
+    """
+
+    #: True answering, False not answering, None the platform cannot tell.
+    responding: bool | None = True
+
+    def stack_responding(self) -> bool | None:
+        """Whether the LoRa stack answers, or None where that cannot be told."""
+        return self.responding
+
+
+@dataclass
 class FakePower:
     """Scripted raw power readings.
 
