@@ -72,6 +72,24 @@ region profile mechanism are where that belongs as a decision, and it is
 recorded here because a device that ships with it off will transmit without
 one if nobody changes it.
 
+## It is a point-to-point modem, not a mesh
+
+The complete command set, from `AT+HELP`, is: `SF`, `BW`, `CR`, `PWR`,
+`NETID`, `LBT`, `MODE`, `TXCH`, `RXCH`, `RSSI`, `ADDR`, `PORT`, `COMM`,
+`BAUD`, `RESTORE`, `KEY`.
+
+**There is no routing primitive in it.** Nothing about neighbours, hops,
+forwarding, or store-and-forward. Asked for their value space, `AT+ADDR=?`
+answers `UINT16` and `AT+NETID=?` answers `UINT8`, which is an addressed
+point-to-point or star scheme: a sender names one destination on one network
+id, and that is the whole of it.
+
+That matters more than any other line in this artifact. `FML-ADR-026` makes
+LoRa the plane that still works when the IP plane does not, and CONOPS section
+5.5 puts it at the bottom of the degradation ladder for a team that is spread
+out. **A link that reaches only what it can hear directly is not that.** The
+value of the LoRa plane is the mesh, and this device does not have one.
+
 ## What it cannot do: it is not a Meshtastic node and cannot be flashed into one
 
 Three reasons, and the first two are structural:
