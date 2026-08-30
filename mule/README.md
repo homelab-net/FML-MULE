@@ -11,6 +11,7 @@ question you can ask in plain English.
 | File | The question it answers |
 | --- | --- |
 | `bearers.py` | Which radios can a node have, and which ones does it need to do its job? |
+| `bringup.py` | What order does the network plane come up in, and what did a sequence break? |
 | `power.py` | How long can the node keep running, and can it even say? |
 | `thermal.py` | Is the node inside its thermal envelope, and can it tell? |
 | `sysfs.py` | Reading the machine's own sensors through the Linux kernel. |
