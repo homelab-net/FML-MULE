@@ -61,9 +61,13 @@ The Python development toolchain **shall** be installed from a lock file,
 an exact version.
 
 `tools/install-deps.sh` **shall** install from that file and from no other
-source of versions. `.github/workflows/lint.yml` **should** install from the
-same file, so that the set continuous integration runs is the set a contributor
-runs, and the two cannot drift.
+source of versions. `.github/workflows/lint.yml` **shall** obtain its toolchain
+by calling `tools/install-deps.sh`, and **shall not** restate the package list
+or any version, so that the set continuous integration runs is the set a
+contributor runs and the two cannot drift.
+
+The interpreter **shall** be the version the lock was resolved against, in
+continuous integration as on a contributor's machine.
 
 The lock file **shall** be regenerated from an environment that has been
 exercised, by running `tools/lint.sh` to completion and capturing the resolved
@@ -100,12 +104,17 @@ trades a class of surprise failure for a class of silent omission. The
 repository will hold a toolchain that is correct and old, and nobody will notice
 until they read the file.
 
-The lock was resolved on Python 3.13 on Debian. Continuous integration currently
-runs Python 3.11. A resolved set is not guaranteed to install on an interpreter
-it was not resolved against, and any package in it carrying platform-specific
-wheels can resolve differently elsewhere. This decision does not fix the
-interpreter version, which remains a real gap between the local toolchain and
-the one CI runs.
+The lock was resolved on Python 3.13, which is what Debian stable ships and so
+what `FML-ADR-022` implies a contributor runs. Continuous integration is pinned
+to the same version for this reason: a resolved set is not guaranteed to install
+on an interpreter it was not resolved against, and CI previously ran 3.11. That
+alignment is part of this decision rather than incidental to it.
+
+What is still not fixed is the platform. The set was resolved on Debian
+`x86_64`; a package carrying platform-specific wheels can resolve differently on
+another architecture, and the program expects to build for `arm64`. Nothing here
+detects that, and the lock will need regenerating, or splitting, when a second
+architecture is built for.
 
 Nothing about the node changes. This decision concerns the contributor's
 machine. It creates no obligation on the image, the compatibility set, or a

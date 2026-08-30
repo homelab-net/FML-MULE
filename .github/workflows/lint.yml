@@ -77,8 +77,11 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install markdownlint-cli2
+        run: tools/install-deps.sh --only node
+
       - name: Lint Markdown
-        run: npx --yes markdownlint-cli2 "**/*.md"
+        run: markdownlint-cli2 "**/*.md"
 
   shell:
     name: Shell
@@ -86,13 +89,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install shellcheck, shfmt and bats
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck bats
-          curl -fsSL -o /tmp/shfmt \
-            https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64
-          sudo install -m 0755 /tmp/shfmt /usr/local/bin/shfmt
+      # tools/install-deps.sh is the single source of toolchain versions
+      # (FML-ADR-058). Restating the package list or the shfmt version here
+      # would put it in two places, and the two would drift.
+      - name: Install the shell toolchain
+        run: tools/install-deps.sh --only apt,shfmt
 
       - name: shellcheck
         run: shellcheck tools/*.sh
@@ -112,12 +113,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 3.13 is Debian stable's Python, which FML-ADR-022 selects, and is the
+      # interpreter tools/requirements-dev.txt was resolved against. Running a
+      # different one here would mean CI installs a set nobody resolved.
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
-      - name: Install
-        run: python -m pip install --upgrade pip ruff pytest jsonschema pyyaml coverage
+      - name: Install the pinned Python toolchain
+        run: |
+          tools/install-deps.sh --only python
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: ruff lint
         run: ruff check .
@@ -146,10 +152,12 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
-      - name: Install
-        run: python -m pip install --upgrade pip yamllint ansible-lint ansible-core
+      - name: Install the pinned Python toolchain
+        run: |
+          tools/install-deps.sh --only python
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: yamllint
         run: yamllint .

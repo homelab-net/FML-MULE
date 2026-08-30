@@ -61,6 +61,15 @@ It installs only the tools that check this repository, not `batctl`, `iw`,
 `tcpdump` or `iputils-arping`, which the network plane work needs; see
 `docs/dev-machine.md`.
 
+`--only` installs a subset: `apt`, `python`, `shfmt`, `node`, comma-separated.
+It exists so `.github/workflows/lint.yml` can call this script per job instead
+of restating the package list, which is why there is now one source of
+toolchain versions rather than two. A contributor does not normally need it.
+
+**This script is the authoritative list.** Add a tool here and CI picks it up
+with no second edit. That is the reverse of how it started, when the workflow
+carried the list and this script mirrored it.
+
 ## `requirements-dev.txt`
 
 The pinned Python toolchain (`FML-ADR-058`). **Generated, never hand-edited.**
@@ -82,19 +91,15 @@ weaker than the digest pinning this repository requires of container images.
 `FML-ADR-058` records that inconsistency rather than leaving it to be
 discovered.
 
-### Known divergence from CI
+### CI installs from this file too
 
-`.github/workflows/lint.yml` does **not** yet install from this file. It runs
-`pip install --upgrade` against the eight direct package names, so continuous
-integration resolves its own versions on every run while a contributor gets the
-pinned set.
+`.github/workflows/lint.yml` calls `tools/install-deps.sh --only python`, so
+continuous integration resolves nothing of its own and installs the same set a
+contributor does. CI also pins its interpreter to Python 3.13, the version this
+file was resolved against and the one Debian stable ships (`FML-ADR-022`).
 
-That is a wider gap than existed before pinning, not a narrower one, and it is
-open deliberately rather than overlooked: closing it means editing the workflow,
-which is the same list in a second place. `FML-ADR-058` says the workflow
-**should** install from this file, and until it does, a disagreement between a
-local run and a CI run may be a version difference rather than a real one. Check
-that first.
+A disagreement between a local run and a CI run is therefore a real
+disagreement, which is the property the pin exists to provide.
 
 ## `validate-docs.sh`
 

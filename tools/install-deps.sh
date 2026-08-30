@@ -1,11 +1,21 @@
 #!/bin/sh
 # Install the development toolchain that tools/lint.sh runs.
 #
-# Usage: tools/install-deps.sh [--check]
+# Usage: tools/install-deps.sh [--check] [--only GROUP[,GROUP...]]
 #
 #   (no argument)  install what is missing
 #   --check        install nothing; report what is missing and exit non-zero
 #                  if anything is
+#   --only         act on the named groups only. One or more of:
+#                    apt     shellcheck, bats, gitleaks, Node, curl
+#                    python  the pinned toolchain, into .venv
+#                    shfmt   the pinned shfmt binary
+#                    node    markdownlint-cli2, globally
+#
+# --only exists for continuous integration, whose jobs are split by language
+# and would otherwise each install the whole toolchain to use a quarter of it.
+# It is also why the workflow can call this script rather than restating the
+# package list: one source of versions, used by both.
 #
 # WHY THIS EXISTS. tools/lint.sh skips every tool that is not installed and
 # still exits zero, so a fresh checkout produces a green run that has checked
@@ -13,10 +23,11 @@
 # fool you. Closing it previously meant reading .github/workflows/lint.yml and
 # transcribing its install steps by hand.
 #
-# .github/workflows/lint.yml REMAINS THE AUTHORITATIVE LIST. This script
-# mirrors it as a convenience, and the two are kept in step by review rather
-# than by machinery. Where they disagree the workflow is right and this script
-# is the defect.
+# THIS SCRIPT IS THE AUTHORITATIVE LIST. .github/workflows/lint.yml calls it
+# rather than restating the packages, so continuous integration installs what a
+# contributor installs and the two cannot drift. That was not always so: the
+# workflow used to carry its own copy, and this script mirrored it by review.
+# If you add a tool, add it here, and CI picks it up with no second edit.
 #
 # WHAT THIS DOES NOT DO. It installs the tools that check the repository. It
 # does not install batctl, iw, tcpdump or iputils-arping, which the network
@@ -62,11 +73,25 @@ PY_LOCK="$ROOT/tools/requirements-dev.txt"
 APT_PACKAGES='shellcheck bats python3-venv nodejs npm gitleaks curl ca-certificates'
 
 CHECK=0
-if [ $# -gt 0 ]; then
+ALL_GROUPS='apt python shfmt node'
+WANTED=$ALL_GROUPS
+
+while [ $# -gt 0 ]; do
   case "$1" in
     --check) CHECK=1 ;;
+    --only)
+      shift
+      [ $# -gt 0 ] || {
+        printf 'ERROR: --only needs a group list.\n' >&2
+        exit 2
+      }
+      WANTED=$(printf '%s' "$1" | tr ',' ' ')
+      ;;
+    --only=*)
+      WANTED=$(printf '%s' "${1#--only=}" | tr ',' ' ')
+      ;;
     -h | --help)
-      sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -74,7 +99,27 @@ if [ $# -gt 0 ]; then
       exit 2
       ;;
   esac
-fi
+  shift
+done
+
+for g in $WANTED; do
+  case " $ALL_GROUPS " in
+    *" $g "*) ;;
+    *)
+      printf 'ERROR: unknown group: %s\n' "$g" >&2
+      printf 'Known groups: %s\n' "$ALL_GROUPS" >&2
+      exit 2
+      ;;
+  esac
+done
+
+# Is a group selected?
+want() {
+  case " $WANTED " in
+    *" $1 "*) return 0 ;;
+  esac
+  return 1
+}
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -104,21 +149,22 @@ record_missing() {
 # --- what is already here ---------------------------------------------------
 
 step 'Current state'
-for tool in shellcheck shfmt bats gitleaks markdownlint-cli2; do
-  if have "$tool"; then
-    note "$tool: present"
+
+report() {
+  # $1 tool, $2 non-empty to also look inside the virtualenv
+  if have "$1" || { [ -n "$2" ] && [ -x "$VENV/bin/$1" ]; }; then
+    note "$1: present"
   else
-    note "$tool: MISSING"
-    record_missing "$tool"
+    note "$1: MISSING"
+    record_missing "$1"
   fi
-done
-for tool in ruff pytest yamllint ansible-lint coverage; do
-  if have "$tool" || [ -x "$VENV/bin/$tool" ]; then
-    note "$tool: present"
-  else
-    note "$tool: MISSING"
-    record_missing "$tool"
-  fi
+}
+
+want apt && for tool in shellcheck bats gitleaks; do report "$tool" ''; done
+want shfmt && report shfmt ''
+want node && report markdownlint-cli2 ''
+want python && for tool in ruff pytest yamllint ansible-lint coverage; do
+  report "$tool" venv
 done
 
 if [ "$CHECK" -eq 1 ]; then
@@ -144,8 +190,8 @@ if ! have apt-get; then
   step 'Unsupported distribution'
   note 'This script installs through apt-get, which is not present here.'
   note 'FML-ADR-022 selects Debian stable, and this script has been run'
-  note 'against nothing else. Install the equivalents by hand; the'
-  note 'authoritative list is .github/workflows/lint.yml.'
+  note 'against nothing else. Install the equivalents by hand; what is'
+  note 'needed is listed below.'
   note ''
   note "Debian packages:  $APT_PACKAGES"
   note "Python packages:  from tools/requirements-dev.txt"
@@ -156,80 +202,97 @@ fi
 
 # --- Debian packages --------------------------------------------------------
 
-step 'Debian packages'
-note "$APT_PACKAGES"
-as_root apt-get update -qq
-# env, not a prefix assignment: sudo does not carry the caller's environment
-# through, so DEBIAN_FRONTEND would be lost and the install could stop on a
-# prompt nobody is there to answer.
-#
-# Word splitting is intended: APT_PACKAGES is a list, not one argument.
-# shellcheck disable=SC2086
-as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $APT_PACKAGES
+if want apt; then
+  step 'Debian packages'
+  note "$APT_PACKAGES"
+  as_root apt-get update -qq
+  # env, not a prefix assignment: sudo does not carry the caller's environment
+  # through, so DEBIAN_FRONTEND would be lost and the install could stop on a
+  # prompt nobody is there to answer.
+  #
+  # Word splitting is intended: APT_PACKAGES is a list, not one argument.
+  # shellcheck disable=SC2086
+  as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $APT_PACKAGES
+fi
 
 # --- Python virtualenv ------------------------------------------------------
 
-step 'Python virtualenv'
-note "$VENV"
-if [ ! -f "$PY_LOCK" ]; then
-  printf 'ERROR: %s is missing.\n' "$PY_LOCK" >&2
-  printf 'It carries the pinned toolchain (FML-ADR-058) and is not optional.\n' >&2
-  exit 1
+if want python; then
+  step 'Python virtualenv'
+  note "$VENV"
+  if [ ! -f "$PY_LOCK" ]; then
+    printf 'ERROR: %s is missing.\n' "$PY_LOCK" >&2
+    printf 'It carries the pinned toolchain (FML-ADR-058) and is not optional.\n' >&2
+    exit 1
+  fi
+  if [ ! -x "$VENV/bin/python" ]; then
+    python3 -m venv "$VENV"
+  fi
+  "$VENV/bin/pip" install --quiet --upgrade pip
+  "$VENV/bin/pip" install --quiet --requirement "$PY_LOCK"
+  note "Installed from tools/requirements-dev.txt."
 fi
-if [ ! -x "$VENV/bin/python" ]; then
-  python3 -m venv "$VENV"
-fi
-"$VENV/bin/pip" install --quiet --upgrade pip
-"$VENV/bin/pip" install --quiet --requirement "$PY_LOCK"
-note "Installed from tools/requirements-dev.txt."
 
 # --- shfmt ------------------------------------------------------------------
 
-step "shfmt v$SHFMT_VERSION"
-if have shfmt && [ "$(shfmt --version 2>/dev/null)" = "v$SHFMT_VERSION" ]; then
-  note 'Already at the pinned version.'
-else
-  arch=$(uname -m)
-  case "$arch" in
-    x86_64 | amd64)
-      shfmt_arch=amd64
-      shfmt_sha=$SHFMT_SHA256_amd64
-      ;;
-    aarch64 | arm64)
-      shfmt_arch=arm64
-      shfmt_sha=$SHFMT_SHA256_arm64
-      ;;
-    *)
-      printf 'ERROR: no pinned shfmt digest for architecture %s.\n' "$arch" >&2
-      printf 'Add one to this script rather than skipping verification.\n' >&2
-      exit 1
-      ;;
-  esac
+if want shfmt; then
+  step "shfmt v$SHFMT_VERSION"
+  if have shfmt && [ "$(shfmt --version 2>/dev/null)" = "v$SHFMT_VERSION" ]; then
+    note 'Already at the pinned version.'
+  else
+    arch=$(uname -m)
+    case "$arch" in
+      x86_64 | amd64)
+        shfmt_arch=amd64
+        shfmt_sha=$SHFMT_SHA256_amd64
+        ;;
+      aarch64 | arm64)
+        shfmt_arch=arm64
+        shfmt_sha=$SHFMT_SHA256_arm64
+        ;;
+      *)
+        printf 'ERROR: no pinned shfmt digest for architecture %s.\n' "$arch" >&2
+        printf 'Add one to this script rather than skipping verification.\n' >&2
+        exit 1
+        ;;
+    esac
 
-  url="https://github.com/mvdan/sh/releases/download/v$SHFMT_VERSION/shfmt_v${SHFMT_VERSION}_linux_$shfmt_arch"
-  tmp=$(mktemp)
-  curl -fsSL -o "$tmp" "$url"
-  actual=$(sha256sum "$tmp" | cut -d' ' -f1)
-  if [ "$actual" != "$shfmt_sha" ]; then
+    url="https://github.com/mvdan/sh/releases/download/v$SHFMT_VERSION/shfmt_v${SHFMT_VERSION}_linux_$shfmt_arch"
+    tmp=$(mktemp)
+    curl -fsSL -o "$tmp" "$url"
+    actual=$(sha256sum "$tmp" | cut -d' ' -f1)
+    if [ "$actual" != "$shfmt_sha" ]; then
+      rm -f "$tmp"
+      printf 'ERROR: shfmt checksum mismatch.\n' >&2
+      printf '  expected %s\n' "$shfmt_sha" >&2
+      printf '  actual   %s\n' "$actual" >&2
+      exit 1
+    fi
+    as_root install -m 0755 "$tmp" /usr/local/bin/shfmt
     rm -f "$tmp"
-    printf 'ERROR: shfmt checksum mismatch.\n' >&2
-    printf '  expected %s\n' "$shfmt_sha" >&2
-    printf '  actual   %s\n' "$actual" >&2
-    exit 1
+    note 'Installed and checksum verified.'
   fi
-  as_root install -m 0755 "$tmp" /usr/local/bin/shfmt
-  rm -f "$tmp"
-  note 'Installed and checksum verified.'
 fi
 
 # --- markdownlint-cli2 ------------------------------------------------------
 
-step 'markdownlint-cli2'
-if have markdownlint-cli2; then
-  note 'Already installed.'
-else
-  as_root npm install -g --silent markdownlint-cli2
-  note 'Installed.'
+if want node; then
+  step 'markdownlint-cli2'
+  if have markdownlint-cli2; then
+    note 'Already installed.'
+  else
+    # Only escalate when the global prefix is not already writable. sudo resets
+    # PATH, so on a machine where a version manager put node somewhere of its
+    # own -- a CI runner using actions/setup-node, for one -- "sudo npm" would
+    # install into a different node than the one that is going to run it.
+    npm_prefix=$(npm config get prefix 2>/dev/null || printf '')
+    if [ -n "$npm_prefix" ] && [ -w "$npm_prefix/lib" ]; then
+      npm install -g --silent markdownlint-cli2
+    else
+      as_root npm install -g --silent markdownlint-cli2
+    fi
+    note 'Installed.'
+  fi
 fi
 
 # --- done -------------------------------------------------------------------
