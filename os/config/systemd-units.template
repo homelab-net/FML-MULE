@@ -1,0 +1,93 @@
+# systemd units for network bring-up - MULE
+#
+# The execution half of roadmap item 1.2. mule/bringup.py holds the ORDER;
+# os/config/networkd.conf.template holds the CONFIGURATION; this describes the
+# units that run them and, more importantly, what they do not have to do.
+#
+# STATUS: TEMPLATE. Unit names carrying an interface are TBD, because interface
+# naming is TBR-LINUX-01 and open. This is an input to configuration
+# generation, not a file to be dropped in /etc/systemd/system.
+#
+# FML-ADR-059 owns the split: systemd-networkd owns link configuration and mesh
+# attachment, wpa_supplicant and hostapd own association, nothing else may
+# reconfigure a link.
+
+# --- Most of the ordering is not yours to enforce ---------------------------
+#
+# THIS IS THE CORRECTION THAT MATTERS, and earlier files in this repository
+# overstate the problem, including FML-ADR-059's own consequences.
+#
+# systemd.network(5), on ConfigureWithoutCarrier=:
+#
+#   "Allows systemd-networkd to configure a specific link even if it has no
+#    carrier. Defaults to false."
+#
+# So networkd already waits. A .network file with BatmanAdvanced= does not
+# apply while the interface has no carrier, and a mesh point interface has no
+# carrier until wpa_supplicant has joined the mesh. The hazard the ordering
+# exists for -- batman-adv attached to an interface that is not yet up, failing
+# in a way that looks like a radio fault -- is prevented by networkd's default
+# behaviour rather than by a unit dependency somebody has to remember.
+#
+# THE CONSEQUENCE FOR THESE UNITS: there is no "attach after association" unit
+# to write. What there is instead is a setting NOT to change.
+#
+#   DO NOT set ConfigureWithoutCarrier=true on a mesh member interface.
+#
+# It is the line that turns the hazard back on, it looks like a fix when a link
+# is slow to come up, and it would be applied by someone debugging exactly the
+# symptom it causes.
+#
+# NOT VERIFIED: that an 802.11s mesh point interface reports carrier only once
+# the mesh is joined. It is what the mechanism assumes and no radio has been
+# available to confirm it. If a driver asserts carrier earlier, the gating is
+# weaker than this file claims and the ordering does become a unit's problem.
+# Stage 2 is where that is found out; see the verification note in FML-ADR-059.
+
+# --- Association: wpa_supplicant --------------------------------------------
+# Upstream ships wpa_supplicant@.service, a template unit taking an interface.
+# Use it rather than writing one: FML-ADR-023 records that the upstream MANET
+# reference project encodes real bring-up knowledge, and a hand-rolled unit
+# discards whatever the distribution's has learned.
+#
+# enable=wpa_supplicant@TBD.service       # TBR-LINUX-01 for the interface name
+# config=/etc/wpa_supplicant/wpa_supplicant-TBD.conf
+#
+# The configuration is os/config/wpa_supplicant.conf.template. What matters
+# here is that the unit is enabled for the mesh interface and that networkd is
+# not also trying to associate, which it cannot: it has no such capability, and
+# that is why this component exists at all.
+
+# --- The access point: hostapd ----------------------------------------------
+# enable=hostapd.service                  # or hostapd@TBD.service per distro
+#
+# FML-ADR-045 keeps the access point and the mesh as separate radio FUNCTIONS
+# whether or not they share a radio, and TBR-RF-03 decides whether they do. If
+# they share one, the unit set is not two independent services and this file is
+# wrong; that is the thing to re-read when that trade closes.
+
+# --- Services wait for the mesh, not for the network ------------------------
+# The last ordering rule in mule/bringup.py is mesh_interface_up before
+# services_started. Expressed as a dependency on the interface being
+# configured, not on network-online.target, which means something weaker:
+#
+# [Unit]
+# After=systemd-networkd-wait-online@TBD.service
+# Requires=systemd-networkd-wait-online@TBD.service
+#
+# where TBD is the mesh interface. systemd-networkd-wait-online@.service is an
+# instantiated unit that waits for ONE link, which is what is wanted: a node
+# whose access point is up but whose mesh is not should not be starting
+# services that assume peers.
+#
+# WHICH services is not decided here and is not this file's to decide.
+# FML-ADR-035 puts service policy in services/service-controller/, which is
+# blocked on TBR-HA-01. mule/bringup.py has one step called services_started
+# and says the same thing.
+
+# --- The LoRa plane is not in this file -------------------------------------
+# It has its own supervisor requirement and its own reasons; see
+# os/config/meshtasticd.conf.template. It is not ordered against the mesh
+# because it does not depend on it: FML-ADR-026 makes it the plane that still
+# works when the IP plane does not, and a unit ordering that made the lifeline
+# wait for the mesh would defeat the decision.

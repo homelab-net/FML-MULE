@@ -34,10 +34,21 @@
 # associated before networkd may add it to the mesh, and batman-adv attached to
 # an interface that is not yet up fails in a way that LOOKS LIKE A RADIO FAULT.
 #
-# So the dependency is a systemd unit ordering and not a networkd setting, and
-# nothing in this file can express it. Whoever writes the units carries it:
-# networkd's handling of the member link is ordered after wpa_supplicant has
-# associated on that interface. FML-ADR-059 names this as the cost it accepted.
+# CORRECTED 2026-08-30: networkd already handles this and an earlier version of
+# this paragraph said it did not. systemd.network(5) on
+# ConfigureWithoutCarrier=: "Allows systemd-networkd to configure a specific
+# link even if it has no carrier. Defaults to false." A .network file with
+# BatmanAdvanced= therefore does not apply until the interface has carrier,
+# which a mesh point does not have until wpa_supplicant has joined the mesh.
+#
+# So there is no ordering unit to write. There is a setting NOT to change:
+# DO NOT set ConfigureWithoutCarrier=true on a mesh member. It turns the
+# hazard back on, and it looks like a fix to someone debugging a link that is
+# slow to come up. See os/config/systemd-units.template.
+#
+# Still unverified: that a mesh point reports carrier only once the mesh is
+# joined. No radio has been available to confirm it, and if a driver asserts
+# carrier earlier the gating is weaker than this claims.
 
 # --- 10-bat0.netdev ---------------------------------------------------------
 # The mesh interface itself. Created by networkd, not by batctl: FML-ADR-059.
