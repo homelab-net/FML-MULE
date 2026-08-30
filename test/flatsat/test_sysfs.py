@@ -12,11 +12,17 @@ a zone can fail to answer, and refuses to guess which zone is which.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
-from mule.sysfs import MILLIDEGREES_PER_DEGREE, SysfsThermalReadings, ZoneMap
+from mule.sysfs import (
+    MILLIDEGREES_PER_DEGREE,
+    SysfsThermalReadings,
+    SysfsTimeReadings,
+    ZoneMap,
+)
 from mule.thermal import Sensor, assess
 
 from .conftest import FIXTURE_THERMAL_LIMITS
@@ -250,3 +256,103 @@ def test_sensor_names_come_from_the_shared_vocabulary() -> None:
     mapped: Sensor = "processor"
     assert FIXTURE_MAP.sensor_for(CPU_ZONE) == mapped
     assert FIXTURE_MAP.sensor_for("unmapped") is None
+
+
+# --- the RTC reader ----------------------------------------------------------
+#
+# Written against a temporary tree rather than /sys, so the tests say the same
+# thing on a machine with no RTC as on one with three. The real device was read
+# once, on Debian 13 with rtc_cmos, and what it exposed is recorded in
+# docs/readings.md and in the reader's own docstring.
+
+
+#: An arbitrary fixed instant, as the kernel reports it: seconds since epoch.
+RTC_FIXTURE_EPOCH = "1756593902"
+
+
+def _rtc(tmp_path: Path, since_epoch: str | None = RTC_FIXTURE_EPOCH) -> Path:
+    """Build a fake /sys/class/rtc containing one device."""
+    device = tmp_path / "rtc0"
+    device.mkdir(parents=True)
+    if since_epoch is not None:
+        (device / "since_epoch").write_text(since_epoch, encoding="utf-8")
+    return tmp_path
+
+
+def test_a_fitted_rtc_is_reported_present(tmp_path: Path) -> None:
+    """Report an RTC the class directory shows."""
+    assert SysfsTimeReadings(root=_rtc(tmp_path)).rtc_present()
+
+
+def test_an_absent_rtc_is_reported_absent(tmp_path: Path) -> None:
+    """Report no RTC rather than raising, so assess can refuse with a reason."""
+    assert not SysfsTimeReadings(root=tmp_path).rtc_present()
+
+
+def test_retained_time_is_read_and_is_timezone_aware(tmp_path: Path) -> None:
+    """Return an aware stamp.
+
+    mule.timekeeping.assess refuses a naive one rather than guessing, and
+    mutation M25 exists because that refusal was once a crash.
+    """
+    stamp = SysfsTimeReadings(root=_rtc(tmp_path)).rtc_time()
+
+    assert stamp is not None
+    assert stamp.tzinfo is not None
+    # Round-trip against the fixture rather than a hand-written date. An
+    # earlier version asserted a year, and the year was wrong: the epoch
+    # value had been picked without converting it.
+    assert stamp == datetime.fromtimestamp(int(RTC_FIXTURE_EPOCH), tz=UTC)
+
+
+def test_an_unreadable_rtc_gives_no_reading(tmp_path: Path) -> None:
+    """Return None when the file is not there, rather than raising."""
+    assert SysfsTimeReadings(root=tmp_path).rtc_time() is None
+
+
+def test_a_nonsense_rtc_value_gives_no_reading(tmp_path: Path) -> None:
+    """Return None for a value that is not an integer.
+
+    A garbled read is the platform failing to answer. Guessing at it would
+    manufacture a retained time, which is the failure FML-ADR-042 exists for.
+    """
+    assert SysfsTimeReadings(root=_rtc(tmp_path, "not-a-number")).rtc_time() is None
+
+
+def test_the_system_clock_is_read_and_is_aware(tmp_path: Path) -> None:
+    """Return the running clock, timezone-aware."""
+    assert SysfsTimeReadings(root=_rtc(tmp_path)).system_time().tzinfo is not None
+
+
+def test_backup_cell_health_is_none_because_linux_cannot_say(tmp_path: Path) -> None:
+    """Return None, which is the honest answer and not a stub.
+
+    The Linux RTC class ABI defines no battery-low attribute, confirmed on a
+    real rtc_cmos device. FakeClock.dead_backup_cell() is the scenario
+    FML-ADR-042 was written for, and a real node cannot detect it.
+    """
+    assert SysfsTimeReadings(root=_rtc(tmp_path)).rtc_backup_cell_ok() is None
+
+
+def test_a_board_that_can_say_is_believed(tmp_path: Path) -> None:
+    """Use a board-specific probe where one exists, like thermal throttling."""
+    readings = SysfsTimeReadings(root=_rtc(tmp_path), backup_cell_probe=lambda: False)
+
+    assert readings.rtc_backup_cell_ok() is False
+
+
+def test_synchronisation_defaults_to_false(tmp_path: Path) -> None:
+    """Report not-synchronised when nothing can confirm it.
+
+    Being unable to confirm synchronisation is not the same as being
+    synchronised, and assess treats False as "fall through to the retained
+    time checks", which is the fail-closed direction.
+    """
+    assert not SysfsTimeReadings(root=_rtc(tmp_path)).synchronized()
+
+
+def test_a_synchronisation_probe_is_believed(tmp_path: Path) -> None:
+    """Use the injected probe. chronyc is a command, so it is not run here."""
+    readings = SysfsTimeReadings(root=_rtc(tmp_path), synchronized_probe=lambda: True)
+
+    assert readings.synchronized()

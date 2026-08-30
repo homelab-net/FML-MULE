@@ -229,6 +229,34 @@ mutations:
     find: "    if observed.bridge_loop_avoidance() is True:"
     replace: "    if observed.bridge_loop_avoidance() is not False:"
 
+  # --- the RTC reader -------------------------------------------------------
+  # M62 is the one that matters. Returning False for a cell the platform
+  # cannot report turns "I cannot tell" into "it is dead", which is the
+  # T | None confusion AGENTS.md records four instances of.
+  - id: M60
+    file: mule/sysfs.py
+    describe: an absent RTC is reported as fitted
+    find: "        return self._device_root().is_dir()"
+    replace: "        return True"
+
+  - id: M61
+    file: mule/sysfs.py
+    describe: a garbled retained time is guessed at instead of refused
+    find: "        except ValueError:\n            return None"
+    replace: "        except ValueError:\n            return datetime.now(tz=UTC)"
+
+  - id: M62
+    file: mule/sysfs.py
+    describe: an unreportable backup cell is reported as depleted
+    find: "        if self.backup_cell_probe is None:\n            return None"
+    replace: "        if self.backup_cell_probe is None:\n            return False"
+
+  - id: M63
+    file: mule/sysfs.py
+    describe: an unconfirmable clock is reported as synchronised
+    find: "        if self.synchronized_probe is None:\n            return False"
+    replace: "        if self.synchronized_probe is None:\n            return True"
+
   - id: M20
     file: mule/status.py
     describe: a sensor outside its envelope no longer raises a fault

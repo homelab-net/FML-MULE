@@ -33,6 +33,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .thermal import Sensor
@@ -149,3 +150,84 @@ class SysfsThermalReadings:
         if self._throttling_probe is None:
             return None
         return self._throttling_probe()
+
+
+#: Where the Linux RTC class puts its devices.
+RTC_ROOT = Path("/sys/class/rtc")
+
+
+@dataclass
+class SysfsTimeReadings:
+    """Time readings from the Linux RTC class and the running clock.
+
+    Satisfies `mule.timekeeping.TimeReadings`. It reads and reports; deciding
+    whether retained time can be trusted is `mule.timekeeping.assess`, and
+    `FML-ADR-042` is why that split exists.
+
+    **`rtc_backup_cell_ok` always returns `None`, and that is not a stub.** The
+    Linux RTC class ABI defines no battery-low attribute. Confirmed on a real
+    machine: `/sys/class/rtc/rtc0/` on Debian 13 with `rtc_cmos` exposes
+    `date`, `time`, `since_epoch`, `hctosys`, `max_user_freq`, `wakealarm` and
+    `name`, and nothing about the cell. `docs/readings.md` records the same
+    thing from the ABI.
+
+    That matters more here than anywhere else in this package.
+    `FakeClock.dead_backup_cell()` is the scenario `FML-ADR-042` was written
+    for and the one the flat-sat exercises hardest, and **a real node cannot
+    detect it**. The reading is not missing because nobody wrote it; there is
+    nothing to read. A board that exposes a vendor attribute can supply one
+    through `backup_cell_probe`, the same way thermal supplies throttling.
+    """
+
+    #: Which RTC. TBR-HW-01 selects the board; rtc0 is the class default.
+    device: str = "rtc0"
+    root: Path = RTC_ROOT
+    #: A board-specific way to read cell health, where one exists at all.
+    backup_cell_probe: Callable[[], bool | None] | None = None
+    #: Whether a trusted upstream has set the clock. `chronyc tracking` is the
+    #: source `docs/readings.md` names, and it is a command rather than a
+    #: kernel interface, so it is injected rather than shelled out from here.
+    #: Absent, this reports False: unable to confirm synchronisation is not the
+    #: same as being synchronised, and `assess` treats False as "fall through
+    #: to the retained-time checks", which is the fail-closed direction.
+    synchronized_probe: Callable[[], bool] | None = None
+
+    def _device_root(self) -> Path:
+        return self.root / self.device
+
+    def rtc_present(self) -> bool:
+        """Whether a battery-backed real-time clock is fitted and responding."""
+        return self._device_root().is_dir()
+
+    def rtc_backup_cell_ok(self) -> bool | None:
+        """Backup cell health, or None where the platform cannot report it."""
+        if self.backup_cell_probe is None:
+            return None
+        return self.backup_cell_probe()
+
+    def rtc_time(self) -> datetime | None:
+        """Return the RTC's retained time, or None if it gave no reading."""
+        # since_epoch rather than parsing date and time separately: one read,
+        # no locale, no midnight race between two files.
+        try:
+            raw = (self._device_root() / "since_epoch").read_text(encoding="utf-8")
+        except OSError:
+            return None
+        try:
+            seconds = int(raw.strip())
+        except ValueError:
+            return None
+        # Timezone-aware, always. mule.timekeeping.assess refuses a naive
+        # stamp rather than guessing, and the hardware clock is UTC by
+        # convention on a node this program controls.
+        return datetime.fromtimestamp(seconds, tz=UTC)
+
+    def system_time(self) -> datetime:
+        """Return the running system clock, whatever it currently believes."""
+        return datetime.now(tz=UTC)
+
+    def synchronized(self) -> bool:
+        """Whether time has been set from a source the node trusts."""
+        if self.synchronized_probe is None:
+            return False
+        return self.synchronized_probe()
