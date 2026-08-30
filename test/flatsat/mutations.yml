@@ -257,6 +257,25 @@ mutations:
     find: "        if self.synchronized_probe is None:\n            return False"
     replace: "        if self.synchronized_probe is None:\n            return True"
 
+  # --- the loop detector FML-ADR-056 asked for ------------------------------
+  - id: M64
+    file: mule/loops.py
+    describe: a client under two originators no longer signals
+    find: "    if any(len(originators) > 1 for originators in seen.values()):"
+    replace: "    if False:"
+
+  - id: M65
+    file: mule/loops.py
+    describe: the node's own bridge returning from the mesh no longer signals
+    find: "    if bridge is not None and _announced_by_a_peer(entries, bridge):"
+    replace: "    if False:"
+
+  - id: M66
+    file: mule/loops.py
+    describe: an unreadable translation table is reported as a loop
+    find: "    if entries is None:\n        return found"
+    replace: "    if entries is None:\n        entries = ((\"x\", \"y\"), (\"x\", \"z\"))"
+
   - id: M20
     file: mule/status.py
     describe: a sensor outside its envelope no longer raises a fault

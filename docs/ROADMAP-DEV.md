@@ -323,7 +323,11 @@ it, which wait on `TBR-RF-03` and `TBR-LINUX-01`. `ap_isolate` follows
 `FML-ADR-057`: stations are not isolated, because that is what peer ATAK
 between two people at one MULE runs over.
 
-**Blocked by:** naming only.
+**Blocked by:** naming only, and the loop detector is no longer part of it.
+`mule/loops.py` implements the two signatures `FML-ADR-056` names, with a fake
+and a test per signature. `ap_isolate` is decided rather than `TBD`:
+`FML-ADR-057` settles it and the template now says so. What is left is
+`bridge=`, which is `TBR-LINUX-01`.
 
 **Read first:** SAD section 4.3, which is short and settles more than any of
 the ADRs around it. Then `FML-ADR-056` and its accepted cost, which is the one
