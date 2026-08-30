@@ -265,6 +265,28 @@ PATCH
 # CI fails on drift they cannot explain. It is the same shape as a green run
 # that checked nothing: the tool, not the tree, was wrong.
 
+# --- roadmap state lives in one place ----------------------------------------
+#
+# docs/ROADMAP-DEV.md wrote each item's state twice, in the item and in the
+# sequencing prose, and was corrected three times in two days because finishing
+# anything invalidated both. The State line is now the single source and check
+# 19 fails when one goes missing.
+#
+# The first version of that check could not fail: its awk replaced a pending
+# heading before anything tested it, so a missing State line was overwritten
+# and never reported. This test is why that was found.
+
+@test "validate-docs detects a roadmap item with no state line" {
+  make_sandbox
+  # Delete the first State marker. The check looks for the marker, so removing
+  # that one line is the whole violation.
+  sed -i "0,/^\*\*State:\*\*/{/^\*\*State:\*\*/d}" "$SANDBOX/docs/ROADMAP-DEV.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"has no **State:** line"* ]]
+}
+
 @test "gen-decision-index is stable across locales" {
   if ! locale -a 2>/dev/null | grep -qi '^en_US\.utf8$'; then
     skip "en_US.UTF-8 not available on this machine"

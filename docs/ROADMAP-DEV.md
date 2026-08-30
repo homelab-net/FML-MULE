@@ -485,32 +485,45 @@ behind Track 1 until the network plane can do something.
 
 ## Sequencing
 
-Work the numbered items in Track 1 in order. Track 2 starts the day hardware
-arrives and takes precedence over everything, because it converts assumptions
-into measurements. Track 3 item one is the Program Owner's and costs five
-minutes; the rest of Track 3 stays behind Track 1.
+**Where the state lives, because this section kept going stale.** Each item
+below carries a `**State:**` line, and that line is the only place its state is
+written. This section holds the *reasoning* about order, which does not change
+when something is finished.
 
-The order within Track 1 is chosen so that each item is exercisable when it
-lands. 1.1 before 1.2 because the second waveform is the largest unknown and
-delaying it repeats how the first one went. 1.2 before 1.6 because reading radio
-state is worth little before something brings radios up in a known order. 1.5
-threads through all of them and can be worked in parallel by someone else.
+It used to hold both. Finishing one item then invalidated three paragraphs
+here as well as the item's own line, and the file was corrected three times in
+two days, each time for the same reason. If you finish something, edit its
+`State:` line. Nothing in this section should need touching.
 
-**Right now the order is not the whole story.** Item 1.1's steps 1, 2 and 3 are
-done: the LoRa plane is proven exercisable in software, the addressing
-specification exists, and the plane has an interface and a fake. An item's
-number is its dependency position, not a queue ticket.
+A machine checks half of that: `tools/validate-docs.sh` fails if a numbered
+item has no `State:` line, so the single source cannot quietly go missing. It
+cannot check the other half. Nothing detects state creeping back into the prose
+here, and the only thing preventing it is whoever is reading a diff.
 
-Three things are workable now, and none of them gates another.
+### What to work, in general
 
-- **1.2, the bring-up ordering.** Still the best parallel item. Note the split
-  described under it: the ordering can be made machine-checked today, the
-  systemd units cannot be written without deciding the network management
-  stack, and that decision needs an ADR.
-- **1.1 step 4**, configuration templates, which inherits the same trap.
-- **The gateway tag probe**, described below. It is not on the numbered list
-  because it is not sequencing work, and it is the cheapest way to find out
-  whether a design already written down is implementable at all.
+Work the numbered items in Track 1 in order, skipping any whose `State:` line
+says it is waiting on something. Track 2 starts the day hardware arrives and
+takes precedence over everything, because it converts assumptions into
+measurements. Track 3 item one is the Program Owner's and costs five minutes;
+the rest of Track 3 stays behind Track 1.
+
+An item's number is its dependency position, not a queue ticket. Two items with
+nothing between them can be worked at once.
+
+### Why the order is this order
+
+This is the durable part, and it changes only if a dependency changes.
+
+- **1.1 before 1.2**, because the second waveform is the largest unknown and
+  delaying it repeats how the first one went.
+- **1.2 before 1.6**, because reading radio state is worth little before
+  something brings radios up in a known order.
+- **1.5 threads through all of them** and can be worked in parallel by someone
+  else, because an addressing plan constrains the others without depending on
+  them.
+- **The gateway tag probe is on no numbered item**, because it is not
+  sequencing work. It is described below and can be taken at any time.
 
 ### The gateway tag probe
 
