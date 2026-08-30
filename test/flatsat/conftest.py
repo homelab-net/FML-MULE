@@ -17,7 +17,7 @@ from mule.power import PowerModel
 from mule.thermal import ThermalLimits
 from mule.timekeeping import TimePolicy
 
-from .fakes import FakeClock, FakePower, FakeRadio, FakeThermal
+from .fakes import FakeClock, FakeLoRaPlane, FakePower, FakeRadio, FakeThermal
 from .node import REPO_ROOT, FlatSatNode
 
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
@@ -96,6 +96,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         radio: FakeRadio | None = None,
         power: FakePower | None = None,
         thermal: FakeThermal | None = None,
+        lora_plane: FakeLoRaPlane | None = None,
         power_model: PowerModel | None = None,
         thermal_limits: ThermalLimits | None = None,
         emission: EmissionPosture = "NORMAL-EMISSION",
@@ -109,6 +110,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
             radio=radio if radio is not None else FakeRadio(),
             power=power if power is not None else FakePower(),
             thermal=thermal if thermal is not None else FakeThermal(),
+            lora_plane=lora_plane if lora_plane is not None else FakeLoRaPlane(),
             clock=clock if clock is not None else FakeClock.credible(time_policy),
             time_policy=time_policy,
             power_model=power_model,

@@ -171,10 +171,19 @@ mutations:
   - id: M19
     file: mule/status.py
     describe: LoRa is always reported available
-    find: >-
-      lora_available="lora" in observed.enumerated and "lora" in
-      observed.associated
-    replace: "lora_available=True"
+    find: "    return observed.lora_stack_responding is True"
+    replace: "    return True"
+
+  # The case that matters most on the lifeline bearer: a platform that cannot
+  # tell whether its stack answers must not be read as one that said yes.
+  # `is True` and `is not False` differ only when the value is None, which is
+  # exactly the state FML-ADR-026's plane can be in and the one an operator
+  # would be misled by.
+  - id: M53
+    file: mule/status.py
+    describe: an unknown LoRa stack state is treated as available
+    find: "    return observed.lora_stack_responding is True"
+    replace: "    return observed.lora_stack_responding is not False"
 
   - id: M20
     file: mule/status.py

@@ -53,6 +53,10 @@ a reader does not conclude the decision is unimplemented.
   refuses with a diagnosable reason when it is not.
 - `mule/admission.py` consumes that assessment, so a node with untrustworthy
   time does not admit a user.
+- `mule/status.py` cites the same decision, and only as a precedent: it reads
+  an unknown LoRa stack state as unavailable on the same fail-closed grounds
+  `FML-ADR-042` applies to retained time. It decides nothing about time and
+  nothing about trust.
 
 `FML-ADR-042` binds any component that validates trust, and this one will
 inherit those functions rather than repeat them: a second implementation of

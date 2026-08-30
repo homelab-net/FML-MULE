@@ -74,6 +74,13 @@ class Observations:
     #: catch it is the one asserting that two literals match.
     modes: ModeAssessment
     wan_available: bool
+    #: Whether the LoRa stack answers, or None where the platform cannot tell.
+    #:
+    #: Separate from `associated` deliberately. FML-ADR-026 makes LoRa a
+    #: non-IP plane and warns against letting it inherit the IP plane's
+    #: vocabulary; association is an 802.11 idea and a LoRa chain does not do
+    #: it. See the LoRaPlane interface for what this reads.
+    lora_stack_responding: bool | None
 
 
 @dataclass(frozen=True)
@@ -104,6 +111,31 @@ class NodeStatus:
     # the answers above rather than adding a fourteenth question.
     authority_reason: AuthorityReason | None
     state: OperatorState
+
+
+def _lora_available(observed: Observations) -> bool:
+    """Whether the LoRa lifeline can actually carry, CONOPS section 67.
+
+    Two conditions, and the second is why this is a function rather than the
+    expression it replaced. The radio has to be there, and the stack that
+    carries the plane has to be answering.
+
+    The expression this replaced asked whether "lora" was in `associated`.
+    That is an 802.11 question: `RadioState.associated` means "mesh peer, or
+    AP serving", and a LoRa chain does neither. FML-ADR-026 makes this a
+    separate non-IP plane and names inheriting the IP plane's vocabulary as the
+    trap. It reported a lifeline as available on the strength of a word that
+    does not apply to it.
+
+    **`None` reads as not available.** The platform saying it cannot tell is
+    not the platform saying yes. This bearer is what CONOPS section 50.8 leaves
+    an operator when everything else has gone, so an unverifiable "available"
+    here is the expensive direction to be wrong in. Failing closed on an
+    unknown is the same judgement FML-ADR-042 makes about retained time.
+    """
+    if "lora" not in observed.enumerated:
+        return False
+    return observed.lora_stack_responding is True
 
 
 def _fault(observed: Observations, missing: list[Bearer]) -> str | None:
@@ -198,7 +230,7 @@ def derive(observed: Observations) -> NodeStatus:
         shared_data_authoritative=None,
         data_stale=None,
         network_degraded=_network_degraded(observed),
-        lora_available="lora" in observed.enumerated and "lora" in observed.associated,
+        lora_available=_lora_available(observed),
         wan_available=observed.wan_available,
         emcon_active=observed.modes.emission == "EMCON-SILENT",
         fault=fault,

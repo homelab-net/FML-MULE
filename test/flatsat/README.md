@@ -100,6 +100,7 @@ derive one from.
 | `FakeRadio` | `RadioState` | Driver attachment, link formation, peer visibility | RF propagation, throughput, desense, multicast scaling, coexistence | `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03` |
 | `FakePower` | `mule.power.PowerReadings` | Pack presence, pack health, reported charge, pack temperature | Discharge behaviour, capacity fade, load, endurance | `TBR-PWR-01` |
 | `FakeThermal` | `mule.thermal.ThermalReadings` | What each fitted sensor reports, and whether the compute element says it is throttling | Heat flow, ambient sensitivity, solar load, the enclosure | `TBR-THERM-01` |
+| `FakeLoRaPlane` | `LoRaPlane` | Whether the LoRa stack answers, including the platform being unable to tell | Airtime, duty cycle, range, collisions, and any message actually crossing | `TBR-NET-02` |
 | `FakeClock` | `mule.timekeeping.TimeReadings` | What the RTC and system clock report, and whether time was set upstream | Drift, holdover duration, skew accumulation | `TBR-TIME-01` |
 
 `FakePower` no longer answers how long the node will run. That is
