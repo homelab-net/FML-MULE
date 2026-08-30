@@ -83,9 +83,20 @@ wpa_passphrase=TBD
 
 # --- Isolation --------------------------------------------------------------
 # Whether associated devices may reach each other directly, or only the node.
-# TBD; feeds THREAT_MODEL.md, which records that peer traffic on a shared
-# operational domain is visible to all authenticated participants.
-ap_isolate=TBD
+#
+# NOT TBD. FML-ADR-057 decides it: stations are not isolated. Isolating them
+# "stops the station-to-station traffic that peer ATAK depends on", and CONOPS
+# section 9.2 makes peer-to-peer ATAK an S1 local mission service that should
+# remain available even when every external service host is absent. Isolation
+# would trade away an S1 capability to gain a property the architecture never
+# promised, which is what FML-ADR-055 did before FML-ADR-057 superseded it.
+#
+# 0 is hostapd's value for not isolated.
+#
+# This feeds THREAT_MODEL.md, which records that peer traffic on a shared
+# operational domain is visible to all authenticated participants. That is a
+# consequence of the decision, not an argument against it.
+ap_isolate=0
 
 # --- Notes ------------------------------------------------------------------
 # A client association storm is one of the peak conditions TBR-COMP-01 must

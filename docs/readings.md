@@ -102,6 +102,20 @@ reach.
 that assumed these values could be read the way thermal zones are read is
 wrong on a current kernel.
 
+## Translation table
+
+`mule/loops.py`, the `TranslationReadings` Protocol. No reader exists.
+
+These are what `FML-ADR-056` asks the node to watch, having disabled
+`batman-adv`'s own loop avoidance. Both are `batman-adv` state, so both are
+`batctl` over netlink for the reason given under "Mesh state": the `sysfs`
+interface is gone on a current kernel.
+
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `global_translation_entries` | `command` | `batctl meshif bat0 transglobal`, package `batctl`. Each row names a client and the originator announcing it. | pairs | `NO READER` |
+| `bridge_address` | `kernel` | `/sys/class/net/<bridge>/address`. A plain link attribute, not a `batman-adv` one, so it needs no `batctl`. The bridge name is `TBR-LINUX-01`. | MAC | `NO READER` |
+
 ## LoRa plane
 
 `test/flatsat/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather
