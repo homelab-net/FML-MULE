@@ -45,6 +45,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
 | `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01, TBR-NET-01 |
 | `FML-ADR-058` | Development toolchain versions are pinned in a lock file | none |
+| `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
 
 ### SELECTED PRINCIPLE
 
