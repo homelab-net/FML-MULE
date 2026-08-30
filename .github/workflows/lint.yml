@@ -126,7 +126,7 @@ jobs:
       # 3.13 is Debian stable's Python, which FML-ADR-022 selects, and is the
       # interpreter tools/requirements-dev.txt was resolved against. Running a
       # different one here would mean CI installs a set nobody resolved.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -160,7 +160,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -185,7 +185,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
