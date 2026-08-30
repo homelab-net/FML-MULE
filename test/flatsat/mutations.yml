@@ -200,6 +200,35 @@ mutations:
     find: "        if earlier not in position or position[earlier] > position[later]:"
     replace: "        if False:"
 
+  # --- bring-up invariants on a finished node -------------------------------
+  # Each of these is a way the check could stop noticing that a node came up
+  # wrong. The last one is the important one: treating "the platform cannot
+  # answer" as "the invariant is broken" is the failure AGENTS.md records four
+  # times over, and it fails in the direction that looks like diligence.
+  - id: M56
+    file: mule/bringup.py
+    describe: a mesh running the wrong routing algorithm is accepted
+    find: "    if algo is not None and algo != intended_routing_algo:"
+    replace: "    if False:"
+
+  - id: M57
+    file: mule/bringup.py
+    describe: bridge loop avoidance left on is no longer caught
+    find: "    if observed.bridge_loop_avoidance is True:"
+    replace: "    if False:"
+
+  - id: M58
+    file: mule/bringup.py
+    describe: a hard interface below the batman minimum is accepted
+    find: "    if mtu is not None and mtu < BATMAN_HARD_MTU_BYTES:"
+    replace: "    if False:"
+
+  - id: M59
+    file: mule/bringup.py
+    describe: an unanswerable reading is reported as a broken invariant
+    find: "    if observed.bridge_loop_avoidance is True:"
+    replace: "    if observed.bridge_loop_avoidance is not False:"
+
   - id: M20
     file: mule/status.py
     describe: a sensor outside its envelope no longer raises a fault

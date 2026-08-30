@@ -8,9 +8,18 @@ violations in `test/unit/validate_docs.bats`.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
-from mule.bringup import REQUIRED_ORDER, Step, violations
+from mule.bringup import (
+    BATMAN_HARD_MTU_BYTES,
+    REQUIRED_ORDER,
+    MeshState,
+    Step,
+    state_violations,
+    violations,
+)
 
 #: A sound sequence. Every other case in this file is this one, damaged.
 GOOD: tuple[Step, ...] = (
@@ -120,3 +129,98 @@ def test_a_reversed_sequence_reports_every_rule() -> None:
     broken rule would hide the rest behind it.
     """
     assert len(violations(tuple(reversed(GOOD)))) == len(REQUIRED_ORDER)
+
+
+# --- the finished node, rather than the sequence -----------------------------
+#
+# state_violations answers a different question from violations, and the tests
+# below exist as much to pin down what it CANNOT answer as what it can.
+
+#: A node that came up correctly.
+SOUND = MeshState(
+    routing_algo="BATMAN_IV",
+    bridge_loop_avoidance=False,
+    hard_mtu_bytes=BATMAN_HARD_MTU_BYTES,
+    mesh_member_count=1,
+)
+
+
+def test_a_sound_node_breaks_no_invariant() -> None:
+    """Accept a node that holds all of them."""
+    assert state_violations(SOUND, "BATMAN_IV") == []
+
+
+def test_a_mesh_running_the_wrong_algorithm_is_caught() -> None:
+    """Catch the trace a late routing algorithm leaves.
+
+    batman-adv fixes the algorithm when the interface is added, so a mesh
+    running something other than the intended algorithm is evidence the
+    algorithm was set after the add, or never. FML-ADR-053 chose BATMAN-IV
+    deliberately and a node quietly running BATMAN_V has undone that.
+    """
+    observed = replace(SOUND, routing_algo="BATMAN_V")
+
+    broken = state_violations(observed, "BATMAN_IV")
+
+    assert broken == ["routing_algo_not_the_intended_one"]
+
+
+def test_bridge_loop_avoidance_left_on_is_caught() -> None:
+    """Catch FML-ADR-056 not being in force, whatever the configuration says."""
+    observed = replace(SOUND, bridge_loop_avoidance=True)
+
+    broken = state_violations(observed, "BATMAN_IV")
+
+    assert "bridge_loop_avoidance_enabled_on_the_mesh" in broken
+
+
+def test_a_hard_interface_below_the_batman_minimum_is_caught() -> None:
+    """Catch an MTU that makes every full-size frame fragment."""
+    observed = replace(SOUND, hard_mtu_bytes=1500)
+
+    assert "hard_mtu_below_batman_minimum" in state_violations(observed, "BATMAN_IV")
+
+
+def test_a_mesh_with_nothing_attached_is_caught() -> None:
+    """Catch the shape a node has when the add failed.
+
+    Attaching an interface that is not up is what produces it, and it is the
+    failure the ordering rules exist to prevent.
+    """
+    observed = replace(SOUND, mesh_member_count=0)
+
+    assert "mesh_has_no_members" in state_violations(observed, "BATMAN_IV")
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["routing_algo", "bridge_loop_avoidance", "hard_mtu_bytes", "mesh_member_count"],
+)
+def test_a_reading_the_platform_cannot_answer_is_not_a_violation(field: str) -> None:
+    """Report nothing for a reading that came back None.
+
+    The platform saying it cannot answer is a different thing from the platform
+    saying the invariant is broken. Treating them alike is how a node with no
+    instrumentation comes to look faulty, which is the failure AGENTS.md
+    records four times over.
+    """
+    observed = replace(SOUND, **{field: None})
+
+    assert state_violations(observed, "BATMAN_IV") == []
+
+
+def test_a_late_mtu_leaves_no_trace_and_is_not_caught() -> None:
+    """Pin down what this cannot do, so nobody reads it as an order check.
+
+    An MTU raised after the interface was added ends with the hard interface at
+    the right value. The snapshot sees the value, not when it was set, so this
+    node passes while having been brought up in the wrong order. Only a
+    recorded sequence catches that, which is what `violations` is for.
+
+    This test exists to fail if someone later claims state_violations verifies
+    ordering. It does not.
+    """
+    late_but_now_correct = SOUND
+
+    assert state_violations(late_but_now_correct, "BATMAN_IV") == []
+    assert violations(["mesh_member_added", "hard_mtu_set"]) != []
