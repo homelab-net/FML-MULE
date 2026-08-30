@@ -57,6 +57,17 @@ a reader does not conclude the decision is unimplemented.
   an unknown LoRa stack state as unavailable on the same fail-closed grounds
   `FML-ADR-042` applies to retained time. It decides nothing about time and
   nothing about trust.
+- `mule/sysfs.py` reads the platform's time sources, so that
+  `mule/timekeeping.py` has something real to judge. It decides nothing: it
+  reports what the RTC and the running clock say and returns `None` where the
+  platform cannot answer.
+
+  It is worth reading for one finding rather than for the code. **The Linux RTC
+  class exposes no backup-cell health attribute**, confirmed on a real
+  `rtc_cmos` device, so `rtc_backup_cell_ok()` returns `None` on every board
+  that does not add a vendor one. `FakeClock.dead_backup_cell()` is the
+  scenario `FML-ADR-042` was written for and the flat-sat exercises hardest,
+  and a real node cannot detect it.
 
 `FML-ADR-042` binds any component that validates trust, and this one will
 inherit those functions rather than repeat them: a second implementation of
