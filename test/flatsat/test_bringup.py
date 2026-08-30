@@ -15,11 +15,12 @@ import pytest
 from mule.bringup import (
     BATMAN_HARD_MTU_BYTES,
     REQUIRED_ORDER,
-    MeshState,
     Step,
     state_violations,
     violations,
 )
+
+from .fakes import FakeMeshState
 
 #: A sound sequence. Every other case in this file is this one, damaged.
 GOOD: tuple[Step, ...] = (
@@ -162,11 +163,11 @@ def test_a_reversed_sequence_reports_every_rule() -> None:
 # below exist as much to pin down what it CANNOT answer as what it can.
 
 #: A node that came up correctly.
-SOUND = MeshState(
-    routing_algo="BATMAN_IV",
-    bridge_loop_avoidance=False,
-    hard_mtu_bytes=BATMAN_HARD_MTU_BYTES,
-    mesh_member_count=1,
+SOUND = FakeMeshState(
+    algo="BATMAN_IV",
+    bla=False,
+    mtu_bytes=BATMAN_HARD_MTU_BYTES,
+    members=1,
 )
 
 
@@ -183,7 +184,7 @@ def test_a_mesh_running_the_wrong_algorithm_is_caught() -> None:
     algorithm was set after the add, or never. FML-ADR-053 chose BATMAN-IV
     deliberately and a node quietly running BATMAN_V has undone that.
     """
-    observed = replace(SOUND, routing_algo="BATMAN_V")
+    observed = replace(SOUND, algo="BATMAN_V")
 
     broken = state_violations(observed, "BATMAN_IV")
 
@@ -192,7 +193,7 @@ def test_a_mesh_running_the_wrong_algorithm_is_caught() -> None:
 
 def test_bridge_loop_avoidance_left_on_is_caught() -> None:
     """Catch FML-ADR-056 not being in force, whatever the configuration says."""
-    observed = replace(SOUND, bridge_loop_avoidance=True)
+    observed = replace(SOUND, bla=True)
 
     broken = state_violations(observed, "BATMAN_IV")
 
@@ -201,7 +202,7 @@ def test_bridge_loop_avoidance_left_on_is_caught() -> None:
 
 def test_a_hard_interface_below_the_batman_minimum_is_caught() -> None:
     """Catch an MTU that makes every full-size frame fragment."""
-    observed = replace(SOUND, hard_mtu_bytes=1500)
+    observed = replace(SOUND, mtu_bytes=1500)
 
     assert "hard_mtu_below_batman_minimum" in state_violations(observed, "BATMAN_IV")
 
@@ -212,14 +213,14 @@ def test_a_mesh_with_nothing_attached_is_caught() -> None:
     Attaching an interface that is not up is what produces it, and it is the
     failure the ordering rules exist to prevent.
     """
-    observed = replace(SOUND, mesh_member_count=0)
+    observed = replace(SOUND, members=0)
 
     assert "mesh_has_no_members" in state_violations(observed, "BATMAN_IV")
 
 
 @pytest.mark.parametrize(
     "field",
-    ["routing_algo", "bridge_loop_avoidance", "hard_mtu_bytes", "mesh_member_count"],
+    ["algo", "bla", "mtu_bytes", "members"],
 )
 def test_a_reading_the_platform_cannot_answer_is_not_a_violation(field: str) -> None:
     """Report nothing for a reading that came back None.

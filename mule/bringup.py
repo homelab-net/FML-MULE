@@ -25,8 +25,7 @@ Every step name below is transcribed from the bring-up ordering section of
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Protocol, runtime_checkable
 
 #: One action in bringing the network plane up.
 #:
@@ -142,36 +141,48 @@ Invariant = Literal[
 ]
 
 
-@dataclass(frozen=True)
-class MeshState:
-    """What a node reports about its mesh once bring-up has finished.
+@runtime_checkable
+class MeshReadings(Protocol):
+    """Raw readings from a node's mesh, taken after bring-up has finished.
 
-    Plain values. Whatever reads them deals with the node; this module only
-    reasons about what was read, which is what lets it run on a laptop with no
-    radios. `None` means the platform could not answer, and is not a failure.
+    A `Protocol` and not a dataclass, which is the whole point. Every other
+    reading in `mule/` arrives through one -- `ThermalReadings`,
+    `PowerReadings`, `TimeReadings` -- and `tools/list-readings.py` walks
+    Protocol classes to check that each reading has a row in
+    `docs/readings.md`. An earlier version of this file carried the same four
+    values as a plain dataclass, so the check could not see them and they were
+    added with no statement of where they come from, which is the
+    `mule/thermal.py` failure that file exists to prevent.
 
-    **Where these come from is in `docs/readings.md` under "Mesh state", and it
-    is not obvious.** batman-adv removed its `sysfs` interface, so three of the
-    four are `batctl` calls over netlink and need that package in the image;
-    only the MTU is a plain kernel read.
+    **Where these come from is not obvious.** batman-adv has removed its
+    `sysfs` interface: on kernel 6.12 a `batadv` device has no `mesh/`
+    directory at all. Three of the four are `batctl` over netlink and need that
+    package in the image. Only the MTU is a plain kernel read. See
+    `docs/readings.md` under "Mesh state".
 
-    `tools/validate-docs.sh` does not require rows for these, because
-    `tools/list-readings.py` walks Protocol classes and this is a dataclass.
-    They were added without them once. If a field is added here, add its row.
+    Every method returns `T | None`. `None` is the platform saying it cannot
+    answer, which is a different thing from an invariant being broken.
     """
 
-    #: The algorithm the mesh interface is actually running.
-    routing_algo: str | None
-    #: Whether bridge loop avoidance is on, read from the mesh interface.
-    bridge_loop_avoidance: bool | None
-    #: MTU of the hard interface carrying the mesh.
-    hard_mtu_bytes: int | None
-    #: How many interfaces are attached to the mesh.
-    mesh_member_count: int | None
+    def routing_algo(self) -> str | None:
+        """Report the algorithm the mesh interface is actually running."""
+        ...
+
+    def bridge_loop_avoidance(self) -> bool | None:
+        """Report whether bridge loop avoidance is on, from the mesh interface."""
+        ...
+
+    def hard_mtu_bytes(self) -> int | None:
+        """Report the MTU of the hard interface carrying the mesh."""
+        ...
+
+    def mesh_member_count(self) -> int | None:
+        """Report how many interfaces are attached to the mesh."""
+        ...
 
 
 def state_violations(
-    observed: MeshState, intended_routing_algo: str
+    observed: MeshReadings, intended_routing_algo: str
 ) -> list[Invariant]:
     """List the bring-up invariants a finished node is not holding.
 
@@ -203,23 +214,24 @@ def state_violations(
     """
     broken: list[Invariant] = []
 
-    algo = observed.routing_algo
+    algo = observed.routing_algo()
     if algo is not None and algo != intended_routing_algo:
         broken.append("routing_algo_not_the_intended_one")
 
     # FML-ADR-056 disables bridge loop avoidance on the mesh interface and asks
     # for a loop detector in exchange. Enabled here means the decision is not
     # in force on this node, whatever the configuration says.
-    if observed.bridge_loop_avoidance is True:
+    if observed.bridge_loop_avoidance() is True:
         broken.append("bridge_loop_avoidance_enabled_on_the_mesh")
 
-    mtu = observed.hard_mtu_bytes
+    mtu = observed.hard_mtu_bytes()
     if mtu is not None and mtu < BATMAN_HARD_MTU_BYTES:
         broken.append("hard_mtu_below_batman_minimum")
 
     # A mesh with nothing attached is the shape a node has when the add failed,
     # which is what attaching to an interface that was not up produces.
-    if observed.mesh_member_count is not None and observed.mesh_member_count < 1:
+    members = observed.mesh_member_count()
+    if members is not None and members < 1:
         broken.append("mesh_has_no_members")
 
     return broken

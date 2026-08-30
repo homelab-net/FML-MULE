@@ -46,6 +46,7 @@ def _is_protocol(node: ast.ClassDef) -> bool:
 #: these is one whose unit lives only in a docstring, where a reader converting
 #: it will not see it.
 UNIT_SUFFIXES = (
+    "_bytes",
     "_c",
     "_count",
     "_dbm",

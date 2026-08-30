@@ -105,6 +105,44 @@ class FakeLoRaPlane:
 
 
 @dataclass
+class FakeMeshState:
+    """Scripted readings from a node's mesh after bring-up.
+
+    Simulates: what a finished node reports about its mesh, including the case
+    where the platform cannot answer.
+
+    Does not simulate: bring-up itself, or the order it happened in. That is
+    the point of the interface it fakes. A snapshot cannot show an order, and
+    `mule.bringup.state_violations` says which invariants a wrong order leaves
+    detectable and which leave no trace at all.
+
+    Defaults describe a node that came up correctly, so a scenario asserting a
+    fault has to say which one.
+    """
+
+    algo: str | None = "BATMAN_IV"
+    bla: bool | None = False
+    mtu_bytes: int | None = 1560
+    members: int | None = 1
+
+    def routing_algo(self) -> str | None:
+        """Report the algorithm the mesh interface is actually running."""
+        return self.algo
+
+    def bridge_loop_avoidance(self) -> bool | None:
+        """Report whether bridge loop avoidance is on."""
+        return self.bla
+
+    def hard_mtu_bytes(self) -> int | None:
+        """Report the MTU of the hard interface carrying the mesh."""
+        return self.mtu_bytes
+
+    def mesh_member_count(self) -> int | None:
+        """Report how many interfaces are attached to the mesh."""
+        return self.members
+
+
+@dataclass
 class FakePower:
     """Scripted raw power readings.
 

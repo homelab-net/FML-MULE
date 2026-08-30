@@ -214,7 +214,7 @@ mutations:
   - id: M57
     file: mule/bringup.py
     describe: bridge loop avoidance left on is no longer caught
-    find: "    if observed.bridge_loop_avoidance is True:"
+    find: "    if observed.bridge_loop_avoidance() is True:"
     replace: "    if False:"
 
   - id: M58
@@ -226,8 +226,8 @@ mutations:
   - id: M59
     file: mule/bringup.py
     describe: an unanswerable reading is reported as a broken invariant
-    find: "    if observed.bridge_loop_avoidance is True:"
-    replace: "    if observed.bridge_loop_avoidance is not False:"
+    find: "    if observed.bridge_loop_avoidance() is True:"
+    replace: "    if observed.bridge_loop_avoidance() is not False:"
 
   - id: M20
     file: mule/status.py
