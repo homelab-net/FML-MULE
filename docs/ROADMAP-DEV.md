@@ -243,8 +243,9 @@ a node number**, not a user, which is the whole of `TBR-NET-02` in one field.
 
 ### 1.2 Interface bring-up sequencing
 
-**State:** the ordering is machine-checked and the configuration is templated;
-the units are not written. `mule/bringup.py` holds the order as constraint
+**State:** done as far as this repository can take it without hardware. The
+ordering is machine-checked, the configuration is templated, and the units are
+described in `os/config/systemd-units.template`. `mule/bringup.py` holds the order as constraint
 pairs, `violations` catches a sequence that broke one, and `state_violations`
 checks the invariants a wrong order leaves detectable on a finished node while
 saying which two leave no trace. `FML-ADR-059` is `SELECTED` and

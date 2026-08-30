@@ -167,6 +167,25 @@ removed: `batman-adv` attached to an interface that is not yet up presents as a
 radio fault, and a declarative component that resolves ordering internally is
 harder to catch doing it than a script that ran in the wrong sequence.
 
+**Correction, 2026-08-30, added as a consequence that was always true rather
+than as a change of decision.** The paragraph above overstates the seam.
+`systemd.network(5)` on `ConfigureWithoutCarrier=`: "Allows systemd-networkd to
+configure a specific link even if it has no carrier. **Defaults to false.**"
+
+`networkd` therefore already waits, and `BatmanAdvanced=` does not apply to an
+interface with no carrier. The dependency between `wpa_supplicant` having
+associated and `networkd` attaching the link is enforced by the component's own
+default, not by a unit ordering somebody has to remember. What the units carry
+instead is a setting **not** to change: `ConfigureWithoutCarrier=true` on a
+mesh member turns the hazard back on, and it is exactly what someone debugging
+a link that is slow to come up would reach for.
+
+This makes the decision better than it was argued, which is worth recording
+because the argument was made without checking and happened to land right. What
+remains unverified is that a mesh point reports carrier only once the mesh is
+joined. No radio has been available to confirm it, and Stage 2 is where that is
+found out.
+
 Published `batman-adv` configuration will mostly not apply. The community's
 worked examples are largely `ifupdown`, and `FML-ADR-023` records that the
 upstream MANET reference project encodes real knowledge about bring-up
