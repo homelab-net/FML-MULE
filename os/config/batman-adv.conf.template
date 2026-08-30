@@ -26,15 +26,26 @@
 # --- Routing algorithm ------------------------------------------------------
 # BATMAN-IV uses a transmit-quality metric derived from packet loss.
 #
-# FML-ADR-053 selects it over BATMAN-V, which the stock distribution module does
-# not provide: loading batman-adv 2025.3 and asking for BATMAN_V reports
-# "Routing algorithm 'BATMAN_V' is not supported". It is the kernel build option
-# CONFIG_BATMAN_ADV_BATMAN_V, and enabling it means a custom kernel or the
-# out-of-tree module in the compatibility set, permanently.
+# FML-ADR-053 selects it over BATMAN-V.
 #
-# That cost was being paid for a metric whose benefit is contingent: BATMAN-V
-# needs a usable throughput estimate from the driver, and whether the
-# out-of-tree HaLow driver supplies one is still unknown under TBR-LINUX-01.
+# CORRECTED 2026-08-30. This template said the stock distribution module does
+# not provide BATMAN-V, citing batman-adv 2025.3 reporting "Routing algorithm
+# 'BATMAN_V' is not supported". That was observed on the Ubuntu Azure kernel
+# used by hosted CI, and it does NOT hold on the baseline operating system: on
+# Debian 13, kernel 6.12.105+deb13-amd64, batman-adv 2024.2, BATMAN_V is
+# selectable and an interface created with it comes up without complaint. See
+# docs/evidence/TBR-LINUX-01/2026-08-30-batman-v-available-on-debian.md.
+#
+# So enabling BATMAN-V does not mean a custom kernel on Debian. What survives
+# is the other half of FML-ADR-053's argument, which is the stronger one and is
+# untouched: BATMAN-V needs a usable throughput estimate from the driver, and
+# whether the sub-GHz driver supplies one is unknown under TBR-LINUX-01.
+#
+# Do not switch on the strength of availability alone. FML-ADR-053's revisit
+# criteria require BOTH TBR-RF-01 evidence of a usable driver throughput
+# estimate AND measurement showing BATMAN-IV selecting materially worse paths.
+# Availability is neither, and it changed the cost of a future switch rather
+# than the case for one.
 #
 # Must be set BEFORE any interface is added to the mesh.
 routing_algo=BATMAN_IV

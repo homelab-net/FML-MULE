@@ -233,14 +233,15 @@ a node number**, not a user, which is the whole of `TBR-NET-02` in one field.
 
 ### 1.2 Interface bring-up sequencing
 
-**State:** the ordering is done and machine-checked; the configuration is not
-written. `mule/bringup.py` holds the order as constraint pairs, `violations`
-catches a sequence that broke one, and `state_violations` checks the invariants
-a wrong order leaves detectable on a finished node while saying which two leave
-no trace. `FML-ADR-059` is `SELECTED`, so the stack question that blocked the
-rest is answered. What is missing is the configuration itself:
-`os/config/interfaces.conf.template` still describes what must be configured
-and explicitly not how.
+**State:** the ordering is machine-checked and the configuration is templated;
+the units are not written. `mule/bringup.py` holds the order as constraint
+pairs, `violations` catches a sequence that broke one, and `state_violations`
+checks the invariants a wrong order leaves detectable on a finished node while
+saying which two leave no trace. `FML-ADR-059` is `SELECTED` and
+`os/config/networkd.conf.template` describes the file set against it, every
+value `TBD`. What is missing is the systemd units that order
+`wpa_supplicant` against `networkd`, which is the seam the template says it
+cannot express.
 
 **Blocked by:** nothing. This is sequencing, and it is what makes a node a node.
 

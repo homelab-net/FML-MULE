@@ -37,6 +37,7 @@ generation mapping rather than restructuring every file.
 
 | File | Configures | Trades |
 | --- | --- | --- |
+| `networkd.conf.template` | Link configuration, addressing, mesh attachment, the field bridge | `TBR-LINUX-01`, `TBR-NET-01`, `TBR-RF-01`, `TBR-RF-03` |
 | `wpa_supplicant.conf.template` | Station and mesh association | `TBR-RF-01`, `TBR-RF-02` |
 | `hostapd.conf.template` | EUD access point | `TBR-RF-03` |
 | `batman-adv.conf.template` | Layer 2 mesh routing | `TBR-RF-01`, `TBR-NET-01` |
