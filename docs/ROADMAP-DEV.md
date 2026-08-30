@@ -132,7 +132,9 @@ changes the file discovers it rather than someone assuming it.
 
 ### 1.1 LoRa and Meshtastic — the largest hole
 
-**State:** steps 1, 2 and 3 done. Step 4 is next.
+**State:** all four steps done. What remains on this plane is not this item:
+the member tag is specified and measured but unimplemented, and the gateway
+that would carry it is blocked on `TBR-TAK-01`.
 `.github/workflows/lora-probe.yml`
 stands two meshtasticd nodes up in simulation on one segment and asserts a text
 message crosses between them. Three runs: the first died on a line of mine that
@@ -202,15 +204,23 @@ criticality, because what may cross this bearer is a criticality question.
    configuration change, a node could report the lifeline available while
    nothing could carry. The interface reads whether the stack answers instead,
    and `None` -- the platform cannot tell -- reads as unavailable.
-4. Only then, configuration templates under `os/config/`. **This is next.** It
-   used to inherit item 1.2's trap; it no longer does, because `FML-ADR-059`
-   settled the stack. The LoRa plane's own configuration is the part with no
-   `networkd` in it: `FML-ADR-026` makes it non-IP, so it gets no address, no
-   bridge and no place in IP routing, and what it needs is the daemon's own
-   configuration and a supervisor. The LoRa probe established why the
-   supervisor matters: changing a node's configuration reboots the daemon, and
-   in the container image the re-exec fails, so a configuration push that
-   leaves the lifeline bearer dead is a real failure and not a hypothetical.
+4. ~~Only then, configuration templates under `os/config/`.~~ Done.
+   `os/config/meshtasticd.conf.template`. It has no `networkd` in it, because
+   `FML-ADR-026` makes the plane non-IP: no address, no bridge, no place in IP
+   routing.
+
+   The supervisor is the part the file exists to state, and it is a `shall`
+   rather than a preference because the probe demonstrated the failure twice:
+   a configuration change reboots the daemon and the re-exec fails, so a push
+   can leave the lifeline dead, silently. The supervisor restarts on exit and
+   does not call a push complete until the API answers.
+
+   **How the daemon is deployed is left open, deliberately.** `FML-ADR-029`
+   makes rootless quadlets the default for workloads that "do not require
+   privileged hardware", and `meshtasticd` needs a serial device, so it is
+   outside that default by the ADR's own terms. Nothing has decided what
+   replaces it and the template does not: that is an ADR, and it interacts with
+   an image build that does not exist.
 
 **Done when:** the interface exists, the flat-sat exercises it, and
 `test/flatsat/README.md` names any fake added. All three are met. Step 1's own
