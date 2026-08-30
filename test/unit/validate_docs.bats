@@ -243,6 +243,24 @@ PATCH
   [ "$status" -ne 0 ]
 }
 
+@test "validate-docs detects the forbidden bridge built by a shell script" {
+  make_sandbox
+  # Configuration is not only declarative. A script that bridges the mesh
+  # interface with an uplink builds the loop FML-ADR-056 forbids just as
+  # surely as a .conf that declares it, and the check used to read only os/
+  # and only declarative files, so nothing looked.
+  cat > "$SANDBOX/test/bench/planted-loop.sh" <<'SH'
+#!/bin/sh
+ip link add name br-field type bridge
+ip link set bat0 master br-field
+ip link set eth0 master br-field
+SH
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"across separate lines"* ]]
+}
+
 @test "validate-docs allows the access point bridged to the mesh interface" {
   make_sandbox
   # THE ARCHITECTURE, not a violation. SAD section 4.3 bridges local EUD access

@@ -652,12 +652,31 @@ fi
 # shaped rather than exhaustive: it catches the names a person actually types.
 UPLINK_PATTERN='\<(eth[0-9]|en[a-z0-9]+|usb[0-9]|wan[0-9]?|uplink|mgmt|wired)\>'
 
+# The same set, anchored instead of word-bounded, for the awk pass below.
+#
+# TWO FORMS BECAUSE TWO REGEX DIALECTS. \< and \> are GNU grep word
+# boundaries, and POSIX ERE, which awk uses, has no equivalent: the pattern
+# above silently never matches inside awk. It was written once and used in
+# both, and the cross-line check quietly caught nothing until the awk was run
+# on its own. awk compares whole fields here, so anchoring is the correct
+# shape rather than a workaround.
+UPLINK_FIELD='^(eth[0-9]|en[a-z0-9]+|usb[0-9]|wan[0-9]?|uplink|mgmt|wired)$'
+
 if [ "$bla_setting" = 0 ]; then
   # Collected first, then acted on, for the reason check 18 records: a while
   # loop on the right of a pipe runs in a subshell, so fail() called inside one
   # would increment a counter that dies with it.
-  looped=$(find os -type f \
-    \( -name '*.template' -o -name '*.conf' -o -name '*.yml' \) |
+  #
+  # os/, test/ AND tools/, and shell scripts as well as declarative files.
+  # This used to read only os/ and only .template, .conf and .yml, which meant
+  # a script could configure the forbidden bridge and nothing would look:
+  # `ip link set eth0 master br-field` is configuration whatever its extension,
+  # and test/bench/ now holds scripts that build bridges and mesh interfaces.
+  #
+  # .md is still excluded, deliberately. The ADRs and this file have to be able
+  # to discuss what they forbid without failing the build for saying it.
+  looped=$(find os test tools -type f \
+    \( -name '*.template' -o -name '*.conf' -o -name '*.yml' -o -name '*.sh' \) |
     while IFS= read -r conf; do
       # A bridge statement naming BOTH the mesh interface and an uplink is the
       # loop condition, spelled on one line. Comments are stripped first, which
@@ -685,7 +704,56 @@ if [ "$bla_setting" = 0 ]; then
       fi
     done)
 
+  # SECOND PASS: membership assembled across lines, not stated on one.
+  #
+  # A script does not name both interfaces together. It says
+  #
+  #   ip link set bat0 master br-field
+  #   ip link set eth0 master br-field
+  #
+  # which is the same loop and which the single-line pass above cannot see.
+  # This resolves `master <bridge>` within one file: if one bridge collects
+  # both the mesh interface and an uplink, that is the forbidden bridge however
+  # many lines it took to build.
+  #
+  # Only the `master` idiom, and only within one file. That is what a script
+  # and a hand-written unit use. systemd-networkd's one-file-per-member form is
+  # still out of reach and is recorded below.
+  crossline=$(find os test tools -type f \
+    \( -name '*.template' -o -name '*.conf' -o -name '*.yml' -o -name '*.sh' \) |
+    while IFS= read -r conf; do
+      verdict=$(grep -vE '^[ 	]*#' "$conf" |
+        grep -vE '(batctl|interface add)' |
+        awk -v mesh="$mesh_if" -v uplink="$UPLINK_FIELD" '
+          /master/ {
+            for (i = 1; i < NF; i++) {
+              if ($i == "master") { bridge = $(i + 1); break }
+            }
+            if (bridge == "") next
+            for (i = 1; i <= NF; i++) {
+              if ($i == mesh) has_mesh[bridge] = 1
+              if ($i ~ uplink) has_uplink[bridge] = 1
+            }
+            bridge = ""
+          }
+          END {
+            for (b in has_mesh) if (b in has_uplink) { print "yes"; exit }
+          }')
+      # An if, not `grep -q ... && printf`. Under set -eu a trailing failed
+      # grep is the subshell's exit status, so the assignment fails and the
+      # whole script dies before the checks after this one run. It did, and
+      # the bats test covering this passed anyway because it asserted a
+      # non-zero exit, which a crash also produces.
+      if [ -n "$verdict" ]; then
+        printf '%s\n' "$conf"
+      fi
+    done)
+
   # Split on whitespace deliberately; a path here contains none.
+  for conf in $crossline; do
+    fail "$conf builds a bridge holding both $mesh_if and an uplink, across separate lines, while bridge_loop_avoidance=0. Assembling it a line at a time makes the same loop. FML-ADR-056."
+  done
+
   for conf in $looped; do
     fail "$conf puts $mesh_if in a bridge with an uplink interface while bridge_loop_avoidance=0. Two nodes bridging one segment form a loop with nothing left to break it. A wired link carrying field traffic joins the mesh with batctl interface add instead. FML-ADR-056."
   done
@@ -701,6 +769,15 @@ if [ "$bla_setting" = 0 ]; then
   # which is TBR-LINUX-01's territory and does not exist yet. The gap closes
   # when configuration generation exists and this check moves to the generated
   # output, where membership resolves to one place.
+  #
+  # AND MEMBERSHIP BUILT FROM VARIABLES. A script reading
+  #
+  #   ip link set "$uplink" master "$bridge"
+  #
+  # names neither interface literally, so no pattern match reaches it. Adding
+  # shell scripts to the scan catches the case where somebody types the names,
+  # which is the case a person writing a one-off actually produces. It does not
+  # catch a parameterised one, and nothing short of running the script would.
 fi
 
 info "mesh interface $mesh_if, bridge_loop_avoidance=${bla_setting:-unset}, bridge membership checked"
