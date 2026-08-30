@@ -96,7 +96,21 @@ make_sandbox() {
 @test "validate-docs detects a trade closed without evidence" {
   make_sandbox
   # A trade does not close on document wording alone.
-  target="$SANDBOX/docs/trades/TBR-NET-01-field-address-prefix.md"
+  #
+  # The trade is chosen at run time rather than named. This test used to close
+  # TBR-NET-01, which had no evidence when it was written and acquired some
+  # later, at which point closing it stopped being a violation and the test
+  # failed for a reason that had nothing to do with the check.
+  target=""
+  for candidate in "$SANDBOX"/docs/trades/TBR-*.md; do
+    id=$(basename "$candidate" | cut -d- -f1-3)
+    files=$(find "$SANDBOX/docs/evidence/$id" -type f ! -name README.md 2>/dev/null | wc -l)
+    if [ "$files" -eq 0 ] && grep -q '^status: OPEN$' "$candidate"; then
+      target="$candidate"
+      break
+    fi
+  done
+  [ -n "$target" ] || skip "every open trade now has evidence"
   sed -i 's/^status: OPEN$/status: CLOSED/' "$target"
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"

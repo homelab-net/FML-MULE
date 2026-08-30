@@ -266,8 +266,8 @@ mutations:
 
   - id: M65
     file: mule/loops.py
-    describe: the node's own bridge returning from the mesh no longer signals
-    find: "    if bridge is not None and _announced_by_a_peer(entries, bridge):"
+    describe: the node's own address returning from the mesh no longer signals
+    find: "    if mine and _announced_by_a_peer(entries, mine):"
     replace: "    if False:"
 
   - id: M66

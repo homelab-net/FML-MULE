@@ -12,6 +12,9 @@ from dataclasses import dataclass, field
 from mule.loops import Signature, loop_signatures
 
 OURS = "aa:bb:cc:dd:ee:01"
+#: The mesh hard interface. A loop on the bench announced this one FIRST,
+#: before the bridge address, which is why the detector watches both.
+OURS_MESH_IF = "aa:bb:cc:dd:ee:0f"
 PEER = "aa:bb:cc:dd:ee:02"
 OTHER = "aa:bb:cc:dd:ee:03"
 CLIENT = "11:22:33:44:55:66"
@@ -30,7 +33,7 @@ class FakeTranslation:
     """
 
     entries: tuple[tuple[str, str], ...] | None = ()
-    bridge: str | None = OURS
+    own: tuple[str, ...] | None = (OURS, OURS_MESH_IF)
     calls: list[str] = field(default_factory=list)
 
     def global_translation_entries(self) -> tuple[tuple[str, str], ...] | None:
@@ -38,10 +41,10 @@ class FakeTranslation:
         self.calls.append("entries")
         return self.entries
 
-    def bridge_address(self) -> str | None:
-        """Report this node's bridge address."""
-        self.calls.append("bridge")
-        return self.bridge
+    def own_addresses(self) -> tuple[str, ...] | None:
+        """Report every address belonging to this node."""
+        self.calls.append("own")
+        return self.own
 
 
 def test_a_healthy_table_shows_no_signature() -> None:
@@ -62,7 +65,7 @@ def test_a_client_under_two_originators_is_a_signature() -> None:
     assert "client_under_more_than_one_originator" in loop_signatures(observed)
 
 
-def test_our_own_bridge_coming_back_from_the_mesh_is_a_signature() -> None:
+def test_our_own_address_coming_back_from_the_mesh_is_a_signature() -> None:
     """Catch a frame that left this node and returned.
 
     Nothing legitimate announces this node's own bridge address to this node.
@@ -70,7 +73,7 @@ def test_our_own_bridge_coming_back_from_the_mesh_is_a_signature() -> None:
     """
     observed = FakeTranslation(entries=((OURS, PEER),))
 
-    assert "own_bridge_address_announced_by_a_peer" in loop_signatures(observed)
+    assert "own_address_announced_by_a_peer" in loop_signatures(observed)
 
 
 def test_the_bridge_address_match_ignores_case() -> None:
@@ -79,9 +82,9 @@ def test_the_bridge_address_match_ignores_case() -> None:
     batctl and ip print lower case, but a caller assembling these from
     elsewhere may not, and a missed match here is a loop nobody sees.
     """
-    observed = FakeTranslation(entries=((OURS.upper(), PEER),), bridge=OURS)
+    observed = FakeTranslation(entries=((OURS.upper(), PEER),), own=(OURS,))
 
-    assert "own_bridge_address_announced_by_a_peer" in loop_signatures(observed)
+    assert "own_address_announced_by_a_peer" in loop_signatures(observed)
 
 
 def test_both_signatures_are_reported_together() -> None:
@@ -105,9 +108,9 @@ def test_an_unreadable_table_is_not_a_loop() -> None:
     assert loop_signatures(FakeTranslation(entries=None)) == []
 
 
-def test_a_node_with_no_bridge_yields_no_bridge_signature() -> None:
+def test_a_node_that_cannot_list_its_addresses_yields_no_signature() -> None:
     """Skip the second check when the node has no bridge at all."""
-    observed = FakeTranslation(entries=((OURS, PEER),), bridge=None)
+    observed = FakeTranslation(entries=((OURS, PEER),), own=None)
 
     assert loop_signatures(observed) == []
 
@@ -118,7 +121,7 @@ def test_an_unreadable_table_is_not_even_asked_about_the_bridge() -> None:
 
     loop_signatures(observed)
 
-    assert "bridge" not in observed.calls
+    assert "own" not in observed.calls
 
 
 def test_the_signature_vocabulary_names_observations_not_conclusions() -> None:
@@ -129,7 +132,20 @@ def test_the_signature_vocabulary_names_observations_not_conclusions() -> None:
     """
     names: tuple[Signature, ...] = (
         "client_under_more_than_one_originator",
-        "own_bridge_address_announced_by_a_peer",
+        "own_address_announced_by_a_peer",
     )
 
     assert not any("loop" in name for name in names)
+
+
+def test_the_mesh_interface_address_is_watched_not_only_the_bridge() -> None:
+    """Catch the address a real loop announced first.
+
+    FML-ADR-056 names "the node's own bridge address". A loop reproduced on
+    the bench put the mesh hard interface's address into the table before the
+    bridge address arrived, so watching only the bridge detects the same loop
+    later. See docs/evidence/TBR-NET-01/.
+    """
+    observed = FakeTranslation(entries=((OURS_MESH_IF, PEER),))
+
+    assert "own_address_announced_by_a_peer" in loop_signatures(observed)
