@@ -38,6 +38,25 @@ waiting for you on line one.
 
 ## What this machine can do that hosted CI cannot
 
+**802.11s, which nothing in this repository had ever exercised.** A hosted
+runner's kernel carries no wireless stack, so `mac80211_hwsim` cannot load and
+the association layer `FML-ADR-053` selects has no coverage from CI. The mesh
+probe forms its mesh over `veth`, which is not wireless at all.
+
+```sh
+sudo test/bench/80211s-mesh.sh
+```
+
+Two virtual radios, an 802.11s mesh, `batman-adv` over it, and traffic across.
+`--line` gives three nodes where node 1 cannot hear node 3, so **multi-hop over
+real 802.11s** without hardware and without `wmediumd`.
+It also asserts the carrier gating `FML-ADR-059` depends on: a mesh point
+reports carrier only once joined, which is what stops `networkd` attaching an
+interface before `wpa_supplicant` has associated.
+
+It proves nothing about RF. `hwsim` models the 802.11 MAC: no propagation, no
+path loss, no interference, no rate adaptation, no antenna.
+
 | Capability | Why CI cannot | Roadmap item |
 | --- | --- | --- |
 | 802.11s association, via `mac80211_hwsim` | GitHub hosted runners ship no wireless stack at all | 1.7 |
