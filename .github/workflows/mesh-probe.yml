@@ -57,7 +57,7 @@ jobs:
     name: Mesh
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install batctl, iproute2 and the extra kernel modules
         run: |
