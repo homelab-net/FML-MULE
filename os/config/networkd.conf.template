@@ -46,9 +46,10 @@
 # hazard back on, and it looks like a fix to someone debugging a link that is
 # slow to come up. See os/config/systemd-units.template.
 #
-# Still unverified: that a mesh point reports carrier only once the mesh is
-# joined. No radio has been available to confirm it, and if a driver asserts
-# carrier earlier the gating is weaker than this claims.
+# Verified 2026-08-30 on mac80211_hwsim: a mesh point reports carrier 0 before
+# joining and 1 after. What remains unverified is whether a real driver does
+# the same, which is a narrower question and cheap to check on a board. See
+# docs/evidence/TBR-LINUX-01/2026-08-30-80211s-mesh-in-software.md.
 
 # --- 10-bat0.netdev ---------------------------------------------------------
 # The mesh interface itself. Created by networkd, not by batctl: FML-ADR-059.
