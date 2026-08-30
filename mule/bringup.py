@@ -25,8 +25,7 @@ Every step name below is transcribed from the bring-up ordering section of
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Protocol, runtime_checkable
 
 #: One action in bringing the network plane up.
 #:
@@ -45,6 +44,7 @@ Step = Literal[
     "associated",
     "routing_algo_set",
     "hard_mtu_set",
+    "mesh_interface_created",
     "mesh_member_added",
     "mesh_interface_up",
     "services_started",
@@ -60,22 +60,33 @@ Step = Literal[
 #:
 #: Sources, per pair:
 #:
-#: - The first three and the last two are the template's numbered order.
-#: - `routing_algo_set` before `mesh_member_added`: the mesh probe sets the
-#:   algorithm before any interface joins. batman-adv fixes the algorithm for
-#:   an interface at the moment it is added, so setting it afterwards changes
-#:   nothing and reads as though it had.
-#: - `hard_mtu_set` before `mesh_member_added`: same probe. An MTU raised after
-#:   the add leaves the mesh fragmenting traffic it should have carried whole.
+#: - The first and the last two are the template's numbered order.
+#: - `routing_algo_set` before `mesh_interface_created`, NOT before the first
+#:   member is added. `systemd.netdev(5)` on `RoutingAlgorithm=`: "The
+#:   algorithm cannot be changed after interface creation." An earlier version
+#:   of this file required it only before `mesh_member_added`, which a node can
+#:   satisfy while still running the wrong algorithm, because creation comes
+#:   first. That is a constraint that permitted the failure it was written for.
+#: - `hard_mtu_set` before `mesh_member_added`: the mesh probe. An MTU raised
+#:   after the add leaves the mesh fragmenting traffic it should have carried
+#:   whole.
+#: - `link_up` before `mesh_member_added`: `batman-adv` attached to an
+#:   interface that is not yet up fails in a way that looks like a radio fault,
+#:   which is the hazard `os/config/interfaces.conf.template` names.
 #:
-#: `link_up` before `mesh_member_added` is deliberately NOT listed. It follows
-#: from `link_up` before `associated` before `mesh_member_added`, and a second
-#: rule saying the same thing makes both easier to ignore.
+#: `associated` before `mesh_member_added` is deliberately NOT listed, and an
+#: earlier version of this file had it. `.github/workflows/mesh-probe.yml` is a
+#: counterexample: it attaches `veth` interfaces that associate with nothing,
+#: and the mesh forms. `batman-adv` accepts an interface that is up, and
+#: association is what makes a WIRELESS member carry rather than what makes the
+#: add legal. The evidenced constraint is `link_up`, and stating the stronger
+#: one meant enforcing something this repository's own probe violates.
 REQUIRED_ORDER: tuple[tuple[Step, Step], ...] = (
     ("driver_loaded", "link_up"),
     ("link_up", "associated"),
-    ("associated", "mesh_member_added"),
-    ("routing_algo_set", "mesh_member_added"),
+    ("link_up", "mesh_member_added"),
+    ("routing_algo_set", "mesh_interface_created"),
+    ("mesh_interface_created", "mesh_member_added"),
     ("hard_mtu_set", "mesh_member_added"),
     ("mesh_member_added", "mesh_interface_up"),
     ("mesh_interface_up", "services_started"),
@@ -130,27 +141,48 @@ Invariant = Literal[
 ]
 
 
-@dataclass(frozen=True)
-class MeshState:
-    """What a node reports about its mesh once bring-up has finished.
+@runtime_checkable
+class MeshReadings(Protocol):
+    """Raw readings from a node's mesh, taken after bring-up has finished.
 
-    Plain values. Whatever reads them deals with the node; this module only
-    reasons about what was read, which is what lets it run on a laptop with no
-    radios. `None` means the platform could not answer, and is not a failure.
+    A `Protocol` and not a dataclass, which is the whole point. Every other
+    reading in `mule/` arrives through one -- `ThermalReadings`,
+    `PowerReadings`, `TimeReadings` -- and `tools/list-readings.py` walks
+    Protocol classes to check that each reading has a row in
+    `docs/readings.md`. An earlier version of this file carried the same four
+    values as a plain dataclass, so the check could not see them and they were
+    added with no statement of where they come from, which is the
+    `mule/thermal.py` failure that file exists to prevent.
+
+    **Where these come from is not obvious.** batman-adv has removed its
+    `sysfs` interface: on kernel 6.12 a `batadv` device has no `mesh/`
+    directory at all. Three of the four are `batctl` over netlink and need that
+    package in the image. Only the MTU is a plain kernel read. See
+    `docs/readings.md` under "Mesh state".
+
+    Every method returns `T | None`. `None` is the platform saying it cannot
+    answer, which is a different thing from an invariant being broken.
     """
 
-    #: The algorithm the mesh interface is actually running.
-    routing_algo: str | None
-    #: Whether bridge loop avoidance is on, read from the mesh interface.
-    bridge_loop_avoidance: bool | None
-    #: MTU of the hard interface carrying the mesh.
-    hard_mtu_bytes: int | None
-    #: How many interfaces are attached to the mesh.
-    mesh_member_count: int | None
+    def routing_algo(self) -> str | None:
+        """Report the algorithm the mesh interface is actually running."""
+        ...
+
+    def bridge_loop_avoidance(self) -> bool | None:
+        """Report whether bridge loop avoidance is on, from the mesh interface."""
+        ...
+
+    def hard_mtu_bytes(self) -> int | None:
+        """Report the MTU of the hard interface carrying the mesh."""
+        ...
+
+    def mesh_member_count(self) -> int | None:
+        """Report how many interfaces are attached to the mesh."""
+        ...
 
 
 def state_violations(
-    observed: MeshState, intended_routing_algo: str
+    observed: MeshReadings, intended_routing_algo: str
 ) -> list[Invariant]:
     """List the bring-up invariants a finished node is not holding.
 
@@ -182,23 +214,24 @@ def state_violations(
     """
     broken: list[Invariant] = []
 
-    algo = observed.routing_algo
+    algo = observed.routing_algo()
     if algo is not None and algo != intended_routing_algo:
         broken.append("routing_algo_not_the_intended_one")
 
     # FML-ADR-056 disables bridge loop avoidance on the mesh interface and asks
     # for a loop detector in exchange. Enabled here means the decision is not
     # in force on this node, whatever the configuration says.
-    if observed.bridge_loop_avoidance is True:
+    if observed.bridge_loop_avoidance() is True:
         broken.append("bridge_loop_avoidance_enabled_on_the_mesh")
 
-    mtu = observed.hard_mtu_bytes
+    mtu = observed.hard_mtu_bytes()
     if mtu is not None and mtu < BATMAN_HARD_MTU_BYTES:
         broken.append("hard_mtu_below_batman_minimum")
 
     # A mesh with nothing attached is the shape a node has when the add failed,
     # which is what attaching to an interface that was not up produces.
-    if observed.mesh_member_count is not None and observed.mesh_member_count < 1:
+    members = observed.mesh_member_count()
+    if members is not None and members < 1:
         broken.append("mesh_has_no_members")
 
     return broken

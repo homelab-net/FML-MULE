@@ -76,6 +76,8 @@ A change is not done until all five hold. Say which ones you actually ran.
 | Code touching a blocked `services/` component's subject matter | Check it against all four `FML-ADR-052` conditions: pure function, no invented vocabulary, `None` where the blocking trade decides, no interface an open trade governs. Then name the module in that component's README. `[CI]` |
 | A test that exercises a multi-step path | Test the single-step case first. A failure in the interesting case is uninterpretable until the boring one passes, and this program spent five runs debugging multi-hop mesh routing when the fault was that no two nodes could exchange a packet at all. |
 | A new check | Prove it can fail. Break something on purpose and watch it fire. **Remove every instance of what it looks for**, not one. |
+| A setting for an external tool | Read its documentation and **quote the line**, in the file, beside the setting. Record what the tool defaults to and what happens if the line is omitted. A setting whose default is the opposite of what this program needs is a silent violation waiting for someone to trim the file. |
+| A constraint you are transcribing | **Quote the source, do not paraphrase it.** A source saying an interface must be *up* does not say it must be *associated*, and a source saying a value cannot change after *interface creation* does not say after *the first member is added*. Both of those were written here as paraphrases and both were wrong in the direction that let the failure through. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 
 ## What the evidence supports
@@ -190,6 +192,11 @@ three of them.
 watch the check fire, then fix it. Do this when you write the check, not later.
 And prefer one check that fires to two that say the same thing: a duplicate
 makes both easier to ignore.
+
+**Flagging a doubt is not resolving it.** Writing "worth a second pair of eyes"
+next to a value you have not verified reads as diligence and is not. Two values
+were shipped that way and both were wrong; each took under a minute to check
+once anyone did. If you know enough to flag it, you know enough to look it up.
 
 Never disable a linter wholesale to make something pass. Adjust the rule
 deliberately and record why in the config.

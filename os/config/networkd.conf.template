@@ -1,0 +1,153 @@
+# systemd-networkd configuration template - MULE
+#
+# Link configuration, addressing and mesh attachment. FML-ADR-059 makes
+# systemd-networkd the owner of all three and forbids a second general manager:
+# NetworkManager and ifupdown are not installed. Association stays with
+# wpa_supplicant and hostapd, because no link configuration component performs
+# it.
+#
+# STATUS: TEMPLATE. Every value marked TBD is undecided. This file describes the
+# file set a node needs and what each one must contain. It is an input to
+# configuration generation, not a file to be edited on a node, and networkd
+# reads none of it in this form: the real thing is several files under
+# /etc/systemd/network/ and this is what generates them.
+#
+# Trades: TBR-LINUX-01 (interface naming, driver bring-up behaviour)
+#         TBR-NET-01   (field address prefix and allocation)
+#         TBR-RF-01    (whether the high-rate bearer joins the same mesh)
+#         TBR-RF-03    (whether the access point shares a physical radio)
+#
+# THE ORDER IS mule/bringup.py AND IS NOT RESTATED HERE. That module holds it as
+# constraint pairs with their sources. What this file records is how networkd
+# expresses it, which is a different question and mostly a matter of which
+# setting goes in which file.
+
+# --- What networkd owns, and what it does not -------------------------------
+#
+# Owns:  the batadv device, its algorithm and its tunables; which links are
+#        members of the mesh; MTU; the field bridge; addressing.
+# Does not own:  802.11s mesh point creation and association, which is
+#        wpa_supplicant; the access point, which is hostapd.
+#
+# THE SEAM BETWEEN THOSE TWO IS WHERE THIS GOES WRONG. networkd cannot create
+# an 802.11s mesh point interface. A hard interface must exist and be
+# associated before networkd may add it to the mesh, and batman-adv attached to
+# an interface that is not yet up fails in a way that LOOKS LIKE A RADIO FAULT.
+#
+# So the dependency is a systemd unit ordering and not a networkd setting, and
+# nothing in this file can express it. Whoever writes the units carries it:
+# networkd's handling of the member link is ordered after wpa_supplicant has
+# associated on that interface. FML-ADR-059 names this as the cost it accepted.
+
+# --- 10-bat0.netdev ---------------------------------------------------------
+# The mesh interface itself. Created by networkd, not by batctl: FML-ADR-059.
+#
+# [NetDev]
+# Name=TBD                     # e.g. bat0. TBR-LINUX-01 for naming rules.
+# Kind=batadv
+#
+# [BatmanAdvanced]
+# RoutingAlgorithm=batman-iv
+#
+#   FML-ADR-053 selects BATMAN-IV. networkd spells it batman-iv; batctl and the
+#   module parameter spell the same algorithm BATMAN_IV.
+#
+#   **networkd DEFAULTS THIS TO batman-v.** Omitting the line does not give you
+#   the module's default of BATMAN_IV; it gives you the algorithm FML-ADR-053
+#   rejected. That is a silent trap on the baseline OS, because Debian 13's
+#   module supports BATMAN_V, so the node comes up, forms a mesh, and works,
+#   while running the superseded decision. See
+#   docs/evidence/TBR-LINUX-01/2026-08-30-batman-v-available-on-debian.md.
+#
+#   It is set HERE, on the netdev, and that is the whole reason this is not a
+#   script. systemd.netdev(5): "The algorithm cannot be changed after interface
+#   creation." Not after the first member is added, after the DEVICE is
+#   created, which is earlier than the constraint mule/bringup.py used to
+#   carry. Expressing it where the device is defined removes the hazard rather
+#   than requiring a unit to respect it.
+#
+# BridgeLoopAvoidance=false
+#
+#   FML-ADR-056. Disabled deliberately, and the ADR asks for a loop detector in
+#   exchange: a client address under more than one originator, or the node's own
+#   bridge address arriving from the mesh. Neither is implemented, and this
+#   template cannot implement them. See docs/ROADMAP-DEV.md item 1.2.
+#
+#   **networkd DEFAULTS THIS TO true.** Omitting the line enables the thing
+#   FML-ADR-056 disables. Both settings in this section default the wrong way
+#   for this program, which is worth knowing before anyone trims the file.
+#
+# Other [BatmanAdvanced] settings this node may need are TBD and belong to
+# os/config/batman-adv.conf.template, which lists them with their trades:
+# OriginatorIntervalSec, HopPenalty, GatewayMode, DistributedArpTable,
+# Fragmentation.
+
+# --- 20-mesh-member.network -------------------------------------------------
+# A hard interface that carries the mesh. One file per member.
+#
+# [Match]
+# Name=TBD                     # TBR-LINUX-01. Do not match a kernel-assigned
+#                              # name; use a stable rule.
+#
+# [Link]
+# MTUBytes=1560
+#
+#   Not derived. batman-adv prints it when the hard interface is too small:
+#   "Setting the MTU to 1560 would solve the problem." Set here rather than
+#   after attachment, for the same reason as the algorithm above.
+#
+# [Network]
+# BatmanAdvanced=TBD           # the bat0 device named in 10-bat0.netdev
+#
+#   A MEMBER INTERFACE CARRIES NO IP ADDRESS. The mesh interface does.
+#   Configuring an address here is a common error with confusing symptoms; see
+#   os/config/interfaces.conf.template.
+
+# --- 30-bat0.network --------------------------------------------------------
+# The mesh interface: addressing, and whether it joins the field bridge.
+#
+# [Match]
+# Name=TBD                     # the bat0 device
+#
+# [Network]
+# Address=TBD                  # TBR-NET-01. Family, prefix source and host
+#                              # allocation are all open. An address derived
+#                              # from a durable node identity IS a durable
+#                              # identifier; see THREAT_MODEL.md.
+# Bridge=TBD                   # the field bridge, if SAD section 4.3's model
+#                              # is used. FML-ADR-056 constrains what else may
+#                              # share it.
+
+# --- 40-field-bridge.netdev and the access point -----------------------------
+# SAD section 4.3 bridges local EUD access into the BATMAN domain so peer ATAK
+# multicast traverses the mesh and clients need no MANET routing awareness.
+#
+# [NetDev]
+# Name=TBD                     # e.g. br-field
+# Kind=bridge
+#
+# WHAT MAY SHARE THIS BRIDGE IS FML-ADR-056 AND IS NOT A FREE CHOICE. The
+# access point may. An uplink may not: two nodes bridging one segment form a
+# loop, and bridge loop avoidance is disabled above, so nothing is left to
+# break it. A wired link carrying field traffic joins the MESH with
+# BatmanAdvanced=, not the bridge.
+#
+# tools/validate-docs.sh check 19 enforces that rule, and CANNOT SEE IT HERE.
+# It reads bridge membership from a single line, and networkd states membership
+# one file per member, so the mesh interface and an uplink never appear
+# together for it to match. The gap is recorded in that check and is the reason
+# this template states the rule in prose: for now a reader is the enforcement.
+
+# --- What is deliberately absent ---------------------------------------------
+#
+# The LoRa plane. FML-ADR-026 makes it a separate NON-IP plane: no address, no
+# bridge, no place in IP routing, and nothing for networkd to own. Its
+# configuration is the daemon's own and it needs a supervisor, because a
+# configuration change reboots meshtasticd and the re-exec fails in at least
+# one image; see .github/workflows/lora-probe.yml. A configuration push that
+# leaves the lifeline bearer dead is the worst failure this system has.
+#
+# Region-dependent values. No frequency, channel, bandwidth or transmit power
+# appears in this file or in any file in this directory. They come from a
+# region profile under regions/<region-id>/. See os/config/README.md and
+# REGULATORY.md.

@@ -73,6 +73,35 @@ section 59 requires a protected assembly; which one is `TBR-PWR-01` and
 `TBR-HW-01`. A pack behind a bare I2C fuel gauge with no driver exposes none of
 these, and `mule/power.py` already handles a pack that cannot report its charge.
 
+## Mesh state
+
+`mule/bringup.py`, the `MeshState` dataclass read by `state_violations`. No
+reader exists.
+
+**`tools/validate-docs.sh` did not require these rows and that is a gap, not a
+permission.** `tools/list-readings.py` walks Protocol classes under `mule/`;
+`MeshState` is a dataclass, so the check never saw it and four readings were
+added with no statement of where they come from. That is the `mule/thermal.py`
+failure this file exists to prevent, repeated in a different shape.
+
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `routing_algo` | `command` | `batctl routing_algo`, package `batctl`. **Not `sysfs`.** batman-adv removed its `sysfs` interface; on kernel 6.12.105+deb13-amd64 a `batadv` device has no `mesh/` directory at all, so the value is only reachable over netlink and `batctl` is what speaks it. | name | `NO READER` |
+| `bridge_loop_avoidance` | `command` | `batctl bridge_loop_avoidance`, package `batctl`. Same reason. | flag | `NO READER` |
+| `hard_mtu_bytes` | `kernel` | `/sys/class/net/<iface>/mtu`. The one here that is a plain kernel read, because it is an ordinary link attribute rather than a batman-adv one. | bytes | `NO READER` |
+| `mesh_member_count` | `command` | `batctl interface`, package `batctl`. Netlink again. | count | `NO READER` |
+
+**Three of the four need `batctl` in the image**, which
+`os/image/manifest/packages.list` has to guarantee, and `os/kernel/PINS.md`
+already requires `batctl` and the module to match under `FML-ADR-040`. A
+reading that shells out has created a dependency on the image carrying that
+binary, and if it does not, the reading fails in the field on a node nobody can
+reach.
+
+**The removal of batman-adv `sysfs` is the finding worth carrying.** Any design
+that assumed these values could be read the way thermal zones are read is
+wrong on a current kernel.
+
 ## LoRa plane
 
 `test/flatsat/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather

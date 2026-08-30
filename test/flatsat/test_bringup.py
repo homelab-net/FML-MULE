@@ -15,11 +15,12 @@ import pytest
 from mule.bringup import (
     BATMAN_HARD_MTU_BYTES,
     REQUIRED_ORDER,
-    MeshState,
     Step,
     state_violations,
     violations,
 )
+
+from .fakes import FakeMeshState
 
 #: A sound sequence. Every other case in this file is this one, damaged.
 GOOD: tuple[Step, ...] = (
@@ -28,6 +29,7 @@ GOOD: tuple[Step, ...] = (
     "associated",
     "routing_algo_set",
     "hard_mtu_set",
+    "mesh_interface_created",
     "mesh_member_added",
     "mesh_interface_up",
     "services_started",
@@ -100,26 +102,50 @@ def test_a_prerequisite_that_never_happened_is_a_violation(
     assert (earlier, later) in violations(without)
 
 
-def test_the_algorithm_set_after_the_add_is_caught() -> None:
-    """Catch the specific failure the mesh probe had to discover.
+def test_the_algorithm_set_after_the_interface_exists_is_caught() -> None:
+    """Catch the algorithm set too late, where too late is earlier than it looks.
 
-    Named on its own rather than left to the parametrised cases because it is
-    the one that cost a run: the algorithm is fixed for an interface when the
-    interface is added, so setting it afterwards changes nothing while reading
-    exactly like a node that had been configured.
+    `systemd.netdev(5)`: "The algorithm cannot be changed after interface
+    creation." So the deadline is creation, not the first member add. This
+    sequence sets it after creation but BEFORE any member is added, which the
+    earlier version of `REQUIRED_ORDER` accepted and which still leaves the
+    node running the wrong algorithm.
     """
     late = (
         "driver_loaded",
         "link_up",
         "associated",
         "hard_mtu_set",
-        "mesh_member_added",
+        "mesh_interface_created",
         "routing_algo_set",
+        "mesh_member_added",
         "mesh_interface_up",
         "services_started",
     )
 
-    assert ("routing_algo_set", "mesh_member_added") in violations(late)
+    assert ("routing_algo_set", "mesh_interface_created") in violations(late)
+
+
+def test_an_unassociated_member_is_not_a_violation() -> None:
+    """Permit what the mesh probe actually does.
+
+    `.github/workflows/mesh-probe.yml` attaches `veth` interfaces that
+    associate with nothing, and the mesh forms. An earlier version required
+    `associated` before `mesh_member_added`, which made this repository's own
+    working probe a violation.
+    """
+    wired = (
+        "driver_loaded",
+        "link_up",
+        "routing_algo_set",
+        "hard_mtu_set",
+        "mesh_interface_created",
+        "mesh_member_added",
+        "mesh_interface_up",
+        "services_started",
+    )
+
+    assert violations(wired) == []
 
 
 def test_a_reversed_sequence_reports_every_rule() -> None:
@@ -137,11 +163,11 @@ def test_a_reversed_sequence_reports_every_rule() -> None:
 # below exist as much to pin down what it CANNOT answer as what it can.
 
 #: A node that came up correctly.
-SOUND = MeshState(
-    routing_algo="BATMAN_IV",
-    bridge_loop_avoidance=False,
-    hard_mtu_bytes=BATMAN_HARD_MTU_BYTES,
-    mesh_member_count=1,
+SOUND = FakeMeshState(
+    algo="BATMAN_IV",
+    bla=False,
+    mtu_bytes=BATMAN_HARD_MTU_BYTES,
+    members=1,
 )
 
 
@@ -158,7 +184,7 @@ def test_a_mesh_running_the_wrong_algorithm_is_caught() -> None:
     algorithm was set after the add, or never. FML-ADR-053 chose BATMAN-IV
     deliberately and a node quietly running BATMAN_V has undone that.
     """
-    observed = replace(SOUND, routing_algo="BATMAN_V")
+    observed = replace(SOUND, algo="BATMAN_V")
 
     broken = state_violations(observed, "BATMAN_IV")
 
@@ -167,7 +193,7 @@ def test_a_mesh_running_the_wrong_algorithm_is_caught() -> None:
 
 def test_bridge_loop_avoidance_left_on_is_caught() -> None:
     """Catch FML-ADR-056 not being in force, whatever the configuration says."""
-    observed = replace(SOUND, bridge_loop_avoidance=True)
+    observed = replace(SOUND, bla=True)
 
     broken = state_violations(observed, "BATMAN_IV")
 
@@ -176,7 +202,7 @@ def test_bridge_loop_avoidance_left_on_is_caught() -> None:
 
 def test_a_hard_interface_below_the_batman_minimum_is_caught() -> None:
     """Catch an MTU that makes every full-size frame fragment."""
-    observed = replace(SOUND, hard_mtu_bytes=1500)
+    observed = replace(SOUND, mtu_bytes=1500)
 
     assert "hard_mtu_below_batman_minimum" in state_violations(observed, "BATMAN_IV")
 
@@ -187,14 +213,14 @@ def test_a_mesh_with_nothing_attached_is_caught() -> None:
     Attaching an interface that is not up is what produces it, and it is the
     failure the ordering rules exist to prevent.
     """
-    observed = replace(SOUND, mesh_member_count=0)
+    observed = replace(SOUND, members=0)
 
     assert "mesh_has_no_members" in state_violations(observed, "BATMAN_IV")
 
 
 @pytest.mark.parametrize(
     "field",
-    ["routing_algo", "bridge_loop_avoidance", "hard_mtu_bytes", "mesh_member_count"],
+    ["algo", "bla", "mtu_bytes", "members"],
 )
 def test_a_reading_the_platform_cannot_answer_is_not_a_violation(field: str) -> None:
     """Report nothing for a reading that came back None.
