@@ -28,6 +28,7 @@ GOOD: tuple[Step, ...] = (
     "associated",
     "routing_algo_set",
     "hard_mtu_set",
+    "mesh_interface_created",
     "mesh_member_added",
     "mesh_interface_up",
     "services_started",
@@ -100,26 +101,50 @@ def test_a_prerequisite_that_never_happened_is_a_violation(
     assert (earlier, later) in violations(without)
 
 
-def test_the_algorithm_set_after_the_add_is_caught() -> None:
-    """Catch the specific failure the mesh probe had to discover.
+def test_the_algorithm_set_after_the_interface_exists_is_caught() -> None:
+    """Catch the algorithm set too late, where too late is earlier than it looks.
 
-    Named on its own rather than left to the parametrised cases because it is
-    the one that cost a run: the algorithm is fixed for an interface when the
-    interface is added, so setting it afterwards changes nothing while reading
-    exactly like a node that had been configured.
+    `systemd.netdev(5)`: "The algorithm cannot be changed after interface
+    creation." So the deadline is creation, not the first member add. This
+    sequence sets it after creation but BEFORE any member is added, which the
+    earlier version of `REQUIRED_ORDER` accepted and which still leaves the
+    node running the wrong algorithm.
     """
     late = (
         "driver_loaded",
         "link_up",
         "associated",
         "hard_mtu_set",
-        "mesh_member_added",
+        "mesh_interface_created",
         "routing_algo_set",
+        "mesh_member_added",
         "mesh_interface_up",
         "services_started",
     )
 
-    assert ("routing_algo_set", "mesh_member_added") in violations(late)
+    assert ("routing_algo_set", "mesh_interface_created") in violations(late)
+
+
+def test_an_unassociated_member_is_not_a_violation() -> None:
+    """Permit what the mesh probe actually does.
+
+    `.github/workflows/mesh-probe.yml` attaches `veth` interfaces that
+    associate with nothing, and the mesh forms. An earlier version required
+    `associated` before `mesh_member_added`, which made this repository's own
+    working probe a violation.
+    """
+    wired = (
+        "driver_loaded",
+        "link_up",
+        "routing_algo_set",
+        "hard_mtu_set",
+        "mesh_interface_created",
+        "mesh_member_added",
+        "mesh_interface_up",
+        "services_started",
+    )
+
+    assert violations(wired) == []
 
 
 def test_a_reversed_sequence_reports_every_rule() -> None:

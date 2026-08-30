@@ -47,17 +47,24 @@
 # Kind=batadv
 #
 # [BatmanAdvanced]
-# RoutingAlgorithm=batman-v4
+# RoutingAlgorithm=batman-iv
 #
-#   FML-ADR-053 selects BATMAN-IV. networkd spells it batman-v4; batctl and the
-#   module parameter spell the same algorithm BATMAN_IV. The spellings are not
-#   interchangeable in their own tools and neither is wrong.
+#   FML-ADR-053 selects BATMAN-IV. networkd spells it batman-iv; batctl and the
+#   module parameter spell the same algorithm BATMAN_IV.
+#
+#   **networkd DEFAULTS THIS TO batman-v.** Omitting the line does not give you
+#   the module's default of BATMAN_IV; it gives you the algorithm FML-ADR-053
+#   rejected. That is a silent trap on the baseline OS, because Debian 13's
+#   module supports BATMAN_V, so the node comes up, forms a mesh, and works,
+#   while running the superseded decision. See
+#   docs/evidence/TBR-LINUX-01/2026-08-30-batman-v-available-on-debian.md.
 #
 #   It is set HERE, on the netdev, and that is the whole reason this is not a
-#   script. batman-adv fixes the algorithm for an interface when the interface
-#   is created, so setting it afterwards changes nothing while appearing to
-#   have worked. Expressing it where the device is defined removes the ordering
-#   hazard rather than requiring a unit to respect it.
+#   script. systemd.netdev(5): "The algorithm cannot be changed after interface
+#   creation." Not after the first member is added, after the DEVICE is
+#   created, which is earlier than the constraint mule/bringup.py used to
+#   carry. Expressing it where the device is defined removes the hazard rather
+#   than requiring a unit to respect it.
 #
 # BridgeLoopAvoidance=false
 #
@@ -65,6 +72,10 @@
 #   exchange: a client address under more than one originator, or the node's own
 #   bridge address arriving from the mesh. Neither is implemented, and this
 #   template cannot implement them. See docs/ROADMAP-DEV.md item 1.2.
+#
+#   **networkd DEFAULTS THIS TO true.** Omitting the line enables the thing
+#   FML-ADR-056 disables. Both settings in this section default the wrong way
+#   for this program, which is worth knowing before anyone trims the file.
 #
 # Other [BatmanAdvanced] settings this node may need are TBD and belong to
 # os/config/batman-adv.conf.template, which lists them with their trades:

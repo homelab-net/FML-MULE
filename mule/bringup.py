@@ -45,6 +45,7 @@ Step = Literal[
     "associated",
     "routing_algo_set",
     "hard_mtu_set",
+    "mesh_interface_created",
     "mesh_member_added",
     "mesh_interface_up",
     "services_started",
@@ -60,22 +61,33 @@ Step = Literal[
 #:
 #: Sources, per pair:
 #:
-#: - The first three and the last two are the template's numbered order.
-#: - `routing_algo_set` before `mesh_member_added`: the mesh probe sets the
-#:   algorithm before any interface joins. batman-adv fixes the algorithm for
-#:   an interface at the moment it is added, so setting it afterwards changes
-#:   nothing and reads as though it had.
-#: - `hard_mtu_set` before `mesh_member_added`: same probe. An MTU raised after
-#:   the add leaves the mesh fragmenting traffic it should have carried whole.
+#: - The first and the last two are the template's numbered order.
+#: - `routing_algo_set` before `mesh_interface_created`, NOT before the first
+#:   member is added. `systemd.netdev(5)` on `RoutingAlgorithm=`: "The
+#:   algorithm cannot be changed after interface creation." An earlier version
+#:   of this file required it only before `mesh_member_added`, which a node can
+#:   satisfy while still running the wrong algorithm, because creation comes
+#:   first. That is a constraint that permitted the failure it was written for.
+#: - `hard_mtu_set` before `mesh_member_added`: the mesh probe. An MTU raised
+#:   after the add leaves the mesh fragmenting traffic it should have carried
+#:   whole.
+#: - `link_up` before `mesh_member_added`: `batman-adv` attached to an
+#:   interface that is not yet up fails in a way that looks like a radio fault,
+#:   which is the hazard `os/config/interfaces.conf.template` names.
 #:
-#: `link_up` before `mesh_member_added` is deliberately NOT listed. It follows
-#: from `link_up` before `associated` before `mesh_member_added`, and a second
-#: rule saying the same thing makes both easier to ignore.
+#: `associated` before `mesh_member_added` is deliberately NOT listed, and an
+#: earlier version of this file had it. `.github/workflows/mesh-probe.yml` is a
+#: counterexample: it attaches `veth` interfaces that associate with nothing,
+#: and the mesh forms. `batman-adv` accepts an interface that is up, and
+#: association is what makes a WIRELESS member carry rather than what makes the
+#: add legal. The evidenced constraint is `link_up`, and stating the stronger
+#: one meant enforcing something this repository's own probe violates.
 REQUIRED_ORDER: tuple[tuple[Step, Step], ...] = (
     ("driver_loaded", "link_up"),
     ("link_up", "associated"),
-    ("associated", "mesh_member_added"),
-    ("routing_algo_set", "mesh_member_added"),
+    ("link_up", "mesh_member_added"),
+    ("routing_algo_set", "mesh_interface_created"),
+    ("mesh_interface_created", "mesh_member_added"),
     ("hard_mtu_set", "mesh_member_added"),
     ("mesh_member_added", "mesh_interface_up"),
     ("mesh_interface_up", "services_started"),
@@ -137,6 +149,15 @@ class MeshState:
     Plain values. Whatever reads them deals with the node; this module only
     reasons about what was read, which is what lets it run on a laptop with no
     radios. `None` means the platform could not answer, and is not a failure.
+
+    **Where these come from is in `docs/readings.md` under "Mesh state", and it
+    is not obvious.** batman-adv removed its `sysfs` interface, so three of the
+    four are `batctl` calls over netlink and need that package in the image;
+    only the MTU is a plain kernel read.
+
+    `tools/validate-docs.sh` does not require rows for these, because
+    `tools/list-readings.py` walks Protocol classes and this is a dataclass.
+    They were added without them once. If a field is added here, add its row.
     """
 
     #: The algorithm the mesh interface is actually running.
