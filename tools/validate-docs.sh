@@ -705,6 +705,55 @@ fi
 
 info "mesh interface $mesh_if, bridge_loop_avoidance=${bla_setting:-unset}, bridge membership checked"
 
+# --- 19: every roadmap item carries its own state -----------------------------
+#
+# docs/ROADMAP-DEV.md used to write each item's state twice: once in the item
+# and once in the sequencing prose. Finishing anything then invalidated both,
+# and the file was corrected three times in two days, every time for that
+# reason. The rule now is that an item's `**State:**` line is the only place
+# its state is written.
+#
+# This checks the half a machine can. An item with no State line means the
+# single source has gone missing, and the reader falls back to prose that is
+# not maintained.
+#
+# WHAT THIS DOES NOT CATCH, and it is the more likely failure: state creeping
+# back into the sequencing section. That needs a judgement about what a
+# sentence is claiming, and the only thing preventing it is whoever reads the
+# diff.
+
+printf 'Roadmap item state\n'
+
+ROADMAP=docs/ROADMAP-DEV.md
+roadmap_items=0
+if [ -f "$ROADMAP" ]; then
+  # Numbered Track 1 items, "### 1.4 ..." and the like.
+  # The pending heading is resolved BEFORE a new one replaces it. An earlier
+  # version set the new heading first and used `next`, so the unresolved one
+  # was overwritten and never reported: the check could not fail, which is the
+  # defect it exists to prevent, in the check itself.
+  awk '
+    /^### / {
+      if (pending != "" && seen == 0) print pending
+      pending = ""; seen = 0
+      if ($0 ~ /^### [0-9]+\.[0-9]+ /) pending = $0
+      next
+    }
+    /^\*\*State:\*\*/ { if (pending != "") seen = 1 }
+    END { if (pending != "" && seen == 0) print pending }
+  ' "$ROADMAP" >/tmp/fml-roadmap.$$
+
+  while IFS= read -r heading; do
+    [ -n "$heading" ] || continue
+    fail "$ROADMAP: \"$heading\" has no **State:** line. That line is the only place an item's state is written; see the sequencing section."
+  done </tmp/fml-roadmap.$$
+  rm -f /tmp/fml-roadmap.$$
+
+  roadmap_items=$(grep -c '^### [0-9]\+\.[0-9]\+ ' "$ROADMAP" || true)
+fi
+
+info "$roadmap_items roadmap item(s) checked for a state line"
+
 # --- result -----------------------------------------------------------------
 printf '\n'
 if [ "$fail_count" -gt 0 ]; then

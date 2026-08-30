@@ -233,9 +233,14 @@ a node number**, not a user, which is the whole of `TBR-NET-02` in one field.
 
 ### 1.2 Interface bring-up sequencing
 
-**State:** nothing applies any of the values Track 1 has measured. There is a
-template describing what must be configured and explicitly not how
-(`os/config/interfaces.conf.template`).
+**State:** the ordering is done and machine-checked; the configuration is not
+written. `mule/bringup.py` holds the order as constraint pairs, `violations`
+catches a sequence that broke one, and `state_violations` checks the invariants
+a wrong order leaves detectable on a finished node while saying which two leave
+no trace. `FML-ADR-059` is `SELECTED`, so the stack question that blocked the
+rest is answered. What is missing is the configuration itself:
+`os/config/interfaces.conf.template` still describes what must be configured
+and explicitly not how.
 
 **Blocked by:** nothing. This is sequencing, and it is what makes a node a node.
 
@@ -493,49 +498,45 @@ behind Track 1 until the network plane can do something.
 
 ## Sequencing
 
-Work the numbered items in Track 1 in order. Track 2 starts the day hardware
-arrives and takes precedence over everything, because it converts assumptions
-into measurements. Track 3 item one is the Program Owner's and costs five
-minutes; the rest of Track 3 stays behind Track 1.
+**Where the state lives, because this section kept going stale.** Each item
+below carries a `**State:**` line, and that line is the only place its state is
+written. This section holds the *reasoning* about order, which does not change
+when something is finished.
 
-The order within Track 1 is chosen so that each item is exercisable when it
-lands. 1.1 before 1.2 because the second waveform is the largest unknown and
-delaying it repeats how the first one went. 1.2 before 1.6 because reading radio
-state is worth little before something brings radios up in a known order. 1.5
-threads through all of them and can be worked in parallel by someone else.
+It used to hold both. Finishing one item then invalidated three paragraphs
+here as well as the item's own line, and the file was corrected three times in
+two days, each time for the same reason. If you finish something, edit its
+`State:` line. Nothing in this section should need touching.
 
-**Right now the order is not the whole story.** Item 1.1's steps 1, 2 and 3 are
-done: the LoRa plane is proven exercisable in software, the addressing
-specification exists, and the plane has an interface and a fake. An item's
-number is its dependency position, not a queue ticket.
+A machine checks half of that: `tools/validate-docs.sh` fails if a numbered
+item has no `State:` line, so the single source cannot quietly go missing. It
+cannot check the other half. Nothing detects state creeping back into the prose
+here, and the only thing preventing it is whoever is reading a diff.
 
-**The blocker under 1.2 and 1.1 step 4 is gone.** `FML-ADR-059` is `SELECTED`:
-`systemd-networkd` owns link configuration, `wpa_supplicant` and `hostapd` keep
-association, and mesh attachment is expressed in `networkd` configuration
-rather than in a `batctl` script. Both items were waiting on that sentence and
-neither is waiting now.
+### What to work, in general
 
-What is done under 1.2: the ordering is machine-checked. `mule/bringup.py`
-holds it as constraint pairs and `violations` catches a sequence that broke
-one. `state_violations` beside it checks the invariants a wrong order leaves
-detectable on a finished node, and is explicit that two of the four leave no
-trace, so it is not an order check and there is a test asserting it is not.
+Work the numbered items in Track 1 in order, skipping any whose `State:` line
+says it is waiting on something. Track 2 starts the day hardware arrives and
+takes precedence over everything, because it converts assumptions into
+measurements. Track 3 item one is the Program Owner's and costs five minutes;
+the rest of Track 3 stays behind Track 1.
 
-**So the next thing to build is the configuration itself**, and 1.2's units and
-1.1 step 4 converge on it: `networkd` files expressing the order, with every
-value still `TBD`, in the same shape `os/config/*.template` already uses.
-Interface naming is `TBR-LINUX-01` and addressing is `TBR-NET-01`, both open,
-so the templates carry the mechanism and the ordering and none of the values.
+An item's number is its dependency position, not a queue ticket. Two items with
+nothing between them can be worked at once.
 
-Two things remain workable in parallel and neither gates the above.
+### Why the order is this order
 
-- **The gateway tag probe**, described below. Half of it is now answered: the
-  transport carries a one-byte tag, measured. The half that falsification 3
-  actually names, whether a gateway preserves it, is untested against all three
-  of `FML-ADR-048`'s options and is still the cheapest way to find out whether
-  a design already written down is implementable.
-- **1.5**, the addressing plan, which threads through everything and is
-  somebody else's to work.
+This is the durable part, and it changes only if a dependency changes.
+
+- **1.1 before 1.2**, because the second waveform is the largest unknown and
+  delaying it repeats how the first one went.
+- **1.2 before 1.6**, because reading radio state is worth little before
+  something brings radios up in a known order.
+- **1.5 threads through all of them** and can be worked in parallel by someone
+  else, because an addressing plan constrains the others without depending on
+  them.
+- **The gateway tag probe is on no numbered item**, because it is not
+  sequencing work. It is described below and can be taken at any time.
 
 ### The gateway tag probe
 
