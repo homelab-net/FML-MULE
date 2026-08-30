@@ -113,7 +113,11 @@ tools/install-deps.sh --only lora
 ```
 
 Not installed by default, because most work in this repository does not touch
-the LoRa plane and the group pulls a container image.
+the LoRa plane and the group pulls a container runtime and an image. That
+sentence was here before it was true: the script defaulted to every group, so a
+fresh Debian install ended up with `docker.io` and `criu` in order to run a
+linter. `.github/workflows/lint.yml` now installs the toolchain on a pristine
+`debian:13` on every run, which is what would have caught it.
 
 It installs `docker.io`, the `meshtasticd` image **by immutable digest** from
 `tools/toolchain-versions.sh`, and the Meshtastic client pinned in
