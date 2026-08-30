@@ -202,8 +202,15 @@ criticality, because what may cross this bearer is a criticality question.
    configuration change, a node could report the lifeline available while
    nothing could carry. The interface reads whether the stack answers instead,
    and `None` -- the platform cannot tell -- reads as unavailable.
-4. Only then, configuration templates under `os/config/`. **This is next**, and
-   it inherits item 1.2's trap: the network management stack is undecided.
+4. Only then, configuration templates under `os/config/`. **This is next.** It
+   used to inherit item 1.2's trap; it no longer does, because `FML-ADR-059`
+   settled the stack. The LoRa plane's own configuration is the part with no
+   `networkd` in it: `FML-ADR-026` makes it non-IP, so it gets no address, no
+   bridge and no place in IP routing, and what it needs is the daemon's own
+   configuration and a supervisor. The LoRa probe established why the
+   supervisor matters: changing a node's configuration reboots the daemon, and
+   in the container image the re-exec fails, so a configuration push that
+   leaves the lifeline bearer dead is a real failure and not a hypothetical.
 
 **Done when:** the interface exists, the flat-sat exercises it, and
 `test/flatsat/README.md` names any fake added. All three are met. Step 1's own
@@ -261,22 +268,23 @@ leaves the lifeline bearer dead is the worst failure this system has.
 writing units for one. If the sequencing work forces that choice, it needs an
 ADR.
 
-**It does force that choice, and the item splits because of it.** The ordering
-itself is already decided and written down: `os/config/interfaces.conf.template`
-lists the seven steps, and the mesh probe added two constraints to carry with
-them. That half can be made machine-checked now, in a pure module with no
-interface names and no addresses in it, so that a wrong order fails a test.
+**It forced that choice, and the item split because of it.** The ordering half
+is done: `mule/bringup.py` holds it and a wrong sequence fails a test.
 
-The units are the other half and cannot be written without saying who owns link
-configuration. Writing them against `ip` and `batctl` directly is not a way
-round it: that is choosing direct commands over a managed stack, which is the
-same decision made quietly. Whoever takes the units should open the ADR first.
+The units were the other half and could not be written without saying who owns
+link configuration. **`FML-ADR-059` is now `SELECTED` and says
+`systemd-networkd` does**, with `wpa_supplicant` and `hostapd` keeping
+association, and mesh attachment expressed in `networkd` configuration:
+`Kind=batadv` with `RoutingAlgorithm=` and `BridgeLoopAvoidance=`, and
+`BatmanAdvanced=` on the member link.
 
-**That ADR is open.** `FML-ADR-059` proposes `systemd-networkd` as the owner,
-with `wpa_supplicant` and `hostapd` keeping association and a unit invoking
-`batctl` for mesh attachment, because no link configuration component performs
-either. It is `PROPOSED`, not accepted: the units wait on a decision, not on
-the question being asked. It unblocks 1.1 step 4 on the same terms.
+Read that ADR's consequences before writing them, because it names the cost it
+took on. Ordering stops being something the node performs and becomes something
+a component resolves, and `networkd` does not report the order it used. The
+wireless half is still outside it: `networkd` does not create an 802.11s mesh
+point interface, so the dependency between `wpa_supplicant` having associated
+and `networkd` attaching that link is a unit ordering that can be got wrong
+silently. That seam is where this work is most likely to go wrong.
 
 ### 1.3 The access point data path
 
@@ -501,16 +509,33 @@ done: the LoRa plane is proven exercisable in software, the addressing
 specification exists, and the plane has an interface and a fake. An item's
 number is its dependency position, not a queue ticket.
 
-Three things are workable now, and none of them gates another.
+**The blocker under 1.2 and 1.1 step 4 is gone.** `FML-ADR-059` is `SELECTED`:
+`systemd-networkd` owns link configuration, `wpa_supplicant` and `hostapd` keep
+association, and mesh attachment is expressed in `networkd` configuration
+rather than in a `batctl` script. Both items were waiting on that sentence and
+neither is waiting now.
 
-- **1.2, the bring-up ordering.** Still the best parallel item. Note the split
-  described under it: the ordering can be made machine-checked today, the
-  systemd units cannot be written without deciding the network management
-  stack, and that decision needs an ADR.
-- **1.1 step 4**, configuration templates, which inherits the same trap.
-- **The gateway tag probe**, described below. It is not on the numbered list
-  because it is not sequencing work, and it is the cheapest way to find out
-  whether a design already written down is implementable at all.
+What is done under 1.2: the ordering is machine-checked. `mule/bringup.py`
+holds it as constraint pairs and `violations` catches a sequence that broke
+one. `state_violations` beside it checks the invariants a wrong order leaves
+detectable on a finished node, and is explicit that two of the four leave no
+trace, so it is not an order check and there is a test asserting it is not.
+
+**So the next thing to build is the configuration itself**, and 1.2's units and
+1.1 step 4 converge on it: `networkd` files expressing the order, with every
+value still `TBD`, in the same shape `os/config/*.template` already uses.
+Interface naming is `TBR-LINUX-01` and addressing is `TBR-NET-01`, both open,
+so the templates carry the mechanism and the ordering and none of the values.
+
+Two things remain workable in parallel and neither gates the above.
+
+- **The gateway tag probe**, described below. Half of it is now answered: the
+  transport carries a one-byte tag, measured. The half that falsification 3
+  actually names, whether a gateway preserves it, is untested against all three
+  of `FML-ADR-048`'s options and is still the cheapest way to find out whether
+  a design already written down is implementable.
+- **1.5**, the addressing plan, which threads through everything and is
+  somebody else's to work.
 
 ### The gateway tag probe
 
