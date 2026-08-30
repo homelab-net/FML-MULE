@@ -132,10 +132,15 @@ volunteer in the field.
 
 Two, both real.
 
-**The toolchain will lag upstream, and the lag is invisible.** The specific
-thing someone will later argue was a mistake is a security fix that sat
-unapplied in a pinned linter for months because refreshing the lock was
-nobody's task. The counter-argument is that these tools read this repository's
+**The toolchain will lag upstream.** The specific thing someone will later
+argue was a mistake is a security fix that sat unapplied in a pinned linter for
+months because refreshing the lock was nobody's task. The lag is at least no
+longer invisible: `.github/dependabot.yml` opens a monthly proposal against the
+lock, which is read as a staleness report rather than applied as written, since
+a version changed in isolation is a set nobody resolved. That reports the
+problem; it does not do the work, and nobody is assigned the work.
+
+The counter-argument is that these tools read this repository's
 own source on a contributor's machine and do not run on the node, so the
 exposure is a developer workstation rather than a deployed system. That is a
 smaller claim than "this is safe", and it is deliberately the only claim made.
@@ -178,7 +183,8 @@ from the lock file and either resolves and lints clean or fails. A lock file
 that cannot be installed is a build failure on the next run rather than a defect
 that waits for a stage.
 
-What that does **not** verify is that the pinned versions are the right ones,
-or current. No check in this repository detects a stale lock, which is the
-consequence named above, and it is the reason this section is `TBD` rather than
-a stage number.
+What that does **not** verify is that the pinned versions are the right ones.
+Dependabot reports when they are behind, which is a weaker thing than knowing
+they are correct: nothing here establishes that the pinned linters are the ones
+this repository ought to be running, only that they resolve, install and pass.
+That is the reason this section is `TBD` rather than a stage number.

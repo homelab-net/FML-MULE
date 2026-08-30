@@ -1,0 +1,41 @@
+---
+# Dependency update proposals.
+#
+# CONTRIBUTING.md has said "automated update proposals are opened but never
+# auto-merged" since before anything opened them. This file is what makes that
+# sentence true. A document claiming more than the repository does is the
+# failure mode AGENTS.md lists first, and it had one of its own.
+#
+# NOTHING HERE MERGES ANYTHING. Dependabot opens a pull request and stops.
+# Promotion of a dependency is a decision, because kernel, driver, firmware and
+# userspace promote as one tested compatibility set (FML-ADR-040), and a green
+# run is not evidence that the set still works.
+#
+# HOW TO TREAT A PROPOSAL AGAINST tools/requirements-dev.txt. Read it as a
+# report that the pinned toolchain has gone stale, which is the consequence
+# FML-ADR-058 accepts and nothing else detects. Do not merge the single-package
+# edit: that file is generated, and a version changed in isolation is a set
+# nobody resolved. Close the proposal by refreshing the lock the way its header
+# says, from an environment that has run tools/lint.sh to completion.
+#
+# The bot's job is to notice. Deciding is still a person's.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+
+  # tools/requirements-dev.txt. See the note above: these proposals are read as
+  # a staleness report, not applied as written.
+  - package-ecosystem: pip
+    directory: /tools
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
