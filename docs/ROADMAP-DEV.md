@@ -272,6 +272,12 @@ configuration. Writing them against `ip` and `batctl` directly is not a way
 round it: that is choosing direct commands over a managed stack, which is the
 same decision made quietly. Whoever takes the units should open the ADR first.
 
+**That ADR is open.** `FML-ADR-059` proposes `systemd-networkd` as the owner,
+with `wpa_supplicant` and `hostapd` keeping association and a unit invoking
+`batctl` for mesh attachment, because no link configuration component performs
+either. It is `PROPOSED`, not accepted: the units wait on a decision, not on
+the question being asked. It unblocks 1.1 step 4 on the same terms.
+
 ### 1.3 The access point data path
 
 **State:** mostly decided, and the decisions were got wrong once. `FML-ADR-054`

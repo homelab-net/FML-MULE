@@ -84,6 +84,12 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
 
+### PROPOSED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
+
 ### SUPERSEDED
 
 | ID | Decision | Open trades it depends on |

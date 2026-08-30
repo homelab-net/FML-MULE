@@ -61,6 +61,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-056` | SELECTED | `tools/validate-docs.sh` | `.github/workflows/mesh-probe.yml`, `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
 | `FML-ADR-057` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
 | `FML-ADR-058` | SELECTED | `tools/install-deps.sh`, `tools/toolchain-versions.sh` | `.github/dependabot.yml`, `.github/workflows/lint.yml`, `CONTRIBUTING.md`, `tools/README.md` |
+| `FML-ADR-059` | PROPOSED | *not yet* | `docs/ROADMAP-DEV.md` |
 
 ## Trades
 
