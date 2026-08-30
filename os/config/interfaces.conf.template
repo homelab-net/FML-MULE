@@ -4,9 +4,14 @@
 # mesh interface batman-adv presents.
 #
 # STATUS: TEMPLATE. Every value below is TBD. This file is an input to
-# configuration generation, not a file to be edited on a node. The final format
-# depends on the network management stack, which is TBD; this file describes
-# what must be configured, not yet how.
+# configuration generation, not a file to be edited on a node.
+#
+# The final format depends on the network management stack. FML-ADR-059
+# PROPOSES systemd-networkd as the owner of link configuration, with
+# wpa_supplicant and hostapd keeping association and a unit invoking batctl for
+# mesh attachment, because no link configuration component does either. Until
+# that ADR is accepted this file still describes what must be configured and
+# not yet how.
 #
 # Trades: TBR-NET-01 (field address prefix and allocation scheme)
 #         TBR-RF-01, TBR-RF-03 (which physical interfaces exist)
