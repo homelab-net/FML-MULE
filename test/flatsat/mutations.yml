@@ -185,6 +185,21 @@ mutations:
     find: "    return observed.lora_stack_responding is True"
     replace: "    return observed.lora_stack_responding is not False"
 
+  # --- bring-up ordering ---------------------------------------------------
+  # A wrong order presents on a node as a radio fault, so these matter more
+  # than the shape of the code suggests.
+  - id: M54
+    file: mule/bringup.py
+    describe: a prerequisite that never happened is no longer a violation
+    find: "        if earlier not in position or position[earlier] > position[later]:"
+    replace: "        if position.get(earlier, -1) > position[later]:"
+
+  - id: M55
+    file: mule/bringup.py
+    describe: ordering is never checked, so every sequence looks sound
+    find: "        if earlier not in position or position[earlier] > position[later]:"
+    replace: "        if False:"
+
   - id: M20
     file: mule/status.py
     describe: a sensor outside its envelope no longer raises a fault

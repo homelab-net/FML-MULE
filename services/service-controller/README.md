@@ -109,6 +109,27 @@ have one until this component exists.
 `CCR-02` records the shedding order below S3, which section 9 never stated, so
 that the order is settled before anyone implements it rather than during.
 
+## What already exists in `mule/`
+
+`mule/bringup.py` cites `FML-ADR-035`, and is named here so that a reader
+arriving at a blocked directory can see exactly how far it goes.
+
+It holds the order the network plane is brought up in, and answers one
+question: which ordering rules a sequence broke. `services_started` is one step
+in that order, and the only thing the module says about it is that it comes
+after the mesh interface is up.
+
+It decides **nothing this component owns**. Not which services run, not their
+classes, not the order among themselves, not what is shed first under
+`CCR-02`'s order, and not whether a service should be restarted or moved. It
+commands nothing at all: it is handed a sequence that already happened and
+reports what was wrong with it, which is the opposite end of the problem from
+an actuator.
+
+The distinction is the same one the assessment above turns on. A restart loop
+is the hazard this README names; a function that reads a completed sequence
+cannot cause one.
+
 ## What can be done now
 
 - **Close `TBR-HA-01`.** Its fault injection runs largely against fakes on an
