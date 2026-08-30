@@ -132,15 +132,17 @@ changes the file discovers it rather than someone assuming it.
 
 ### 1.1 LoRa and Meshtastic — the largest hole
 
-**State:** step 1 done, step 2 blocked. `.github/workflows/lora-probe.yml`
+**State:** steps 1, 2 and 3 done. Step 4 is next.
+`.github/workflows/lora-probe.yml`
 stands two meshtasticd nodes up in simulation on one segment and asserts a text
 message crosses between them. Three runs: the first died on a line of mine that
 printed a version and tested nothing, the second found that a configuration
 change reboots the daemon, the third passed. `SIMULATED`, and the transport is
 UDP on a Docker bridge, which is a perfect wire.
 
-Beyond that probe the plane is still one `Literal` in `mule/bearers.py` and two
-references to it. No interface, no fake, no configuration.
+Beyond that probe the plane had been one `Literal` in `mule/bearers.py` and two
+references to it. It now has an interface and a fake; it still has no
+configuration.
 
 **Why it is first:** `FML-ADR-026` makes LoRa the degraded-mode lifeline. It is
 what users fall back to when everything else has failed, which makes it the
@@ -160,6 +162,18 @@ That is a governance gap rather than a technical one: the specification is
 enough to shape an interface against, and an interface built to it will not have
 to be replaced by the act of a named owner signing the same document.
 
+**The gap is now only the signature.** Checked item by item, the specification
+satisfies all five closure-evidence items and the closure gate's additional
+condition, that it state what changes when `TBR-ID-01` closes and what does
+not. Nothing in the gate is outstanding except a named owner accepting it.
+
+The specification withheld closure on a second ground as well, that nothing
+exercised an EUD behind one MULE reaching an EUD behind another. That ground
+was always stronger than the gate requires -- items 1 to 4 may be produced by
+analysis on rig R0 or R1, and item 5 needs no rig -- and it has since been met
+in simulation by the EUD leg in `.github/workflows/mesh-probe.yml`. It should
+not be read as a technical blocker any more.
+
 **Read first:** `TBR-NET-02` and `FML-ADR-057` before anything else, because
 they decide what the interface addresses. Then `FML-ADR-026` for why it is a
 separate non-IP plane and what
@@ -175,13 +189,29 @@ criticality, because what may cross this bearer is a criticality question.
 2. ~~**`TBR-NET-02` first.** Not code.~~ Done. The specification is under
    `docs/evidence/TBR-NET-02/`, and it decides that the interface addresses a
    node, with the user carried as a tag inside the payload.
-3. Whatever narrow interface that justifies, with a fake, named in
-   `test/flatsat/README.md`. `FML-ADR-052` and the `mule/` rules both bite here.
-4. Only then, configuration templates under `os/config/`.
+3. ~~Whatever narrow interface that justifies, with a fake, named in
+   `test/flatsat/README.md`.~~ Done. `LoRaPlane` and `FakeLoRaPlane` in
+   `test/flatsat/`, not `mule/`, because `FML-ADR-052` condition 4 keeps an
+   interface whose shape an open trade governs out of the production package.
+
+   Building it found a defect rather than only adding surface. `mule/status.py`
+   answered CONOPS section 67 question 10 with `"lora" in associated`, and
+   association means "mesh peer, or AP serving": an 802.11 question asked of a
+   plane `FML-ADR-026` makes non-IP, which this file's own traps section warns
+   about. Combined with the probe's finding that the daemon exits on a
+   configuration change, a node could report the lifeline available while
+   nothing could carry. The interface reads whether the stack answers instead,
+   and `None` -- the platform cannot tell -- reads as unavailable.
+4. Only then, configuration templates under `os/config/`. **This is next**, and
+   it inherits item 1.2's trap: the network management stack is undecided.
 
 **Done when:** the interface exists, the flat-sat exercises it, and
-`test/flatsat/README.md` names any fake added. Step 1's own gate — a message
-asserted across in CI rather than printed — is met.
+`test/flatsat/README.md` names any fake added. All three are met. Step 1's own
+gate — a message asserted across in CI rather than printed — is met.
+
+**What step 3 did not do.** It encodes no member tag, no node number and no
+recipient. Those are `TBR-NET-02`, and the position on that trade has changed;
+see below.
 
 **Traps:** it is a *non-IP* plane by decision. Do not give it an address, do not
 bridge it to `bat0`, do not let it inherit the IP plane's vocabulary. If you
@@ -230,6 +260,17 @@ leaves the lifeline bearer dead is the worst failure this system has.
 `os/config/interfaces.conf.template` says so. Do not decide it silently by
 writing units for one. If the sequencing work forces that choice, it needs an
 ADR.
+
+**It does force that choice, and the item splits because of it.** The ordering
+itself is already decided and written down: `os/config/interfaces.conf.template`
+lists the seven steps, and the mesh probe added two constraints to carry with
+them. That half can be made machine-checked now, in a pure module with no
+interface names and no addresses in it, so that a wrong order fails a test.
+
+The units are the other half and cannot be written without saying who owns link
+configuration. Writing them against `ip` and `batctl` directly is not a way
+round it: that is choosing direct commands over a managed stack, which is the
+same decision made quietly. Whoever takes the units should open the ADR first.
 
 ### 1.3 The access point data path
 
@@ -449,12 +490,55 @@ delaying it repeats how the first one went. 1.2 before 1.6 because reading radio
 state is worth little before something brings radios up in a known order. 1.5
 threads through all of them and can be worked in parallel by someone else.
 
-**Right now the order is not the whole story.** Item 1.1's steps 1 and 2 are
-both done: the LoRa plane is proven exercisable in software, and the addressing
-specification that shapes its interface exists. So 1.1 step 3, the interface and
-its fake, is the next thing to work, with 1.2 the best thing to work in parallel
-because nothing gates it. An item's number is its dependency position, not a
-queue ticket.
+**Right now the order is not the whole story.** Item 1.1's steps 1, 2 and 3 are
+done: the LoRa plane is proven exercisable in software, the addressing
+specification exists, and the plane has an interface and a fake. An item's
+number is its dependency position, not a queue ticket.
+
+Three things are workable now, and none of them gates another.
+
+- **1.2, the bring-up ordering.** Still the best parallel item. Note the split
+  described under it: the ordering can be made machine-checked today, the
+  systemd units cannot be written without deciding the network management
+  stack, and that decision needs an ADR.
+- **1.1 step 4**, configuration templates, which inherits the same trap.
+- **The gateway tag probe**, described below. It is not on the numbered list
+  because it is not sequencing work, and it is the cheapest way to find out
+  whether a design already written down is implementable at all.
+
+### The gateway tag probe
+
+`docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` lists three
+things that would falsify it. The third is the one nobody has tested:
+
+> **If the gateway cannot carry an application tag** in the payload alongside
+> the message, the encoding above is unimplementable and option D, one radio
+> per EUD, becomes the serious alternative. `FML-ADR-048` fixes the gateway
+> order and none of the three has been exercised.
+
+That is answerable in software, the same way 1.1 step 1 answered whether the
+LoRa plane could be exercised at all, and for the same reason: a design built
+on an untested assumption is worth less than the assumption is worth checking.
+It costs one probe and it can invalidate a specification that is otherwise
+ready to close.
+
+**Do it before anything is built on the tag**, not after.
+
+### What actually blocks tagging behind a MULE
+
+Worth stating plainly, because closing `TBR-NET-02` does not unblock it and it
+would be reasonable to assume otherwise.
+
+| Needed | State |
+| --- | --- |
+| A named owner accepting the specification | Governance. Nothing technical outstanding. |
+| The gateway can carry an application tag | **Untested.** The probe above. |
+| A mission package participant roster and index | Schema change, named in the specification and deliberately not made. `additionalProperties: false` makes it explicit. |
+| A gateway to read and write the tag | `services/gateways/` is a placeholder blocked on `TBR-TAK-01` (`CRITICAL`) and `TBR-RF-02`. **This is the real blocker.** |
+| `TBR-ID-01` | **Not required.** The specification separates addressing from authentication on purpose. |
+
+So the critical path to tagging runs through `TBR-TAK-01`, which needs no
+hardware and is Track 3 item one.
 
 ## Definition of done for anything on this roadmap
 
