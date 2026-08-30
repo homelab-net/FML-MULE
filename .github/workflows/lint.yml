@@ -105,7 +105,8 @@ jobs:
         run: tools/install-deps.sh --only apt,shfmt
 
       - name: shellcheck
-        run: shellcheck tools/*.sh
+        # -x so sourced files are followed; see the note in tools/lint.sh.
+        run: shellcheck -x tools/*.sh
 
       - name: shfmt
         run: shfmt -d -i 2 -ci tools/*.sh
@@ -152,6 +153,31 @@ jobs:
       # can reach. Two unreachable "safety nets" have been shipped here.
       - name: Production package is fully covered
         run: sh tools/coverage-check.sh
+
+  arm64:
+    name: Toolchain resolves for arm64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install the pinned Python toolchain
+        run: tools/install-deps.sh --only python
+
+      # FML-ADR-022 selects Debian; the compute element is unselected but
+      # expected to be an arm64 board, because this is a portable field
+      # appliance. Every version in the repository is nonetheless resolved on
+      # x86_64, because that is what CI and the contributors have. A refreshed
+      # lock can lose arm64 support silently, on a machine where nothing tries
+      # it, so this asks on every run.
+      #
+      # It proves resolvability, not function: nothing here executes an arm64
+      # binary. See the header of the script.
+      - name: Check the toolchain resolves for arm64
+        run: tools/check-toolchain-arm64.sh
 
   yaml:
     name: YAML and Ansible

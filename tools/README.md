@@ -17,6 +17,8 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | --- | --- |
 | `install-deps.sh` | Install the toolchain `lint.sh` runs. `--check` reports what is missing without installing. |
 | `requirements-dev.txt` | The pinned Python toolchain. Generated, never hand-edited. `FML-ADR-058`. |
+| `toolchain-versions.sh` | Pinned versions and digests of the non-apt, non-Python tools. Sourced, never executed. |
+| `check-toolchain-arm64.sh` | Check the pinned toolchain could install on arm64. Needs network; not run by `lint.sh`. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
@@ -102,6 +104,27 @@ is artifact integrity: `==` fixes the version, not the file behind it, which is
 weaker than the digest pinning this repository requires of container images.
 `FML-ADR-058` records that inconsistency rather than leaving it to be
 discovered.
+
+### arm64
+
+Everything here was resolved on `x86_64`, and the compute element is expected
+to be an `arm64` board. `tools/check-toolchain-arm64.sh` asks whether that
+would work, on every CI run:
+
+```sh
+tools/check-toolchain-arm64.sh
+```
+
+It checks that every pinned package has an `aarch64` wheel, refusing a source
+fallback so a missing wheel fails here rather than becoming a compiler on
+somebody's board, and that the pinned `arm64` binaries are published at the
+digests `toolchain-versions.sh` records.
+
+**It proves resolvability, not function.** Nothing in this repository executes
+an `arm64` binary. A green run means the install would find its files; it says
+nothing about whether the tools work there, and nothing whatever about the
+node. It needs network, which is why `tools/lint.sh` does not run it: `lint.sh`
+is offline and should stay that way.
 
 ### CI installs from this file too
 

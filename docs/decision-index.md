@@ -24,7 +24,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | --- | --- | --- | --- |
 | `FML-ADR-000` | RETIRED | `tools/new-adr.sh`, `tools/refs-report.sh`, `tools/validate-docs.sh` | `CONTRIBUTING.md` |
 | `FML-ADR-021` | SELECTED | *not yet* | `docs/NON-GOALS.md`, `docs/glossary.md`, `docs/verification/requirements.md`, `services/README.md`, `services/catalog/README.md`, `services/service-controller/README.md`, `test/stages/stage-01-local-node/README.md`, `test/stages/stage-07-sustainment/README.md` |
-| `FML-ADR-022` | SELECTED | `mule/sysfs.py`, `tools/install-deps.sh` | `.github/ISSUE_TEMPLATE/adr-proposal.yml`, `.github/workflows/lint.yml`, `docs/dev-machine.md`, `docs/readings.md`, `hardware/README.md`, `hardware/blocks/block-a/README.md`, `mule/README.md`, `os/README.md`, `os/image/manifest/README.md`, `os/kernel/PINS.md`, `test/stages/stage-02-halow-manet/README.md`, `tools/README.md` |
+| `FML-ADR-022` | SELECTED | `mule/sysfs.py`, `tools/check-toolchain-arm64.sh`, `tools/install-deps.sh` | `.github/ISSUE_TEMPLATE/adr-proposal.yml`, `.github/workflows/lint.yml`, `docs/dev-machine.md`, `docs/readings.md`, `hardware/README.md`, `hardware/blocks/block-a/README.md`, `mule/README.md`, `os/README.md`, `os/image/manifest/README.md`, `os/kernel/PINS.md`, `test/stages/stage-02-halow-manet/README.md`, `tools/README.md` |
 | `FML-ADR-023` | SELECTED | *not yet* | `docs/glossary.md`, `os/config/README.md`, `test/stages/stage-02-halow-manet/README.md` |
 | `FML-ADR-024` | SUPERSEDED | *not yet* | `.github/workflows/mesh-probe.yml`, `CONTRIBUTING.md`, `docs/glossary.md`, `docs/verification/requirements.md`, `os/kernel/PINS.md`, `test/stages/stage-02-halow-manet/README.md` |
 | `FML-ADR-025` | SELECTED | *not yet* | `docs/NON-GOALS.md`, `docs/verification/requirements.md`, `test/stages/stage-04-high-throughput-ip/README.md` |
@@ -60,7 +60,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-055` | SUPERSEDED | *not yet* | `docs/ROADMAP-DEV.md` |
 | `FML-ADR-056` | SELECTED | `tools/validate-docs.sh` | `.github/workflows/mesh-probe.yml`, `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
 | `FML-ADR-057` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
-| `FML-ADR-058` | SELECTED | `tools/install-deps.sh` | `.github/workflows/lint.yml`, `tools/README.md` |
+| `FML-ADR-058` | SELECTED | `tools/install-deps.sh`, `tools/toolchain-versions.sh` | `.github/workflows/lint.yml`, `tools/README.md` |
 
 ## Trades
 

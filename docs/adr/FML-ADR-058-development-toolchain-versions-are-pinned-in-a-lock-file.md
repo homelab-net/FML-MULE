@@ -110,11 +110,19 @@ to the same version for this reason: a resolved set is not guaranteed to install
 on an interpreter it was not resolved against, and CI previously ran 3.11. That
 alignment is part of this decision rather than incidental to it.
 
-What is still not fixed is the platform. The set was resolved on Debian
-`x86_64`; a package carrying platform-specific wheels can resolve differently on
-another architecture, and the program expects to build for `arm64`. Nothing here
-detects that, and the lock will need regenerating, or splitting, when a second
-architecture is built for.
+The set was resolved on Debian `x86_64`, and a package carrying compiled
+extensions can have wheels for one architecture and not another. Because the
+compute element is unselected but expected to be an `arm64` board,
+`tools/check-toolchain-arm64.sh` asks on every continuous integration run
+whether every pinned package has an `aarch64` wheel and whether the pinned
+`arm64` binaries are published at the digests recorded for them. A lock refresh
+that loses `arm64` support fails there rather than on the first board somebody
+unpacks.
+
+That check proves resolvability and nothing more. Nothing in this repository
+executes an `arm64` binary, so the toolchain is **not** known to work there,
+only to be installable. The lock may still need splitting per architecture if
+the two ever diverge in a way one file cannot express.
 
 Nothing about the node changes. This decision concerns the contributor's
 machine. It creates no obligation on the image, the compatibility set, or a

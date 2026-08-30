@@ -57,9 +57,12 @@ skip() {
 shell_files=$(find tools -name '*.sh' -type f | sort)
 
 if have shellcheck; then
+  # -x follows sourced files, so that tools/toolchain-versions.sh is checked
+  # as part of the script that reads it rather than as an orphan.
+  #
   # Word splitting on $shell_files is intended: the linter takes a file list.
   # shellcheck disable=SC2086
-  run shellcheck shellcheck $shell_files
+  run shellcheck shellcheck -x $shell_files
 else
   skip shellcheck shellcheck
 fi
