@@ -112,15 +112,25 @@ that `BATMAN_V` is simply not compiled into the stock kernel:
 batman_adv: Routing algorithm 'BATMAN_V' is not supported
 ```
 
-That was observed on the Ubuntu Azure kernel. If Debian's kernel enables
-`CONFIG_BATMAN_ADV_BATMAN_V`, the availability half of that argument does not
-hold on the baseline operating system, and the ADR needs revisiting on the
-record.
+That was observed on the Ubuntu Azure kernel.
+
+**Answered on 2026-08-30: Debian's kernel does enable it.** On Debian 13,
+kernel `6.12.105+deb13-amd64`, `batman-adv` 2024.2, the default is `BATMAN_IV`,
+selecting `BATMAN_V` succeeds, and an interface created while it is selected
+comes up with no complaint. So the availability half of `FML-ADR-053`'s
+argument does not hold on the baseline operating system. See
+`docs/evidence/TBR-LINUX-01/2026-08-30-batman-v-available-on-debian.md`.
+
+Run it yourself anyway if your kernel differs from that one. The point of the
+check is the kernel in front of you.
 
 **Record the finding. Do not switch.** `FML-ADR-053` is a
 `SELECTED PLANNING BASELINE` and its fallback names two criteria, both owned by
 `TBR-RF-01`: evidence of a usable driver throughput estimate, **and**
-demonstrably poor BATMAN-IV path selection. Availability alone is neither.
+demonstrably poor BATMAN-IV path selection. Availability alone is neither, and
+the finding above changed the **cost** of a future switch, not the case for
+one. The surviving half of the argument is the stronger half: nothing yet
+knows whether a HaLow driver reports a usable throughput estimate at all.
 
 **3. Do the module and `batctl` versions agree?**
 
