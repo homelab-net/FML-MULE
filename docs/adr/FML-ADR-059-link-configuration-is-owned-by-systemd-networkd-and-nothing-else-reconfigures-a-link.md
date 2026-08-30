@@ -44,15 +44,24 @@ Two constraints narrow the field before preference enters.
 `hostapd`'s. Neither `systemd-networkd` nor `ifupdown` does either, and any
 option therefore keeps both.
 
-**No general network manager attaches an interface to `batman-adv`.** That is
-`batctl`, at a specific point in the sequence, after the routing algorithm is
-set and after the hard interface MTU is 1560. Any option therefore also keeps a
-unit that runs `batctl`.
+**`systemd-networkd` does attach an interface to `batman-adv`, and more.** An
+earlier draft of this ADR said it did not, and that was wrong. Checked against
+systemd 257, which is what Debian 13 ships: `.netdev` supports `Kind=batadv`
+with a `[BatmanAdvanced]` section carrying `RoutingAlgorithm=`,
+`BridgeLoopAvoidance=`, `Fragmentation=`, `HopPenalty=`,
+`DistributedArpTable=`, `GatewayMode=` and `OriginatorIntervalSec=`, and
+`.network` carries `BatmanAdvanced=` to add a member link.
 
-So the decision is narrower than it first appears. It is not "which stack does
-everything", because none does. It is **which component owns link state and
-addressing**, given that association and mesh attachment are handled beside it
-whatever the answer.
+That covers more of the sequence than the alternatives were being judged
+against. `RoutingAlgorithm=` is the `FML-ADR-053` constraint and
+`BridgeLoopAvoidance=` is the `FML-ADR-056` one, both expressible where the
+interface is defined rather than in a script that has to run at the right
+moment.
+
+So the decision is narrower than it first appears, but not in the direction the
+earlier draft claimed. It is **which component owns link state, addressing and
+mesh attachment**, given that association is handled beside it whatever the
+answer.
 
 The alternatives were four.
 
@@ -93,9 +102,11 @@ Association **shall** remain with `wpa_supplicant` for 802.11s mesh point and
 station, and with `hostapd` for the access point, because no link configuration
 component performs either.
 
-Attachment to `batman-adv` **shall** be performed by a unit invoking `batctl`,
-ordered by `systemd` after the routing algorithm is set and after the hard
-interface MTU is set, per `mule/bringup.py`.
+Attachment to `batman-adv` **shall** be expressed in `networkd` configuration,
+using `Kind=batadv` with `RoutingAlgorithm=` and `BridgeLoopAvoidance=` on the
+netdev and `BatmanAdvanced=` on the member link. `batctl` **may** be used for
+inspection and for anything `networkd` cannot express, and **should not** be
+the mechanism where `networkd` can.
 
 **Nothing else shall reconfigure a link.** NetworkManager and `ifupdown`
 **shall not** be installed in the image. A node **shall not** carry two
@@ -125,17 +136,31 @@ service and the mesh being up is a `systemd` dependency, alongside the
 `FML-ADR-029` quadlets, rather than split between a network stack's own
 sequencing and `systemd`'s.
 
-The node carries four components that touch the network rather than one:
-`systemd-networkd`, `wpa_supplicant`, `hostapd`, and a `batctl` unit. That is
-not a saving over the alternatives, because all four exist under any of them;
-it is only honest to say that the answer is not "one stack".
+The node carries three components that touch the network rather than one:
+`systemd-networkd`, `wpa_supplicant` and `hostapd`. The `batctl` unit an
+earlier draft assumed is not needed for attachment.
 
-What becomes harder. `systemd-networkd` is declarative, and a declarative
-component is awkward exactly where a step is conditional. `batman-adv`
-attachment is conditional on the mesh interface existing, which `networkd` does
-not create, so that boundary is a unit and not a `.network` file. Anyone
-expecting the whole bring-up to be describable in `networkd` files will find it
-is not.
+**The rule in the decision is therefore stronger than the component can
+enforce, and that is worth saying plainly.** "Nothing else reconfigures a link"
+bans NetworkManager and `ifupdown` while keeping two components that do touch
+links. `wpa_supplicant` creates and associates the mesh point; `hostapd` runs
+the access point. The rule means no *second general manager*, not literally one
+actor, and a reader who takes it literally will find two counter-examples in
+the same decision.
+
+What becomes harder, and this is the real cost of the choice. **The ordering
+stops being something the node performs and becomes something a component
+resolves.** `mule/bringup.py` states an order; `networkd` reaches an
+equivalent end state by its own dependency resolution and does not report the
+order it used. The wireless half is still outside it, because `networkd` does
+not create an 802.11s mesh point interface, so the dependency between
+`wpa_supplicant` having associated and `networkd` attaching that link to the
+mesh has to be expressed as a unit ordering and can be got wrong silently.
+
+That is the same failure this decision exists to prevent, moved rather than
+removed: `batman-adv` attached to an interface that is not yet up presents as a
+radio fault, and a declarative component that resolves ordering internally is
+harder to catch doing it than a script that ran in the wrong sequence.
 
 Published `batman-adv` configuration will mostly not apply. The community's
 worked examples are largely `ifupdown`, and `FML-ADR-023` records that the
@@ -164,6 +189,23 @@ Second cost, smaller: `systemd-networkd` is not Debian's default on a stock
 install, so the image build carries an explicit choice and an explicit
 disabling of what would otherwise manage the link. That is a line in the image
 manifest and a thing to get wrong once.
+
+**Third, and the one most likely to be regretted:** the `batman-adv` settings
+that make this choice attractive are version-gated in `systemd`.
+`BatmanAdvanced=` arrived in one version, the `[BatmanAdvanced]` keys in
+others. This binds part of the network plane's configurability to the `systemd`
+version a Debian release happens to ship, which puts `systemd` into the
+compatibility set `FML-ADR-040` governs in a way `ifupdown` would not have.
+A release that ships an older `systemd` loses settings the configuration
+depends on, and the failure is at image build rather than in the field, which
+is the better end to fail at but is still a coupling taken on deliberately.
+
+**Fourth: reversal is bounded only while the coupling stays in units.** If
+configuration generation grows `networkd`-shaped templates fed by region
+profiles, the choice spreads from a handful of unit files into
+`tools/gen-config.py` and the generation mechanism, and "rewrite the units"
+stops describing the cost. Whoever writes that generator should keep the
+`networkd` shape at the edge of it.
 
 ## Fallback
 
