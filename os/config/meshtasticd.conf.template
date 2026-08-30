@@ -1,0 +1,108 @@
+# LoRa plane configuration template - MULE
+#
+# The Meshtastic daemon and the supervisor around it. FML-ADR-026 makes this a
+# separate NON-IP plane and the degraded-mode lifeline: what a team falls back
+# to when every other bearer has gone.
+#
+# STATUS: TEMPLATE. Every value below is TBD. This file describes what must be
+# configured and what the supervisor must guarantee. It is an input to
+# configuration generation, not a file to be edited on a node.
+#
+# Trades: TBR-RF-02 (band, channel, EIRP, duty cycle, coexistence with HaLow)
+#         TBR-NET-02 (addressing behind the node; open, and see below)
+#         TBR-TAK-01 (what is worth carrying on this bearer at all)
+#
+# NOTHING HERE IS AN IP CONCERN. No address, no bridge, no route, no place in
+# nftables' forwarding rules, and nothing for systemd-networkd to own. If a
+# change to this file starts needing an IP address, that is a change request
+# against FML-ADR-026 and not an implementation detail.
+
+# --- Radio attachment -------------------------------------------------------
+# FML-ADR-026: "The radio attaches to the host through an approved standard
+# interface: USB serial, UART, or TCP where the radio provides it."
+#
+# attachment=TBD               # serial | uart | tcp
+# device=TBD                   # e.g. /dev/serial/by-id/... . Do NOT use a
+#                              # kernel-assigned name like /dev/ttyACM0: it is
+#                              # allocation order, not identity. A by-id path
+#                              # is stable across reboots and across a second
+#                              # adapter being plugged in.
+#
+# The hardware is not selected. What has been observed on a bench is that a
+# USB LoRa adapter enumerates as a CDC-ACM serial device owned by root:dialout,
+# which is what makes the deployment question below a real one rather than a
+# formality. See docs/evidence/TBR-RF-02/2026-08-30-sx1262-usb-modem-identified.md.
+
+# --- Region-dependent values are NOT here -----------------------------------
+# Band, channel, transmit power and duty cycle come from the region profile in
+# regions/<region-id>/ and are resolved by tools/gen-config.py, which already
+# reads lora.default_channel, lora.max_eirp_dbm, lora.band_low_hz and
+# lora.band_high_hz. They are all TBD in every profile.
+#
+# This matters more on this bearer than on the others. 902-928 MHz exists in
+# the United States and not in the EU or UK, which use 863-868 MHz with
+# duty-cycle limits that have no US analogue. A node that transmits on a band
+# its region does not permit is a regulatory problem, not a bug. See
+# REGULATORY.md and regions/README.md.
+
+# --- The supervisor ---------------------------------------------------------
+# THE ONE THING THIS FILE EXISTS TO STATE.
+#
+# .github/workflows/lora-probe.yml established, at the cost of a run, that
+# changing a node's configuration REBOOTS meshtasticd, and that in the
+# container image the re-exec fails and the process exits:
+#
+#   [Router] Reboot in 7 seconds
+#   Rebooting
+#   execv() returned -1!
+#   error: No such file or directory
+#
+# So a configuration push can leave the lifeline bearer dead, silently, on the
+# plane a team reaches for when everything else has failed. That is the worst
+# failure this system has and it is not hypothetical: it happened, twice, to
+# the probe.
+#
+# The supervisor SHALL restart the daemon when it exits, and SHALL NOT treat a
+# configuration push as complete until the daemon answers its API again. The
+# probe waits for the API rather than sleeping a guessed interval, for exactly
+# this reason, and anything driving a node has to do the same.
+#
+# restart_policy=TBD           # must restart on exit
+# api_ready_timeout_s=TBD      # how long to wait before calling a push failed
+#
+# A node whose LoRa daemon is not answering has no lifeline. mule/bringup.py
+# and the LoRaPlane interface both read that state rather than assuming it, and
+# mule/status.py reports lora_available False when the stack does not answer or
+# cannot be asked.
+
+# --- How it is deployed is NOT decided --------------------------------------
+# FML-ADR-029 makes rootless Podman quadlets the default, and carves this case
+# out in the same sentence:
+#
+#   "Rootless containers shall be the default for ordinary browser
+#    applications, file services, status services and other workloads that do
+#    not require privileged hardware or host networking access."
+#
+# meshtasticd requires a serial device. It is therefore outside that default by
+# the ADR's own terms, and nothing has decided what replaces it: a privileged
+# quadlet with the device passed through, a native package with a systemd unit,
+# or something else.
+#
+# THIS FILE DOES NOT DECIDE IT. The choice interacts with the image build,
+# which does not exist, and with whether the daemon comes from a distribution
+# package or an OCI image, which FML-ADR-048 has not settled either. Whoever
+# needs it opens an ADR; see docs/ROADMAP-DEV.md item 1.1 step 4.
+
+# --- Addressing behind the node is not implemented ---------------------------
+# TBR-NET-02's specification selects a one-byte member tag carried inside the
+# Meshtastic payload, so that a message can reach a person behind a MULE rather
+# than only the MULE. It is measured as carriable: the transport moves a tag
+# byte intact, and the usable payload is 231 bytes rather than the 233 the
+# protobuf constant reports. See
+# docs/evidence/TBR-NET-02/2026-08-30-tag-payload-measurement.md.
+#
+# It is NOT implemented, and no value here relates to it. Until it is, a team
+# behind one MULE is one address on this plane, and person-to-person messaging
+# degrades to MULE-to-MULE at CONOPS section 50.8 with nothing telling the
+# operator so. The gateway that would carry the tag is
+# services/gateways/, which is blocked.

@@ -37,6 +37,7 @@ generation mapping rather than restructuring every file.
 
 | File | Configures | Trades |
 | --- | --- | --- |
+| `meshtasticd.conf.template` | The LoRa plane: radio attachment and the supervisor around the daemon | `TBR-RF-02`, `TBR-NET-02`, `TBR-TAK-01` |
 | `networkd.conf.template` | Link configuration, addressing, mesh attachment, the field bridge | `TBR-LINUX-01`, `TBR-NET-01`, `TBR-RF-01`, `TBR-RF-03` |
 | `wpa_supplicant.conf.template` | Station and mesh association | `TBR-RF-01`, `TBR-RF-02` |
 | `hostapd.conf.template` | EUD access point | `TBR-RF-03` |
