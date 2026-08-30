@@ -355,9 +355,23 @@ finding that artifact itself flagged as untested: an EUD behind one MULE reaches
 an EUD behind another, two hops away, and the far node holds it as a global
 translation-table entry rather than a local one.
 
-**The trade is still `OPEN` and cannot close.** Every owner in this repository
-is `TBD-SRR`, and a trade closes when a **named** owner accepts the evidence.
-Nothing technical is missing for the IP half.
+**The trade has a named owner and is still `OPEN`.** Cameron Zobrist owns it,
+so the governance blocker is gone. Nothing technical is missing for the IP
+half.
+
+**What is missing now is a decision, and it is not the one the specification
+expected.** `2026-08-30-opentakserver-meshtastic-path.md` read the first of
+`FML-ADR-048`'s three gateways and found two things. A payload on a private
+port is discarded by it, which is where a custom one-byte member tag would
+sit. And the ATAK plugin protobuf it does handle already carries
+`Contact.callsign` and `GeoChat.to`, so identity and recipient are on the wire
+already, as upstream's strings rather than this program's index.
+
+So the specification's chosen encoding is not available in combination with
+`FML-ADR-048`: adding the index means replacing upstream's format, which that
+ADR orders the program not to do first. The owner picks between using what
+upstream carries, at more airtime, or keeping the index and writing an ADR
+against `FML-ADR-048`. Neither is implementation work and both are decisions.
 
 **Blocked by:** nothing. `TBR-ID-01` is deliberately not a prerequisite: this
 trade exists to structure addressing so authentication can be added to it later
