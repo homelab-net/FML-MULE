@@ -78,8 +78,19 @@ LORA_LOCK="$ROOT/tools/requirements-lora.txt"
 APT_PACKAGES='shellcheck bats python3-venv nodejs npm curl ca-certificates'
 
 CHECK=0
+
+# Every group --only will accept.
 ALL_GROUPS='apt python shfmt gitleaks node lora'
-WANTED=$ALL_GROUPS
+
+# What a bare run installs, which is NOT all of them. lora is opt-in: it pulls
+# a container runtime and an image, and most work in this repository does not
+# touch that plane. An earlier version defaulted to ALL_GROUPS while
+# tools/README.md said lora was not installed by default, so a fresh Debian
+# ended up with docker.io and criu to run a linter, and the documentation was
+# describing something the code did not do.
+DEFAULT_GROUPS='apt python shfmt gitleaks node'
+
+WANTED=$DEFAULT_GROUPS
 
 while [ $# -gt 0 ]; do
   case "$1" in

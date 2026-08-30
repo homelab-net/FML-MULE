@@ -154,6 +154,40 @@ jobs:
       - name: Production package is fully covered
         run: sh tools/coverage-check.sh
 
+  fresh:
+    name: Fresh Debian install
+    runs-on: ubuntu-latest
+    # The baseline operating system, not the runner's Ubuntu. FML-ADR-022
+    # selects Debian stable and every other job here runs on something else.
+    container: debian:13
+    steps:
+      # A pristine debian:13 has no git, no python3, no curl and no sudo. git
+      # is the one prerequisite a person genuinely needs before they can clone,
+      # so it is the only thing installed before the repository's own script.
+      - name: Install git, the one prerequisite
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git
+
+      - uses: actions/checkout@v7
+
+      # What the documentation tells a contributor to run, run exactly that.
+      # This is the claim: clone on a fresh Debian, run one command, work.
+      # It was made three times before anything tested it, and when something
+      # finally did it found the default installing a container runtime to run
+      # a linter.
+      - name: Install the toolchain the way a contributor would
+        run: tools/install-deps.sh
+
+      - name: Nothing is skipped, and everything that ran is clean
+        run: |
+          tools/lint.sh | tee /tmp/lint.log
+          if grep -q '^Skipped' /tmp/lint.log; then
+            echo "A tool was skipped on a fresh install. install-deps.sh did"
+            echo "not install everything tools/lint.sh needs." >&2
+            exit 1
+          fi
+
   arm64:
     name: Toolchain resolves for arm64
     runs-on: ubuntu-latest
