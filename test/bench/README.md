@@ -10,6 +10,17 @@ what, and what makes it repeatable.
 it asserts that the stack composes and that a mesh point reports carrier only
 once joined, which `FML-ADR-059` depends on. It produces no number.
 
+`--line` builds three nodes where node 1 cannot hear node 3, so reaching it
+requires node 2 to relay. **That is multi-hop over real 802.11s**, which
+nothing else here demonstrates: `.github/workflows/mesh-probe.yml` proves
+multi-hop over `veth`, which is not wireless.
+
+The line is made by channel separation rather than by `wmediumd`, which Debian
+does not package. Node 2 carries a radio on each segment with both in one
+`batman-adv` interface, which is not a trick to make a test pass: a node with
+several bearers joined into one mesh is what `FML-ADR-045` describes and what
+`os/config/networkd.conf.template` configures.
+
 It does not run in CI and cannot: a hosted runner's kernel has no wireless
 stack at all. Run it on a development machine, as root. See
 `docs/dev-machine.md`.

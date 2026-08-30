@@ -48,6 +48,8 @@ sudo test/bench/80211s-mesh.sh
 ```
 
 Two virtual radios, an 802.11s mesh, `batman-adv` over it, and traffic across.
+`--line` gives three nodes where node 1 cannot hear node 3, so **multi-hop over
+real 802.11s** without hardware and without `wmediumd`.
 It also asserts the carrier gating `FML-ADR-059` depends on: a mesh point
 reports carrier only once joined, which is what stops `networkd` attaching an
 interface before `wpa_supplicant` has associated.
