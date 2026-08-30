@@ -34,7 +34,7 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history: a credential that reached an earlier commit is
           # published, and removing the tip commit does not undo that.
@@ -59,7 +59,7 @@ jobs:
     name: Document validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Validate the ADR and trade registers
         run: tools/validate-docs.sh
@@ -80,7 +80,7 @@ jobs:
     name: Markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -96,7 +96,7 @@ jobs:
     name: Shell
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # tools/install-deps.sh is the single source of toolchain versions
       # (FML-ADR-058). Restating the package list or the shfmt version here
@@ -121,7 +121,7 @@ jobs:
     name: Python
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # 3.13 is Debian stable's Python, which FML-ADR-022 selects, and is the
       # interpreter tools/requirements-dev.txt was resolved against. Running a
@@ -158,7 +158,7 @@ jobs:
     name: Toolchain resolves for arm64
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
@@ -183,7 +183,7 @@ jobs:
     name: YAML and Ansible
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
