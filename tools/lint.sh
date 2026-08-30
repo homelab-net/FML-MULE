@@ -15,6 +15,16 @@ set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
+# tools/install-deps.sh puts ruff, pytest, yamllint, ansible-lint and coverage
+# in a repository-local virtualenv, because Debian marks its system Python
+# externally managed. Prefer that virtualenv when it exists, so that having
+# run the installer is enough and a forgotten "activate" does not silently
+# turn those five checks back into skips.
+if [ -d "$ROOT/.venv/bin" ]; then
+  PATH="$ROOT/.venv/bin:$PATH"
+  export PATH
+fi
+
 failures=0
 skipped=''
 
@@ -47,9 +57,12 @@ skip() {
 shell_files=$(find tools -name '*.sh' -type f | sort)
 
 if have shellcheck; then
+  # -x follows sourced files, so that tools/toolchain-versions.sh is checked
+  # as part of the script that reads it rather than as an orphan.
+  #
   # Word splitting on $shell_files is intended: the linter takes a file list.
   # shellcheck disable=SC2086
-  run shellcheck shellcheck $shell_files
+  run shellcheck shellcheck -x $shell_files
 else
   skip shellcheck shellcheck
 fi
@@ -118,6 +131,11 @@ run "gen-decision-index --check" sh tools/gen-decision-index.sh --check
 # keeps that honest. It exits 0 whatever it finds; read the number.
 run "refs-report" sh tools/refs-report.sh
 
+# The skip messages below name the dependency that is actually missing, not
+# the interpreter. python3 can be present while these still skip, and
+# "python3 not installed" then sends the reader to check the one thing that is
+# not the problem. This is the same failure as a green run that checked
+# nothing: the report was not wrong about the outcome, it was wrong about why.
 if have python3; then
   run "validate-mission" python3 tools/validate-mission.py
 else
@@ -126,10 +144,12 @@ fi
 
 # Mutation check: does the test suite actually notice a broken node? Runs the
 # suite once per mutation, so it is the slowest check here and still seconds.
-if have python3 && python3 -c "import pytest, yaml" 2>/dev/null; then
-  run "mutation-check" python3 tools/mutation-check.py
-else
+if ! have python3; then
   skip "mutation-check" python3
+elif ! python3 -c "import pytest, yaml" 2>/dev/null; then
+  skip "mutation-check" "the pytest and pyyaml modules"
+else
+  run "mutation-check" python3 tools/mutation-check.py
 fi
 
 # --- coverage of the production package -------------------------------------
@@ -137,10 +157,12 @@ fi
 # reach, and this repository has shipped the second kind twice. See the
 # reasoning at the top of the script.
 
-if have python3 && python3 -c "import coverage, pytest" 2>/dev/null; then
-  run "coverage-check" sh tools/coverage-check.sh
+if ! have python3; then
+  skip "coverage-check" python3
+elif ! python3 -c "import coverage, pytest" 2>/dev/null; then
+  skip "coverage-check" "the coverage and pytest modules"
 else
-  skip "coverage-check" coverage
+  run "coverage-check" sh tools/coverage-check.sh
 fi
 
 # --- shell unit tests -------------------------------------------------------

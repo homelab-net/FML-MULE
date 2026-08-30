@@ -80,7 +80,9 @@ trap 'rm -f "$tmp" "$tmp.body"' EXIT INT TERM
 # Extract requirement records from the frontmatter of every Markdown file under
 # docs/. Emits one tab-separated record per requirement:
 #   id  source  modal  allocation  stage  file  text
-find docs -name '*.md' -type f 2>/dev/null | sort | while IFS= read -r f; do
+# LC_ALL=C: this feeds a generated, drift-checked file, and sort order is
+# locale-dependent. See the note in tools/gen-decision-index.sh.
+find docs -name '*.md' -type f 2>/dev/null | LC_ALL=C sort | while IFS= read -r f; do
   awk -v file="$f" '
     function flush() {
       if (id != "") {

@@ -40,6 +40,25 @@ ITEP=docs/verification/FML-MULE-ITEP-v0.1.md
 FAKES=test/flatsat/fakes.py
 FLATSAT_README=test/flatsat/README.md
 
+# Third-party and generated trees, excluded from every check that walks the
+# repository. A dependency's files are not this repository's to validate, and
+# two of them actively produce false failures: tools/install-deps.sh puts a
+# virtualenv at ./.venv whose site-packages holds several hundred directories
+# with no README (check 12), and ansible-lint ships JSON schemas that reference
+# container images by mutable tag (check 9). Both would be reported as defects
+# in this repository.
+#
+# Held in one variable rather than repeated per check, because the set had
+# already drifted: check 9 excluded nothing, and the filter in check 14 was
+# applied to grep -h -o output, which is bare identifiers with no path in them
+# to match against.
+#
+# This is the set .gitignore already declares.
+GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=node_modules \
+--exclude-dir=.venv --exclude-dir=venv --exclude-dir=__pycache__ \
+--exclude-dir=.pytest_cache --exclude-dir=.ruff_cache \
+--exclude-dir=.mypy_cache --exclude-dir=.ansible --exclude-dir=*.egg-info"
+
 fail_count=0
 
 fail() {
@@ -294,11 +313,13 @@ printf 'Container image references\n'
 # resolve to a real registry, so exempting them cannot let a real mutable
 # reference through. Exempting anything wider would defeat the check.
 tag_hits=$(
+  # Word splitting on $GREP_EXCLUDES is intended: it is a list of flags.
+  # shellcheck disable=SC2086
   grep -rInoE '[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(:[0-9]+)?/[a-z0-9._/-]+:[A-Za-z0-9._-]+' \
     --include='*.container' --include='*.md' --include='*.yml' --include='*.yaml' \
     --include='*.json' --include='*.template' --include='*.sh' --include='*.disabled' \
     --include='Containerfile' --include='Dockerfile' \
-    . 2>/dev/null |
+    $GREP_EXCLUDES . 2>/dev/null |
     grep -v '@sha256:' |
     grep -vE 'example\.(org|invalid|com)/' |
     grep -vE '://' || true
@@ -375,6 +396,10 @@ fi
 # layout instead.
 #
 # Generated, cache and vendored directories are skipped: nobody navigates them.
+# The list below is the set .gitignore already declares. A virtualenv is the
+# case that bites, because tools/install-deps.sh puts one at ./.venv and its
+# site-packages tree contributes several hundred READMEless directories: the
+# check would then fail on a tree whose tracked files are all correct.
 
 dir_count=0
 find . -type d \
@@ -383,7 +408,11 @@ find . -type d \
   -not -path '*__pycache__*' \
   -not -path './.pytest_cache*' \
   -not -path './.ruff_cache*' \
+  -not -path './.mypy_cache*' \
   -not -path './.ansible*' \
+  -not -path './.venv*' \
+  -not -path './venv*' \
+  -not -path '*.egg-info*' \
   -not -path '.' |
   sort >/tmp/fml-dirs.$$
 
@@ -423,8 +452,10 @@ docs/evidence/README.md"
 evidence_files=$(find docs/evidence test/results -type f ! -name README.md 2>/dev/null | wc -l)
 
 if [ "$evidence_files" -eq 0 ]; then
-  grep -rl "HARDWARE-VERIFIED" --include="*.md" --include="*.py" . 2>/dev/null |
-    sed 's|^\./||' | grep -v node_modules >/tmp/fml-hv.$$ || true
+  # shellcheck disable=SC2086
+  grep -rl "HARDWARE-VERIFIED" --include="*.md" --include="*.py" \
+    $GREP_EXCLUDES . 2>/dev/null |
+    sed 's|^\./||' >/tmp/fml-hv.$$ || true
   while read -r claimed; do
     [ -n "$claimed" ] || continue
     case " $VOCABULARY_FILES " in
@@ -454,9 +485,11 @@ fi
 cited_count=0
 # Templates are excluded: they carry example IDs to show the format, which is
 # what a template is for. Everything else citing an ID means it.
+# shellcheck disable=SC2086
 grep -rhoE '(FML-ADR-[0-9]{3}|TBR-[A-Z]+-[0-9]{2})' \
-  --include='*.md' --include='*.py' --include='*.sh' --include='*.yml' . 2>/dev/null |
-  grep -v node_modules | sort -u >/tmp/fml-cited.$$ || true
+  --include='*.md' --include='*.py' --include='*.sh' --include='*.yml' \
+  $GREP_EXCLUDES . 2>/dev/null |
+  sort -u >/tmp/fml-cited.$$ || true
 
 while read -r id; do
   [ -n "$id" ] || continue
@@ -465,8 +498,9 @@ while read -r id; do
     FML-ADR-*) [ -n "$(find "$ADR_DIR" -name "$id-*.md" 2>/dev/null | head -1)" ] && continue ;;
     TBR-*) [ -n "$(find "$TRADE_DIR" -name "$id-*.md" 2>/dev/null | head -1)" ] && continue ;;
   esac
+  # shellcheck disable=SC2086
   where=$(grep -rlE "$id" --include='*.md' --include='*.py' --include='*.sh' \
-    --include='*.yml' . 2>/dev/null | grep -v node_modules |
+    --include='*.yml' $GREP_EXCLUDES . 2>/dev/null |
     grep -vE '(/_|FML-ADR-000-template)' | head -3 | tr '\n' ' ')
   [ -n "$where" ] || continue
   fail "$id is cited but no such decision exists. Seen in: $where"

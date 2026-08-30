@@ -1,0 +1,66 @@
+# Python development toolchain, pinned. FML-ADR-058.
+#
+# GENERATED, NOT HAND-EDITED. This file records the fully resolved set that was
+# actually exercised: a virtualenv built from it ran tools/lint.sh to
+# completion, clean, with nothing skipped. Editing a version here by hand
+# produces a set nobody has run, which is the thing pinning exists to prevent.
+#
+# To refresh it, from the repository root:
+#
+#   rm -rf .venv
+#   python3 -m venv .venv
+#   .venv/bin/pip install --upgrade pip
+#   .venv/bin/pip install ruff pytest jsonschema pyyaml coverage \
+#     yamllint ansible-lint ansible-core
+#   tools/lint.sh                      # must pass, with nothing skipped
+#   .venv/bin/pip freeze --local       # capture, keeping this header
+#
+# Run lint BEFORE capturing. A set that has not been exercised is a guess with
+# version numbers on it.
+#
+# The eight packages named in that install command are the direct dependencies,
+# and they are the same eight .github/workflows/lint.yml installs. Everything
+# else below is transitive and is pinned because pinning eight of thirty-six
+# reproduces the drift one layer down.
+#
+# Exact versions are not hashes. See the accepted cost in FML-ADR-058: this
+# fixes the version, not the artifact, which is a weaker guarantee than the
+# digest pinning this repository requires of container images.
+#
+# Resolved on Python 3.13, Debian. CI runs Python 3.11.
+ansible-compat==26.8.0
+ansible-core==2.21.3
+ansible-lint==26.8.0
+attrs==26.1.0
+black==26.5.1
+bracex==3.0.1
+cffi==2.1.1
+click==8.5.0
+coverage==7.16.0
+cryptography==50.0.1
+distro==1.9.0
+filelock==3.32.4
+iniconfig==2.3.0
+Jinja2==3.1.6
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+MarkupSafe==3.0.3
+mypy_extensions==1.1.0
+packaging==26.3
+pathspec==1.1.1
+platformdirs==4.11.5
+pluggy==1.6.0
+pycparser==3.0
+Pygments==2.21.0
+pytest==9.1.1
+pytokens==0.4.1
+PyYAML==6.0.3
+referencing==0.37.0
+resolvelib==1.2.1
+rpds-py==2026.6.3
+ruamel.yaml==0.19.1
+ruamel.yaml.clib==0.2.15
+ruff==0.16.5
+subprocess-tee==0.4.2
+wcmatch==11.0.1
+yamllint==1.38.0

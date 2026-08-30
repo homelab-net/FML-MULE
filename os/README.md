@@ -109,6 +109,13 @@ Debian Linux
   +-- systemd-networkd or equivalent controlled link configuration
 ```
 
+The `BATMAN-V` line above is the SAD v0.31 text as issued, and is transcribed
+rather than corrected: the SAD is a controlled document and this file does not
+get to edit it. `FML-ADR-053` has since superseded that choice and makes
+**BATMAN-IV** the baseline, because `BATMAN_V` is a kernel build option the
+stock module does not carry. Read the stack above with that substitution until
+the SAD is reissued.
+
 Configuration tooling may change if a better supported upstream mechanism is
 validated, but external interfaces and required behaviour remain controlled.
 

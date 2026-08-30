@@ -60,6 +60,14 @@ searchable() {
   find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \) \
     -not -path './.git/*' \
     -not -path './node_modules/*' \
+    -not -path './.venv/*' \
+    -not -path './venv/*' \
+    -not -path '*__pycache__*' \
+    -not -path './.pytest_cache/*' \
+    -not -path './.ruff_cache/*' \
+    -not -path './.mypy_cache/*' \
+    -not -path './.ansible/*' \
+    -not -path '*.egg-info/*' \
     -not -path './docs/adr/*' \
     -not -path './docs/trades/*' \
     -not -path './docs/conops/*' \
@@ -68,8 +76,26 @@ searchable() {
     -not -path './docs/verification/traceability.md' \
     -not -path './CHANGELOG.md' \
     -not -path './STATUS.md' |
-    sort
+    LC_ALL=C sort
 }
+
+# The virtualenv and the other generated trees are pruned for the same reason
+# tools/validate-docs.sh prunes them: a dependency's files are not this
+# repository's, and their decision-shaped strings are not its citations. It is
+# also the difference between this script taking a second and taking minutes,
+# because it greps every file it does not prune.
+#
+# LC_ALL=C on the sort above, and on every sort feeding a generated file: sort
+# order is locale-dependent, and this file is committed and checked for drift.
+# Under en_US.UTF-8 punctuation and case are largely ignored, so `docs/g` sorts
+# before `docs/N` and `.github/` moves; under C they do not. A contributor on
+# an ordinary desktop would otherwise regenerate a file that differs from the
+# committed one in a few hundred lines they did not touch, and CI would fail on
+# drift they could not explain.
+#
+# Pinned at the call site rather than exported, so that it holds even where
+# LC_ALL is already set in the environment, and so that nothing else in this
+# script changes its interpretation of characters.
 
 # Where a citation lives decides how much it means. Code citing a decision is
 # evidence the decision was implemented; a README citing it is evidence someone

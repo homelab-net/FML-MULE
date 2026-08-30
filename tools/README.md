@@ -7,10 +7,18 @@ Everything here is POSIX `sh` except `validate-mission.py`, which is Python
 because JSON Schema validation in shell would be worse for everyone. No script
 requires anything beyond coreutils, `grep`, `sed`, `awk` and `git`.
 
+`install-deps.sh` is the one exception, and is not a validation script: it
+installs the toolchain the others are checked by, so it needs `apt-get`,
+`curl`, network access, and the ability to become root.
+
 ## Scripts
 
 | Script | Purpose |
 | --- | --- |
+| `install-deps.sh` | Install the toolchain `lint.sh` runs. `--check` reports what is missing without installing. |
+| `requirements-dev.txt` | The pinned Python toolchain. Generated, never hand-edited. `FML-ADR-058`. |
+| `toolchain-versions.sh` | Pinned versions and digests of the non-apt, non-Python tools. Sourced, never executed. |
+| `check-toolchain-arm64.sh` | Check the pinned toolchain could install on arm64. Needs network; not run by `lint.sh`. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
@@ -22,11 +30,111 @@ requires anything beyond coreutils, `grep`, `sed`, `awk` and `git`.
 ## Before opening a pull request
 
 ```sh
+tools/install-deps.sh   # once per machine
 tools/lint.sh
 ```
 
-That runs the linters and the repository checks together. Install what it
-reports as skipped if you want the same coverage CI has.
+That runs the linters and the repository checks together. **Read the exit code,
+not the last line**: `lint.sh` skips every tool it cannot find and still prints
+a cheerful summary, so on a machine without the toolchain a green-looking run
+has checked almost nothing.
+
+`install-deps.sh` closes that gap. Run `tools/install-deps.sh --check` to see
+what is missing without installing anything.
+
+## `install-deps.sh`
+
+```sh
+tools/install-deps.sh [--check]
+```
+
+Installs `shellcheck`, `bats` and Node from apt; `shfmt` and `gitleaks` from
+their release pages, pinned by version and verified by SHA-256;
+`markdownlint-cli2` globally with npm at a pinned version; and the Python
+toolchain into a virtualenv at `.venv`, at the exact versions recorded in
+`tools/requirements-dev.txt`.
+
+The split is deliberate. A tool comes from apt where the distribution build is
+what we want and its version does not decide what passes. It is pinned from
+upstream where the version **does** decide what passes: a linter release adds
+rules, and a tree that passed yesterday fails today with no commit in between.
+
+`gitleaks` moved off apt for a second reason. Debian's build answers `version
+is set by build process` when asked, so neither a contributor nor CI could say
+which scanner had run, and the packaged version differs between Debian and
+Ubuntu. That is the wrong property for a secret scanner.
+
+The virtualenv exists because Debian marks its system Python externally
+managed, and because one project's linters have no business being installed
+system-wide. `lint.sh` puts `.venv/bin` on its `PATH` when the directory is
+there, so running the installer is enough; you do not have to activate it
+first. To run those tools by hand, `. .venv/bin/activate`.
+
+It installs only the tools that check this repository, not `batctl`, `iw`,
+`tcpdump` or `iputils-arping`, which the network plane work needs; see
+`docs/dev-machine.md`.
+
+`--only` installs a subset: `apt`, `python`, `shfmt`, `gitleaks`, `node`,
+comma-separated.
+It exists so `.github/workflows/lint.yml` can call this script per job instead
+of restating the package list, which is why there is now one source of
+toolchain versions rather than two. A contributor does not normally need it.
+
+**This script is the authoritative list.** Add a tool here and CI picks it up
+with no second edit. That is the reverse of how it started, when the workflow
+carried the list and this script mirrored it.
+
+## `requirements-dev.txt`
+
+The pinned Python toolchain (`FML-ADR-058`). **Generated, never hand-edited.**
+
+It records the fully resolved set, all thirty-six packages rather than the
+eight direct ones, so that `tools/lint.sh` passing identifies which linters
+passed. Pinning only the direct dependencies would reproduce the same drift one
+layer down.
+
+The file's header carries the refresh procedure. The rule it exists to enforce:
+run `tools/lint.sh` and see it pass **before** capturing the set, because a set
+that has not been exercised is a guess with version numbers on it. Editing a
+version by hand produces exactly that.
+
+Refreshing it is an ordinary change, reviewed like any other, consistent with
+the dependency policy in `CONTRIBUTING.md`. What the pin does **not** give you
+is artifact integrity: `==` fixes the version, not the file behind it, which is
+weaker than the digest pinning this repository requires of container images.
+`FML-ADR-058` records that inconsistency rather than leaving it to be
+discovered.
+
+### arm64
+
+Everything here was resolved on `x86_64`, and the compute element is expected
+to be an `arm64` board. `tools/check-toolchain-arm64.sh` asks whether that
+would work, on every CI run:
+
+```sh
+tools/check-toolchain-arm64.sh
+```
+
+It checks that every pinned package has an `aarch64` wheel, refusing a source
+fallback so a missing wheel fails here rather than becoming a compiler on
+somebody's board, and that the pinned `arm64` binaries are published at the
+digests `toolchain-versions.sh` records.
+
+**It proves resolvability, not function.** Nothing in this repository executes
+an `arm64` binary. A green run means the install would find its files; it says
+nothing about whether the tools work there, and nothing whatever about the
+node. It needs network, which is why `tools/lint.sh` does not run it: `lint.sh`
+is offline and should stay that way.
+
+### CI installs from this file too
+
+`.github/workflows/lint.yml` calls `tools/install-deps.sh --only python`, so
+continuous integration resolves nothing of its own and installs the same set a
+contributor does. CI also pins its interpreter to Python 3.13, the version this
+file was resolved against and the one Debian stable ships (`FML-ADR-022`).
+
+A disagreement between a local run and a CI run is therefore a real
+disagreement, which is the property the pin exists to provide.
 
 ## `validate-docs.sh`
 

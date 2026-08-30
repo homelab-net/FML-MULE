@@ -9,7 +9,7 @@ that run on it, in a place where the infrastructure is gone or was never there.
 A node hosts a network plane and a mission-service plane on a single
 general-purpose Linux compute element, with several radio bearers. Wi-Fi HaLow
 (IEEE 802.11ah, sub-GHz) provides the range-oriented IP mesh, using 802.11s with
-`batman-adv` in BATMAN-V mode. Conventional Wi-Fi provides a high-throughput
+`batman-adv` in BATMAN-IV mode. Conventional Wi-Fi provides a high-throughput
 link between nodes and, separately, an access point that an operator's phone or
 tablet associates with. LoRa carries an independent low-bandwidth plane, whose
 value is that it still works when the IP plane does not.

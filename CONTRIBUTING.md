@@ -235,6 +235,9 @@ of the review.
 
 Before you open one:
 
+- `tools/install-deps.sh` has been run on this machine, so that `lint.sh` is
+  actually checking something. It skips every tool it cannot find and still
+  exits zero, which is the failure described in `docs/dev-machine.md`.
 - `tools/validate-docs.sh` passes.
 - `tools/lint.sh` passes.
 - If you touched ADR or trade frontmatter, you regenerated `STATUS.md` with
@@ -249,10 +252,18 @@ Change the source frontmatter and regenerate.
 
 ## Dependency updates
 
-Automated update proposals are opened but **never auto-merged**. Promotion of a
-dependency is a decision, because kernel, driver, firmware, and userspace
-promote as one tested compatibility set (`FML-ADR-040`). A bot cannot make that
-decision, and a green CI run is not evidence that the set still works.
+Automated update proposals are opened by Dependabot, configured in
+`.github/dependabot.yml`, but **never auto-merged**. Promotion of a dependency
+is a decision, because kernel, driver, firmware, and userspace promote as one
+tested compatibility set (`FML-ADR-040`). A bot cannot make that decision, and a
+green CI run is not evidence that the set still works.
+
+A proposal against `tools/requirements-dev.txt` is read as a report that the
+pinned toolchain has gone stale, which is the consequence `FML-ADR-058` accepts
+and which nothing else detects. Do not merge the single-package edit: that file
+is generated, and a version changed in isolation is a set nobody resolved.
+Close the proposal by refreshing the lock the way its header describes, from an
+environment that has run `tools/lint.sh` to completion.
 
 ## If something is unclear
 

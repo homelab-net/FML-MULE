@@ -40,11 +40,20 @@ jobs:
           # published, and removing the tip commit does not undo that.
           fetch-depth: 0
 
+      # The pinned binary rather than gitleaks-action, so that the scanner a
+      # contributor runs and the scanner CI runs are the same build. The action
+      # resolved its own version, and Debian's package answers "version is set
+      # by build process" when asked, so neither end could say what scanned.
+      #
+      # Given up by not using the action: its inline pull request annotations.
+      # A finding still fails the job and is printed, redacted, in the log.
+      - name: Install the pinned gitleaks
+        run: tools/install-deps.sh --only gitleaks
+
       - name: Scan for committed secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+        # The same invocation tools/lint.sh uses. .gitleaks.toml is picked up
+        # from the repository root.
+        run: gitleaks detect --no-banner --redact --source .
 
   documents:
     name: Document validation
@@ -77,8 +86,11 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install markdownlint-cli2
+        run: tools/install-deps.sh --only node
+
       - name: Lint Markdown
-        run: npx --yes markdownlint-cli2 "**/*.md"
+        run: markdownlint-cli2 "**/*.md"
 
   shell:
     name: Shell
@@ -86,16 +98,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install shellcheck, shfmt and bats
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck bats
-          curl -fsSL -o /tmp/shfmt \
-            https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64
-          sudo install -m 0755 /tmp/shfmt /usr/local/bin/shfmt
+      # tools/install-deps.sh is the single source of toolchain versions
+      # (FML-ADR-058). Restating the package list or the shfmt version here
+      # would put it in two places, and the two would drift.
+      - name: Install the shell toolchain
+        run: tools/install-deps.sh --only apt,shfmt
 
       - name: shellcheck
-        run: shellcheck tools/*.sh
+        # -x so sourced files are followed; see the note in tools/lint.sh.
+        run: shellcheck -x tools/*.sh
 
       - name: shfmt
         run: shfmt -d -i 2 -ci tools/*.sh
@@ -112,12 +123,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 3.13 is Debian stable's Python, which FML-ADR-022 selects, and is the
+      # interpreter tools/requirements-dev.txt was resolved against. Running a
+      # different one here would mean CI installs a set nobody resolved.
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
-      - name: Install
-        run: python -m pip install --upgrade pip ruff pytest jsonschema pyyaml coverage
+      - name: Install the pinned Python toolchain
+        run: |
+          tools/install-deps.sh --only python
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: ruff lint
         run: ruff check .
@@ -138,6 +154,31 @@ jobs:
       - name: Production package is fully covered
         run: sh tools/coverage-check.sh
 
+  arm64:
+    name: Toolchain resolves for arm64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install the pinned Python toolchain
+        run: tools/install-deps.sh --only python
+
+      # FML-ADR-022 selects Debian; the compute element is unselected but
+      # expected to be an arm64 board, because this is a portable field
+      # appliance. Every version in the repository is nonetheless resolved on
+      # x86_64, because that is what CI and the contributors have. A refreshed
+      # lock can lose arm64 support silently, on a machine where nothing tries
+      # it, so this asks on every run.
+      #
+      # It proves resolvability, not function: nothing here executes an arm64
+      # binary. See the header of the script.
+      - name: Check the toolchain resolves for arm64
+        run: tools/check-toolchain-arm64.sh
+
   yaml:
     name: YAML and Ansible
     runs-on: ubuntu-latest
@@ -146,10 +187,12 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
-      - name: Install
-        run: python -m pip install --upgrade pip yamllint ansible-lint ansible-core
+      - name: Install the pinned Python toolchain
+        run: |
+          tools/install-deps.sh --only python
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: yamllint
         run: yamllint .
