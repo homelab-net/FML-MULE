@@ -40,11 +40,20 @@ jobs:
           # published, and removing the tip commit does not undo that.
           fetch-depth: 0
 
+      # The pinned binary rather than gitleaks-action, so that the scanner a
+      # contributor runs and the scanner CI runs are the same build. The action
+      # resolved its own version, and Debian's package answers "version is set
+      # by build process" when asked, so neither end could say what scanned.
+      #
+      # Given up by not using the action: its inline pull request annotations.
+      # A finding still fails the job and is printed, redacted, in the log.
+      - name: Install the pinned gitleaks
+        run: tools/install-deps.sh --only gitleaks
+
       - name: Scan for committed secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+        # The same invocation tools/lint.sh uses. .gitleaks.toml is picked up
+        # from the repository root.
+        run: gitleaks detect --no-banner --redact --source .
 
   documents:
     name: Document validation

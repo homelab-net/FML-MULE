@@ -7,10 +7,11 @@
 #   --check        install nothing; report what is missing and exit non-zero
 #                  if anything is
 #   --only         act on the named groups only. One or more of:
-#                    apt     shellcheck, bats, gitleaks, Node, curl
-#                    python  the pinned toolchain, into .venv
-#                    shfmt   the pinned shfmt binary
-#                    node    markdownlint-cli2, globally
+#                    apt       shellcheck, bats, Node, curl
+#                    python    the pinned toolchain, into .venv
+#                    shfmt     the pinned shfmt binary
+#                    gitleaks  the pinned gitleaks binary
+#                    node      markdownlint-cli2, pinned, globally
 #
 # --only exists for continuous integration, whose jobs are split by language
 # and would otherwise each install the whole toolchain to use a quarter of it.
@@ -55,6 +56,21 @@ SHFMT_VERSION=3.10.0
 SHFMT_SHA256_amd64=1f57a384d59542f8fac5f503da1f3ea44242f46dff969569e80b524d64b71dbc
 SHFMT_SHA256_arm64=9d23013d56640e228732fd2a04a9ede0ab46bc2d764bf22a4a35fb1b14d707a8
 
+# gitleaks, for the same reason and from the same kind of source. It is NOT
+# taken from apt: Debian's build answers "version is set by build process" when
+# asked, so a contributor cannot tell which scanner ran, and the version
+# differs between Debian and Ubuntu anyway. A secret scanner whose version is
+# unknown is the wrong tool to be casual about. Digests recorded from the
+# published archives.
+GITLEAKS_VERSION=8.30.1
+GITLEAKS_SHA256_amd64=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+GITLEAKS_SHA256_arm64=e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080
+
+# markdownlint-cli2. npm installs the newest release unless told otherwise, so
+# an unpinned install here is the same drift the Python lock exists to prevent:
+# a linter that adds a rule fails a tree nobody changed.
+MDLINT_VERSION=0.23.2
+
 # Python tooling, installed into a repository-local virtualenv rather than
 # system-wide. Debian marks its system Python externally managed, and a
 # contributor's other projects have no business sharing this one's linters.
@@ -67,13 +83,14 @@ SHFMT_SHA256_arm64=9d23013d56640e228732fd2a04a9ede0ab46bc2d764bf22a4a35fb1b14d70
 VENV="$ROOT/.venv"
 PY_LOCK="$ROOT/tools/requirements-dev.txt"
 
-# Debian packages. gitleaks is included because tools/lint.sh looks for the
-# binary on PATH; CI runs the gitleaks action instead, so the versions there
-# and here are not the same one.
-APT_PACKAGES='shellcheck bats python3-venv nodejs npm gitleaks curl ca-certificates'
+# Debian packages: the ones whose distribution build is the thing we want, and
+# whose version does not decide what passes. shellcheck and bats are pinned by
+# the distribution; shfmt, gitleaks and markdownlint-cli2 are pinned above
+# because their versions do decide what passes.
+APT_PACKAGES='shellcheck bats python3-venv nodejs npm curl ca-certificates'
 
 CHECK=0
-ALL_GROUPS='apt python shfmt node'
+ALL_GROUPS='apt python shfmt gitleaks node'
 WANTED=$ALL_GROUPS
 
 while [ $# -gt 0 ]; do
@@ -160,8 +177,9 @@ report() {
   fi
 }
 
-want apt && for tool in shellcheck bats gitleaks; do report "$tool" ''; done
+want apt && for tool in shellcheck bats; do report "$tool" ''; done
 want shfmt && report shfmt ''
+want gitleaks && report gitleaks ''
 want node && report markdownlint-cli2 ''
 want python && for tool in ruff pytest yamllint ansible-lint coverage; do
   report "$tool" venv
@@ -196,7 +214,8 @@ if ! have apt-get; then
   note "Debian packages:  $APT_PACKAGES"
   note "Python packages:  from tools/requirements-dev.txt"
   note "shfmt:            v$SHFMT_VERSION from https://github.com/mvdan/sh"
-  note 'Node:             markdownlint-cli2, installed globally with npm'
+  note "gitleaks:         v$GITLEAKS_VERSION from https://github.com/gitleaks/gitleaks"
+  note "Node:             markdownlint-cli2@$MDLINT_VERSION, globally with npm"
   exit 1
 fi
 
@@ -274,12 +293,55 @@ if want shfmt; then
   fi
 fi
 
+# --- gitleaks ---------------------------------------------------------------
+
+if want gitleaks; then
+  step "gitleaks v$GITLEAKS_VERSION"
+  if have gitleaks && [ "$(gitleaks version 2>/dev/null)" = "$GITLEAKS_VERSION" ]; then
+    note 'Already at the pinned version.'
+  else
+    arch=$(uname -m)
+    case "$arch" in
+      x86_64 | amd64)
+        gl_arch=x64
+        gl_sha=$GITLEAKS_SHA256_amd64
+        ;;
+      aarch64 | arm64)
+        gl_arch=arm64
+        gl_sha=$GITLEAKS_SHA256_arm64
+        ;;
+      *)
+        printf 'ERROR: no pinned gitleaks digest for architecture %s.\n' "$arch" >&2
+        printf 'Add one to this script rather than skipping verification.\n' >&2
+        exit 1
+        ;;
+    esac
+
+    gl_url="https://github.com/gitleaks/gitleaks/releases/download/v$GITLEAKS_VERSION/gitleaks_${GITLEAKS_VERSION}_linux_$gl_arch.tar.gz"
+    gl_tmp=$(mktemp -d)
+    curl -fsSL -o "$gl_tmp/gitleaks.tar.gz" "$gl_url"
+    gl_actual=$(sha256sum "$gl_tmp/gitleaks.tar.gz" | cut -d' ' -f1)
+    if [ "$gl_actual" != "$gl_sha" ]; then
+      rm -rf "$gl_tmp"
+      printf 'ERROR: gitleaks checksum mismatch.\n' >&2
+      printf '  expected %s\n' "$gl_sha" >&2
+      printf '  actual   %s\n' "$gl_actual" >&2
+      exit 1
+    fi
+    tar -xzf "$gl_tmp/gitleaks.tar.gz" -C "$gl_tmp" gitleaks
+    as_root install -m 0755 "$gl_tmp/gitleaks" /usr/local/bin/gitleaks
+    rm -rf "$gl_tmp"
+    note 'Installed and checksum verified.'
+  fi
+fi
+
 # --- markdownlint-cli2 ------------------------------------------------------
 
 if want node; then
-  step 'markdownlint-cli2'
-  if have markdownlint-cli2; then
-    note 'Already installed.'
+  step "markdownlint-cli2 v$MDLINT_VERSION"
+  if have markdownlint-cli2 &&
+    markdownlint-cli2 --version 2>/dev/null | grep -q "v$MDLINT_VERSION"; then
+    note 'Already at the pinned version.'
   else
     # Only escalate when the global prefix is not already writable. sudo resets
     # PATH, so on a machine where a version manager put node somewhere of its
@@ -287,9 +349,9 @@ if want node; then
     # install into a different node than the one that is going to run it.
     npm_prefix=$(npm config get prefix 2>/dev/null || printf '')
     if [ -n "$npm_prefix" ] && [ -w "$npm_prefix/lib" ]; then
-      npm install -g --silent markdownlint-cli2
+      npm install -g --silent "markdownlint-cli2@$MDLINT_VERSION"
     else
-      as_root npm install -g --silent markdownlint-cli2
+      as_root npm install -g --silent "markdownlint-cli2@$MDLINT_VERSION"
     fi
     note 'Installed.'
   fi

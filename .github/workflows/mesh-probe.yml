@@ -89,25 +89,31 @@ jobs:
           lsmod | grep batman
           sudo dmesg | grep -i batman_adv | tail -5
 
-          # FML-ADR-024 selects BATMAN_V. Whether the module supports it is a
-          # build-time option, CONFIG_BATMAN_ADV_BATMAN_V, and the stock
-          # distribution module may be built without it. Probe run 4 found
-          # exactly that: "Routing algorithm 'BATMAN_V' is not supported".
+          # FML-ADR-053 makes BATMAN_IV the baseline, superseding FML-ADR-024.
+          # This block used to select BATMAN_V and treat BATMAN_IV as a
+          # fallback deviation, which contradicted this file's own header once
+          # that ADR landed.
           #
-          # So ask rather than assume, and carry the answer forward. The
-          # topology below runs on whatever is available, and the last step
-          # reports loudly when that is not what the ADR selected.
+          # BATMAN_V availability is still worth recording rather than
+          # assuming. It is the build-time option CONFIG_BATMAN_ADV_BATMAN_V,
+          # probe run 4 found it absent here, and that finding is half the
+          # argument FML-ADR-053 rests on. Reconsidering BATMAN_V needs
+          # TBR-RF-01 evidence of a usable driver throughput estimate AND the
+          # algorithm being selectable at all; this records the second half on
+          # every run.
           if sudo batctl routing_algo BATMAN_V 2>/tmp/algo_err; then
-            echo "ALGO=BATMAN_V" >> "$GITHUB_ENV"
-            echo "ADR_ALGO_AVAILABLE=yes" >> "$GITHUB_ENV"
-            echo "BATMAN_V available."
+            echo "BATMAN_V_AVAILABLE=yes" >> "$GITHUB_ENV"
+            echo "BATMAN_V is available in this module build."
           else
             cat /tmp/algo_err
-            echo "ALGO=BATMAN_IV" >> "$GITHUB_ENV"
-            echo "ADR_ALGO_AVAILABLE=no" >> "$GITHUB_ENV"
-            echo "BATMAN_V UNAVAILABLE in this module build."
-            echo "Falling back to BATMAN_IV to exercise the topology."
+            echo "BATMAN_V_AVAILABLE=no" >> "$GITHUB_ENV"
+            echo "BATMAN_V is NOT available in this module build."
           fi
+
+          # The baseline is set last, so what is left configured is what this
+          # probe actually exercises.
+          sudo batctl routing_algo BATMAN_IV
+          echo "ALGO=BATMAN_IV" >> "$GITHUB_ENV"
           sudo batctl routing_algo
 
       - name: Build a line topology, node1 - node2 - node3
@@ -417,6 +423,7 @@ jobs:
           echo
           echo "MULTI-HOP MESH CONFIRMED: node1 reaches node3 via node2."
           echo "Routing algorithm actually used: $ALGO"
+          echo "BATMAN_V available in this module build: $BATMAN_V_AVAILABLE"
 
       # --- the EUD leg -----------------------------------------------------
       #

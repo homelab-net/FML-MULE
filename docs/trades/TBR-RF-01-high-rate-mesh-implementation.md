@@ -11,7 +11,7 @@ depends-on: [TBR-RF-03, TBR-LINUX-01]
 feeds: [TBR-HW-01]
 requires-hardware: yes
 evidence: docs/evidence/TBR-RF-01/
-adr: [FML-ADR-025, FML-ADR-024]
+adr: [FML-ADR-025, FML-ADR-053]
 target-date: TBD-SRR
 ---
 
@@ -40,9 +40,18 @@ That preference is conditional on chipset and driver stability. If it does not
 hold, SAD section 5.3 makes the bearer a routed adjunct and HaLow remains the
 baseline MANET fabric.
 
-If both bearers join the same batman-adv mesh, BATMAN-V's metric must
+If both bearers join the same batman-adv mesh, the routing metric must
 distinguish them sensibly, or traffic will take a fast-but-absent path or a
 present-but-slow one.
+
+That metric is now BATMAN-IV's, which is derived from packet loss rather than
+throughput (`FML-ADR-053`, superseding `FML-ADR-024`). This question therefore
+got harder rather than easier: `FML-ADR-053` states the effect outright, that on
+links of unequal rate but similar loss BATMAN-IV may prefer a lossless slow path
+over a lossy fast one, and names a node with one high-rate and one
+range-oriented bearer as exactly where it bites. That is this trade's
+configuration. Evidence gathered here is also one of the two things
+`FML-ADR-053` requires before BATMAN-V could be reconsidered.
 
 ## Options
 

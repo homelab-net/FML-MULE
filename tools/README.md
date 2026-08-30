@@ -46,10 +46,21 @@ what is missing without installing anything.
 tools/install-deps.sh [--check]
 ```
 
-Installs `shellcheck`, `bats`, `gitleaks` and Node from apt; `shfmt` from its
-release page, pinned by version and verified by SHA-256; `markdownlint-cli2`
-globally with npm; and the Python toolchain into a virtualenv at `.venv`, at
-the exact versions recorded in `tools/requirements-dev.txt`.
+Installs `shellcheck`, `bats` and Node from apt; `shfmt` and `gitleaks` from
+their release pages, pinned by version and verified by SHA-256;
+`markdownlint-cli2` globally with npm at a pinned version; and the Python
+toolchain into a virtualenv at `.venv`, at the exact versions recorded in
+`tools/requirements-dev.txt`.
+
+The split is deliberate. A tool comes from apt where the distribution build is
+what we want and its version does not decide what passes. It is pinned from
+upstream where the version **does** decide what passes: a linter release adds
+rules, and a tree that passed yesterday fails today with no commit in between.
+
+`gitleaks` moved off apt for a second reason. Debian's build answers `version
+is set by build process` when asked, so neither a contributor nor CI could say
+which scanner had run, and the packaged version differs between Debian and
+Ubuntu. That is the wrong property for a secret scanner.
 
 The virtualenv exists because Debian marks its system Python externally
 managed, and because one project's linters have no business being installed
@@ -61,7 +72,8 @@ It installs only the tools that check this repository, not `batctl`, `iw`,
 `tcpdump` or `iputils-arping`, which the network plane work needs; see
 `docs/dev-machine.md`.
 
-`--only` installs a subset: `apt`, `python`, `shfmt`, `node`, comma-separated.
+`--only` installs a subset: `apt`, `python`, `shfmt`, `gitleaks`, `node`,
+comma-separated.
 It exists so `.github/workflows/lint.yml` can call this script per job instead
 of restating the package list, which is why there is now one source of
 toolchain versions rather than two. A contributor does not normally need it.
