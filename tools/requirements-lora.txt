@@ -1,0 +1,38 @@
+# Python client for the LoRa plane, pinned. FML-ADR-058 applies to this file
+# the same way it applies to tools/requirements-dev.txt.
+#
+# GENERATED, NOT HAND-EDITED. This is the fully resolved set that was actually
+# exercised: it talked to two meshtasticd nodes over the API and to a physical
+# device over USB serial.
+#
+# SEPARATE FROM tools/requirements-dev.txt on purpose. That file is the
+# toolchain tools/lint.sh runs, and CI installs it in three jobs. The client
+# below is for working the LoRa plane -- talking to a node, driving a probe,
+# reading a device on the bench -- and no linter needs it. Keeping them apart
+# means neither can break the other's resolution, and the lint jobs stay small.
+#
+# It installs into .venv-lora, not .venv, for the same reason.
+#
+# To refresh it, from the repository root:
+#
+#   rm -rf .venv-lora
+#   python3 -m venv .venv-lora
+#   .venv-lora/bin/pip install --upgrade pip meshtastic
+#   .venv-lora/bin/meshtastic --version     # must answer
+#   .venv-lora/bin/pip freeze --local       # capture, keeping this header
+#
+# Resolved on Python 3.13, Debian 13.
+bleak==3.0.2
+certifi==2026.7.22
+charset-normalizer==3.5.1
+dbus-fast==5.0.22
+idna==3.19
+meshtastic==2.7.11
+packaging==26.3
+protobuf==7.36.0
+Pypubsub==4.0.7
+pyserial==3.5
+PyYAML==6.0.3
+requests==2.34.2
+tabulate==0.9.0
+urllib3==2.7.0

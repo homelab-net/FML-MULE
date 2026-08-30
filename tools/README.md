@@ -19,6 +19,7 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | `requirements-dev.txt` | The pinned Python toolchain. Generated, never hand-edited. `FML-ADR-058`. |
 | `toolchain-versions.sh` | Pinned versions and digests of the non-apt, non-Python tools. Sourced, never executed. |
 | `check-toolchain-arm64.sh` | Check the pinned toolchain could install on arm64. Needs network; not run by `lint.sh`. |
+| `requirements-lora.txt` | The pinned Meshtastic client for LoRa plane work. Generated, never hand-edited. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
@@ -75,7 +76,7 @@ It installs only the tools that check this repository, not `batctl`, `iw`,
 `docs/dev-machine.md`.
 
 `--only` installs a subset: `apt`, `python`, `shfmt`, `gitleaks`, `node`,
-comma-separated.
+`lora`, comma-separated.
 It exists so `.github/workflows/lint.yml` can call this script per job instead
 of restating the package list, which is why there is now one source of
 toolchain versions rather than two. A contributor does not normally need it.
@@ -104,6 +105,33 @@ is artifact integrity: `==` fixes the version, not the file behind it, which is
 weaker than the digest pinning this repository requires of container images.
 `FML-ADR-058` records that inconsistency rather than leaving it to be
 discovered.
+
+### The LoRa plane bench
+
+```sh
+tools/install-deps.sh --only lora
+```
+
+Not installed by default, because most work in this repository does not touch
+the LoRa plane and the group pulls a container image.
+
+It installs `docker.io`, the `meshtasticd` image **by immutable digest** from
+`tools/toolchain-versions.sh`, and the Meshtastic client pinned in
+`tools/requirements-lora.txt` into `.venv-lora`.
+
+The client is in its own virtualenv, not `.venv`. That file is the toolchain
+`tools/lint.sh` runs and CI installs it in three jobs; no linter needs a
+Meshtastic client, and keeping them apart means neither can break the other's
+resolution.
+
+`.github/workflows/lora-probe.yml` reads the same image digest from the same
+file, so the probe and a bench run the same daemon build.
+
+Once installed, two nodes in simulation or a physical device on USB serial:
+
+```sh
+.venv-lora/bin/meshtastic --port /dev/ttyACM0 --info
+```
 
 ### arm64
 

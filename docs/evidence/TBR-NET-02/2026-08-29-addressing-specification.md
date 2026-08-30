@@ -110,6 +110,27 @@ fail-closed rule below applies.
 enum. Every tag byte is airtime on the bearer CONOPS section 50.8 makes the
 lifeline, so the encoding is a real decision rather than a formality.
 
+**Amended 2026-08-30: the usable payload is 231 bytes, not 233.** The protobuf
+constant is 233 and that is correct as a constant, but a 233-byte payload does
+not arrive, and neither does 232. 231 does. Measured on two `meshtasticd`
+instances; see `2026-08-30-tag-payload-measurement.md` for the sweep and the
+configuration.
+
+The table below is unchanged, because the constant is what a reader will find
+in the protobuf and the percentages move by less than a tenth of a point. What
+changes is the **usable message length**, which is 230 bytes beside a one-byte
+tag rather than 232.
+
+**The sender does not report the failure.** `sendData` accepts an oversized
+payload and returns without error; the packet simply never appears at the other
+node. An implementation that fills the documented 233 bytes would therefore
+drop messages **silently**, on the lifeline bearer. Whatever writes the tag
+**shall** refuse a payload over 231 bytes rather than hand it to a sender that
+accepts and discards it.
+
+Why two bytes are unavailable is not established. Protobuf field overhead is
+the obvious candidate and it was not measured, so it is not claimed here.
+
 | Encoding | Bytes | Members addressable | Share of 233 |
 | --- | ---: | ---: | ---: |
 | One-byte index | 1 | 255 | 0.43% |
@@ -205,3 +226,12 @@ document's word.
    the message, the encoding above is unimplementable and option D, one radio
    per EUD, becomes the serious alternative. `FML-ADR-048` fixes the gateway
    order and none of the three has been exercised.
+
+   **Partly tested, 2026-08-30, and it did not fire.** A one-byte tag followed
+   by the message crossed between two `meshtasticd` nodes byte-intact, so the
+   *transport* carries it. See `2026-08-30-tag-payload-measurement.md`.
+
+   **The gateway half remains untested and is the half this item names.** A
+   gateway that parses CoT and re-emits a canned Meshtastic message would drop
+   the tag whatever the transport can carry. None of `FML-ADR-048`'s three has
+   been exercised. Do not read the transport result as closing this.

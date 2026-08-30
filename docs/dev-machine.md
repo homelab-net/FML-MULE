@@ -72,7 +72,12 @@ specifically on "a machine with a wireless stack", and you are that machine.
 2. **The lint toolchain**, until `tools/lint.sh` skips nothing.
    `tools/install-deps.sh` installs it. See above.
 3. **`batctl`, `iw`, `tcpdump`, `iputils-arping`** for the network plane work.
-4. **Git identity, Conventional Commits and a `Signed-off-by` line.** See
+   These are still not installed by `tools/install-deps.sh`: it installs what
+   checks the repository, and these drive a node.
+4. **The LoRa bench**, if you are working that plane:
+   `tools/install-deps.sh --only lora`. It installs `docker.io`, the pinned
+   `meshtasticd` image and the pinned Meshtastic client into `.venv-lora`.
+5. **Git identity, Conventional Commits and a `Signed-off-by` line.** See
    `CONTRIBUTING.md`. A `Refs:` trailer is required only where a change adds or
    removes a decision citation in code.
 

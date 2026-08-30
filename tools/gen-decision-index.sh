@@ -60,8 +60,8 @@ searchable() {
   find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \) \
     -not -path './.git/*' \
     -not -path './node_modules/*' \
-    -not -path './.venv/*' \
-    -not -path './venv/*' \
+    -not -path './.venv*' \
+    -not -path './venv*' \
     -not -path '*__pycache__*' \
     -not -path './.pytest_cache/*' \
     -not -path './.ruff_cache/*' \
