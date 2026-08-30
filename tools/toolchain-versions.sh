@@ -46,3 +46,16 @@ GITLEAKS_SHA256_arm64=e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570f
 # an unpinned install here is the same drift the Python lock exists to prevent:
 # a linter that adds a rule fails a tree nobody changed.
 MDLINT_VERSION=0.23.2
+
+# The LoRa plane's daemon, as a container image referenced BY IMMUTABLE DIGEST.
+# AGENTS.md forbids a mutable tag anywhere and tools/validate-docs.sh check 9
+# enforces it: a tag is not a version, and the image behind one can change with
+# no file here changing.
+#
+# It lives beside the other pinned versions rather than in
+# .github/workflows/lora-probe.yml, where it used to be the only copy. The
+# workflow now reads it from here, so the probe and a contributor's bench run
+# the same daemon build.
+#
+# meshtastic/meshtasticd:2.7.26-debian resolved 2026-08-29.
+MESHTASTICD_IMAGE="meshtastic/meshtasticd@sha256:23e92b1331a3a471eaef0c63cbca4365ca40b3111a9781cfdbe5a5114e5773d4"

@@ -55,7 +55,7 @@ FLATSAT_README=test/flatsat/README.md
 #
 # This is the set .gitignore already declares.
 GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=node_modules \
---exclude-dir=.venv --exclude-dir=venv --exclude-dir=__pycache__ \
+--exclude-dir=.venv* --exclude-dir=venv --exclude-dir=__pycache__ \
 --exclude-dir=.pytest_cache --exclude-dir=.ruff_cache \
 --exclude-dir=.mypy_cache --exclude-dir=.ansible --exclude-dir=*.egg-info"
 

@@ -54,10 +54,12 @@ permissions:
   contents: read
 
 env:
-  # meshtastic/meshtasticd:2.7.26-debian resolved 2026-08-29.
-  # Never replace this with a tag. A tag is not a version.
-  MESHTASTICD_IMAGE: >-
-    meshtastic/meshtasticd@sha256:23e92b1331a3a471eaef0c63cbca4365ca40b3111a9781cfdbe5a5114e5773d4
+  # MESHTASTICD_IMAGE is NOT set here. It lives in tools/toolchain-versions.sh
+  # with the other pinned versions and is read into the environment by the
+  # first step below, so that this probe and a contributor's bench run the same
+  # daemon build. It used to be a second copy of the digest, and a version
+  # recorded in two places is a version that gets updated in one.
+  #
   # Distinct from the default so a stray real node on a runner could not be
   # mistaken for one of ours, and so the assertion cannot pass on chance.
   MARKER: FML-LORA-PROBE-MARKER
@@ -68,6 +70,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      - name: Read the pinned daemon image
+        run: |
+          # One source of versions. See tools/toolchain-versions.sh.
+          . tools/toolchain-versions.sh
+          echo "MESHTASTICD_IMAGE=$MESHTASTICD_IMAGE" >> "$GITHUB_ENV"
+          echo "pinned image: $MESHTASTICD_IMAGE"
 
       - name: Record what the image actually is
         run: |
@@ -125,6 +134,62 @@ jobs:
               iface.close()
               print("text packets seen:", seen)
               sys.exit(0 if any(marker in t for t in seen) else 1)
+
+          elif cmd == "maxpayload":
+              # The addressing specification costs the member tag against
+              # DATA_PAYLOAD_LEN and states it as 233 bytes, read from the
+              # protobuf. Read it from the shipped protobuf here rather than
+              # trusting the document: a costing against a number nobody
+              # checked is a costing against a guess.
+              from meshtastic.protobuf import mesh_pb2
+              print(mesh_pb2.Constants.DATA_PAYLOAD_LEN)
+
+          elif cmd == "sendtag":
+              # One leading byte is the member tag; the rest is the message.
+              # This is the encoding TBR-NET-02 selects, at the size it
+              # selects: a one-byte index, 0.43% of the payload.
+              port, tag, text = sys.argv[2], int(sys.argv[3]), sys.argv[4]
+              iface = connect(port)
+              iface.sendData(bytes([tag]) + text.encode())
+              time.sleep(2)
+              iface.close()
+              print("sent tag", tag, "with", len(text), "bytes of message")
+
+          elif cmd == "listentag":
+              from pubsub import pub
+              port, tag, marker = sys.argv[2], int(sys.argv[3]), sys.argv[4]
+              timeout = float(sys.argv[5])
+              hits, others = [], []
+
+              def on_receive(packet=None, interface=None):
+                  d = (packet or {}).get("decoded") or {}
+                  # Accept the name or the number. Asserting on a rendered
+                  # enum name is how run 1 of this probe came to look for a
+                  # field that does not exist.
+                  if d.get("portnum") not in ("PRIVATE_APP", 256):
+                      return
+                  raw = d.get("payload")
+                  if not raw:
+                      return
+                  if raw[0] == tag and marker.encode() in raw[1:]:
+                      hits.append(raw)
+                  else:
+                      others.append(raw[:16])
+
+              pub.subscribe(on_receive, "meshtastic.receive")
+              iface = connect(port)
+              deadline = time.time() + timeout
+              while time.time() < deadline and not hits:
+                  time.sleep(0.5)
+              iface.close()
+              if hits:
+                  got = hits[0]
+                  print("tag byte received:", got[0])
+                  print("message bytes after the tag:", len(got) - 1)
+                  print("payload intact:", marker.encode() in got[1:])
+                  sys.exit(0)
+              print("no tagged packet matched. other private payloads:", others)
+              sys.exit(1)
           PY
 
           # Waiting for the API is now needed four times, not two: a config

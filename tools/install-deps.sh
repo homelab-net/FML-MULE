@@ -12,6 +12,9 @@
 #                    shfmt     the pinned shfmt binary
 #                    gitleaks  the pinned gitleaks binary
 #                    node      markdownlint-cli2, pinned, globally
+#                    lora      the LoRa plane bench: docker, the pinned
+#                              meshtasticd image, and the pinned Meshtastic
+#                              client in .venv-lora
 #
 # --only exists for continuous integration, whose jobs are split by language
 # and would otherwise each install the whole toolchain to use a quarter of it.
@@ -64,6 +67,10 @@ cd "$ROOT"
 VENV="$ROOT/.venv"
 PY_LOCK="$ROOT/tools/requirements-dev.txt"
 
+# The LoRa bench, kept out of the lint virtualenv. See the header of the file.
+LORA_VENV="$ROOT/.venv-lora"
+LORA_LOCK="$ROOT/tools/requirements-lora.txt"
+
 # Debian packages: the ones whose distribution build is the thing we want, and
 # whose version does not decide what passes. shellcheck and bats are pinned by
 # the distribution; shfmt, gitleaks and markdownlint-cli2 are pinned above
@@ -71,7 +78,7 @@ PY_LOCK="$ROOT/tools/requirements-dev.txt"
 APT_PACKAGES='shellcheck bats python3-venv nodejs npm curl ca-certificates'
 
 CHECK=0
-ALL_GROUPS='apt python shfmt gitleaks node'
+ALL_GROUPS='apt python shfmt gitleaks node lora'
 WANTED=$ALL_GROUPS
 
 while [ $# -gt 0 ]; do
@@ -165,6 +172,15 @@ want node && report markdownlint-cli2 ''
 want python && for tool in ruff pytest yamllint ansible-lint coverage; do
   report "$tool" venv
 done
+if want lora; then
+  report docker ''
+  if [ -x "$LORA_VENV/bin/meshtastic" ]; then
+    note 'meshtastic: present'
+  else
+    note 'meshtastic: MISSING'
+    record_missing meshtastic
+  fi
+fi
 
 if [ "$CHECK" -eq 1 ]; then
   step 'Result'
@@ -336,6 +352,41 @@ if want node; then
     fi
     note 'Installed.'
   fi
+fi
+
+# --- the LoRa bench ---------------------------------------------------------
+
+if want lora; then
+  step 'LoRa plane bench'
+  if ! have docker; then
+    note 'Installing docker.io for the two-node simulation.'
+    as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io
+  fi
+
+  if [ ! -f "$LORA_LOCK" ]; then
+    printf 'ERROR: %s is missing.\n' "$LORA_LOCK" >&2
+    exit 1
+  fi
+  if [ ! -x "$LORA_VENV/bin/python" ]; then
+    python3 -m venv "$LORA_VENV"
+  fi
+  "$LORA_VENV/bin/pip" install --quiet --upgrade pip
+  "$LORA_VENV/bin/pip" install --quiet --requirement "$LORA_LOCK"
+  note "Client installed from tools/requirements-lora.txt into .venv-lora."
+
+  # Pull by digest now rather than on first use, so that a bench with no
+  # network later still has the daemon, and so that a wrong digest fails here
+  # instead of halfway through a probe.
+  if have docker && docker info >/dev/null 2>&1; then
+    docker pull --quiet "$MESHTASTICD_IMAGE" >/dev/null &&
+      note 'meshtasticd image pulled by digest.'
+  else
+    note 'docker is installed but its daemon is not answering; image not'
+    note 'pulled. Start it, then run this again with --only lora.'
+  fi
+
+  note ''
+  note 'To talk to a physical device: .venv-lora/bin/meshtastic --port /dev/ttyACM0 --info'
 fi
 
 # --- done -------------------------------------------------------------------

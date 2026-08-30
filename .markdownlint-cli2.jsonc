@@ -54,6 +54,7 @@
   "ignores": [
     "node_modules/**",
     ".venv/**",
+    ".venv-lora/**",
 
     // Controlled documents, transcribed verbatim.
     //

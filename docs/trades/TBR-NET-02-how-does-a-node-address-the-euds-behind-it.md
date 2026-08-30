@@ -2,7 +2,7 @@
 id: TBR-NET-02
 title: How does a node address the EUDs behind it
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: NET
 priority: 99
 function-owner: Network
