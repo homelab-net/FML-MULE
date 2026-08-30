@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-059
 title: Link configuration is owned by systemd-networkd and nothing else reconfigures a link
-status: PROPOSED
+status: SELECTED
 date: 2026-08-30
 supersedes: none
 superseded-by: none
@@ -118,16 +118,21 @@ this decision only fixes what expresses it.
 
 ## Status
 
-`PROPOSED`.
+`SELECTED`. Accepted by the Program Owner on 2026-08-30.
 
-It is written as a proposal rather than adopted because it is a structural
-choice made ahead of the hardware that would test it. No interface has been
-brought up by any of these components on a MULE, because no MULE exists, and
-the evidence behind the reasoning is a three-node mesh in network namespaces
+Implementation depends on it: `docs/ROADMAP-DEV.md` item 1.2's units and item
+1.1 step 4's configuration templates are both written against it, and changing
+where link configuration lives now requires a superseding ADR.
+
+**It was accepted as a structural choice made ahead of the hardware that would
+test it**, and that is recorded rather than smoothed over. No interface has
+been brought up by any of these components on a MULE, because no MULE exists.
+The evidence behind the reasoning is a three-node mesh in network namespaces
 and two adapters on a bench.
 
-A reviewer who has run `batman-adv` on Debian in the field is better placed
-than this document to say whether the `ifupdown` argument should have won.
+A reviewer who has run `batman-adv` on Debian in the field is still better
+placed than this document to say whether the `ifupdown` argument should have
+won. The fallback below is the route if they are right.
 
 ## Consequences
 
