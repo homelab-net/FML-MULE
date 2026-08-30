@@ -38,11 +38,15 @@
 # is slow to come up, and it would be applied by someone debugging exactly the
 # symptom it causes.
 #
-# NOT VERIFIED: that an 802.11s mesh point interface reports carrier only once
-# the mesh is joined. It is what the mechanism assumes and no radio has been
-# available to confirm it. If a driver asserts carrier earlier, the gating is
-# weaker than this file claims and the ordering does become a unit's problem.
-# Stage 2 is where that is found out; see the verification note in FML-ADR-059.
+# VERIFIED 2026-08-30, and it did not need to wait for Stage 2. Two
+# mac80211_hwsim radios: a mesh point brought up but not joined reports
+# carrier 0, and reports carrier 1 after joining. So the gating is real. See
+# docs/evidence/TBR-LINUX-01/2026-08-30-80211s-mesh-in-software.md.
+#
+# What remains unverified is narrower: whether a REAL driver behaves the same
+# way. mac80211_hwsim is mac80211's own simulator and a vendor driver is free
+# to assert carrier earlier. Worth checking on the first board that arrives,
+# and cheap to check: bring the interface up, read carrier, join, read again.
 
 # --- Association: wpa_supplicant --------------------------------------------
 # Upstream ships wpa_supplicant@.service, a template unit taking an interface.

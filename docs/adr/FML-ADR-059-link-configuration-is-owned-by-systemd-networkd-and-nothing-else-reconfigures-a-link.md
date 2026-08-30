@@ -181,10 +181,18 @@ mesh member turns the hazard back on, and it is exactly what someone debugging
 a link that is slow to come up would reach for.
 
 This makes the decision better than it was argued, which is worth recording
-because the argument was made without checking and happened to land right. What
-remains unverified is that a mesh point reports carrier only once the mesh is
-joined. No radio has been available to confirm it, and Stage 2 is where that is
-found out.
+because the argument was made without checking and happened to land right.
+
+**Verified 2026-08-30**, and it did not need Stage 2. On `mac80211_hwsim`, a
+mesh point interface reports `carrier 0` while up but unjoined and `carrier 1`
+after joining, so the gating this consequence depends on is real. The same run
+carried IP traffic over `batman-adv` across an 802.11s mesh with no radio. See
+`docs/evidence/TBR-LINUX-01/2026-08-30-80211s-mesh-in-software.md`.
+
+What remains open is narrower than what this paragraph originally claimed:
+whether a **real** driver asserts carrier at the same point. `mac80211_hwsim`
+is `mac80211`'s own simulator and a vendor driver may differ. That is the thing
+to check on the first board, and it takes one command each side of a join.
 
 Published `batman-adv` configuration will mostly not apply. The community's
 worked examples are largely `ifupdown`, and `FML-ADR-023` records that the
