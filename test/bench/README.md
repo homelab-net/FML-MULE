@@ -3,7 +3,16 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Empty. No procedure has been written and no measurement has been taken.**
+**One procedure. No measurement has been taken.**
+
+`80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
+`mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
+it asserts that the stack composes and that a mesh point reports carrier only
+once joined, which `FML-ADR-059` depends on. It produces no number.
+
+It does not run in CI and cannot: a hosted runner's kernel has no wireless
+stack at all. Run it on a development machine, as root. See
+`docs/dev-machine.md`.
 
 ## Bench, stage, evidence
 

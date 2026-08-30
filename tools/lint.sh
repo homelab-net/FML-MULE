@@ -54,7 +54,11 @@ skip() {
 # --- shell ------------------------------------------------------------------
 # POSIX sh where possible, bash where not. Every script opens with `set -eu`
 # and a usage comment. See CONTRIBUTING.md.
-shell_files=$(find tools -name '*.sh' -type f | sort)
+# tools/ AND test/: a shell script is a shell script wherever it lives, and
+# test/bench/80211s-mesh.sh was written into a directory this line did not
+# reach. An unchecked script is one nobody has run shellcheck over, which is
+# how a quoting bug reaches a bench procedure somebody runs as root.
+shell_files=$(find tools test -name '*.sh' -type f | sort)
 
 if have shellcheck; then
   # -x follows sourced files, so that tools/toolchain-versions.sh is checked
