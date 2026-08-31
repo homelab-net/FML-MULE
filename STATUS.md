@@ -59,6 +59,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 | `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
 | `FML-ADR-057` | What traffic transits the node and what does not | TBR-NET-02, TBR-ID-01 |
+| `FML-ADR-062` | The HaLow bearer must present a standard mesh-capable mac80211 interface | TBR-LINUX-01, TBR-RF-01, TBR-RF-03, TBR-HW-01 |
 
 ### SELECTED TARGET
 

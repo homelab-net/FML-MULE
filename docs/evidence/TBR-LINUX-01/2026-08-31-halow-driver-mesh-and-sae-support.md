@@ -109,6 +109,21 @@ Morse Micro additionally maintains a `hostap` tree of their own, last pushed
 2026-07-18, and an `rpi-linux` tree carrying their patches for Raspberry Pi LTS
 kernels.
 
+## A drift this research exposed
+
+The program already leans on Morse Micro without having decided to. SAD source
+register `SR-011` cites `MorseMicro/morse_driver` and **MM8108** by name as the
+"kernel/driver lifecycle risk basis"; `FML-ADR-021` lists "the Morse Micro Linux
+driver stack"; `FML-ADR-046` has the status aggregator consuming "Morse Micro
+driver interfaces". Only `FML-ADR-040` hedges, with "the Morse Micro **or
+other** out-of-tree radio driver set".
+
+**No ADR selects a HaLow module.** `TBR-RF-01`, `TBR-RF-03` and `TBR-HW-01` are
+open and `regions/us-915/profile.yml` records `halow.permitted: TBD`. A reader
+of `FML-ADR-021` or `FML-ADR-046` could reasonably conclude otherwise, which is
+how a vendor gets selected by repetition rather than by decision.
+`FML-ADR-062` records that it is not settled.
+
 ## What this changes
 
 `FML-ADR-061`'s largest assumption is **substantially reduced, not removed.**
