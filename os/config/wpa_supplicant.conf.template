@@ -38,10 +38,45 @@ country=TBD
 #   ssid="TBD"              # Mesh identifier. From the mission package.
 #   mode=5                  # 5 = 802.11s mesh point
 #   frequency=TBD           # FROM REGION PROFILE. Never a literal here.
-#   key_mgmt=TBD            # TBD: mesh security. Feeds THREAT_MODEL.md.
-#   # Mesh security is not decided. An open mesh admits any device in range,
-#   # which conflicts with the admission model. See TBR-TAK-01, TBR-SEC-01.
+#   key_mgmt=SAE            # NOT TBD. FML-ADR-061 decides it.
+#   sae_password=TBD        # The credential. See below: its source is undecided.
 # }
+#
+# MESH SECURITY IS DECIDED. FML-ADR-061 requires key_mgmt=SAE, so peers
+# authenticate by SAE and Authenticated Mesh Peering Exchange before a peer link
+# reaches ESTAB. An open field mesh is prohibited. Measured on hwsim: a node
+# without the credential never reaches ESTAB and gets 100% packet loss, and
+# test/bench/keyed-mesh.sh reproduces it. The key is the admission control, and
+# issuing it is the admission decision.
+#
+# sae_password rather than psk. Both appear in wpa_supplicant's own mesh
+# examples; the shipped configuration reference says psk "follows the WPA-PSK
+# constraints (8..63 characters) even though SAE passwords do not have such
+# constraints". sae_password is what test/bench/keyed-mesh.sh exercises.
+#
+# ONE CREDENTIAL PER MESH, and no per-device keys. A node configured with two
+# sae_password entries and two sae_password_id identifiers did not authenticate
+# a peer holding the second credential; every cross-credential pairing stayed at
+# LISTEN. So a captured node yields the mesh credential and revoking one node
+# means rekeying every node. FML-ADR-061 accepts that cost explicitly and
+# TBR-SEC-01 holds the credential as a protected asset.
+#
+# WHERE THE CREDENTIAL COMES FROM IS NOT DECIDED, and this file will not
+# pretend otherwise. FML-ADR-061 says in its own accepted cost that "rekeying
+# has no mechanism" and that "nothing in this program distributes or rotates a
+# mesh credential".
+#
+# The obvious answer, that it comes from the mission package, is not currently
+# available: mission/schema/mission-package.schema.json sets
+# additionalProperties: false at the root and on network, and its ap_ssid entry
+# says the passphrase "is NOT part of this schema and never appears in a
+# committed package". A package cannot carry a credential field, and
+# mission/local/ validates against the same schema.
+#
+# hostapd.conf.template states that the access point passphrase "comes from the
+# mission configuration package at generation time", which the paragraph above
+# makes impossible. That is a real inconsistency and it is not resolved here.
+# The same gap covers both credentials, and TBR-SEC-01 is where it belongs.
 
 # --- Conventional Wi-Fi: high-throughput inter-node bearer -----------------
 # Whether this uses 802.11s and joins the same batman-adv mesh, uses a separate

@@ -19,6 +19,16 @@
 # back-link is derived from the citations themselves. It cannot drift, because
 # nobody writes it.
 #
+# WHY *.template IS SCANNED
+#
+# os/config/*.template is where a decision stops being prose and becomes
+# configuration, and those files cite decisions heavily: nine of the ten cite at
+# least one, and FML-ADR-056 alone is cited eight times. Until 2026-08-31 the
+# scan covered .md, .py, .sh and .yml only, so every one of those citations was
+# invisible here and an ADR implemented purely as configuration read as
+# implemented by nothing. That is the exact failure this file exists to prevent,
+# in the half of the repository where most decisions currently land.
+#
 # WHAT AN EMPTY ENTRY MEANS
 #
 # A decision cited nowhere is NOT a defect here. This program is pre-PDR and
@@ -57,7 +67,8 @@ done
 # this index exists to record. Generated files are excluded for the same
 # reason: they would cite whatever this run just wrote.
 searchable() {
-  find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \) \
+  find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \
+    -o -name '*.template' \) \
     -not -path './.git/*' \
     -not -path './node_modules/*' \
     -not -path './.venv*' \
