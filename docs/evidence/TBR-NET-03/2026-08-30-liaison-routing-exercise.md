@@ -71,16 +71,21 @@ The two leaf commands are a default route in practice, so the deliberate work is
 to be plausible under stress, which is what the trade's closure evidence asks
 about.
 
-## Withdrawal is instant and contained, restoration is not automatic
+## The mesh heals, the configuration does not
+
+**Read this section carefully, because the short version is misleading.** An
+earlier draft led with "restoration is not automatic", which reads as the mesh
+failing to heal. It does not fail. Every wireless and mesh layer recovers on its
+own, and a static route typed by hand does not come back, which is a different
+kind of problem with a different owner.
 
 Taking the incident bearer down stops cross-deployment traffic immediately, and
 **each deployment is entirely unaffected**: `A2 -> A1` stays at 0% loss
 throughout. Reversibility, which the trade asks for, holds.
 
-Bringing it back up does **not** restore anything. Measured twice with a
-45-second bound: `not within 45s`, both times.
-
-The bearer itself recovers fine. After the bounce:
+Bringing it back up does not restore end-to-end traffic: measured twice with a
+45-second bound, `not within 45s` both times. **The reason is not the mesh.**
+After the bounce:
 
 ```text
 wlan1 802.11s peers  : 1        A1 bat1 originators : 1
@@ -88,22 +93,39 @@ A1 -> B1 (10.99.0.2) : 0% packet loss
 A1 route to 10.42.0.5: RTNETLINK answers: Network is unreachable
 ```
 
-**The incident link is healthy and the route is gone.** The kernel removes a
-static route whose next hop is on a downed interface, and bringing the interface
-back restores only the connected `/24`. Re-adding the single route restored
-end-to-end traffic in **5 ms**.
+**802.11s re-peered, `batman-adv` reconverged, and the two liaisons pass
+traffic to each other at zero loss.** The mesh healed. What is missing is one
+route.
+
+The kernel removes a static route whose next hop is on a downed interface, and
+bringing the interface back restores only the connected `/24`. That is ordinary
+documented behaviour, not a fault in anything here. Re-adding the single route
+restored end-to-end traffic in **5 ms**.
+
+**The outage was administrative**, an `ip link set bat1 down`, which models an
+operator withdrawing the liaison rather than a radio fading, a node moving, or a
+partition. Those are different events and none of them were tested.
 
 ### The design constraint this produces
 
-**The liaison's routes must be declared, not typed.** An operator who types
-`ip route add` has a mechanism that works until the first radio glitch and then
-fails silently, with a healthy-looking bearer, a reachable next hop, and no
-traffic. `FML-ADR-059` already puts link configuration under
-`systemd-networkd`, where a route in a `.network` file is reinstalled when
-carrier returns. That decision was made for bring-up ordering; this is a second
+**The liaison's routes must be declared, not typed.** This is a configuration
+management finding, not a networking one. An operator who types `ip route add`
+has a mechanism that works until the first bearer interruption and then fails
+silently, with a healed mesh, a reachable next hop, and no traffic.
+`FML-ADR-059` already puts link configuration under `systemd-networkd`, where a
+route in a `.network` file is reinstalled when carrier returns. That decision
+was made for bring-up ordering; this is a second
 reason for it, and it applies to whatever mechanism `TBR-NET-03` selects.
 
 ## Identical prefixes defeat it, in two independent ways
+
+**This is not a finding about IP.** With distinct prefixes IP carried traffic
+end to end across two deployments and two routing hops, both directions, at 0%
+loss, as the top of this artifact records. What follows is the ordinary
+requirement that address space be unique within a routing domain, which every IP
+network has. It is recorded here because `TBR-NET-01` has not yet decided that
+deployments differ, and until it does, two deployments can hold the same
+prefix.
 
 The trade claims a routing liaison cannot work while both deployments hold the
 same prefix. Tested with both deployments on `10.41.0.0/16`.

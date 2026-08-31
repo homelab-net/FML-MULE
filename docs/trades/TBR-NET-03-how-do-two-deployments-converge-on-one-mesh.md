@@ -126,7 +126,18 @@ address prefix, and each fails for its own reason:
   before any policy question arises. It fails loudly rather than silently,
   which is better, but it fails.
 
-So selecting any mechanism **forces `address_prefix` to be per-deployment**,
+**One counterexample, found after this was written.** IPv6 link-local
+addressing needs no prefix agreement and cannot collide: an unconfigured
+`batman-adv` interface is assigned an `fe80::` address derived from its MAC, and
+two nodes that have never met reach each other immediately. It is on-link only,
+so it does nothing for the routing liaison, and whether any service in this
+program can use it is untested. See
+`docs/evidence/TBR-NET-03/2026-08-30-what-happens-with-no-configuration.md`. The
+paragraph below holds for routed IPv4, which is what every mechanism here
+assumes, and does not hold universally.
+
+So selecting any mechanism that routes or shares IPv4 **forces `address_prefix`
+to be per-deployment**,
 which is one of the things `TBR-NET-01` is open to decide and which its schema
 field records as undecided: "whether the prefix is fixed or per-deployment ...
 [is] open".
@@ -144,6 +155,31 @@ against expected external networks -- a venue LAN, the parent Homelab
 `10.77.0.0/16` and `10.78.0.0/16`, ranges partner organizations use. None of
 that is gated by `mesh_id`. Deferring removes the deployment-to-deployment
 collision path and leaves the external one untouched.
+
+### The LoRa bearer is not covered, by this trade or by anything else
+
+The mission package's `network` object contains `mesh_id`, `local_domain`,
+`address_prefix` and `ap_ssid`, and **no LoRa field**. Nothing in the repository
+specifies a Meshtastic channel name or pre-shared key. `regions/` carries RF
+parameters, which are regulatory and not a logical identity: two deployments on
+one frequency are neither separated nor joined by that fact.
+
+**And the LoRa bearer behaves in the opposite direction, read from the firmware
+source.** `src/mesh/Channels.h` describes its compiled-in key as "our _public_
+default channel that all devices power up on", `initDefaultChannel` sets a
+one-byte key of value 1 and an empty channel name, and `getKey` expands that to
+the constant unchanged. Two stock nodes in one region on one preset therefore
+share a name, a key and a channel hash. See
+`docs/evidence/TBR-NET-03/2026-08-30-what-happens-with-no-configuration.md`.
+
+So a MULE node is **separated from another deployment on 802.11s and joined to
+it on LoRa, at the same time**, and neither state was chosen. Whatever mechanism
+this trade selects for the mesh bearer, the LoRa bearer needs the opposite kind
+of answer: not how to converge, but whether and how to separate. That may need a
+trade of its own. It is recorded here so that selecting a mechanism for one
+bearer is not mistaken for answering the question, and because the default key
+being a published constant is a `THREAT_MODEL.md` matter that nothing in this
+program currently records.
 
 ## Closure evidence
 

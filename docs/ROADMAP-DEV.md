@@ -462,10 +462,12 @@ owner. See the blocker in Track 3; today no trade can close.
 **State:** open, raised 2026-08-30. One artifact exists: the routed-liaison
 option works end to end for one route per liaison, layer 2 never merges, and
 the collision is structurally unreachable. Two operational findings came with
-it. **Restoration is not automatic** -- the kernel deletes a static route with
-its interface, so a typed `ip route add` survives until the first radio glitch
-and then fails silently with a healthy bearer and a reachable next hop, which
-is a second reason for `FML-ADR-059`. And identical prefixes defeat the option
+it. **The mesh heals and a hand-typed route does not** -- after the bearer
+bounces, 802.11s re-peers and `batman-adv` reconverges, while the kernel has
+deleted the static route with its interface and does not restore it, so the
+mechanism fails silently with a healed mesh and a reachable next hop. That is
+a configuration management problem, and a second reason for `FML-ADR-059`. And
+identical prefixes defeat the option
 twice: the route cannot be installed, and no address exists that names the
 other deployment's node. It exists because item 1.5
 turned out to be answering a consequence: `mesh_id` is a required
