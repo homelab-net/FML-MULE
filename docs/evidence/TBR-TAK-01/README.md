@@ -27,7 +27,14 @@
   authority; and `uploads/`. A database high-availability mechanism protects
   none of them. Losing the salt makes every stored password hash unverifiable.
 
-**Four of the six outstanding items still need a running instance**, and none of
+- `2026-08-31-opentakserver-actually-run.md` -- **the first artifact with a
+  running server.** No official OTS container image exists to pin, upstream's
+  Dockerfile is unpinned at three layers, its chosen Python 3.13 base makes
+  `gevent` assert, and the state inventory had **missed the entire
+  authentication store**: 41 tables, not 36. `config.yml` holds 12
+  secret-bearing keys including MFA secrets, and the CA private key is on disk.
+
+**Three of the six outstanding items still need a client connected**, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 
