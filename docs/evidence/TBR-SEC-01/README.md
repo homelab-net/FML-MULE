@@ -7,8 +7,18 @@
 **Priority:** 6 of 16 (SAD v0.31 section 30.2). **Function owner:** Security + Hardware.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** one artifact, and it reports a gap rather than closing
+anything. The trade is `OPEN` and its own closure evidence -- the unlock-method
+comparison SAD section 27.5.2 requires -- has not been produced.
+
+- `2026-08-31-two-credentials-have-no-origin.md` -- two values required by
+  `SELECTED` decisions that nothing in this program issues: the mesh credential
+  `FML-ADR-061` requires, and the access point passphrase. A mission package
+  cannot carry either, because the schema sets `additionalProperties: false`
+  and says the passphrase is not part of it. SAD section 27.5.2 puts **fleet
+  rekey** in this trade's mandated scope, which covers the credential at rest;
+  whether it also absorbs issuance and rotation is a register question for the
+  Program Owner. No mechanism is proposed.
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be
