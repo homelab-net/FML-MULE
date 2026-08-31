@@ -58,6 +58,20 @@ that is `TBR-NET-03`, which this trade now depends on. Answering the prefix
 question first would settle a consequence before establishing that its cause
 can occur.
 
+**`TBR-NET-03` also constrains the answer here, not just the sequence.** Every
+convergence mechanism it considers fails while two deployments can hold the
+same prefix: merging deployments into one layer 2 domain reproduces the
+collision, and a routing liaison cannot route between two interfaces in the
+same subnet at all. So selecting any mechanism there **removes the fixed-prefix
+option here**. Deferral -- deciding MULE v1 supports no interoperation between
+deployments -- is the only branch that leaves this trade free to retain
+`10.41.0.0/16`.
+
+**And deferral would not close this trade.** The remaining closure item is the
+collision analysis against expected external networks: a venue LAN, the parent
+Homelab `10.77.0.0/16` and `10.78.0.0/16`, ranges partner organizations use.
+None of that is gated by `mesh_id`, so no answer in `TBR-NET-03` removes it.
+
 ## Options
 
 Retain `10.41.0.0/16`, or select another prefix.
