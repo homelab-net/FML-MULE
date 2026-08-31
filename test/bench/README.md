@@ -25,6 +25,64 @@ It does not run in CI and cannot: a hosted runner's kernel has no wireless
 stack at all. Run it on a development machine, as root. See
 `docs/dev-machine.md`.
 
+## What can be verified without hardware, and what cannot
+
+Asked directly on 2026-08-31, and worth answering once rather than rediscovering.
+
+**Already done in this program, with no radio:**
+
+| Question | How |
+| --- | --- |
+| 802.11s association, and carrier only once joined | `80211s-mesh.sh`, `mac80211_hwsim` |
+| Multi-hop over real 802.11s | `80211s-mesh.sh --line`, channel separation |
+| `batman-adv` routing, `BATMAN_IV`, bring-up order, bridge loop avoidance | bench and `mesh-probe.yml` |
+| **Keyed mesh: SAE + AMPE, and exclusion of non-holders** | `hwsim` + `wpa_supplicant`, `FML-ADR-061` |
+| Addressing collision, distinct prefixes, routed liaison | `hwsim`, `docs/evidence/TBR-NET-01/`, `TBR-NET-03/` |
+| An external route stealing part of the mesh | `veth`, `docs/evidence/TBR-NET-01/` |
+| Meshtastic payload limits and tag survival | two `meshtasticd` instances |
+| A fresh Debian install building the toolchain | CI job |
+
+That is a larger set than it looks, and it covers most of the **protocol and
+configuration** questions this program has asked.
+
+**Two hard limits, both measured rather than assumed:**
+
+**`hwsim` has no medium.** No path loss, no interference, no rate adaptation, no
+distance. Every link is a perfect wire, so nothing about range, throughput,
+capacity or partition-under-load can come from it.
+
+**`hwsim` has no S1G band.** Checked on this kernel: `iw phy` reports Band 1 and
+Band 2 only, 2.4 and 5 GHz. HaLow's 1, 2, 4, 8 and 16 MHz channels are not
+available, so **mesh at 1 MHz cannot be simulated** -- and `FML-ADR-062` names
+that as the material untested configuration, because HaLow's range argument
+depends on it.
+
+Worth knowing separately: **the S1G core is already in the kernel Debian ships**.
+`mac80211.ko` carries 53 `s1g` symbols and `cfg80211.ko` 30, so a HaLow driver
+does not need a patched kernel for S1G itself. It is `hwsim` that does not
+expose the band, not the stack that lacks support.
+
+**Two things would extend the reach, at real cost:**
+
+- **`wmediumd`** gives `hwsim` a medium: per-link path loss and packet loss,
+  which buys partition and heal, mobility, asymmetric links, and the per-direction
+  `TQ` questions deferred in
+  `docs/evidence/TBR-LINUX-01/2026-08-31-originator-count-differs-by-interface-order.md`.
+  Debian does not package it. The original upstream has not been touched since
+  2021, but it is carried actively as `external/wmediumd` in AOSP and mirrored
+  by several vendors within the last month, so a current source exists. It has
+  to be built.
+- **An `hwsim` S1G band** would be a kernel patch. The core support exists, so
+  the work is exposing a band rather than implementing S1G. Bounded, real, and
+  it would still only exercise the MAC.
+
+**The ceiling, stated plainly.** Both of those produce `SIMULATED` evidence.
+Neither answers range, throughput, power draw, thermal behaviour, antenna
+performance, or HaLow and LoRa coexisting in one band centimetres apart. Those
+are `TBR-RF-01`, `TBR-RF-02`, `TBR-RF-03`, `TBR-PWR-01` and `TBR-THERM-01`, and
+they need radios. **Simulation extends what can be decided before the BOM. It
+does not remove the BOM.**
+
 ## Bench, stage, evidence
 
 Three related things, kept apart on purpose:
