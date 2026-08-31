@@ -47,6 +47,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-058` | Development toolchain versions are pinned in a lock file | none |
 | `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
 | `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-NET-03, TBR-NET-01, TBR-SEC-01 |
+| `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | TBR-NET-01, TBR-NET-03, TBR-NET-02 |
 
 ### SELECTED PRINCIPLE
 
