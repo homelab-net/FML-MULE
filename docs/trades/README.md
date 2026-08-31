@@ -127,9 +127,22 @@ Ordered by SAD section 30.2 priority. `STATUS.md` carries the generated view.
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes | no |
 
+### Raised after the SAD register
+
+These have no SAD section 30.2 position, so they carry `priority: 99` and sit
+outside the table above rather than being given an invented rank. The absence
+of a rank is not a judgement about importance: both feed trades the SAD does
+rank. They were missing from this page until 2026-08-30, which is how a
+register drifts from the directory it describes.
+
+| ID | Question | Status | Function owner | Named owner | HW | Feeds |
+| --- | --- | --- | --- | --- | --- | --- |
+| `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | Cameron Zobrist | no | `TBR-ID-01` |
+| `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | Cameron Zobrist | no | `TBR-NET-01` |
+
 ## What can be worked without hardware
 
-Three trades need no hardware, and one of them is `CRITICAL`:
+Four trades need no hardware, and one of them is `CRITICAL`:
 
 - **`TBR-TAK-01`, mission-critical state boundary.** Priority 9 and marked
   `CRITICAL`. A design and analysis trade, resolvable against documentation,
@@ -137,7 +150,13 @@ Three trades need no hardware, and one of them is `CRITICAL`:
   ordinary laptop. `TBR-HA-01` and `FML-ADR-034` both wait on it. **This is the
   highest-value work available to a contributor who owns no node.**
 - **`TBR-NET-01`, field address prefix.** Whether to retain `10.41.0.0/16`. The
-  collision case can be exercised with virtual interfaces.
+  collision case can be exercised with virtual interfaces, and has been:
+  `docs/evidence/TBR-NET-01/`.
+- **`TBR-NET-03`, how two deployments converge on one mesh.** Analysis, plus an
+  exercise on virtual interfaces. **Read this before `TBR-NET-01`.** `mesh_id`
+  separates deployments by construction, so converging is the event that makes
+  the address collision reachable at all; assessing the prefix first assesses a
+  consequence before establishing that its cause can occur.
 - **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
   offline login against fakes.
 
