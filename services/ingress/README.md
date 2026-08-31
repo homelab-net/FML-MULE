@@ -40,6 +40,35 @@ service.
 
 The mechanism is `TBD`.
 
+## The reverse proxy authenticates, and that is not written down anywhere else
+
+**Added 2026-08-31**, from
+`docs/evidence/TBR-TAK-01/2026-08-31-certificate-enrollment.md` and
+`2026-08-31-mission-api-and-the-header-that-authenticates.md`.
+
+OpenTAKServer's Marti API does not perform client-certificate authentication
+itself. It reads a **header**, `X-Ssl-Cert` by default, containing a PEM
+certificate, and verifies that the certificate chains to its own CA. Measured:
+a certificate presented in that header, **with no private key and over plain
+HTTP**, is accepted.
+
+That makes the reverse proxy the authenticating component, and it puts three
+requirements here rather than on the service:
+
+- **The proxy shall SET the header, never forward one.** A proxy that passes
+  through a client-supplied `X-Ssl-Cert` lets any client authenticate as the
+  subject of any certificate it can obtain, and a certificate is public data.
+- **The application port shall not be reachable except through the proxy.**
+  Upstream mitigates by binding `127.0.0.1`; `FML-ADR-029` puts services in
+  containers, where a published port or a shared network namespace removes that
+  mitigation without anyone editing a security setting.
+- **Revocation has to happen somewhere.** The service's verification path loads
+  the CA and no CRL, so a revoked certificate verifies like any other. If
+  revocation is to mean anything on this path, the proxy is where it can.
+
+None of this is decided. It is recorded here because ingress is where it lands,
+and because it was found in a state study rather than in a security review.
+
 ## TLS in a local-first system
 
 A browser reaching a service over plain HTTP produces warnings, blocks features
