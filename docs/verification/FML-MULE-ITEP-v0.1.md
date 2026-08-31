@@ -201,13 +201,14 @@ throughout, per section 1.1.
 
 **Trades:** `TBR-TAK-01` (pri 9, CRITICAL), `TBR-NET-01` (15), `TBR-ID-01` (14),
 `TBR-SEC-01` analysis half (6), `TBR-COMP-01` service-plane half (2, CRITICAL),
-`TBR-NET-02` (no SAD register position; see its frontmatter notes)
+`TBR-NET-02` (no SAD register position; see its frontmatter notes),
+`TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`)
 
 **Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
-`TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`.
+`TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -243,9 +244,18 @@ programme.
    against the 233-byte `DATA_PAYLOAD_LEN`, and the unresolved-recipient rule.
    Runs before `TBR-ID-01` on purpose: it structures addressing so that
    authentication can be added to it rather than redesign it.
+7. **`TBR-NET-03` convergence mechanism.** By what mechanism two independently
+   built deployments come to share one mesh, or a written finding that MULE v1
+   provides none. `mesh_id` is required by the mission package schema and
+   separates deployments by construction, which is established; nothing says
+   how they deliberately converge, and converging is the event that makes the
+   `TBR-NET-01` collision reachable at all. **Runs before item 4 on purpose.**
+   Assessing collision risk for a prefix is assessing a consequence, and
+   whether the cause can occur is this item. Analysis plus an exercise on
+   virtual interfaces; no hardware.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
-`TBR-HA-01` to select a mechanism against. The remaining four produce written
+`TBR-HA-01` to select a mechanism against. The remaining five produce written
 analyses that their hardware halves can be measured against.
 
 **Note:** This campaign can begin today, by one person, with no budget. That it

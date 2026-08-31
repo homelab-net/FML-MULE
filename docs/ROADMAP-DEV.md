@@ -439,10 +439,11 @@ an incident. Deciding the prefix without it settles a consequence before its
 cause: if `mesh_id` always differs, deployments can never interoperate and the
 prefix hardly matters; if they can agree one, the prefix matters entirely.
 
-Still missing: a decision or trade covering `mesh_id` and how two deployments
-converge, the collision analysis over expected external networks, which is desk
-work against the parent Homelab prefixes rather than a bench run, and the
-decision itself. No hardware needed for any of them.
+**That gap is now `TBR-NET-03`, item 1.5a, and this item depends on it.**
+
+Still missing here: the collision analysis over expected external networks,
+which is desk work against the parent Homelab prefixes rather than a bench run,
+and the decision itself. No hardware needed for either, but 1.5a comes first.
 
 **Read first:** the trade itself, `os/config/interfaces.conf.template` for the
 consequences already written down, and `THREAT_MODEL.md` — an address derived
@@ -455,6 +456,31 @@ prefix chosen once.
 
 **Done when:** evidence under `docs/evidence/TBR-NET-01/` accepted by a named
 owner. See the blocker in Track 3; today no trade can close.
+
+### 1.5a `TBR-NET-03`, how two deployments converge
+
+**State:** open, raised 2026-08-30, no evidence yet. It exists because item 1.5
+turned out to be answering a consequence: `mesh_id` is a required
+mission-package field and separates deployments by construction, so the address
+collision is reachable only once two deployments deliberately share a mesh
+identifier, and nothing says how they would.
+
+**Read first:** the trade, and the three artifacts under
+`docs/evidence/TBR-NET-01/` in the order its README gives. The third one is the
+reason this item exists.
+
+**The constraint people miss:** a mesh identifier is transmitted in the clear in
+802.11s beacons. A fixed program-wide value is a published constant identifying
+a MULE deployment; a per-incident value agreed over voice is something an
+adversary can hear. `THREAT_MODEL.md` has to be asked about whichever is
+chosen, and the options differ in what they disclose rather than in whether
+they disclose.
+
+**Work it before 1.5.** No hardware; the separation result came from
+`mac80211_hwsim` and the convergence exercise can too.
+
+**Done when:** a written decision naming one mechanism, or deliberately naming
+none, accepted by a named owner. See the blocker in Track 3.
 
 ### 1.6 Turn `RadioState` into an implementation
 

@@ -7,7 +7,7 @@ area: NET
 priority: 15
 function-owner: Network
 critical-path: false
-depends-on: []
+depends-on: [TBR-NET-03]
 feeds: []
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-01/
@@ -44,6 +44,19 @@ at the same incident, must be able to interoperate or at least coexist.
 The scenario is not hypothetical for a repository published for other makers to
 build from: the more successful this program is, the more likely two
 independently built deployments meet.
+
+**They do not meet by default, and that is now measured.**
+`mission/schema/mission-package.schema.json` makes `mesh_id` required and says
+network identity values differ between deployments. With different `mesh_id`
+two deployments do not associate at all: identical prefixes and identical host
+addresses are harmless, because there is no shared layer 2 domain for them to
+be harmful in. See `docs/evidence/TBR-NET-01/2026-08-30-mesh-id-separates-deployments.md`.
+
+So the collision this trade exists for is reachable only once two deployments
+**deliberately converge** on one mesh identifier. Whether and how they can do
+that is `TBR-NET-03`, which this trade now depends on. Answering the prefix
+question first would settle a consequence before establishing that its cause
+can occur.
 
 ## Options
 

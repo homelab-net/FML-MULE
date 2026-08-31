@@ -125,8 +125,9 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes |
 | 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `Cameron Zobrist` | no |
+| 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
 
-17 open trades. 16 have no named owner.
+18 open trades. 16 have no named owner.
 
 ## Critical path
 
