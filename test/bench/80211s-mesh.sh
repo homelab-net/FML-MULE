@@ -160,6 +160,10 @@ start_batman() {
   ip netns exec "$ns" batctl routing_algo BATMAN_IV >/dev/null 2>&1 || true
   ip netns exec "$ns" ip link add name bat0 type batadv
 
+  # THIS STAYS OFF, PERMANENTLY. See os/config/batman-adv.conf.template for the
+  # standing note. It is the protection against a hardwired device bridged into
+  # the mesh looping traffic back, and this program prevents that another way.
+  #
   # Bridge loop avoidance OFF, which FML-ADR-056 decides and
   # os/config/batman-adv.conf.template configures. It is ENABLED BY DEFAULT, so
   # a bench that does not say this is testing a configuration the program has

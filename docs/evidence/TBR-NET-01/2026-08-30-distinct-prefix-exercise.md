@@ -177,13 +177,18 @@ Two things were fixed rather than described:
 
 ## What this does not establish
 
-**The mechanism behind the 31 s window is unidentified.** Three hypotheses were
-tested and refuted; the residue is unexplained. It is `SIMULATED` and may be an
-artefact of `mac80211_hwsim` rather than anything a real radio does. If it is
-real it matters a great deal to an operator, because a node that is silent for
-half a minute after the mesh forms looks broken, and the collision artifact's
-"transient" is this window. **It should be re-measured the first time two real
-radios are available**, and it is not a reason to change anything until then.
+**Corrected 2026-08-31: the 31 s window is explained and this paragraph used to
+say it was not.** An earlier version of this section called the mechanism
+unidentified, suggested it might be an artefact of `mac80211_hwsim`, and asked
+for it to be re-measured on real radios. All of that is wrong. It is bridge loop
+avoidance, left at its default against `FML-ADR-056`, measured at 30972 ms
+against 2056 ms with one variable, and `.github/workflows/mesh-probe.yml` had
+recorded the same effect before the run.
+
+The body of this artifact was rewritten when that was found; **this paragraph
+was not**, so a reader who skipped to "What this does not establish" got the
+opposite of the finding. That is the failure the roadmap's `**State:**` rule
+exists to prevent, appearing in an evidence artifact instead.
 
 **The collision analysis over expected external networks is still missing.**
 That is the first of the trade's three closure items and neither exercise

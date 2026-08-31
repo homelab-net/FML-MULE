@@ -143,6 +143,36 @@ Therefore:
 - Whether any mission-critical state can be compartmented at all is an open
   trade: `TBR-TAK-01`.
 
+### A client certificate is weaker than it looks, in the software we selected
+
+**Added 2026-08-31**, measured against `OpenTAKServer` 1.7.13, which
+`FML-ADR-032` selects. Three properties compound, and none is a MULE defect:
+they are what the chosen implementation does by default.
+
+- **A certificate authenticates on possession of public data.** The Marti API
+  path does not perform a TLS handshake. It reads a certificate from an
+  `X-Ssl-Cert` header and checks that it chains to the server CA, so it proves
+  the certificate is valid and **not** that the sender holds the private key. A
+  certificate is public. `services/ingress/` now records what the reverse proxy
+  must therefore guarantee.
+- **Issued certificates are valid for ten years.** `OTS_CA_EXPIRATION_TIME`
+  defaults to 3650 days and applies to client certificates. CONOPS plans
+  volunteer-owned EUDs, and a decade outlasts the volunteer, the device, and any
+  plausible interval before one is lost or handed on.
+- **Revocation is not consulted on that path.** A CRL is maintained on disk and
+  the verification store is loaded with the CA and nothing else, so a revoked
+  certificate verifies exactly as an unrevoked one does.
+
+The bullet above says to assume a revoked credential remains usable on a
+partition that has not learned of the revocation. **On this path it remains
+usable on a node that has learned**, because the node does not look.
+
+The SSL streaming port performs a real handshake and was not tested; this
+applies to the API path. See
+`docs/evidence/TBR-TAK-01/2026-08-31-certificate-enrollment.md`. Nothing here is
+a decision about what MULE will do instead, which is `FML-ADR-038`,
+`TBR-ID-01` and `services/ingress/`.
+
 ### Physical capture is an expected condition
 
 A node will be lost, stolen, left behind in a hurry, or taken. Plan for it as a
@@ -200,6 +230,7 @@ condition an operating group must decide it can accept before deploying.
 | Clock holdover, skew tolerance, fail-closed behaviour | `TBR-TIME-01` |
 | Sub-GHz coexistence and emissions control | `TBR-RF-02` |
 | Rollback implementation and its trust properties | `TBR-REC-01` |
+| Client-certificate authentication, lifetime and revocation on the API path | `TBR-ID-01`, `services/ingress/` |
 
 ## Review
 
