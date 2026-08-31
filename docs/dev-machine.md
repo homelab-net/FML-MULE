@@ -90,7 +90,10 @@ specifically on "a machine with a wireless stack", and you are that machine.
    decision. Not testing or unstable.
 2. **The lint toolchain**, until `tools/lint.sh` skips nothing.
    `tools/install-deps.sh` installs it. See above.
-3. **`batctl`, `iw`, `tcpdump`, `iputils-arping`** for the network plane work.
+3. **`batctl`, `iw`, `wpasupplicant`, `tcpdump`, `iputils-arping`** for the
+   network plane work. `wpasupplicant` was missing from this list until
+   2026-08-31, after `FML-ADR-061` had already been decided on a measurement
+   that needs it; `test/bench/keyed-mesh.sh` will not run without it.
    These are still not installed by `tools/install-deps.sh`: it installs what
    checks the repository, and these drive a node.
 4. **The LoRa bench**, if you are working that plane:
