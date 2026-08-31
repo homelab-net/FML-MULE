@@ -64,8 +64,17 @@
   of possession**, that the CA key opens with the default password, and that
   the API reported failure after creating the mission.
 
-**Items 5 and 6 remain in part**: DataSync content, mission packages,
-certificate enrollment through the proper flow, and the cache question, and none of
+- `2026-08-31-certificate-enrollment.md` -- the **certificate** test of the
+  four. Enrollment works over Basic auth with upstream's default administrator
+  credential. Three findings that compound: the issued certificate is **not
+  bound to a user**, so authorisation dereferences `None`; it is valid for **ten
+  years**; and **revocation is not consulted** on the header path, where the
+  verification store receives the CA and no CRL. A certificate that
+  authenticates on public data, lasts a decade, and is not checked against the
+  revocation list sitting on disk.
+
+**Items 5 and 6 remain in part**: DataSync content, mission packages, and the
+cache question, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 
