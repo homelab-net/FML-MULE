@@ -1,10 +1,10 @@
 ---
 id: FML-ADR-060
 title: Deployments converge by a routed liaison, and MULE v1 ships none
-status: CONDITIONAL
+status: SUPERSEDED
 date: 2026-08-31
 supersedes: none
-superseded-by: none
+superseded-by: FML-ADR-061
 trades: [TBR-NET-03, TBR-NET-01]
 verification: Stage 11
 ---
@@ -134,7 +134,20 @@ no mechanism in this ADR can be built.
 
 ## Superseded by
 
-None.
+`FML-ADR-061`, 2026-08-31, one day later.
+
+**Why:** this ADR's central argument was that merging meshes admits another
+organization's members "by typing a mesh name into a radio", bypassing admission
+control. That is true of an **open** mesh and false of a keyed one, and
+`os/config/wpa_supplicant.conf.template` records that mesh security was
+`key_mgmt=TBD` and undecided. This ADR decided a consequence of an undecided
+question. Measured afterwards: on a keyed mesh a node without the credential
+never reaches `ESTAB` and gets 100% packet loss, so joining is an authenticated
+act and the key is the admission control.
+
+`FML-ADR-061` retains this ADR's routing requirements in full -- a liaison
+routes and never bridges, and its configuration is declared rather than typed --
+and changes only who may merge.
 
 ## Verification dependency
 

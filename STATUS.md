@@ -46,6 +46,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01, TBR-NET-01 |
 | `FML-ADR-058` | Development toolchain versions are pinned in a lock file | none |
 | `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
+| `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-NET-03, TBR-NET-01, TBR-SEC-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -84,7 +85,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
-| `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | TBR-NET-03, TBR-NET-01 |
 
 ### SUPERSEDED
 
@@ -93,6 +93,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
 | `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
 | `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
+| `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | TBR-NET-03, TBR-NET-01 |
 
 ### RETIRED
 
