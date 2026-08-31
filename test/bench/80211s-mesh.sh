@@ -19,9 +19,13 @@
 # docs/dev-machine.md.
 #
 # WHAT A PASS PROVES. That the kernel's 802.11s implementation forms a peer
-# link, that a mesh point reports carrier only once joined, and that batman-adv
+# link, that a mesh point reports carrier only once joined, that batman-adv
 # accepts a wireless mesh interface as a hard interface and carries traffic
-# over it.
+# over it, and that BOTH ENDS CAN ORIGINATE. The far node sending on its own
+# account is a separate assertion from the near node's ping returning, because
+# a node can have a populated neighbour table, send happily, and lose
+# everything: docs/evidence/TBR-NET-01/2026-08-30-collision-exercise.md has
+# one. Until 2026-08-30 every assertion here was taken at node 1.
 #
 # WHAT IT DOES NOT PROVE, and the gap is larger than the result. hwsim models
 # the 802.11 MAC. There is no propagation, no path loss, no interference, no
@@ -205,7 +209,16 @@ if [ "$TOPOLOGY" = "line" ]; then
     fail 'node 2 is not carrying its second bearer into the mesh.'
   info 'node 2 carries both bearers in one batman-adv interface'
 
+  # The far end of the line has to be separated too. Asserting it only at node 1
+  # leaves the case where node 3 can hear both segments, which would make a
+  # successful multi-hop result meaningless in the direction that matters.
+  seen3=$(ip netns exec fmlbench3 iw dev wlan3 station dump 2>/dev/null | grep -c '^Station' || true)
+  [ "$seen3" -eq 1 ] ||
+    fail "node 3 sees $seen3 peers, expected exactly 1. The line is only separated at one end."
+  info 'node 3 sees exactly one peer: the line is separated at both ends'
+
   far=10.41.0.3
+  FAR_NS=fmlbench3
 else
   printf 'Building a flat mesh\n'
   i=1
@@ -228,6 +241,7 @@ else
   [ "$peers" -ge 1 ] || fail 'no 802.11s peer link established.'
   info "802.11s peer links seen by node 1: $peers"
   far=10.41.0.2
+  FAR_NS=fmlbench2
 fi
 
 ip netns exec fmlbench1 iw dev wlan0 station dump 2>/dev/null | grep -q 'ESTAB' ||
@@ -261,6 +275,37 @@ else
   info "traffic crossed batman-adv over 802.11s: $(grep -o '[0-9]* received' /tmp/fml-bench-ping.$$ | head -1)"
 fi
 rm -f /tmp/fml-bench-ping.$$
+
+# --- and now the other way -------------------------------------------------
+#
+# WHY A SECOND DIRECTION IS NOT REDUNDANT. A successful ping proves a round
+# trip for the pair that sent it, so the test above does show frames returning.
+# What it does not show is any other node ORIGINATING traffic: its own ARP, its
+# own translation-table lookup, its own next-hop choice. Every assertion above
+# this line is taken at node 1, and a bench that only ever asks one node cannot
+# see a node that is fine in one direction and dead in the other.
+#
+# That is not a hypothetical failure. docs/evidence/TBR-NET-01/2026-08-30-collision-exercise.md
+# has one: a node whose neighbour table reads REACHABLE, which sends happily,
+# and which loses 100% of ten packets over nine seconds because the replies go
+# somewhere else. Interrogated from its own console it looks healthy. Node 1
+# passing tells you nothing about node 3.
+#
+# Measured when this was added, on the line topology: all six directed pairs at
+# 0% loss, with node 1 and node 3 each reaching the other through node 2.
+reverse_deadline=$(($(date +%s) + 60))
+returned=0
+while [ "$(date +%s)" -lt "$reverse_deadline" ]; do
+  if ip netns exec "$FAR_NS" ping -c 2 -W 2 10.41.0.1 >/tmp/fml-bench-rping.$$ 2>&1; then
+    returned=1
+    break
+  fi
+  sleep 3
+done
+[ "$returned" -eq 1 ] ||
+  fail "$FAR_NS could not originate traffic to node 1 within 60s, though node 1 reached it. The mesh carries in one direction only. $(tail -2 /tmp/fml-bench-rping.$$)"
+info "$FAR_NS originated traffic back to node 1: $(grep -o '[0-9]* received' /tmp/fml-bench-rping.$$ | head -1)"
+rm -f /tmp/fml-bench-rping.$$
 
 printf '\n'
 printf 'PASS. 802.11s formed, batman-adv carried traffic over it, no radio.\n'
