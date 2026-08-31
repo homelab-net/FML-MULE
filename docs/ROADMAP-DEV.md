@@ -615,6 +615,63 @@ that can be worked. What each trade now needs is a **decision**, written as an
 ADR, which is a different and larger piece of work than the evidence that
 supports it.
 
+### What SRR exit actually needs, and why closing trades is not it
+
+Written 2026-08-31 after checking, because "close trades to reach SRR" is the
+natural plan and the SAD does not support it.
+
+**Trades are expected to be OPEN at SRR.** SAD section 30.2 states the exit
+action in one sentence: *the Program Owner assigns one named individual and one
+calendar target date to every **open** TBR.* Not one trade's closure gate falls
+before SRR; every gate in the section 30.2 register is a later milestone --
+"Before hardware PDR", "Before host selection", "Before ICD baseline". Closing a
+trade early is not forbidden, it is simply not what this gate asks for, and most
+of them cannot close before hardware exists anyway.
+
+**Only two of section 30.1's twenty-one findings carry `SRR` as their stage.**
+
+| Finding | State |
+| --- | --- |
+| TBR schedule concentration -- named-person assignment | **Done 2026-08-31.** Every trade names an owner. |
+| Traceability integrity -- clause-complete section 35 | Not repository work. Section 35 is already clause-complete; it is `OPEN until formal RTM baseline`, and baselining an RTM is a program act. `docs/verification/requirements.md` records why this repository tracks the 33 section 79 criteria rather than duplicating a 140-row table. |
+
+Everything else in that table is gated on CONOPS stages 1, 2, 5, 7, 8, 9 or 13,
+which are test campaigns, and most need hardware.
+
+### The one remaining SRR item is blocked, and not on us
+
+Target dates. Every `target-date` is `TBD-SRR`, and setting them is not a typing
+task:
+
+**Every closure gate is a milestone, and no milestone has a date.** From the
+section 30.2 register: hardware PDR, host selection, hardware/enclosure PDR,
+RF/BOM lock, HW/HA/security lock, hardware block lock, production software PDR,
+HA architecture lock, PDR, RF design lock, CDR-lite, production image baseline,
+Security Architecture lock, ICD baseline, production hardware-block lock.
+
+Section 30.2 is explicit about why they are undated: *No calendar schedule has
+yet been baselined for FML/MULE. This SAD therefore does not invent dates.*
+
+So the SRR exit action needs **a baselined program schedule**, and the trade
+dates fall out of it. That reduces the task from eighteen dates to roughly
+fifteen milestones, and it is the Program Owner's, not this repository's.
+Inventing dates here would be inventing a specification.
+
+### A risk this repository created on 2026-08-31
+
+Section 30.1's own wording: *TBR schedule concentration -- named-person
+assignment required at SRR; **owner concentration becomes program risk***.
+
+All eighteen trades now name one person. That satisfies the first half of the
+sentence and instantiates the second. The SAD anticipated it in the line that
+asked for the assignment, and nothing has been done about it.
+
+It is recorded rather than fixed because the fix is not a repository change:
+either more people take trades, or the program accepts single-owner
+concentration and says so. Both are the Program Owner's call. What must not
+happen is the register reading as fully owned while the risk the same line names
+goes unrecorded.
+
 ### `TBR-TAK-01`
 
 The only critical-path trade needing no hardware. It gates the mission-critical
