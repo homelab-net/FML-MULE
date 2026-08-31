@@ -408,7 +408,22 @@ leaving it to the analysis.
 
 **State:** open, and **all three closure-evidence items now exist** under
 `docs/evidence/TBR-NET-01/`. What is missing is the decision, and this item
-depends on 1.5a. The interoperability exercise is done. Two independently configured deployments sharing
+depends on 1.5a.
+
+**Do not write that decision yet.** The trade's stated options are "retain
+`10.41.0.0/16` or select another prefix", both IPv4, and that option space is
+incomplete: RFC 4193 ULAs are the standard written for this exact question, and
+a venue handing out IPv4 cannot claim an `fd00::/8` destination, so the
+route-stealing failure measured here does not arise at all. SAD section 4.4
+gates IPv6 behind a parent-baseline change request whose own README says it does
+not block MULE work.
+
+**The deciding question is whether ATAK, the TAK server, `meshtasticd` and
+`dnsmasq` work over IPv6. It is untested**, and testing it needs `TBR-TAK-01`
+and the service catalog.
+
+The interoperability exercise is done. Two independently configured deployments
+sharing
 the prefix conflict **silently** -- one node wins ARP consistently, the loser
 resolves its peers, marks them `REACHABLE`, and cannot talk to them, with no
 kernel message and nothing in `batctl` to explain it.
