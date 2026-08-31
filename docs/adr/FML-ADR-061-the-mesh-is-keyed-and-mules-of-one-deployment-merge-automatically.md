@@ -120,6 +120,22 @@ None.
 ## Verification dependency
 
 Stage 2. The keyed-mesh result is `SIMULATED` on `mac80211_hwsim` and says
-nothing about a real driver. **`TBR-LINUX-01` owns whether the HaLow bearer
-supports SAE at all**, and that is the single largest unverified assumption in
-this ADR.
+nothing about a real driver.
+
+**`TBR-LINUX-01` owns whether the HaLow bearer supports SAE at all.** That was
+recorded here as this ADR's largest unverified assumption, and it has since been
+researched in the published driver source. See
+`docs/evidence/TBR-LINUX-01/2026-08-31-halow-driver-mesh-and-sae-support.md`.
+
+In summary, and still `UNVERIFIED` because nothing was executed: both candidate
+vendors offer `NL80211_IFTYPE_MESH_POINT` on the sub-GHz path, both gate it on
+`CONFIG_MAC80211_MESH` which the Debian baseline already sets, and Morse Micro's
+driver contains explicit mesh-SAE frame handling
+(`auth_alg == WLAN_AUTH_SAE`) together with a purpose-built 27 kB mesh
+implementation.
+
+**The assumption is reduced, not removed.** No HaLow module is selected, no
+radio exists, `regions/us-915/profile.yml` records `halow.permitted: TBD`, and
+mesh at 1 MHz S1G channel width -- the configuration HaLow's range argument
+depends on -- is untested. The fallback in this ADR stands until hardware says
+otherwise.
