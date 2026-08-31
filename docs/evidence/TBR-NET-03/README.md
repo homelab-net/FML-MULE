@@ -28,6 +28,12 @@ one of its four closure-evidence items and selects nothing.
   A node is separated from another deployment on 802.11s and joined to it on
   LoRa at the same time.
 
+- `2026-08-31-a-keyed-mesh-admits-only-key-holders.md` -- the question
+  `FML-ADR-060` skipped. On a keyed mesh only credential holders reach `ESTAB`;
+  a different key stays at `LISTEN` with 100% loss; and there is one credential
+  per mesh, so a captured node means rekeying everyone. `FML-ADR-061`
+  supersedes `FML-ADR-060` on the strength of it.
+
 Still missing: the operator-facing statement of the procedure, the
 `THREAT_MODEL.md` assessment, the statement of what a liaison may forward and
 who authorises one, and the decision itself.
