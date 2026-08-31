@@ -7,8 +7,21 @@
 **Priority:** 15 of 16 (SAD v0.31 section 30.2). **Function owner:** Network.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** three artifacts. The trade is still `OPEN`: one of its
+three closure-evidence items is supplied, and the decision itself is not made.
+
+- `2026-08-30-loop-detected-on-the-bench.md`
+- `2026-08-30-collision-exercise.md` -- two deployments sharing
+  `10.41.0.0/16`. They conflict silently: one wins ARP, the loser sees a
+  `REACHABLE` neighbour it cannot reach, and nothing reports it.
+- `2026-08-30-distinct-prefix-exercise.md` -- two deployments with different
+  prefixes. They coexist on one mesh and do not interoperate, failing loudly
+  with `Network is unreachable`; one on-link route per side restores both
+  unicast and ATAK-style multicast.
+
+Together those two are **one** of the three items, the interoperability
+exercise. The collision analysis over expected external networks is still
+missing, and the schema question is reported rather than answered.
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

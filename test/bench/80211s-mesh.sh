@@ -146,6 +146,24 @@ start_batman() {
   # not at the first add. See mule/bringup.py and systemd.netdev(5).
   ip netns exec "$ns" batctl routing_algo BATMAN_IV >/dev/null 2>&1 || true
   ip netns exec "$ns" ip link add name bat0 type batadv
+
+  # Bridge loop avoidance OFF, which FML-ADR-056 decides and
+  # os/config/batman-adv.conf.template configures. It is ENABLED BY DEFAULT, so
+  # a bench that does not say this is testing a configuration the program has
+  # decided against.
+  #
+  # It is not a detail. Until its claim mechanism settles, batman-adv withholds
+  # client frames while every batctl table already reads correct, so the mesh
+  # looks converged and carries nothing. Measured here, one variable, a fresh
+  # mesh per value: 30972 ms to first reply with it enabled against 2056 ms
+  # with it off. .github/workflows/mesh-probe.yml measured the same thing on
+  # veth and recorded 31.5s against 2.150s.
+  #
+  # This line was missing until 2026-08-30. Its absence cost 30s on every run
+  # of this bench and was misread, in a draft evidence artifact, as an
+  # unexplained property of hwsim.
+  ip netns exec "$ns" batctl meshif bat0 bridge_loop_avoidance 0 >/dev/null 2>&1 || true
+
   for hard in "$@"; do
     ip netns exec "$ns" ip link set "$hard" master bat0
   done

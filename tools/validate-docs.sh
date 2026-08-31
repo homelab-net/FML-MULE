@@ -782,7 +782,57 @@ fi
 
 info "mesh interface $mesh_if, bridge_loop_avoidance=${bla_setting:-unset}, bridge membership checked"
 
-# --- 19: every roadmap item carries its own state -----------------------------
+# --- 20: a script that builds a mesh disables bridge loop avoidance ----------
+#
+# FML-ADR-056 disables bridge loop avoidance and os/config/batman-adv.conf.template
+# configures it. batman-adv ENABLES IT BY DEFAULT, so a script that creates a
+# batadv interface and says nothing runs the opposite of the decision, and runs
+# it silently.
+#
+# WHY THIS IS WORTH A CHECK RATHER THAN A REVIEW. The wrong setting does not
+# look like a wrong setting. Until its claim mechanism settles, batman-adv
+# withholds client frames while every batctl table already reads correct: the
+# neighbour list, the originator table and the global translation table are all
+# populated and nothing crosses. Measured, one variable, a fresh mesh per value:
+# 30972 ms to first reply against 2056 ms, and mesh-probe.yml measured 31.5s
+# against 2.150s on veth.
+#
+# That is a mesh that looks converged and carries nothing, for thirty seconds,
+# which is long enough to be reported as a radio fault and short enough to be
+# gone before anyone looks. It was: test/bench/80211s-mesh.sh omitted the line
+# from the day it was written, and on 2026-08-30 the resulting delay was
+# measured, hypothesised about three times, and written into a draft evidence
+# artifact as an unexplained property of hwsim. The number was already recorded
+# in this repository.
+#
+# So the rule is: name the setting or do not build the interface.
+
+bla_offenders=''
+for script in $(find . -name '*.sh' -not -path './.venv*' -not -path './node_modules/*' \
+  -not -path './.git/*' | LC_ALL=C sort); do
+  # Only scripts that actually create a batman-adv interface are in scope. A
+  # script that merely reads one, or names bat0 in a comment, is not.
+  grep -qE 'ip[[:space:]]+link[[:space:]]+add.*type[[:space:]]+batadv' "$script" || continue
+  grep -q 'bridge_loop_avoidance' "$script" && continue
+  bla_offenders="$bla_offenders $script"
+done
+
+if [ -n "$bla_offenders" ]; then
+  for script in $bla_offenders; do
+    printf '  %s\n' "$script" >&2
+  done
+  fail "the scripts above create a batman-adv interface without setting bridge_loop_avoidance. It defaults to ENABLED, which is the opposite of FML-ADR-056, and the symptom is a mesh whose batctl tables all read correct while no traffic crosses for ~30s. Set it to 0 next to the interface creation."
+fi
+
+# WHAT THIS DOES NOT CATCH. It checks that the setting is NAMED, not that it is
+# set to 0, and not that it is set on the right interface or before traffic
+# flows. A script mentioning bridge_loop_avoidance in a comment satisfies it.
+# Checking the value needs to know which interface each call targets, which is
+# the same variable-expansion problem check 18 documents above. Naming it is
+# the part that was actually missing, and a person who types the setting has
+# had to think about which way round it goes.
+
+# --- 21: every roadmap item carries its own state -----------------------------
 #
 # docs/ROADMAP-DEV.md used to write each item's state twice: once in the item
 # and once in the sequencing prose. Finishing anything then invalidated both,

@@ -413,9 +413,21 @@ the prefix conflict **silently** -- one node wins ARP consistently, the loser
 resolves its peers, marks them `REACHABLE`, and cannot talk to them, with no
 kernel message and nothing in `batctl` to explain it.
 
-Still missing: the collision analysis over expected external networks, a run
-showing that non-colliding deployments do interoperate, and the decision
-itself. No hardware needed for any of them.
+The other half of that exercise is done too. Deployments with **different**
+prefixes coexist completely -- one mesh, every originator known, neither
+degrading the other -- and do not interoperate at all, failing at the sender
+with `Network is unreachable` before a packet leaves. ATAK-style multicast does
+not cross either, and `batman-adv` is not what stops it: Debian ships
+`rp_filter = 2`, so a datagram whose source has no route is dropped by the
+receiving kernel. One on-link route per side restores both, with `rp_filter`
+untouched.
+
+So the choice is between a silent failure and a loud one, which is an argument
+and not a decision.
+
+Still missing: the collision analysis over expected external networks, which is
+desk work against the parent Homelab prefixes rather than a bench run, and the
+decision itself. No hardware needed for either.
 
 **Read first:** the trade itself, `os/config/interfaces.conf.template` for the
 consequences already written down, and `THREAT_MODEL.md` — an address derived
