@@ -50,8 +50,15 @@
   nothing. **No durable queue holds a sole copy because no durable queue
   exists.** Caveat: the clients are PyTAK, not ATAK.
 
-**Items 4, 5 and 6 remain**: the different-node restore, the four workflow tests
-in full, and the cache question, and none of
+- `2026-08-31-different-node-restore.md` -- **outstanding item 4, performed.**
+  A database-only backup restored to a replacement host with an empty data
+  folder. Every row survived; the ability to use any of it did not. The default
+  administrator logs in on the origin and fails on the replacement, because the
+  password salt lives in `config.yml`. The replacement **silently generated a
+  different certificate authority**. It reports `/api/health` `200` throughout.
+
+**Items 5 and 6 remain**: the four workflow tests in full, and the cache
+question, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 
