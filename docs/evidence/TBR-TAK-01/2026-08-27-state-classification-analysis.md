@@ -213,8 +213,11 @@ not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
    **Closed 2026-08-31: no durable queue exists.** One non-durable queue,
    `cot_parser`, and the durable exchanges have nothing bound to them. See
    `2026-08-31-no-durable-queue-holds-anything.md`.
-4. **Different-node restore.** Restore to a host that is not the origin, then
-   demonstrate which durable-set members survived and which did not.
+4. ~~**Different-node restore.**~~ **Done 2026-08-31.** Every row survived and
+   nothing was usable: authentication fails because the salt is not in the
+   database, and the replacement silently generated a different certificate
+   authority. It reported healthy throughout. See
+   `2026-08-31-different-node-restore.md`.
 5. **The four workflow tests** named in the trade: DataSync, mission package,
    certificate, map cache.
 6. **Confirm the cache question empirically**: what a client observes after
