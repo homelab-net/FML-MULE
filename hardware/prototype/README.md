@@ -15,6 +15,7 @@ SAD v0.31 section 33.3 is explicit about what this artifact is for:
 | File | Contents |
 | --- | --- |
 | `prototype-bom-revA.csv` | 42 line items, transcribed from the source workbook. |
+| `BOM-v0.4-DM32-RoIP-handoff.txt` | A received draft change package adding the DM-32UV voice radio and an audio/PTT RoIP gateway. **Received input, not an accepted baseline** -- see its `.README.md` for what it proposes and the blocking issues found on receipt, including a hard ADR-number collision. |
 
 ## Source and provenance
 

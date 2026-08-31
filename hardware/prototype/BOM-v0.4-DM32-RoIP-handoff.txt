@@ -1,0 +1,1441 @@
+PROGRAM FERAL MULE (FML)
+MULE PROTOTYPE BOM v0.4 DRAFT
+DM-32UV-COMPATIBLE VOICE / RADIO-OVER-IP BASELINE CHANGE HANDOFF
+
+Date: 2026-08-31
+Parent: FML/MULE CONOPS v1.01 BASELINE
+Architecture basis: FML/MULE SAD v0.31
+Parent Homelab: Phase 6 / WP-07 RF, Meshtastic & TAK Communications
+Status: DRAFT BASELINE CHANGE PACKAGE FOR LAB / PROTOTYPE REVIEW
+Supersedes: Prototype BOM v0.3 DRAFT for review purposes only
+Change authority: Requires controlled FML baseline update before production lock
+
+===============================================================================
+0. EXECUTIVE DISPOSITION
+===============================================================================
+
+This revision adds the BAOFENG DM-32UV as the selected external team voice-radio
+interface and adds a MULE Radio-over-IP (RoIP) gateway capability.
+
+The intent is:
+
+    DM-32UV = independent local RF voice / PACE radio
+    ATAK/EUD = map, data, collaboration
+    MULE = resilient IP bearer, gateway, routing/security boundary
+
+The DM-32UV remains capable of normal radio-to-radio operation when MULE,
+Tailscale, WAN, ATAK, or the local mesh is unavailable.
+
+When a MULE IP path is available, a dedicated DM-32UV gateway radio may bridge
+local RF audio/PTT across:
+
+    1. local conventional-Wi-Fi MULE IP;
+    2. Wi-Fi HaLow MULE IP;
+    3. Ethernet;
+    4. approved USB/WAN uplink;
+    5. Tailscale/WAN reachback.
+
+LoRa/Meshtastic is NOT a baseline voice bearer.
+
+The remote radio gateway does NOT need to use the same RF frequency as the
+local gateway. Each gateway radio only needs to match its own local radio net.
+The MULE transports decoded audio and PTT state as IP, not the RF waveform.
+
+Example:
+
+    Team A handhelds
+        |
+    RF Channel A
+        |
+    DM-32UV Gateway A
+        |
+    MULE-A
+        |
+    HaLow / Wi-Fi / Ethernet / Tailscale
+        |
+    MULE-B
+        |
+    DM-32UV Gateway B
+        |
+    RF Channel B
+        |
+    Team B handhelds
+
+Channel A and Channel B may be different frequencies and may use different
+local channel plans, provided each gateway is correctly configured for its
+local users and the operating profile is lawful for the frequencies/services
+being used.
+
+The 4 GB / 32 GB CM4 remains the prototype compute candidate. RoIP audio/PTT
+does not by itself justify returning to the 8 GB CM4. The full service-host
+load remains subject to COMP-01 qualification.
+
+===============================================================================
+1. GOVERNING REQUIREMENTS PRESERVED
+===============================================================================
+
+The following existing FML principles remain controlling:
+
+1. Local-first / WAN-independent.
+   Loss of WAN shall not remove baseline local communications.
+
+2. Voice PACE independence.
+   MULE is an operational accelerator, not a replacement for independent
+   mission-appropriate voice/manual PACE procedures.
+
+3. Standard node architecture.
+   All normal MULEs within an approved hardware block remain materially common
+   and field-replaceable.
+
+4. WAN overlay boundary.
+   Tailscale terminates on MULE infrastructure. EUDs do not join the overlay
+   merely to obtain MULE services.
+
+5. External radio integration.
+   The existing CONOPS already reserves Bluetooth, Wi-Fi, USB, audio, packet,
+   and data integration boundaries for external VHF/UHF/HF radios.
+
+6. Network reachability != authorization.
+   A reachable Tailscale peer does not automatically receive permission to
+   participate in a voice group or access another service/data domain.
+
+7. Graceful degradation.
+   Loss of the RoIP path returns the radio users to local RF operation.
+
+8. Amateur-radio governance remains separate.
+   Amateur operation requires an appropriate control operator and lawful
+   content/configuration. Any feature that obscures message meaning must not be
+   enabled on an amateur-radio profile where prohibited.
+
+===============================================================================
+2. PROPOSED BASELINE CHANGES
+===============================================================================
+
+The lab reviewer should treat the following as proposed controlled changes.
+
+FML-ADR-051 - SELECTED EXTERNAL VOICE RADIO
+------------------------------------------------
+BAOFENG DM-32UV is the selected initial standardized external team voice-radio
+candidate for the current FML hardware block.
+
+Rationale:
+- group-standard radio;
+- DMR Tier II + analog FM capability;
+- VHF/UHF;
+- GPS and DMR-based position reporting capability;
+- USB-C charging;
+- Kenwood-style two-pin programming/accessory family;
+- commercially inexpensive and replaceable;
+- independent radio operation preserves voice PACE.
+
+Boundary:
+- The radio is an external field radio, not a dependency for basic MULE
+  networking/TAK functions.
+- A different radio may replace it in a future hardware block if the controlled
+  audio/PTT gateway interface is preserved and requalified.
+
+FML-ADR-052 - SELECTED ROIP INTEGRATION PRINCIPLE
+-------------------------------------------------
+MULE extends external handheld-radio voice using audio/PTT-level Radio-over-IP,
+rather than requiring native DMR protocol tunneling as the baseline.
+
+Rationale:
+- radio-agnostic;
+- simpler than making native DMR/MMDVM routing mandatory;
+- preserves existing user PTT behavior;
+- can bridge different local RF frequencies/channel plans;
+- allows later replacement of the radio while retaining the gateway interface;
+- directly uses the MULE IP bearer architecture.
+
+FML-ADR-053 - PROTOTYPE INTERFACE
+---------------------------------
+DigiRig Mobile revision 1.11-class USB audio/PTT interface with a Baofeng/Kenwood
+K1 audio/PTT cable is the preferred first prototype interface.
+
+This is a prototype implementation selection, not a permanent vendor lock.
+
+The final production MULE may integrate equivalent CM108/USB-audio + PTT
+electronics internally if testing demonstrates that integration reduces cost,
+volume, and cable burden without reducing reliability.
+
+===============================================================================
+3. NEW / REVISED REQUIREMENT CANDIDATES
+===============================================================================
+
+VOICE-MSN-001
+The MULE subsystem SHALL support integration with the group-standard BAOFENG
+DM-32UV external voice radio while preserving independent direct RF operation
+when MULE services are unavailable.
+
+VOICE-L1-001
+A MULE SHALL be capable of accepting receive audio from a designated gateway
+radio and providing transmit audio and PTT control to that gateway radio through
+a controlled external-radio interface.
+
+VOICE-L1-002
+The baseline gateway SHALL operate at the audio/PTT level and SHALL NOT require
+native DMR protocol termination to extend voice across the MULE IP fabric.
+
+VOICE-L1-003
+A MULE SHALL support forwarding authorized voice sessions across any approved IP
+bearer that meets the voice service's latency/loss criteria.
+
+Approved candidate IP bearers:
+- conventional Wi-Fi MULE path;
+- Wi-Fi HaLow;
+- Ethernet;
+- routed site/WAN;
+- Tailscale overlay.
+
+VOICE-L1-004
+LoRa/Meshtastic SHALL NOT be considered a baseline RoIP voice bearer.
+
+VOICE-L1-005
+The local and remote gateway radios SHALL NOT be required to use the same RF
+frequency. Each gateway SHALL use the approved local radio configuration for
+its local operational domain.
+
+VOICE-L1-006
+Loss of IP voice connectivity SHALL NOT prevent local handheld-to-handheld RF
+voice operation.
+
+VOICE-L1-007
+EUDs SHALL NOT be required to join Tailscale for RoIP operation.
+
+VOICE-L1-008
+The MULE SHALL remain the security/routing boundary for WAN/Tailscale voice
+reachback.
+
+VOICE-L1-009
+Voice-group authorization SHALL be distinct from Tailscale/network
+reachability.
+
+VOICE-L1-010
+The gateway SHALL include loop-prevention behavior so a voice session received
+from another MULE is not retransmitted indefinitely through the MULE voice
+fabric.
+
+VOICE-L1-011
+The gateway SHALL use half-duplex arbitration appropriate to PTT radio
+operation. Only one active talker per configured voice group is required for
+the initial baseline.
+
+VOICE-L1-012
+RoIP SHALL receive QoS preference over video, bulk synchronization, and large
+file transfers, while not preventing critical TAK/CoT traffic from flowing.
+
+VOICE-L1-013
+The operator-radio path SHALL remain direct-to-radio for normal users.
+Individual operator headsets/PTTs are not routed through the MULE.
+
+VOICE-L1-014
+The MULE SHALL support a dedicated gateway-radio role without creating a unique
+leader-only MULE hardware variant.
+
+VOICE-L1-015
+Radio configuration/codeplug artifacts used for FML operation SHALL be version
+controlled and associated with the applicable mission profile.
+
+VOICE-L1-016
+An amateur-radio mission profile SHALL prevent activation of radio settings or
+gateway behavior that is prohibited under the applicable amateur operating
+rules.
+
+===============================================================================
+4. USER EXPERIENCE
+===============================================================================
+
+Normal team member:
+
+    headset/PTT -> personal DM-32UV -> RF
+
+No MULE interaction is required for normal local voice.
+
+Gateway:
+
+    local user's DM-32UV
+        |
+        | RF
+        v
+    dedicated gateway DM-32UV
+        |
+        | K1 speaker/mic audio + PTT
+        v
+    DigiRig / equivalent
+        |
+        | USB audio + serial RTS PTT
+        v
+    MULE
+
+Remote voice:
+
+    MULE-A -> MULE IP path -> MULE-B -> gateway radio -> remote local RF net
+
+The normal user should not need to know whether a linked voice session crossed:
+- one local MULE hop;
+- multiple HaLow/Wi-Fi mesh hops;
+- Ethernet;
+- a mesh-connected WAN gateway;
+- Tailscale.
+
+The user's operational action remains:
+
+    select assigned channel
+    press PTT
+    speak
+    release PTT
+
+===============================================================================
+5. NETWORK PATHS
+===============================================================================
+
+5.1 DIRECT RF
+--------------
+
+    DM-32 <---------------- RF ----------------> DM-32
+
+Preferred when the radios can communicate directly.
+
+MULE is not required.
+
+5.2 LOCAL MULE MESH ROIP
+------------------------
+
+    DM-32
+      |
+      RF
+      |
+    Gateway Radio
+      |
+    MULE-A
+      |
+    HaLow / conventional Wi-Fi MANET
+      |
+    MULE-B
+      |
+    Gateway Radio
+      |
+      RF
+      |
+    DM-32
+
+No WAN or Tailscale is required if an approved direct MULE IP route exists.
+
+5.3 TAILSCALE ROIP
+------------------
+
+    Team A RF
+       |
+    MULE-A
+       |
+    Internet/WAN
+       |
+    Tailscale
+       |
+    MULE-B
+       |
+    Team B RF
+
+5.4 MESH-TO-WAN ROIP
+--------------------
+
+A MULE without direct Internet may reach a different authorized MULE that owns
+the local WAN gateway:
+
+    Team A RF
+       |
+    MULE-A
+       |
+    local MULE mesh
+       |
+    MULE-C (authorized WAN gateway)
+       |
+    WAN
+       |
+    Tailscale
+       |
+    MULE-D
+       |
+    Team D RF
+
+5.5 DEGRADATION
+---------------
+
+Preferred voice behavior:
+
+    direct local RF
+       |
+       +-- optionally linked over local MULE IP
+       |
+       +-- optionally linked over Tailscale if authorized
+       |
+       v
+    if MULE path fails: direct/local RF remains
+
+RoIP is not permitted to make normal local radio use dependent on the digital
+system.
+
+===============================================================================
+6. SOFTWARE ARCHITECTURE REQUIRED
+===============================================================================
+
+The previous BOM treated "PTT/voice" largely as a future EUD/software function.
+DM-32 integration changes that. A real gateway service and network-control path
+are now required.
+
+6.1 PROTOTYPE SOFTWARE COMPONENTS
+---------------------------------
+
+A. Linux USB audio
+   - ALSA sees the DigiRig CM108 codec as a USB audio device.
+   - Receive audio: gateway radio -> DigiRig -> ALSA capture.
+   - Transmit audio: ALSA playback -> DigiRig -> gateway radio.
+
+B. PTT control
+   - DigiRig exposes an open-collector PTT switch.
+   - PTT is controlled through the CP2102 serial interface using RTS.
+   - The MULE gateway service asserts/deasserts PTT on authorized outbound
+     voice sessions.
+
+C. Audio codec
+   Preferred prototype codec: Opus.
+
+   Initial engineering profile:
+   - mono;
+   - voice-optimized;
+   - approximately 12-24 kbps codec payload as a starting trade;
+   - actual bitrate, frame size, FEC, and jitter buffer to be selected by test.
+
+   This is an engineering starting point, not a locked TRD value.
+
+D. Transport
+   Preferred architecture:
+   - direct MULE-to-MULE IP session;
+   - local mesh route when local peer is reachable;
+   - Tailscale route for remote peer where available/authorized;
+   - no dependence on Internet-hosted voice server for local operation.
+
+E. Control/signaling
+   A thin MULE RoIP controller is required for:
+   - voice-group identity;
+   - origin node ID;
+   - talker state;
+   - PTT start/stop;
+   - destination selection;
+   - authorization;
+   - session IDs;
+   - loop prevention;
+   - timeout/hang timers;
+   - gateway state;
+   - status/metrics.
+
+   The service should be thin integration glue, not a new general-purpose
+   telephony platform unless testing shows an existing mature project provides
+   a better fit.
+
+F. Service integration
+   MULE Status Aggregator should report at minimum:
+   - gateway radio interface present;
+   - USB audio interface state;
+   - PTT control state;
+   - current voice group;
+   - linked peer(s);
+   - local-only / mesh-linked / WAN-linked state;
+   - packet loss/jitter;
+   - last voice session;
+   - fault/loop lockout;
+   - gateway enabled/disabled.
+
+6.2 SOFTWARE IMPLEMENTATION TRADE
+---------------------------------
+
+TBR-VOICE-SW-01:
+
+Compare at least:
+
+1. thin MULE-native gateway:
+   ALSA + Opus + direct authenticated IP transport + serial PTT control;
+
+2. mature amateur/Radio-over-IP frameworks such as:
+   - SvxLink-class architecture;
+   - AllStar/Asterisk-class architecture;
+
+3. other mature open-source RoIP components that:
+   - run on current Debian stable ARM64;
+   - support USB audio;
+   - support external PTT;
+   - work without public Internet;
+   - can route over Tailscale/local mesh;
+   - can be controlled by FML mission policy;
+   - do not require a proprietary cloud.
+
+Selection criteria:
+- CPU/RAM;
+- latency;
+- ease of deployment;
+- auditability;
+- local-first behavior;
+- security model;
+- reliability;
+- project health;
+- ability to avoid unnecessary custom code.
+
+No native DMR/MMDVM dependency is required for the baseline RoIP function.
+MMDVM remains an optional future capability if native DMR metadata/talkgroup
+integration proves valuable.
+
+6.3 CODEPLUG / RADIO CONFIGURATION
+----------------------------------
+
+Current official Baofeng download area lists DM-32UV CPS V1.60.
+
+The FML repository should add a controlled radio configuration area such as:
+
+    config/
+      radio/
+        dm32uv/
+          README.txt
+          codeplug/
+          channel-plan/
+          talkgroup-map/
+          scan-lists/
+          firmware-approved.txt
+          mission-profile-mapping/
+          programming-runbook/
+          recovery-codeplug/
+
+Do not assume a specific CPS file extension in architecture documentation.
+
+The configuration baseline should distinguish at least:
+- amateur profile;
+- other appropriately licensed/authorized profile(s);
+- analog interoperability profile;
+- DMR local/team profile;
+- gateway-radio profile.
+
+The gateway-radio codeplug may differ in role configuration but should use the
+same physical DM-32UV hardware.
+
+===============================================================================
+7. COMPUTE IMPACT
+===============================================================================
+
+Prototype compute remains:
+
+    Raspberry Pi Compute Module 4
+    4 GB RAM
+    32 GB eMMC
+    wireless
+
+Reasoning:
+
+The RoIP function adds:
+- one USB audio device;
+- one serial/PTT control endpoint;
+- Opus encode/decode;
+- small real-time signaling;
+- modest buffering/metrics.
+
+This is small relative to the existing maximum MULE service-host case:
+- Debian networking;
+- hostapd;
+- batman-adv;
+- HaLow;
+- high-rate Wi-Fi;
+- LoRa integration;
+- Tailscale;
+- TAK services;
+- RabbitMQ;
+- web/file services;
+- observability;
+- MULE controller/status/trust functions.
+
+COMP-01 shall be updated to include an active representative RoIP voice session
+during worst-case shared-service-host testing.
+
+FAIL CONDITION:
+Return to 8 GB only if the 4 GB prototype demonstrates unacceptable:
+- memory pressure;
+- OOM;
+- swap pressure;
+- voice underruns;
+- packet/routing degradation;
+- service instability;
+- insufficient reserve.
+
+===============================================================================
+8. HARDWARE INTERFACE
+===============================================================================
+
+8.1 DM-32UV
+-----------
+
+Selected external voice radio candidate:
+BAOFENG DM-32UV.
+
+Official current product information supports:
+- DMR Tier II and analog operation;
+- VHF/UHF transmit capability;
+- GPS and digital APRS functionality;
+- USB-C charging;
+- programmable keys;
+- 2500 mAh battery;
+- official CPS/firmware support.
+
+Official Baofeng programming guidance specifies a Kenwood-style two-pin
+speaker/mic/programming connector family for computer programming.
+
+IMPORTANT:
+The fact that the connector is physically K1/Kenwood-style is not by itself
+sufficient to close the audio/PTT interface qualification.
+
+The lab SHALL bench-verify:
+- receive audio level;
+- transmit microphone level;
+- PTT keying;
+- grounding;
+- RF susceptibility;
+- no unintended keying;
+- no damage/backfeed;
+- analog operation;
+- DMR operation;
+- squelch/mute behavior.
+
+8.2 PROTOTYPE RADIO INTERFACE
+-----------------------------
+
+Preferred first article:
+DigiRig Mobile rev 1.11 or later.
+
+Relevant current characteristics:
+- USB audio codec based on CM108;
+- CP2102 USB serial;
+- independent open-collector PTT controlled by RTS;
+- Linux support;
+- one USB connection to host;
+- available Baofeng/Kenwood K1 audio/PTT cables.
+
+The current CM4-IO-BASE-C provides:
+- 2x USB 2.0 Type-A host ports;
+- Gigabit Ethernet;
+- 40-pin GPIO;
+- M.2 M-key;
+- RTC.
+
+Therefore the DigiRig does NOT require changing the selected CM4/carrier.
+
+Prototype connection:
+
+    CM4-IO-BASE-C USB Type-A
+       |
+    short USB-A -> USB-C data cable
+       |
+    DigiRig Mobile
+       |
+    Baofeng K1 audio/PTT cable
+       |
+    DM-32UV gateway radio
+
+8.3 MECHANICAL TARGET
+---------------------
+
+ARTICLE 0:
+DigiRig may remain external for rapid functional verification.
+
+ARTICLE 1 / FIELD PROTOTYPE TARGET:
+Mount DigiRig or equivalent inside the MULE enclosure if PACK-01 permits.
+
+Preferred production human-factors outcome:
+- no loose DigiRig box;
+- one short controlled radio-interface connection to the dedicated gateway
+  DM-32UV;
+- protected/strain-relieved interface;
+- MULE USB-C POWER/DATA/WAN port remains separate from the gateway-radio
+  interface;
+- no requirement for a user to solder in the field.
+
+If the K1 cable must pass through the enclosure, PACK-01 shall choose between:
+A. sealed bulkhead connector + short replaceable K1 adapter; or
+B. sealed captive pigtail with field-replaceable external adapter.
+
+A sealed bulkhead is preferred for snag control and replacement, but it adds
+a small custom harness task.
+
+===============================================================================
+9. UPDATED RECURRING BOM
+===============================================================================
+
+Prices are planning figures as of 2026-08-31. Tax/shipping are excluded unless
+otherwise stated. "Estimate" values require a vendor quote or sourcing pass.
+
+CORE MULE v0.3 COST-REDUCED HARDWARE
+------------------------------------
+
+01 Compute
+   Raspberry Pi CM4, 4 GB RAM / 32 GB eMMC / Wi-Fi
+   Candidate: CM4104032
+   Qty: 1
+   Planning cost: $125.00
+   Status: PROTOTYPE CANDIDATE
+   Reason: lower-cost than 8 GB while preserving shared-service-host test.
+
+02 Carrier
+   Waveshare CM4-IO-BASE-C
+   Qty: 1
+   Cost: $21.99
+   Status: KEEP
+   Interfaces: 2x USB 2.0 Type-A, GbE, GPIO, M.2 M-key, RTC.
+
+03 RTC battery
+   CR1220
+   Qty: 1
+   Cost: $2.00
+   Status: KEEP
+
+04 HaLow module
+   Seeed Wio-WM6108 US915-SPI
+   Qty: 1
+   Cost: $14.99
+   Status: KEEP
+
+05 HaLow adapter/HAT
+   Seeed WM1302 Pi HAT / applicable interface board
+   Qty: 1
+   Cost: $19.90
+   Status: KEEP / VERIFY FINAL INTERFACE
+
+06 HaLow RF
+   MHF/I-PEX to SMA + 902-928 MHz field antenna
+   Qty: 1 set
+   Cost allowance: $9.90
+   Status: KEEP / SOURCE DOWN
+
+07 High-rate Wi-Fi PCIe adapter
+   Passive M.2 M-key -> A/E-key PCIe adapter
+   Qty: 1
+   Cost: $9.68
+   Status: BUY ONE / VERIFY
+
+08 High-rate Wi-Fi
+   SparkLAN QCA6174A M.2
+   Qty: 1
+   Cost: $36.90
+   Status: BUY ONE / VERIFY
+
+09 High-rate RF
+   2x pigtail + 2x dual-band field antennas
+   Qty: 1 set
+   Cost allowance: $28.00
+   Status: KEEP UNTIL RF-03
+
+10 EUD WLAN antenna
+   Raspberry Pi CM4 compatible external antenna
+   Qty: 1
+   Cost allowance: $10.00
+   Status: KEEP
+
+11 LoRa
+   RAK19003 + RAK4631 US915 Mini kit
+   Qty: 1
+   Cost: $31.97
+   Status: KEEP
+
+12 GNSS
+   RAK12501 / L76K
+   Qty: 1
+   Cost: $8.90
+   Status: KEEP
+
+13 External GNSS RF
+   External GNSS antenna/bulkhead
+   Qty baseline: 0
+   Cost: $0.00
+   Status: ADD ONLY IF PACK/RF TEST REQUIRES
+
+14 Enclosure
+   Hammond 1457K1601BK
+   Qty: 1
+   Cost: $47.87
+   Status: LEADING FIT ARTICLE
+
+15 Printed internals
+   ASA/TPU sleds/retainers
+   Qty: 1 set
+   Cost allowance: $15.00
+   Status: KEEP
+
+16 Environmental/RF hardware
+   Bulkheads, sealing washers, vent/glands
+   Qty: 1 set
+   Cost allowance: $25.00
+   Status: ALLOWANCE
+
+17 Thermal
+   Heat spreader/heatsink/test hardware
+   Qty: 1 set
+   Cost allowance: $12.00
+   Status: KEEP
+
+18 Mechanical
+   RF guard / pouch retention hardware
+   Qty: 1 set
+   Cost allowance: $12.00
+   Status: KEEP
+
+19 Battery
+   GlobTek protected 4S1P 21700 14.4 V / 5 Ah / ~72 Wh related ...106 family
+   Qty: 1
+   Cost objective: $61.45
+   Status: QUALIFICATION REQUIRED
+   Fallback: original ~$92.15 related protected pack candidate.
+
+20 Internal power harness
+   Fused/keyed harness
+   Qty: 1
+   Cost allowance: $20.00
+   Status: DESIGN AFTER BATTERY LOCK
+
+21 Battery cradle
+   Printed retainer
+   Qty: 1
+   Cost allowance: $8.00
+   Status: KEEP
+
+22 MULE USB-C power/data/WAN board
+   Integrated PD + 4S charger/power path + system 5 V + CM4 USB device data
+   Qty: 1
+   Cost objective: $50.00
+   Status: ENGINEERING ALLOWANCE / PROVE ON EVM FIRST
+
+CORE v0.3 SUBTOTAL:
+   $570.55 / node
+
+DM-32UV VOICE / ROIP ADDITIONS
+------------------------------
+
+23 Dedicated gateway radio
+   BAOFENG DM-32UV
+   Qty: 1 per continuously RoIP-capable MULE/team
+   Current official price basis: $89.99
+   Status: NEW BASELINE EXTERNAL RADIO
+   Notes:
+   - If the organization already assigns a spare/dedicated gateway DM-32UV,
+     this cost is group-furnished and not charged to MULE electronics.
+   - Do not require an operator to surrender the only handheld they are
+     carrying to make the gateway work.
+
+24 USB radio interface
+   DigiRig Mobile rev 1.11 or later
+   Qty: 1
+   Current price: $54.95
+   Status: PROTOTYPE SELECTED
+   Notes:
+   - CM108 USB audio;
+   - CP2102 serial;
+   - RTS-controlled open-collector PTT;
+   - Linux compatible.
+
+25 Baofeng/Kenwood K1 interface cable
+   DigiRig Baofeng HT cable set or equivalent
+   Qty: 1
+   Current price: $34.45
+   Status: PROTOTYPE SELECTED / DM-32 BENCH VERIFY
+   Notes:
+   - set includes audio/PTT and programming cable;
+   - only audio/PTT cable is required continuously for RoIP;
+   - later sourcing may reduce recurring cost.
+
+26 Internal host cable
+   Short USB-A male -> USB-C data cable
+   Qty: 1
+   Planning allowance: $8.00
+   Status: ESTIMATE
+   Requirement: data-capable, short, strain-relieved.
+
+27 Internal mount / strain relief
+   Printed bracket + fasteners / cable retention
+   Qty: 1
+   Planning allowance: $5.00
+   Status: ESTIMATE
+
+DM-32UV / ROIP ADDITION IF GATEWAY RADIO INCLUDED:
+   $192.39
+
+DM-32UV / ROIP ADDITION IF RADIO IS GROUP-FURNISHED:
+   $102.40
+
+UPDATED RECURRING NODE TARGET INCLUDING DEDICATED DM-32UV:
+   $762.94
+
+UPDATED RECURRING MULE ELECTRONICS TARGET, EXCLUDING GROUP-FURNISHED DM-32UV:
+   $672.95
+
+OPTIONAL DEVELOPMENT / RISK-REDUCTION ITEM:
+   DigiRig USB isolator
+   Current price basis: $22.95
+   Not baseline.
+   Add only if RF/ground-loop testing demonstrates need.
+
+BATTERY FALLBACK COST IMPACT:
+If the $61.45 battery-family candidate fails and the ~$92.15 fallback is used:
+   +$30.70 / node
+
+Result with dedicated gateway DM-32UV and fallback battery:
+   approximately $793.64 / node
+
+===============================================================================
+10. COST INTERPRETATION
+===============================================================================
+
+Do not interpret $762.94 as the eventual production cost.
+
+The voice addition is intentionally using complete commercial prototype parts:
+- $54.95 DigiRig;
+- $34.45 cable set;
+- $89.99 dedicated gateway radio.
+
+The likely production cost-down path is:
+
+1. Keep the DM-32UV as an external COTS radio.
+2. Replace the external DigiRig enclosure with an internal equivalent USB-audio
+   + PTT interface once the electrical interface is proven.
+3. Replace the two-cable commercial set with one controlled short gateway cable.
+4. Integrate the radio interface mechanically into the MULE enclosure.
+5. Cost-reduce antennas/harnesses only after RF qualification.
+6. Revisit high-rate Wi-Fi radio consolidation only after RF-03.
+
+The voice-interface electronics themselves should eventually cost materially
+less than the current $89.40 DigiRig + cable-set prototype combination, but no
+production number shall be claimed until a board/harness quote exists.
+
+===============================================================================
+11. PROCUREMENT / TEST GATES
+===============================================================================
+
+GATE VOICE-01 - DM-32 ELECTRICAL COMPATIBILITY
+----------------------------------------------
+Buy/borrow:
+- 1 DM-32UV;
+- 1 DigiRig Mobile 1.11+;
+- 1 Baofeng HT DigiRig cable set.
+
+Verify:
+1. radio receives local RF;
+2. clean receive audio appears in Linux ALSA;
+3. MULE can play audio into radio microphone path;
+4. RTS correctly keys PTT;
+5. releasing RTS reliably unkeys;
+6. no hot-plug damage;
+7. no unintended PTT;
+8. analog operation;
+9. DMR operation;
+10. acceptable RF feedback immunity;
+11. acceptable audio levels without distortion.
+
+PASS:
+Stable bidirectional audio/PTT with repeatable levels.
+
+FAIL:
+Do not redesign the entire MULE. Replace only the external radio interface
+cable/interface implementation.
+
+GATE VOICE-02 - LOCAL ROIP
+--------------------------
+Two MULEs + two gateway radios.
+
+Verify:
+
+    DM-32 -> RF -> MULE-A -> local IP -> MULE-B -> RF -> DM-32
+
+Use both:
+- conventional Wi-Fi;
+- HaLow where available.
+
+Measure:
+- one-way latency;
+- jitter;
+- packet loss;
+- audio intelligibility;
+- PTT acquisition delay;
+- PTT release/tail behavior;
+- CPU/RAM;
+- link recovery.
+
+GATE VOICE-03 - DIFFERENT RF CHANNELS
+-------------------------------------
+Configure Gateway A and Gateway B for different legal/authorized local channel
+configurations.
+
+Verify audio/PTT transit over IP works without RF-frequency equality.
+
+This explicitly proves the architecture is an audio/PTT gateway, not an RF
+repeater requiring a common frequency.
+
+GATE VOICE-04 - TAILSCALE
+-------------------------
+Verify:
+
+    DM-32 -> MULE-A -> Tailscale -> MULE-B -> DM-32
+
+Then verify:
+
+    DM-32 -> MULE-A -> local mesh -> MULE-C WAN gateway
+          -> Tailscale -> remote MULE -> DM-32
+
+PASS:
+Voice reaches the authorized remote gateway and direct/local RF still works
+when WAN is removed.
+
+GATE VOICE-05 - FAILSAFE / DEGRADATION
+---------------------------------------
+During an active exercise:
+- disconnect Tailscale;
+- remove WAN;
+- reboot one remote MULE;
+- remove local mesh path;
+- stop RoIP service.
+
+PASS:
+Normal local radio operation remains possible.
+
+GATE VOICE-06 - LOOP / CONTENTION
+---------------------------------
+Create at least three gateways.
+
+Verify:
+- no infinite audio loop;
+- no repeated self-keying;
+- timeout clears stuck PTT;
+- only one talker owns a half-duplex voice group at a time;
+- local RF does not oscillate between gateways.
+
+GATE VOICE-07 - QoS
+-------------------
+Run:
+- TAK/PLI;
+- GeoChat;
+- voice;
+- large file transfer;
+- video/bulk background load.
+
+PASS:
+Voice and critical TAK remain intelligible/usable.
+Video/bulk traffic yields first.
+
+GATE VOICE-08 - COMP-01 UPDATE
+------------------------------
+Worst-case 4 GB CM4 test now includes:
+- representative S2 service-host load;
+- active RoIP session;
+- all baseline radio functions;
+- Tailscale;
+- observability.
+
+PASS:
+No OOM, unacceptable swap, voice underrun, routing impairment, or service
+instability.
+
+GATE VOICE-09 - PACK / THERMAL
+------------------------------
+If DigiRig becomes internal:
+- verify package fit;
+- USB cable bend radius;
+- strain relief;
+- RF cable clearance;
+- thermal behavior;
+- enclosure sealing;
+- radio interface access;
+- pouch snag behavior.
+
+GATE VOICE-10 - RADIO CONFIGURATION CONTROL
+-------------------------------------------
+Verify:
+- known-good DM-32 codeplug can be restored;
+- gateway profile is versioned;
+- mission profile maps to correct radio profile;
+- prohibited settings are not silently enabled;
+- recovery process works without WAN where practical.
+
+===============================================================================
+12. TRAFFIC / QOS POLICY DELTA
+===============================================================================
+
+Proposed traffic classes:
+
+Highest preservation:
+- critical network control;
+- required TAK/CoT/PLI;
+- active PTT/RoIP voice signaling and audio.
+
+Next:
+- GeoChat / operational messaging;
+- TAK service sessions;
+- routine application traffic.
+
+Lower:
+- file transfer;
+- synchronization;
+- video;
+- background analytics.
+
+Voice characteristics:
+- latency-sensitive;
+- low bandwidth;
+- loss tolerant within limits;
+- must preempt/deprioritize bulk/video rather than allowing large flows to
+  make PTT unintelligible.
+
+Initial engineering objective:
+- do not lock a final latency requirement until VOICE-02/04 testing;
+- use a small jitter buffer;
+- optimize for intelligibility and PTT responsiveness, not broadcast-quality
+  audio.
+
+===============================================================================
+13. SECURITY / AUTHORIZATION DELTA
+===============================================================================
+
+Tailscale authentication alone is insufficient.
+
+Voice authorization shall include:
+- mission identity;
+- gateway identity;
+- voice-group permission;
+- destination scope.
+
+Example groups:
+- TEAM-LOCAL
+- TL-NET
+- COMMAND
+- EVENT / INCIDENT
+- TEST
+
+The exact group names are operational configuration, not hard-coded product
+requirements.
+
+A remote MULE that is reachable by IP must not automatically be able to:
+- key another team's radio;
+- join command voice;
+- forward audio into another organizational scope.
+
+Minimum control concepts:
+- authenticated gateway peers;
+- allowlisted voice groups;
+- short-lived mission configuration;
+- session IDs;
+- origin node ID;
+- replay/loop protection;
+- maximum transmit timeout;
+- emergency administrative disable.
+
+The radio itself remains governed by the applicable RF operating authority and
+mission profile.
+
+===============================================================================
+14. REGULATORY / RADIO CONFIGURATION NOTES
+===============================================================================
+
+The DM-32UV is capable of both analog and DMR operation.
+
+FML should NOT hard-code actual transmit frequencies into the engineering BOM.
+
+Channel/frequency/talkgroup configuration belongs in the approved mission radio
+plan and must match applicable authorization.
+
+For amateur-radio use:
+- appropriately licensed/control-operator requirements remain applicable;
+- FML must not rely on prohibited message-obscuring/encryption features;
+- gateway behavior must follow applicable station identification, forwarding,
+  control, and content requirements.
+
+For other appropriately authorized services:
+- configuration must match the applicable license/rules/authorization.
+
+The existence of an FCC-certified radio does not itself authorize use on an
+arbitrary frequency.
+
+===============================================================================
+15. SOURCE / EVIDENCE REGISTER
+===============================================================================
+
+FML internal sources:
+1. FML_MULE_CONOPS_v1.01_BASELINE.txt
+   Key sections:
+   - 4 Operational Philosophy;
+   - 5 Core Design Principles;
+   - 39 Adaptive Routing;
+   - 40 Traffic Preference;
+   - 41 WAN Independence;
+   - 42 Local WAN Gateway;
+   - 43 WAN Overlay;
+   - 44 Remote Team Operation;
+   - 45 External VHF/UHF/HF Integration;
+   - 46 Amateur-Radio Governance.
+
+2. FML_MULE_System_Architecture_Description_v0.31.txt
+   Key sections:
+   - primary single-host architecture;
+   - FML-ADR-039 Tailscale terminates on MULE;
+   - FML-ADR-045 separate EUD/high-rate radio planning;
+   - External RF Gateway Boundary;
+   - Status Aggregator;
+   - open compute/radio qualification trades.
+
+3. FML_MULE_Prototype_BOM_v0.2.xlsx / .txt
+   Key records:
+   - two-node prototype objective;
+   - PTT/voice previously bookmarked as software-only future capability;
+   - compact CM4 carrier;
+   - RF topology;
+   - battery trade;
+   - enclosure trade.
+
+External current sources checked 2026-08-31:
+
+BAOFENG DM-32UV official product:
+https://www.baofengradio.com/products/dm-32uv
+Observed:
+- current official price: $89.99;
+- DMR + analog;
+- VHF/UHF;
+- GPS / digital APRS;
+- USB-C charging;
+- 2500 mAh battery.
+
+BAOFENG DM-32UV official programming preparation:
+https://www.baofengradio.com/blogs/news/programming-the-baofeng-dm-32uv-part-one-preparations
+Observed:
+- programming cable uses Kenwood-style two-pin speaker/mic connector family.
+
+BAOFENG download area:
+https://www.baofengradio.com/pages/download
+Observed:
+- DM-32UV CPS V1.60 currently listed;
+- firmware and manual are maintained there.
+
+BAOFENG APRS article:
+https://www.baofengradio.com/blogs/news/programming-the-baofeng-dm-32uv-part-seven-aprs
+Observed:
+- DM-32UV digital APRS uses DMR/SMS-style reporting rather than ordinary FM
+  AFSK APRS.
+
+DigiRig Mobile:
+https://digirig.net/product/digirig-mobile/
+Observed:
+- current price $54.95;
+- rev 1.11 listing;
+- CM108 audio codec;
+- CP2102 serial;
+- open-collector PTT controlled by RTS;
+- Linux support;
+- single USB host connection.
+
+DigiRig Baofeng HT cable set:
+https://digirig.net/product/baofeng-cables/
+Observed:
+- current price $34.45;
+- K1 connector family;
+- combined audio/PTT cable;
+- programming cable included.
+
+Waveshare CM4-IO-BASE-C:
+https://www.waveshare.com/product/cm4-io-base-c.htm
+https://www.waveshare.com/wiki/CM4-IO-BASE-C
+Observed:
+- 2x USB 2.0 Type-A host ports;
+- Gigabit Ethernet;
+- M.2 M-key;
+- RTC;
+- 85x56 mm board;
+- host USB must be enabled/configured appropriately in Linux.
+
+FCC DM-32UV filing:
+https://fccid.io/2AJGM-DM32UV
+Used as regulatory/equipment evidence source only.
+
+===============================================================================
+16. OPEN ITEMS FOR LAB REVIEW
+===============================================================================
+
+The lab device should explicitly disposition each item.
+
+VOICE-TBR-01
+Does the DM-32UV K1 audio/PTT electrical behavior work correctly with the
+DigiRig Baofeng audio/PTT cable without modification?
+
+VOICE-TBR-02
+Should DigiRig remain a commercial internal module for the first field
+prototype, or should a lower-cost integrated CM108/PTT PCB be designed after
+Article 0?
+
+VOICE-TBR-03
+Which RoIP software implementation best meets local-first requirements:
+- thin native FML service;
+- SvxLink-class;
+- AllStar/Asterisk-class;
+- another maintained OSS implementation?
+
+VOICE-TBR-04
+What codec bitrate/frame size/jitter buffer yields acceptable voice over:
+- conventional Wi-Fi;
+- 1-hop HaLow;
+- multi-hop HaLow;
+- WAN/Tailscale?
+
+VOICE-TBR-05
+What is the acceptable PTT setup/teardown latency?
+
+VOICE-TBR-06
+Can reliable receive activity be detected using gateway radio audio/squelch
+behavior alone, or is a dedicated COR/COS signal required?
+
+This is important. The baseline K1 audio interface clearly exposes audio/PTT,
+but a positive hardware carrier-operated-relay/squelch indication has not been
+proven for the DM-32UV interface.
+
+If audio-based detection is inadequate, additional gateway hardware may be
+needed.
+
+VOICE-TBR-07
+How should local RF channel-to-IP voice-group mapping be represented in the
+mission configuration package?
+
+VOICE-TBR-08
+What voice-group arbitration policy is required when two geographically
+separate users key at nearly the same time?
+
+VOICE-TBR-09
+Can the DigiRig and cabling fit inside the current Hammond enclosure without
+invalidating PACK-01/THERM-01?
+
+VOICE-TBR-10
+Does the 4 GB CM4 maintain sufficient resource reserve during:
+- TAK shared-service host;
+- active RoIP;
+- all baseline bearers;
+- observability;
+- Tailscale?
+
+VOICE-TBR-11
+Should DM-32 GPS/DMR APRS be integrated into TAK/CoT later?
+
+This is NOT required for initial RoIP.
+ATAK EUD position remains the simpler primary position source.
+
+VOICE-TBR-12
+Should native DMR/MMDVM integration be added later for:
+- DMR talkgroup metadata;
+- DMR ID awareness;
+- digital position/reporting integration?
+
+Not required for baseline audio/PTT RoIP.
+
+===============================================================================
+17. RECOMMENDED ARTICLE BUILD SEQUENCE
+===============================================================================
+
+ARTICLE 0 - RADIO INTERFACE BENCH
+--------------------------------
+Do not modify enclosure.
+
+Use:
+- existing/prototype CM4 MULE;
+- one DM-32UV;
+- DigiRig Mobile;
+- Baofeng K1 cable;
+- Linux.
+
+Close VOICE-01 first.
+
+ARTICLE 0B - TWO-END VOICE
+--------------------------
+Use two computers/MULEs and two gateway radios.
+
+Prototype:
+- audio capture;
+- Opus;
+- direct IP;
+- PTT signaling.
+
+Prove different RF channels on opposite ends.
+
+ARTICLE 0C - MULE MESH
+----------------------
+Move the IP path onto the actual MULE mesh.
+
+ARTICLE 0D - TAILSCALE
+----------------------
+Move the same application session across Tailscale without changing the radio
+interface.
+
+ARTICLE 1 - FIELD PACKAGE
+-------------------------
+Only after the above works:
+- integrate DigiRig/internal interface;
+- close connector/sealing;
+- verify power/thermal;
+- update total BOM;
+- execute field acceptance.
+
+===============================================================================
+18. FINAL COST VIEW
+===============================================================================
+
+A. Core v0.3 MULE target:
+   $570.55
+
+B. DM-32 RoIP interface, radio group-furnished:
+   DigiRig                 $54.95
+   K1 cable set            $34.45
+   short USB cable         $8.00 estimate
+   mount/strain relief     $5.00 estimate
+                           ------
+   subtotal               $102.40
+
+   MULE electronics total:
+   $672.95
+
+C. Add a dedicated DM-32UV gateway radio:
+   DM-32UV                 $89.99
+
+   Fully provisioned node/team gateway target:
+   $762.94
+
+D. Battery fallback risk:
+   +$30.70 if the lower-cost battery candidate fails.
+
+E. Optional USB isolation:
+   +$22.95 only if testing requires it.
+
+These totals exclude:
+- tax;
+- shipping;
+- operator personal radios;
+- operator headset/PTT;
+- spare radio batteries;
+- spare radio antennas;
+- radio licensing/coordination costs;
+- final custom PCB NRE;
+- test labor.
+
+===============================================================================
+19. LAB REVIEW DECISION REQUEST
+===============================================================================
+
+The receiving lab/prototype device should return:
+
+1. ACCEPT / MODIFY / REJECT for FML-ADR-051, 052, and 053.
+2. Assessment of whether 4 GB CM4 remains adequate.
+3. Confirmation/challenge of the DigiRig + K1 prototype architecture.
+4. Recommended RoIP software stack.
+5. Assessment of receive-detection/COS risk.
+6. PACK-01 impact.
+7. PWR-01 impact.
+8. Updated BOM cost.
+9. Any missing hardware line items.
+10. Any interface collision with HaLow, LoRa, high-rate Wi-Fi, USB-C power/WAN,
+    or CM4 USB resources.
+11. Proposed verification criteria and pass/fail thresholds.
+12. Recommended change set for CONOPS/SAD/TRD/ICD/ATP/RTM/BOM.
+
+END OF FILE
