@@ -28,6 +28,8 @@ this program wrote down in advance:
    says where it *lives*.
 3. The trade's named owner is `TBD-SRR`. A trade closes when its evidence
    exists **and a named owner accepts it**. No name exists to do that.
+   **Superseded 2026-08-31: every trade now names an owner.** This reason no
+   longer holds; reasons 1 and 2 do.
 
 This artifact deliberately names **no OpenTAKServer table, schema, endpoint or
 file path.** Writing one from memory would be inventing a specification, and it
