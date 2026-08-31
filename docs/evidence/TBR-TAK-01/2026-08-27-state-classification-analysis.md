@@ -226,6 +226,10 @@ not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
   validate.
 - Whether a second, filesystem-shaped continuity mechanism is required, or
   whether the program accepts unprotected state and tells the operator.
+  **Answered 2026-08-31: it is required.** `config.yml` holds
+  `SECURITY_PASSWORD_SALT`, without which every stored password hash is
+  unverifiable, and the certificate authority is a directory. Neither is in the
+  database. See `2026-08-31-durable-state-outside-the-database.md`.
 
 `FML-ADR-034`'s condition is testable rather than assumed, and finding 5
 suggests it may not hold in the form the ADR anticipates.

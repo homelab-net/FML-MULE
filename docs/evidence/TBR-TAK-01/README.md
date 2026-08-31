@@ -21,9 +21,15 @@
   `meshtastic_channels` carries a `psk`, so a credential lives inside the
   relational state that `FML-ADR-034` may replicate.
 
-**Five of the six outstanding items still need a running instance**, and none of
-them is hardware: durable-set location outside SQL, durable-queue inspection, a
-different-node restore, the four workflow tests, and the cache question.
+- `2026-08-31-durable-state-outside-the-database.md` -- **outstanding item 2,
+  answered.** Durable state lives in three places outside SQL: `config.yml`,
+  which holds the password salt and node identity; `ca/`, the certificate
+  authority; and `uploads/`. A database high-availability mechanism protects
+  none of them. Losing the salt makes every stored password hash unverifiable.
+
+**Four of the six outstanding items still need a running instance**, and none of
+them is hardware: durable-queue inspection, a different-node restore, the four
+workflow tests, and the cache question.
 
 | Artifact | What it is | Status |
 | --- | --- | --- |
