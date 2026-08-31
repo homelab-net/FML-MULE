@@ -11,7 +11,7 @@ depends-on: [TBR-NET-03]
 feeds: []
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-01/
-adr: [FML-ADR-024, FML-ADR-031]
+adr: [FML-ADR-060, FML-ADR-024, FML-ADR-031]
 target-date: TBD-SRR
 ---
 
@@ -67,6 +67,13 @@ same subnet at all. So selecting any mechanism there **removes the fixed-prefix
 option here**. Deferral -- deciding MULE v1 supports no interoperation between
 deployments -- is the only branch that leaves this trade free to retain
 `10.41.0.0/16`.
+
+**`FML-ADR-060` has now made that choice, conditionally on this trade.** It
+selects a routed liaison and prohibits merging meshes, and a routed liaison
+cannot be built while two deployments can hold the same prefix. So the
+fixed-prefix option is removed here **if** that ADR's condition is met, and the
+ADR is `CONDITIONAL` precisely because this trade has not decided yet. The two
+are resolved together or not at all.
 
 **And deferral would not close this trade.** The remaining closure item is the
 collision analysis against expected external networks: a venue LAN, the parent

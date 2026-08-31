@@ -11,7 +11,7 @@ depends-on: []
 feeds: [TBR-NET-01]
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-03/
-adr: [FML-ADR-053, FML-ADR-045]
+adr: [FML-ADR-060, FML-ADR-053, FML-ADR-045]
 target-date: TBD-SRR
 ---
 
@@ -180,6 +180,27 @@ trade of its own. It is recorded here so that selecting a mechanism for one
 bearer is not mistaken for answering the question, and because the default key
 being a published constant is a `THREAT_MODEL.md` matter that nothing in this
 program currently records.
+
+## Decision status
+
+**A decision exists: `FML-ADR-060`, dated 2026-08-31, status `CONDITIONAL`.**
+Deployments do not converge by merging meshes; where interoperation is required
+it is a routed liaison; and MULE v1 ships none.
+
+**This trade does not close on it yet.** Its own closure gate says a selected
+mechanism is not accepted while `TBR-NET-01` remains open, and the ADR is
+`CONDITIONAL` on that trade selecting per-deployment prefixes. One closure item
+also remains unsupplied: what a liaison may forward and who authorises one.
+
+All four evidence items and their state:
+
+| Item | State |
+| --- | --- |
+| Convergence trace, or a finding that no mechanism is provided | `2026-08-30-liaison-routing-exercise.md` |
+| What an operator does | `2026-08-31-what-it-discloses-and-what-an-operator-does.md`. The typed procedure **fails** this trade's own test and is only acceptable declared. |
+| `THREAT_MODEL.md` assessment | Same artifact. Merging meshes is an admission decision taken by radio configuration, bypassing admission control. |
+| Interaction with `TBR-NET-01` stated explicitly | This file, and `FML-ADR-060`'s condition. |
+| **What a liaison may forward, and who authorises one** | **Not supplied.** |
 
 ## Closure evidence
 

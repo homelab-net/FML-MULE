@@ -84,6 +84,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+| `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | TBR-NET-03, TBR-NET-01 |
 
 ### SUPERSEDED
 
