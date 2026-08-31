@@ -57,8 +57,15 @@
   password salt lives in `config.yml`. The replacement **silently generated a
   different certificate authority**. It reports `/api/health` `200` throughout.
 
-**Items 5 and 6 remain**: the four workflow tests in full, and the cache
-question, and none of
+- `2026-08-31-mission-api-and-the-header-that-authenticates.md` -- the Mission
+  API, run **first** because it was the case most likely to overturn item 3. It
+  does not: the `missions` exchange still has no queue bound. Getting there
+  found that `X-Ssl-Cert` **authenticates on a certificate alone with no proof
+  of possession**, that the CA key opens with the default password, and that
+  the API reported failure after creating the mission.
+
+**Items 5 and 6 remain in part**: DataSync content, mission packages,
+certificate enrollment through the proper flow, and the cache question, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 

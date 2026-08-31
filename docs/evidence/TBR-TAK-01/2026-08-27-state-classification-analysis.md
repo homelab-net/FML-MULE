@@ -205,10 +205,13 @@ reconcile it.
 Everything in this section is outstanding. It needs a laptop and a container,
 not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
 
-1. **Decompose the relational database state.** For each stored entity,
-   which of the three classes it belongs to. Finding 1.
-2. **Locate every durable-set member.** Specifically whether any is stored
-   outside the SQL backend. Finding 5, and the condition on `FML-ADR-034`.
+1. ~~**Decompose the relational database state.**~~ **Done 2026-08-31.** All
+   41 tables classified; see
+   `2026-08-31-relational-state-decomposed-into-conops-classes.md` and the
+   correction in `2026-08-31-opentakserver-actually-run.md`.
+2. ~~**Locate every durable-set member.**~~ **Done 2026-08-31.** Three
+   locations outside SQL: `config.yml`, `ca/` and `uploads/`. See
+   `2026-08-31-durable-state-outside-the-database.md`, confirmed by the restore.
 3. ~~**Inspect durable queues** for sole-copy mission-critical items.~~
    **Closed 2026-08-31: no durable queue exists.** One non-durable queue,
    `cot_parser`, and the durable exchanges have nothing bound to them. See
