@@ -198,6 +198,24 @@ next to a value you have not verified reads as diligence and is not. Two values
 were shipped that way and both were wrong; each took under a minute to check
 once anyone did. If you know enough to flag it, you know enough to look it up.
 
+**A number you cannot explain has probably been explained here already.**
+Before writing that a measurement is unexplained, grep this repository for the
+number and for the subsystem. On 2026-08-30 a 31.5 s delay was measured on the
+mesh bench, three hypotheses were tested and refuted, and it was written into a
+draft evidence artifact as an unidentified property of `mac80211_hwsim`. The
+cause was bridge loop avoidance left at its default against `FML-ADR-056`, and
+`.github/workflows/mesh-probe.yml` already carried a comment giving the same
+figure to three significant figures and naming the cause. The search costs
+seconds; the artifact was wrong in public.
+
+**A bench must be configured the way the program decided.** A test rig that
+leaves a setting at its default is not neutral, it is testing the option the
+program rejected. Before trusting a bench result, check every decision that
+applies to what it builds. `test/bench/80211s-mesh.sh` omitted
+`bridge_loop_avoidance 0` from the day it was written; `tools/validate-docs.sh`
+check 20 now fails any script that creates a `batadv` interface without naming
+the setting.
+
 Never disable a linter wholesale to make something pass. Adjust the rule
 deliberately and record why in the config.
 

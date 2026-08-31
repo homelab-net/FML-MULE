@@ -479,3 +479,25 @@ REQ
   count=$(ls "$SANDBOX/docs/adr" | grep -c -- '-planted-test-decision\.md$')
   [ "$count" -eq 2 ]
 }
+
+@test "validate-docs catches a mesh-building script that omits bridge_loop_avoidance" {
+  make_sandbox
+  # The exact regression: test/bench/80211s-mesh.sh shipped without this line
+  # from the day it was written, so every run of it built a mesh with bridge
+  # loop avoidance ENABLED, which is the opposite of FML-ADR-056. Removing the
+  # line reproduces the tree as it stood before 2026-08-30.
+  target="$SANDBOX/test/bench/80211s-mesh.sh"
+  grep -q 'bridge_loop_avoidance 0' "$target"
+  sed -i '/bridge_loop_avoidance 0/d' "$target"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+
+  # Assert on the MESSAGE, not only on the exit status. A crashing script also
+  # exits non-zero, and an earlier test in this file passed for years against a
+  # check that was crashing rather than failing. The named script must appear
+  # too, or the check fired for some unrelated reason.
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [[ "$output" == *"without setting bridge_loop_avoidance"* ]]
+  [[ "$output" == *"80211s-mesh.sh"* ]]
+}

@@ -38,25 +38,46 @@ and both allocated `.1`. Neither did anything wrong by its own configuration.
 
 **They do not fail. They conflict silently.**
 
-Immediately after the mesh forms, `.1` does not resolve at all: `ip neigh`
-reports `FAILED` and traffic is lost. That state is transient and misleading,
-and an operator who tested at that moment would report a dead network.
+**CORRECTED 2026-08-30.** The first version of this section reported a long
+unreachable window immediately after mesh formation and called it a transient
+belonging to the collision. It was not. The bench left `bridge_loop_avoidance`
+at its default, which is **enabled**, against `FML-ADR-056`. That withholds
+client frames for about thirty seconds while every `batctl` table already reads
+correct. The exercise was re-run in the configuration a MULE node actually
+ships, and the numbers below are from those runs. See
+`2026-08-30-distinct-prefix-exercise.md`.
 
-**Once `batman-adv` converges, it works.** Node C reaches `.1` with no loss.
-ARP resolves to one MAC and stays there: five flush-and-retry cycles all
-resolved to deployment A's `bat0`. Deployment B's node is simply **not there**
-as far as C is concerned, consistently.
+**There is no meaningful transient.** With `bridge_loop_avoidance 0`, node C
+reaches `.1` 2.04 s after the interfaces come up, in three independent mesh
+builds (2045, 2038, 2045 ms). Nothing here is a wait-and-see state.
 
-The losing deployment's view is the part worth reading twice:
+**And it works, which is the problem.** ARP resolves to one MAC and stays
+there: five flush-and-retry cycles resolve to the same deployment every time.
+The other deployment's node is simply **not there** as far as C is concerned,
+consistently.
+
+**Which deployment wins is arbitrary.** It is stable within one mesh but not
+across builds -- deployment A won the first run, deployment B won all three
+re-runs. So the surviving node is not the earlier, the lower-addressed or the
+first-configured one, and an operator cannot predict which of the two will
+vanish.
+
+The losing deployment's view is the part worth reading twice. From the run
+below, deployment A lost:
 
 ```text
-B -> C:  2 packets transmitted, 0 received, 100% packet loss
-B's neighbour table:  10.41.0.5 dev bat0 lladdr 4a:dd:9a:e5:a6:79 REACHABLE
+loser -> C:  10 packets transmitted, 0 received, 100% packet loss, time 9205ms
+
+loser's neighbour table, read 3s later:
+  10.41.0.5 dev bat0 lladdr a2:19:e4:f2:1f:f7 REACHABLE
+
+winner -> C:  0% packet loss
 ```
 
-**B resolves C, marks it `REACHABLE`, and cannot talk to it.** B's replies go
-out; C's answers go to A. From B's console the network is up, the neighbour is
-healthy, and nothing works.
+**The loser resolves C, marks it `REACHABLE`, and cannot talk to it.** Its
+replies go out; C's answers go to the deployment that won. Ten packets over
+nine seconds, so this is not a warm-up. From that console the network is up,
+the neighbour is healthy, and nothing works.
 
 ## Nothing reports the collision
 
@@ -101,10 +122,13 @@ Two deployments of one node each, and a third node. Not a realistic incident.
 
 No RF, no propagation, no partition, no mobility. `hwsim` is a MAC simulator.
 
-**Not tested: what happens with different prefixes.** The exercise shows
-collision; it does not show that non-colliding deployments interoperate, which
-is the other half of the closure gate's wording and is a separate run.
+**What happens with different prefixes** is the other half of the closure
+gate's wording and was a separate run: see
+`2026-08-30-distinct-prefix-exercise.md`. In short, distinct prefixes coexist
+completely and do not interoperate at all, failing loudly at the sender rather
+than silently in flight.
 
-Nothing here measures how long the transient unreachable state lasts, and that
-number matters for an operator: it is the difference between "wait" and "this
-is broken".
+**Why the loser's traffic is lost is not established here.** The observation is
+that it is: 100% loss to a neighbour its own table calls reachable, with
+nothing logged. The mechanism inside `batman-adv`'s translation table was not
+traced, and tracing it would not change what an operator sees.
