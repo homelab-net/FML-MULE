@@ -90,6 +90,24 @@ None of that is gated by `mesh_id`, so no answer in `TBR-NET-03` removes it.
 
 Retain `10.41.0.0/16`, or select another prefix.
 
+**Amended 2026-08-31: those two options are incomplete, and both are IPv4.**
+RFC 4193 Unique Local Addresses exist precisely so independently administered
+networks that were never coordinated do not collide: a random 40-bit global ID
+makes deployment-against-deployment collision about 2^-40 rather than certain,
+and a venue handing out IPv4 **cannot claim an `fd00::/8` destination at all**,
+so the route-stealing failure measured under this trade does not arise.
+
+SAD section 4.4 gates IPv6 behind controlled change and its only stated reason
+is that the parent Homelab disables managed IPv6 -- a parent-baseline
+constraint, not a judgement about the field mesh. `docs/change-requests/`
+carries the `PBCR-###` mechanism for exactly that, and its README states such
+requests "do not block MULE work".
+
+**The deciding question is whether ATAK, the TAK server, `meshtasticd` and
+`dnsmasq` work over IPv6, and it is untested.** See
+`docs/evidence/TBR-NET-01/2026-08-31-the-option-the-trade-does-not-list.md`.
+Nothing is selected.
+
 Ancillary questions that belong here: exact reservations and node ranges, which
 become ICD-controlled values; how an EUD on the access point is addressed
 relative to the mesh; and what DNS names exist in `services/ingress/`.

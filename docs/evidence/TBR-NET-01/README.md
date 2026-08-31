@@ -38,6 +38,14 @@ three closure-evidence items is supplied, and the decision itself is not made.
   application sees both. `10.41.5.7` is claimed by two networks and no routing
   rule can disambiguate it. Reproduced by `test/bench/route-isolation.sh`.
 
+- `2026-08-31-the-option-the-trade-does-not-list.md` -- the trade's two stated
+  options are both IPv4 and the option space is incomplete. RFC 4193 ULAs are
+  the standard written for this exact question, and a venue handing out IPv4
+  cannot claim an `fd00::/8` destination, so the route-stealing failure does not
+  arise. Gated by SAD section 4.4 behind a parent-baseline change request, which
+  the README says does not block MULE work. **Deciding question, untested:**
+  whether the applications work over IPv6.
+
 **All three closure-evidence items now exist.** The trade is still `OPEN`: it
 closes when a named owner accepts the evidence and the resulting decision is
 entered in the ADR register, and no decision has been made. The schema question
