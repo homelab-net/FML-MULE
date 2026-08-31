@@ -209,7 +209,10 @@ not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
    which of the three classes it belongs to. Finding 1.
 2. **Locate every durable-set member.** Specifically whether any is stored
    outside the SQL backend. Finding 5, and the condition on `FML-ADR-034`.
-3. **Inspect durable queues** for sole-copy mission-critical items. Finding 3.
+3. ~~**Inspect durable queues** for sole-copy mission-critical items.~~
+   **Closed 2026-08-31: no durable queue exists.** One non-durable queue,
+   `cot_parser`, and the durable exchanges have nothing bound to them. See
+   `2026-08-31-no-durable-queue-holds-anything.md`.
 4. **Different-node restore.** Restore to a host that is not the origin, then
    demonstrate which durable-set members survived and which did not.
 5. **The four workflow tests** named in the trade: DataSync, mission package,

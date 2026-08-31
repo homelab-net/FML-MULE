@@ -42,8 +42,16 @@
   and **outstanding item 3 is answered for that path**: the only queue is
   `cot_parser`, non-durable, carrying reconstructable state.
 
-**Items 4, 5 and 6 remain**, plus the chat, direct-message and DataSync half of
-item 3, which a single client sending position reports does not exercise, and none of
+- `2026-08-31-no-durable-queue-holds-anything.md` -- **outstanding item 3,
+  closed.** Two PyTAK clients and a GeoChat message: the text reaches the
+  database, a chatroom is created with both participants, and RabbitMQ still
+  holds exactly one queue, `cot_parser`, non-durable and empty. The durable
+  exchanges have no queues bound to them, and an exchange with no queue stores
+  nothing. **No durable queue holds a sole copy because no durable queue
+  exists.** Caveat: the clients are PyTAK, not ATAK.
+
+**Items 4, 5 and 6 remain**: the different-node restore, the four workflow tests
+in full, and the cache question, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 
