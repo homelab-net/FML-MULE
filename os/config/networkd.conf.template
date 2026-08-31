@@ -80,6 +80,13 @@
 #
 # BridgeLoopAvoidance=false
 #
+#   THIS STAYS OFF, PERMANENTLY, and the same standing note is in
+#   os/config/batman-adv.conf.template. The loop it protects against is
+#   prevented another way: FML-ADR-056 forbids the bridge carrying the mesh
+#   interface from holding anything but EUD access points. Turning it on costs
+#   30 seconds of total silence on every mesh formation while every diagnostic
+#   table reads correct, which this program has diagnosed from scratch twice.
+#
 #   FML-ADR-056. Disabled deliberately, and the ADR asks for a loop detector in
 #   exchange: a client address under more than one originator, or the node's own
 #   bridge address arriving from the mesh. Neither is implemented, and this

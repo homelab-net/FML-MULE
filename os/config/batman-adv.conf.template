@@ -165,6 +165,22 @@ fragmentation=TBD              # Reads back enabled by default. Undecided here:
                                # TBR-RF-01's question, and hard_interface_mtu
                                # above is the setting that avoids needing it.
 
+# THIS STAYS OFF. PERMANENTLY.
+#
+# It is the LAN-side protection that stops a hardwired device bridged into the
+# mesh from looping traffic back into it. This program does not need it, because
+# the loop it prevents is prevented another way: FML-ADR-056 forbids the bridge
+# carrying the mesh interface from holding anything but EUD access points, so a
+# wired link that carries field traffic joins the mesh with `batctl interface
+# add` instead, where batman-adv does its own loop-free selection.
+#
+# Turning it back on costs 30 seconds of total silence on every mesh formation
+# while every diagnostic table reads correct. That has already been diagnosed
+# twice in this program from scratch, at real cost, because the symptom looks
+# like a radio fault and nothing reports it.
+#
+# If you think you need it on, the thing you actually need is to check what is
+# in the bridge. See FML-ADR-056.
 bridge_loop_avoidance=0        # Bridge loop avoidance OFF. FML-ADR-056,
                                # which supersedes FML-ADR-054.
                                #
