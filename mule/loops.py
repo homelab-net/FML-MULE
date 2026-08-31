@@ -25,7 +25,7 @@ from typing import Literal, Protocol, runtime_checkable
 #: Neither name says "loop", because neither observation proves one.
 Signature = Literal[
     "client_under_more_than_one_originator",
-    "own_bridge_address_announced_by_a_peer",
+    "own_address_announced_by_a_peer",
 ]
 
 
@@ -42,8 +42,16 @@ class TranslationReadings(Protocol):
         """Report (client, originator) pairs, or None if they cannot be read."""
         ...
 
-    def bridge_address(self) -> str | None:
-        """Report this node's own bridge address, or None if it has none."""
+    def own_addresses(self) -> tuple[str, ...] | None:
+        """Report every address belonging to this node, or None if unknown.
+
+        Every one, not just the bridge. `FML-ADR-056` names "the node's own
+        bridge address arriving from the mesh", and a loop reproduced on the
+        bench put the mesh hard interface's address into the table **first**,
+        with the bridge address following. Watching only the bridge detects the
+        same loop later. See
+        `docs/evidence/TBR-NET-01/2026-08-30-loop-detected-on-the-bench.md`.
+        """
         ...
 
 
@@ -76,22 +84,22 @@ def loop_signatures(observed: TranslationReadings) -> list[Signature]:
     if any(len(originators) > 1 for originators in seen.values()):
         found.append("client_under_more_than_one_originator")
 
-    # The node's own bridge address arriving from the mesh means a frame left
-    # this node and came back, which is the loop FML-ADR-056 accepts the risk
-    # of. Nothing legitimate announces this node's bridge to this node.
-    bridge = observed.bridge_address()
-    if bridge is not None and _announced_by_a_peer(entries, bridge):
-        found.append("own_bridge_address_announced_by_a_peer")
+    # Any of this node's own addresses arriving from the mesh means a frame
+    # left and came back, which is the loop FML-ADR-056 accepts the risk of.
+    # Nothing legitimate announces this node's own address to this node.
+    mine = observed.own_addresses()
+    if mine and _announced_by_a_peer(entries, mine):
+        found.append("own_address_announced_by_a_peer")
 
     return found
 
 
 def _announced_by_a_peer(
-    entries: Sequence[tuple[str, str]], bridge_address: str
+    entries: Sequence[tuple[str, str]], own: Sequence[str]
 ) -> bool:
-    """Whether any originator claims to reach this node's own bridge."""
-    # Case-insensitive: batctl prints lower case and ip link prints lower case,
-    # but a caller assembling these from elsewhere may not, and a missed match
-    # here is a loop nobody sees.
-    wanted = bridge_address.lower()
-    return any(client.lower() == wanted for client, _ in entries)
+    """Whether any originator claims to reach an address this node owns."""
+    # Case-insensitive: batctl and ip both print lower case, but a caller
+    # assembling these from elsewhere may not, and a missed match here is a
+    # loop nobody sees.
+    wanted = {address.lower() for address in own}
+    return any(client.lower() in wanted for client, _ in entries)
