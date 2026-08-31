@@ -32,6 +32,12 @@ three closure-evidence items is supplied, and the decision itself is not made.
   failure is not a property of `10.41.0.0/16`, so **selecting a different prefix
   cannot remove it**.
 
+- `2026-08-31-no-routing-mechanism-fixes-an-ambiguous-address.md` -- the four
+  candidate mechanisms, measured. Policy routing **moves** the loss rather than
+  removing it; only a VRF separates the two networks, per application, and no
+  application sees both. `10.41.5.7` is claimed by two networks and no routing
+  rule can disambiguate it. Reproduced by `test/bench/route-isolation.sh`.
+
 **All three closure-evidence items now exist.** The trade is still `OPEN`: it
 closes when a named owner accepts the evidence and the resulting decision is
 entered in the ADR register, and no decision has been made. The schema question
