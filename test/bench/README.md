@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Two procedures. No measurement has been taken.**
+**Three procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -41,6 +41,12 @@ seen**. A node that failed authentication still appears, in state `LISTEN`.
 Counting those lines reports success for a node that got nowhere, and that
 mistake was made while producing `FML-ADR-061` and caught only by reading the
 flags. The generated credentials are per-run and nothing is committed.
+
+`route-isolation.sh` reproduces the external-network failure and measures the
+four candidate mechanisms `TBR-NET-01` has to choose between. It selects
+nothing: its useful output is the table, not the exit code. It exists because
+`FML-ADR-060` was superseded one day after it was written for deciding
+something untested, and the next decision was `TBR-NET-01`'s.
 
 ## What can be verified without hardware, and what cannot
 
