@@ -406,9 +406,9 @@ leaving it to the analysis.
 
 ### 1.5 `TBR-NET-01`, the addressing plan
 
-**State:** open. One of the three closure-evidence items exists: the
-interoperability exercise is done and recorded under
-`docs/evidence/TBR-NET-01/`. Two independently configured deployments sharing
+**State:** open, and **all three closure-evidence items now exist** under
+`docs/evidence/TBR-NET-01/`. What is missing is the decision, and this item
+depends on 1.5a. The interoperability exercise is done. Two independently configured deployments sharing
 the prefix conflict **silently** -- one node wins ARP consistently, the loser
 resolves its peers, marks them `REACHABLE`, and cannot talk to them, with no
 kernel message and nothing in `batctl` to explain it.
@@ -469,9 +469,22 @@ owner. See the blocker in Track 3; today no trade can close.
 
 ### 1.5a `TBR-NET-03`, how two deployments converge
 
-**State:** open, raised 2026-08-30. One artifact exists: the routed-liaison
-option works end to end for one route per liaison, layer 2 never merges, and
-the collision is structurally unreachable. Two operational findings came with
+**State:** open, raised 2026-08-30. **A decision exists -- `FML-ADR-061`,
+`SELECTED`** -- and four artifacts support it. `FML-ADR-060` was superseded the
+day after it was written and must not be read as current.
+
+The mesh is keyed with `key_mgmt=SAE`, MULEs of one deployment merge
+automatically on a shared credential, and a partner gets a **separate keyed
+mesh** on a liaison node so the boundary is revocable without rekeying the
+fleet. Measured: a node without the credential never reaches `ESTAB`;
+`test/bench/keyed-mesh.sh` reproduces it.
+
+**It still does not close.** One closure item is unsupplied -- what a liaison
+may forward and who authorises one -- and the liaison half stays conditional on
+1.5 selecting per-deployment prefixes.
+
+The routed-liaison option works end to end for one route per liaison, layer 2
+never merges, and the collision is structurally unreachable. Two operational findings came with
 it. **The mesh heals and a hand-typed route does not** -- after the bearer
 bounces, 802.11s re-peers and `batman-adv` reconverges, while the kernel has
 deleted the static route with its interface and does not restore it, so the

@@ -62,8 +62,8 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-057` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
 | `FML-ADR-058` | SELECTED | `tools/install-deps.sh`, `tools/toolchain-versions.sh` | `.github/dependabot.yml`, `.github/workflows/lint.yml`, `CONTRIBUTING.md`, `test/bench/README.md`, `tools/README.md` |
 | `FML-ADR-059` | SELECTED | `test/bench/80211s-mesh.sh` | `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-LINUX-01/2026-08-30-80211s-mesh-in-software.md`, `docs/evidence/TBR-NET-03/2026-08-30-liaison-routing-exercise.md`, `docs/evidence/TBR-NET-03/2026-08-31-what-it-discloses-and-what-an-operator-does.md`, `test/bench/README.md` |
-| `FML-ADR-060` | SUPERSEDED | `test/bench/keyed-mesh.sh` | `docs/evidence/TBR-NET-03/2026-08-31-a-keyed-mesh-admits-only-key-holders.md`, `docs/evidence/TBR-NET-03/README.md`, `test/bench/README.md` |
-| `FML-ADR-061` | SELECTED | `test/bench/keyed-mesh.sh` | `docs/dev-machine.md`, `docs/evidence/TBR-LINUX-01/2026-08-31-halow-driver-mesh-and-sae-support.md`, `docs/evidence/TBR-NET-03/README.md`, `test/bench/README.md` |
+| `FML-ADR-060` | SUPERSEDED | `test/bench/keyed-mesh.sh` | `docs/ROADMAP-DEV.md`, `docs/evidence/TBR-NET-03/2026-08-31-a-keyed-mesh-admits-only-key-holders.md`, `docs/evidence/TBR-NET-03/README.md`, `test/bench/README.md` |
+| `FML-ADR-061` | SELECTED | `test/bench/keyed-mesh.sh` | `docs/ROADMAP-DEV.md`, `docs/dev-machine.md`, `docs/evidence/TBR-LINUX-01/2026-08-31-halow-driver-mesh-and-sae-support.md`, `docs/evidence/TBR-NET-03/README.md`, `test/bench/README.md` |
 | `FML-ADR-062` | SELECTED PRINCIPLE | `test/bench/keyed-mesh.sh` | `docs/evidence/TBR-LINUX-01/2026-08-31-halow-driver-mesh-and-sae-support.md`, `test/bench/README.md` |
 
 ## Trades
