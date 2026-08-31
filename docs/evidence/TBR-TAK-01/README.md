@@ -9,6 +9,22 @@
 
 **Current contents:** the analysis half only. This trade remains `OPEN`.
 
+- `2026-08-27-state-classification-analysis.md` -- method, the ten SAD 14.1
+  categories classified, and the partition and rejoin behaviour of the durable
+  set including its conflict-resolution rule.
+- `2026-08-30-opentakserver-state-inventory.md` -- what state exists at all,
+  from the shipped models. Classifies nothing by design.
+- `2026-08-31-relational-state-decomposed-into-conops-classes.md` -- **all 36
+  tables classified** into CONOPS 26.1, 26.2 and 26.3 with a justification each,
+  which is the join the first two left undone. It corrects the inventory's
+  count and its `packages` mapping, and records that
+  `meshtastic_channels` carries a `psk`, so a credential lives inside the
+  relational state that `FML-ADR-034` may replicate.
+
+**Five of the six outstanding items still need a running instance**, and none of
+them is hardware: durable-set location outside SQL, durable-queue inspection, a
+different-node restore, the four workflow tests, and the cache question.
+
 | Artifact | What it is | Status |
 | --- | --- | --- |
 | `2026-08-27-state-classification-analysis.md` | The ten SAD section 14.1 categories placed into the three CONOPS section 26 classes, with the durable set and its partition and rejoin behaviour | `UNVERIFIED` |

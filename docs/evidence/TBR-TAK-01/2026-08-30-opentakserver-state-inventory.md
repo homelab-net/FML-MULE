@@ -32,7 +32,10 @@ not finished.
 
 ## The relational tables
 
-Thirty-five, from the shipped models:
+Thirty-six, from the shipped models.
+
+**Corrected 2026-08-31: this said "Thirty-five" and the list below has 36.**
+36 is right, counted from `__tablename__` in the installed package.
 
 ```text
 alerts                apscheduler_jobs      casevac
@@ -59,7 +62,7 @@ than left blank.
 | --- | --- |
 | Relational database state | All thirty-five above |
 | DataSync and Mission API state | `missions`, `mission_changes`, `mission_content`, `mission_content_mission`, `mission_invitations`, `mission_logs`, `mission_roles`, `mission_uids`, `groups_missions` |
-| Mission packages and uploaded files | `data_packages`, `packages` |
+| Mission packages and uploaded files | `data_packages`. **Corrected 2026-08-31: `packages` was listed here and does not belong.** Its columns are `platform`, `plugin_type`, `package_name`, `revision_code`: it is the ATAK plugin distribution repository, not mission content. See `2026-08-31-relational-state-decomposed-into-conops-classes.md`. |
 | Certificate enrollment, issuance, authorization | `certificates`, `tokens`, and the `WebAuthn` model |
 | Group and channel configuration | `groups`, `groups_users`, `teams`, `chatrooms`, `chatrooms_uids`, `meshtastic_channels` |
 | Server configuration | `device_profiles`, `plugins`, `apscheduler_jobs` |
