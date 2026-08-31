@@ -85,7 +85,7 @@ is right: counted from `__tablename__` declarations in the installed package,
 | `points` | `latitude`, `longitude`, `ce`, `hae`, `course`. Position, republished by any connected client. |
 | `euds` | Device presence: `callsign`, `os`, `version`, `last_event_time`. Rebuilt as clients reconnect. |
 | `eud_stats` | `battery`, `heap_free_size`, `app_framerate`. Client telemetry, of diagnostic value only. |
-| `apscheduler_jobs` | `next_run_time` and an opaque pickled `job_state`. **Provisional.** Whether jobs are re-registered at service start is not determinable from the model, and if any encodes mission tasking rather than service housekeeping it is misclassified here. Named in the outstanding list below. |
+| `apscheduler_jobs` | `next_run_time` and an opaque pickled `job_state`. **Confirmed 26.3 on 2026-08-31**, no longer provisional: the five rows a running instance holds are all service housekeeping (`purge_data`, `delete_old_data`, `delete_video_recordings`, `get_adsb_data`, `ais`), none encodes mission tasking, and deleting all five and restarting the service re-registers all five. Reconstructable from code. |
 
 16 + 15 + 5 = 36.
 
@@ -152,8 +152,8 @@ first and leaves five:
 6. **The cache question empirically**: what a client sees after failover when
    the tile source is unreachable.
 
-Plus one this artifact adds: **confirm the `apscheduler_jobs` classification**,
-which is the only provisional entry above.
+The `apscheduler_jobs` classification, provisional when this artifact was
+written, was confirmed the same day: see the table above.
 
 ## What this does not establish
 

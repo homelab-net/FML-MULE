@@ -71,7 +71,13 @@
   years**; and **revocation is not consulted** on the header path, where the
   verification store receives the CA and no CRL. A certificate that
   authenticates on public data, lasts a decade, and is not checked against the
-  revocation list sitting on disk.
+  revocation list sitting on disk -- and **nothing revokes at all**: no code
+  path, an empty CA index, an empty CRL. The three findings **chain**: enrollment
+  signs any CN, the Mission API takes the CN as the acting user, and the header
+  authenticates on the certificate alone, so a low-privilege account can enrol
+  `CN=administrator` and act as administrator with no private key and no
+  password. Upstream default behaviour, recorded for `services/ingress/` to
+  constrain.
 
 **Items 5 and 6 remain in part**: DataSync content, mission packages, and the
 cache question, and none of
