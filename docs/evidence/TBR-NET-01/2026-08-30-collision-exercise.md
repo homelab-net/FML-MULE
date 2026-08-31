@@ -34,6 +34,18 @@ were built independently and have met at an incident:
 Both deployments retained the `10.41.0.0/16` prefix SAD section 4.2 prefers,
 and both allocated `.1`. Neither did anything wrong by its own configuration.
 
+**The premise, which this exercise assumed rather than established.** Both
+deployments are on **one 802.11s mesh**, sharing a mesh identifier. The bench
+was built that way and the choice was mine.
+`mission/schema/mission-package.schema.json` says network identity values
+"differ between deployments so that two independently built deployments meeting
+at an incident do not collide", and `mesh_id` is a required field of that
+object. So this is **not what happens when two deployments meet**. It is what
+happens once they have deliberately converged on one mesh identifier, which is
+the only way the architecture lets them cooperate. See
+`2026-08-30-mesh-id-separates-deployments.md`, which tests the default case and
+shows that with different `mesh_id` identical addressing is harmless.
+
 ## What actually happens
 
 **They do not fail. They conflict silently.**

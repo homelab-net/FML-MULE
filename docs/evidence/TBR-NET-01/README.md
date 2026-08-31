@@ -19,9 +19,21 @@ three closure-evidence items is supplied, and the decision itself is not made.
   with `Network is unreachable`; one on-link route per side restores both
   unicast and ATAK-style multicast.
 
-Together those two are **one** of the three items, the interoperability
-exercise. The collision analysis over expected external networks is still
-missing, and the schema question is reported rather than answered.
+- `2026-08-30-mesh-id-separates-deployments.md` -- the default case, which the
+  two above assumed away. `mesh_id` is a required mission-package field and the
+  schema says network identity differs between deployments, so two deployments
+  do **not** share a mesh by default. With different `mesh_id`, identical
+  prefixes and identical host addresses are harmless.
+
+Together those are **one** of the three items, the interoperability exercise.
+The collision analysis over expected external networks is still missing, and
+the schema question is reported rather than answered.
+
+**Read them in that order.** The collision is not what happens when two
+deployments meet; it is what happens once they deliberately converge on one
+mesh identifier, which is the only mechanism the architecture offers for
+cooperating. Nothing in the repository decides how that convergence happens,
+and `mesh_id` is the subject of no trade and no ADR.
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

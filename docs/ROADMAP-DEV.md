@@ -425,9 +425,24 @@ untouched.
 So the choice is between a silent failure and a loud one, which is an argument
 and not a decision.
 
-Still missing: the collision analysis over expected external networks, which is
-desk work against the parent Homelab prefixes rather than a bench run, and the
-decision itself. No hardware needed for either.
+**Both of those assumed a premise the schema contradicts, and a third exercise
+now tests the default case.** `mission/schema/mission-package.schema.json` says
+network identity values differ between deployments, and `mesh_id` is required.
+With different `mesh_id`, two deployments never share a layer 2 domain: even
+identical prefixes and identical host addresses are harmless, measured. So the
+collision is not what happens when deployments meet, it is what happens once
+they **deliberately converge** on one mesh identifier.
+
+**That makes `mesh_id` upstream of this item, and nothing owns it.** No trade
+and no ADR decides whether it is per-deployment, program-wide or negotiated at
+an incident. Deciding the prefix without it settles a consequence before its
+cause: if `mesh_id` always differs, deployments can never interoperate and the
+prefix hardly matters; if they can agree one, the prefix matters entirely.
+
+Still missing: a decision or trade covering `mesh_id` and how two deployments
+converge, the collision analysis over expected external networks, which is desk
+work against the parent Homelab prefixes rather than a bench run, and the
+decision itself. No hardware needed for any of them.
 
 **Read first:** the trade itself, `os/config/interfaces.conf.template` for the
 consequences already written down, and `THREAT_MODEL.md` — an address derived
