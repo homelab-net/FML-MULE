@@ -146,7 +146,18 @@ deployment ever exceeds that, at a cost that is still under one percent.
 A UUID costs fifteen percent of every packet to carry a name nobody reads, on
 the bearer with the least capacity. It is listed to be ruled out.
 
-The index is allocated per deployment in the mission package. It is not a
+The index is allocated per deployment in the mission package.
+
+**Amended 2026-08-30: "per deployment" is not a boundary that exists on the
+LoRa bearer by default.** Two stock Meshtastic deployments share a channel and
+decrypt each other's traffic without anyone configuring anything, read from the
+firmware source. Both allocate indices from their own mission packages and both
+number from the low end, so an index collides with a real member of the other
+deployment and the message is **delivered to the wrong person** rather than
+lost. The unresolved-recipient rule below does not catch it, because nothing is
+unresolved. See
+`2026-08-30-the-eud-code-must-be-unique-to-everyone-who-can-hear-it.md`, which
+does not overturn this selection but removes the ground it was made on. It is not a
 durable identity: `THREAT_MODEL.md` records that an identifier derived from a
 durable node identity is itself a durable identifier visible to anyone
 observing traffic, and a per-deployment index avoids that.
