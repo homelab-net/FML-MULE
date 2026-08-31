@@ -82,13 +82,24 @@ expose the band, not the stack that lacks support.
 **Two things would extend the reach, at real cost:**
 
 - **`wmediumd`** gives `hwsim` a medium: per-link path loss and packet loss,
-  which buys partition and heal, mobility, asymmetric links, and the per-direction
-  `TQ` questions deferred in
+  which buys partition and heal, mobility, asymmetric links, and the
+  per-direction `TQ` questions deferred in
   `docs/evidence/TBR-LINUX-01/2026-08-31-originator-count-differs-by-interface-order.md`.
-  Debian does not package it. The original upstream has not been touched since
-  2021, but it is carried actively as `external/wmediumd` in AOSP and mirrored
-  by several vendors within the last month, so a current source exists. It has
-  to be built.
+  It is the more useful of the two and it is **not a `git clone` away.**
+
+  **It has no canonical maintained upstream**, checked 2026-08-31. Debian does
+  not package it. `bcopeland/wmediumd`, the upstream everything descends from,
+  was last pushed 2021-03-02; `cozybit/wmediumd`, the origin, in 2013. The live
+  activity is split between `ramonfontes/wmediumd`, one maintainer's fork
+  oriented to Mininet-WiFi and last pushed 2026-07-23, and Android platform
+  mirrors of `external/wmediumd` carried by several vendors.
+
+  So adopting it means **selecting a fork and pinning it**, which under
+  `FML-ADR-058` is a decision rather than a build step: that ADR pins every
+  tool this repository installs, and adding an unpinned build from somebody's
+  fork would be inconsistent with it. An earlier version of this section said
+  the tool "is carried actively as `external/wmediumd` in AOSP", which
+  overstated a split and unowned situation.
 - **An `hwsim` S1G band** would be a kernel patch. The core support exists, so
   the work is exposing a band rather than implementing S1G. Bounded, real, and
   it would still only exercise the MAC.
