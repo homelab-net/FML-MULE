@@ -79,6 +79,15 @@
   password. Upstream default behaviour, recorded for `services/ingress/` to
   constrain.
 
+- `2026-08-31-shared-credentials-across-mules-and-euds.md` -- what the shared
+  TAK credentials do across the topology. **The administrator password is
+  identical on every MULE** and **trust is not shared**: each node has its own
+  CA, so an EUD enrolled on one MULE is rejected by the MULE next to it, even
+  though `FML-ADR-061` merges their meshes automatically. Behind one MULE,
+  several EUD certificates with the same CN are all accepted and
+  indistinguishable. The worst of both: the per-node thing is shared and the
+  shared thing is per-node.
+
 **Items 5 and 6 remain in part**: DataSync content, mission packages, and the
 cache question, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
