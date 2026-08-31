@@ -18,6 +18,15 @@
 # development machine with an ordinary distribution kernel. See
 # docs/dev-machine.md.
 #
+# A DIFFERENCE YOU WILL SEE AND SHOULD NOT CHASE. In the line topology the two
+# end nodes report different `batctl originators` counts, and neither is wrong.
+# batman-adv makes the FIRST hard interface added to bat0 the MainIF; its MAC is
+# the node's originator address and is announced everywhere, while a secondary
+# radio appears as an originator only to neighbours on its own segment. So the
+# node on the MainIF's side sees one entry for a multi-radio node and the node
+# on the far side sees two. Reversing the add order reverses which is which,
+# measured. See docs/evidence/TBR-LINUX-01/2026-08-31-originator-count-differs-by-interface-order.md
+#
 # WHAT A PASS PROVES. That the kernel's 802.11s implementation forms a peer
 # link, that a mesh point reports carrier only once joined, that batman-adv
 # accepts a wireless mesh interface as a hard interface and carries traffic
