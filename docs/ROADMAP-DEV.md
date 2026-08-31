@@ -410,17 +410,18 @@ leaving it to the analysis.
 `docs/evidence/TBR-NET-01/`. What is missing is the decision, and this item
 depends on 1.5a.
 
-**Do not write that decision yet.** The trade's stated options are "retain
-`10.41.0.0/16` or select another prefix", both IPv4, and that option space is
-incomplete: RFC 4193 ULAs are the standard written for this exact question, and
-a venue handing out IPv4 cannot claim an `fd00::/8` destination, so the
-route-stealing failure measured here does not arise at all. SAD section 4.4
-gates IPv6 behind a parent-baseline change request whose own README says it does
-not block MULE work.
+**The decision can now be written.** It was held for one day because the option
+space was incomplete -- RFC 4193 ULAs answer this trade's exact question and
+were never listed. **The Program Owner excluded IPv6 on 2026-08-31**, for
+broader hardware support and older systems in the mesh: CONOPS plans four to
+eight volunteer-owned EUDs and an EUD whose stack does not do IPv6 well does not
+work at all. That closes the option space at the two originally stated.
 
-**The deciding question is whether ATAK, the TAK server, `meshtasticd` and
-`dnsmasq` work over IPv6. It is untested**, and testing it needs `TBR-TAK-01`
-and the service catalog.
+**What the decision must address rather than prevent.** Inside IPv4 the
+venue-overlap failure has no clean answer: policy routing moves the loss and a
+VRF requires every mesh-using application to bind into it. So the ADR has to say
+what a node **does** when its uplink overlaps its mesh prefix, not what stops it
+happening.
 
 The interoperability exercise is done. Two independently configured deployments
 sharing
