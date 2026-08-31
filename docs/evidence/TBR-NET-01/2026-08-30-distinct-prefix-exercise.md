@@ -31,6 +31,18 @@ chose different prefixes:
 | B1 | Deployment B, which chose another prefix | `10.42.0.1/16` |
 | B2 | Deployment B | `10.42.0.5/16` |
 
+**The premise, which this exercise assumed rather than established.** Both
+deployments are on **one 802.11s mesh**, sharing a mesh identifier. The bench
+was built that way and the choice was mine.
+`mission/schema/mission-package.schema.json` says network identity values
+"differ between deployments so that two independently built deployments meeting
+at an incident do not collide", and `mesh_id` is a required field of that
+object. So this is **not what happens when two deployments meet**. It is what
+happens once they have deliberately converged on one mesh identifier, which is
+the only way the architecture lets them cooperate. See
+`2026-08-30-mesh-id-separates-deployments.md`, which tests the default case and
+shows that with different `mesh_id` identical addressing is harmless.
+
 ## They coexist, and they do not interoperate
 
 **Coexistence is free and complete.** All four nodes join one mesh and stay
