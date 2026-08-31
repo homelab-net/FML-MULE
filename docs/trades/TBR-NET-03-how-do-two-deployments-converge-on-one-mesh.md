@@ -11,7 +11,7 @@ depends-on: []
 feeds: [TBR-NET-01]
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-03/
-adr: [FML-ADR-060, FML-ADR-053, FML-ADR-045]
+adr: [FML-ADR-061, FML-ADR-062, FML-ADR-060, FML-ADR-053, FML-ADR-045]
 target-date: TBD-SRR
 ---
 
@@ -183,14 +183,29 @@ program currently records.
 
 ## Decision status
 
-**A decision exists: `FML-ADR-060`, dated 2026-08-31, status `CONDITIONAL`.**
-Deployments do not converge by merging meshes; where interoperation is required
-it is a routed liaison; and MULE v1 ships none.
+**The live decision is `FML-ADR-061`, dated 2026-08-31, status `SELECTED`.** It
+supersedes `FML-ADR-060` of the same day, which is retained as `SUPERSEDED` and
+should not be read as current.
+
+The mesh is keyed with `key_mgmt=SAE`; an open field mesh is prohibited; MULEs
+of one deployment share one credential and merge automatically; and
+cross-organization interoperation is a **separate keyed mesh** on a liaison
+node, routed and never bridged, rather than a shared deployment credential.
+MULE v1 ships no cross-organization mechanism.
+
+**Why `FML-ADR-060` did not survive a day.** It prohibited merging outright,
+arguing that merging bypasses admission control. That is true of an **open**
+mesh and false of a keyed one, and mesh security was
+`key_mgmt=TBD` at the time, so it decided a consequence of an undecided
+question. Measured afterwards: a node without the credential never reaches
+`ESTAB` and gets 100% packet loss. `FML-ADR-061` keeps `FML-ADR-060`'s routing
+requirements in full and changes only who may merge.
 
 **This trade does not close on it yet.** Its own closure gate says a selected
-mechanism is not accepted while `TBR-NET-01` remains open, and the ADR is
-`CONDITIONAL` on that trade selecting per-deployment prefixes. One closure item
-also remains unsupplied: what a liaison may forward and who authorises one.
+mechanism is not accepted while `TBR-NET-01` remains open, and `FML-ADR-061`'s
+liaison half stays conditional on that trade selecting per-deployment prefixes.
+One closure item also remains unsupplied: what a liaison may forward and who
+authorises one.
 
 All four evidence items and their state:
 
@@ -199,7 +214,7 @@ All four evidence items and their state:
 | Convergence trace, or a finding that no mechanism is provided | `2026-08-30-liaison-routing-exercise.md` |
 | What an operator does | `2026-08-31-what-it-discloses-and-what-an-operator-does.md`. The typed procedure **fails** this trade's own test and is only acceptable declared. |
 | `THREAT_MODEL.md` assessment | Same artifact. Merging meshes is an admission decision taken by radio configuration, bypassing admission control. |
-| Interaction with `TBR-NET-01` stated explicitly | This file, and `FML-ADR-060`'s condition. |
+| Interaction with `TBR-NET-01` stated explicitly | This file, and the condition `FML-ADR-061` carries forward. |
 | **What a liaison may forward, and who authorises one** | **Not supplied.** |
 
 ## Closure evidence

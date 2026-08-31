@@ -11,7 +11,7 @@ depends-on: [TBR-NET-03]
 feeds: []
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-01/
-adr: [FML-ADR-060, FML-ADR-024, FML-ADR-031]
+adr: [FML-ADR-061, FML-ADR-060, FML-ADR-024, FML-ADR-031]
 target-date: TBD-SRR
 ---
 
@@ -68,12 +68,18 @@ option here**. Deferral -- deciding MULE v1 supports no interoperation between
 deployments -- is the only branch that leaves this trade free to retain
 `10.41.0.0/16`.
 
-**`FML-ADR-060` has now made that choice, conditionally on this trade.** It
-selects a routed liaison and prohibits merging meshes, and a routed liaison
+**`FML-ADR-061` has now made that choice, conditionally on this trade.** It
+supersedes `FML-ADR-060`; do not read that one as current. Cross-organization
+interoperation is a routed liaison on a separate keyed mesh, and a liaison
 cannot be built while two deployments can hold the same prefix. So the
-fixed-prefix option is removed here **if** that ADR's condition is met, and the
-ADR is `CONDITIONAL` precisely because this trade has not decided yet. The two
-are resolved together or not at all.
+fixed-prefix option is removed here **if** that condition is met, and it is a
+condition precisely because this trade has not decided yet. The two are
+resolved together or not at all.
+
+**And `FML-ADR-061` raises the stakes here.** MULEs of one deployment now merge
+automatically on a shared credential, which makes an addressing collision the
+normal condition wherever two credential holders meet rather than an
+exceptional one.
 
 **And deferral would not close this trade.** The remaining closure item is the
 collision analysis against expected external networks: a venue LAN, the parent
