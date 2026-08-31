@@ -30,6 +30,7 @@ block parent-system integration baseline closure.
 | --- | --- | --- |
 | `CCR-01` | CONOPS section 50 operating modes are concurrent axes, and need transition criteria | `OPEN` |
 | `CCR-02` | CONOPS section 9 does not state the service shedding order below S3 | `OPEN` |
+| `CCR-03` | Integrated RF: the DM-32UV and audio/PTT RoIP become baseline voice (CONOPS v1.1) | `OPEN` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |
 
 CONOPS change requests are numbered `CCR-##`. Like every identifier in this

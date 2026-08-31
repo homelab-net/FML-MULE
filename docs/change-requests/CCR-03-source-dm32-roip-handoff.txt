@@ -1,0 +1,1197 @@
+PROGRAM FERAL MULE (FML)
+MULE INTEGRATED RF / DM-32UV / RADIO-OVER-IP ARCHITECTURE CHANGE HANDOFF
+For Coding / Architecture Agent
+
+Date: 2026-08-31
+Parent CONOPS: FML_MULE_CONOPS_v1.01_BASELINE
+Current SAD: FML_MULE_System_Architecture_Description_v0.31
+Current Prototype BOM Reference: FML_MULE_Prototype_BOM_v0.4 DM-32/RoIP handoff
+Parent Homelab: Phase 6 / WP-07 RF, Meshtastic & TAK Communications
+Status: PROPOSED CONTROLLED BASELINE CHANGE
+Recommended CONOPS target version: v1.1
+
+===============================================================================
+1. PURPOSE
+===============================================================================
+
+This handoff defines the architectural change required to integrate the
+group-standard BAOFENG DM-32UV into MULE as a native voice/RF bearer while
+preserving the existing MULE local-first, multi-bearer, field-replaceable
+architecture.
+
+Primary operational concept:
+
+    DM-32UV = familiar local RF voice interface
+    EUD/ATAK = familiar digital situational-awareness interface
+    MULE = bearer abstraction, routing/security boundary, gateway, and
+           optional voice-extension transport
+
+Desired user experience:
+
+    Power on.
+    Select assigned radio channel.
+    Connect EUD to MULE.
+    Use ATAK on the EUD.
+    Use the DM-32UV + normal PTT/headset for voice.
+    The user should not need to know whether linked voice traverses:
+      - direct RF;
+      - local MULE Wi-Fi;
+      - HaLow;
+      - Ethernet;
+      - another MULE acting as WAN gateway;
+      - Tailscale/WAN.
+
+The goal is NOT to replace the handheld-radio workflow with VoIP.
+
+The goal is to preserve the familiar handheld-radio interface while allowing
+MULE to extend that voice traffic over available IP paths.
+
+===============================================================================
+2. CONFIGURATION-CONTROL IMPACT
+===============================================================================
+
+The current CONOPS v1.01 states that:
+- changes adding/removing/altering a SHALL statement;
+- changes to a Section 79 success criterion;
+- changes to a Section 78 validation stage;
+- changes to a Section 81 scope exclusion;
+
+require a MINOR VERSION increment and stakeholder re-approval.
+
+This change adds new required voice/RoIP behaviors and changes the status of
+remote PTT/audio bridging from downstream/stretch to intended baseline
+capability.
+
+Therefore:
+
+    DO NOT issue as CONOPS v1.02.
+    TARGET CONOPS v1.1.
+
+Downstream controlled artifacts requiring update after CONOPS approval:
+1. System Architecture Description (SAD)
+2. Technical Requirements Document (TRD)
+3. Interface Control Document (ICD)
+4. Security Architecture
+5. RF / Coexistence Plan
+6. BOM / CI Registry
+7. Verification Matrix / RTM
+8. Acceptance Test Plan (ATP)
+9. Training Plan
+10. Acquisition / Sustainment artifacts as applicable
+11. Parent Homelab integration change package where allocation changes propagate
+
+===============================================================================
+3. CURRENT SOURCE BASIS
+===============================================================================
+
+Current CONOPS already supports the broader direction:
+
+A. Local WAN Gateway
+   Any standard MULE is technically capable of an authorized WAN-gateway role.
+
+B. WAN Overlay
+   Tailscale or another approved secure overlay may connect geographically
+   separated MULEs.
+   EUDs do not join the overlay directly.
+   MULE remains the WAN routing/security boundary.
+   Network reachability alone does not grant service authorization.
+
+C. External VHF/UHF/HF Integration
+   Current Section 45 already reserves:
+   - Bluetooth;
+   - Wi-Fi;
+   - USB;
+   - audio;
+   - packet;
+   - data;
+   radio integration boundaries.
+
+   Existing patterns:
+   45.1 EUD-connected radio
+   45.2 RF gateway
+   45.3 IP-enabled radio
+
+D. Existing limitation
+   Current Section 45 says vendor-specific CAT control, remote PTT,
+   audio bridging, and broad commercial-radio automation remain downstream
+   or stretch capabilities.
+
+E. Existing future-feature bookmark
+   Prototype BOM v0.2 already records:
+   - team-local PTT/voice;
+   - meshed MULE TL-to-TL voice;
+   - WAN-extended VoIP;
+   - QoS/codec/signaling/bearer adaptation work.
+
+This change matures that bookmark into an explicit integrated-RF architecture.
+
+===============================================================================
+4. PROPOSED ARCHITECTURE DECISIONS
+===============================================================================
+
+FML-ADR-051
+TITLE:
+Group-standard external voice radio
+
+DECISION:
+BAOFENG DM-32UV is the selected initial group-standard external handheld
+voice-radio candidate for the current FML hardware block.
+
+RATIONALE:
+- already baselined by the user group;
+- common/familiar end-user interface;
+- supports analog and DMR operation;
+- inexpensive COTS replacement;
+- avoids retraining users on a software-only PTT application;
+- preserves independent radio PACE when MULE/EUD/WAN fails.
+
+BOUNDARY:
+The DM-32UV is not required for core MULE IP networking/TAK operation.
+A future radio may replace it if the controlled radio-interface contract is met.
+
+-------------------------------------------------------------------------------
+
+FML-ADR-052
+TITLE:
+Audio/PTT-level Radio-over-IP baseline
+
+DECISION:
+MULE will extend handheld-radio voice using AUDIO + PTT state over IP.
+
+Native DMR protocol tunneling/MMDVM is NOT required for the baseline.
+
+RATIONALE:
+- simpler;
+- radio-agnostic;
+- supports analog or DMR audio coming from the gateway radio;
+- allows local and remote gateways to use different RF frequencies;
+- retains ordinary user PTT behavior;
+- avoids making one digital-radio protocol the architectural core.
+
+-------------------------------------------------------------------------------
+
+FML-ADR-053
+TITLE:
+Integrated MULE RF gateway
+
+DECISION:
+The preferred field architecture is an integrated dedicated gateway-radio
+function inside or mechanically retained as part of each RoIP-capable MULE.
+
+Prototype implementation may use:
+- one BAOFENG DM-32UV;
+- one DigiRig Mobile-class USB audio/PTT interface;
+- one short K1/Kenwood-style audio/PTT cable;
+- one controlled radio antenna feed.
+
+Production cost-down may later replace the external DigiRig with equivalent
+integrated USB-audio/PTT electronics after electrical qualification.
+
+-------------------------------------------------------------------------------
+
+FML-ADR-054
+TITLE:
+Operator headset path remains radio-primary
+
+DECISION:
+The user's normal headset/PTT path shall remain:
+
+    ear protection/headset
+        ->
+    normal PTT
+        ->
+    personal DM-32UV
+
+MULE audio is NOT directly mixed into the user's single-lead headset in the v1
+baseline.
+
+RATIONALE:
+- prevents duplicate/echoed voice;
+- preserves familiar user interaction;
+- prevents MULE from becoming a dependency for ordinary local RF;
+- avoids adding a dual-input audio mixer to every user;
+- keeps complexity inside the team gateway, not on every operator.
+
+Remote MULE-carried voice should reach the user by being retransmitted through
+the local MULE gateway radio onto the local RF channel, then heard normally
+through the user's DM-32UV/headset.
+
+===============================================================================
+5. USER-FACING OPERATING CONCEPT
+===============================================================================
+
+NORMAL LOCAL VOICE:
+
+    User headset
+        |
+      PTT
+        |
+    Personal DM-32UV
+        |
+      local RF
+        |
+    Other team radios
+
+MULE is not required.
+
+-------------------------------------------------------------------------------
+
+LOCAL MULE-LINKED VOICE:
+
+    User DM-32UV
+        |
+      local RF
+        |
+    Integrated MULE gateway radio
+        |
+    MULE-A
+        |
+    Wi-Fi / HaLow IP
+        |
+    MULE-B
+        |
+    Integrated gateway radio
+        |
+      local RF
+        |
+    Remote user DM-32UV
+
+-------------------------------------------------------------------------------
+
+WAN / TAILSCALE VOICE:
+
+    User DM-32UV
+        |
+      RF
+        |
+    MULE-A
+        |
+    approved WAN route
+        |
+    Tailscale
+        |
+    MULE-B
+        |
+      RF
+        |
+    Remote DM-32UV
+
+-------------------------------------------------------------------------------
+
+MESH-TO-WAN VOICE:
+
+    User DM-32UV
+        |
+      RF
+        |
+    MULE-A
+        |
+    local MULE mesh
+        |
+    MULE-C (authorized WAN gateway)
+        |
+    WAN / Tailscale
+        |
+    Remote MULE
+        |
+      RF
+        |
+    Remote DM-32UV
+
+MULE-A does NOT require its own direct Internet connection.
+
+===============================================================================
+6. FREQUENCY / CHANNEL BEHAVIOR
+===============================================================================
+
+Local radios must match their LOCAL gateway radio.
+
+Remote sites do NOT need matching RF frequencies.
+
+Example:
+
+    Site Alpha local RF: Channel A
+    Site Bravo local RF: Channel B
+
+MULE transports:
+
+    decoded audio
+    +
+    PTT/control state
+
+over IP.
+
+It does NOT transport or repeat the RF waveform itself.
+
+Therefore:
+
+    Channel A -> MULE IP -> Channel B
+
+is valid if both local gateway configurations are authorized and correctly
+configured.
+
+The architecture must not hard-code actual RF frequencies into the software
+baseline. Frequency/talkgroup/channel plans belong in mission configuration and
+radio codeplug artifacts.
+
+===============================================================================
+7. AUDIO TOPOLOGY / DOUBLE-AUDIO RULE
+===============================================================================
+
+DO NOT baseline simultaneous delivery of the same linked voice through:
+1. direct MULE-to-headset audio; AND
+2. local gateway-radio retransmission.
+
+That creates duplicate/echoed voice.
+
+BAD:
+
+    Remote voice
+       |
+      MULE
+       |--------------------> user's headset direct
+       |
+       +--> local gateway radio -> user's DM-32 -> same headset
+
+GOOD:
+
+    Remote voice
+       |
+      MULE
+       |
+    local gateway radio
+       |
+      RF
+       |
+    user's DM-32
+       |
+    user's normal PTT/headset audio path
+
+Result:
+The operator hears one copy through the familiar radio interface.
+
+Future direct MULE-to-headset audio MAY be considered for non-radio content
+such as:
+- AI assistant responses;
+- ATAK alerts;
+- navigation;
+- private IP audio.
+
+That requires a separate audio-mixing/dual-comm design and is not part of the
+v1 integrated-RF baseline.
+
+===============================================================================
+8. PROPOSED CONOPS v1.1 EDIT STRATEGY
+===============================================================================
+
+DO NOT renumber existing established sections unnecessarily.
+
+Recommended edits:
+
+A. Section 1 Executive Summary
+Add integrated voice statement:
+MULE supports independent handheld RF voice as a parallel communications family
+and may extend authorized local radio traffic over available MULE IP bearers.
+
+B. Section 3 Operational Problem
+Add:
+- local voice may be blocked by terrain/range even where an alternate MULE IP
+  path exists;
+- different teams may operate independent local RF nets yet require controlled
+  team-to-team voice reachback.
+
+C. Section 5 Core Design Principles
+Add:
+- familiar-user-interface principle;
+- local RF independence;
+- bearer abstraction for linked voice;
+- no digital dependency for ordinary local voice.
+
+D. Section 8 Functional Planes
+Add a new Radio Voice Gateway function under either:
+- Network Plane + external RF interface; or
+- a new subsection "Voice/RF Gateway Function".
+
+Do not create a completely separate general-purpose voice computer.
+
+E. Section 9 Service Criticality
+Recommended:
+- local direct RF voice = external independent PACE, outside MULE service tiers;
+- RoIP gateway process = S1 when active for local/mesh mission voice;
+- cross-team linked voice = S2 when shared/inter-team service is required;
+- voice remains above bulk/video in traffic preference.
+
+F. Section 39 Adaptive Routing
+Add:
+Voice gateway sends IP voice through an approved reachable MULE path without
+requiring the user to know the selected bearer.
+
+G. Section 40 Traffic Preference
+Explicitly place:
+- critical TAK/control;
+- active voice/PTT;
+above:
+- file synchronization;
+- video;
+- background analytics.
+
+Exact relative priority between critical TAK signaling and voice should be
+resolved in TRD/QoS testing rather than guessed in CONOPS.
+
+H. Section 41 WAN Independence
+Add:
+Loss of WAN/Tailscale shall terminate WAN-linked voice but shall not remove
+direct/local RF voice.
+
+I. Section 42 Local WAN Gateway
+Add:
+An authorized WAN-gateway MULE may carry voice traffic originating from another
+mesh-connected MULE.
+
+J. Section 43 WAN Overlay
+Add:
+RoIP is an approved routed application service over the secure overlay when
+mission authorization permits.
+
+K. Section 44 Remote Team Operation
+Add:
+Remote teams may bridge selected voice groups through authenticated MULE
+gateways without requiring a common RF frequency across sites.
+
+L. Section 45 External VHF/UHF/HF Integration
+THIS IS THE PRIMARY EDIT.
+
+Replace current statement that remote PTT/audio bridging is only downstream or
+stretch.
+
+Recommended Section 45 structure:
+
+45. EXTERNAL VHF/UHF/HF INTEGRATION
+
+45.1 Principles
+- external radio remains usable without MULE;
+- MULE may translate audio/PTT to/from approved IP voice sessions;
+- local radio settings remain mission controlled;
+- network reachability does not grant transmit authority.
+
+45.2 EUD-Connected Radio
+Retain existing pattern.
+
+45.3 RF Gateway
+Expand existing pattern to:
+
+    local radios
+       |
+      RF
+       |
+    gateway radio
+       |
+    audio/PTT interface
+       |
+    MULE RoIP gateway
+       |
+    approved IP bearer
+       |
+    remote MULE gateway
+       |
+    remote RF net
+
+45.4 IP-Enabled Radio
+Retain existing pattern.
+
+45.5 Standard User Voice Radio
+New:
+DM-32UV is the selected initial implementation candidate but CONOPS should
+remain capability-oriented where possible. Product-specific lock should also
+exist in ADR/BOM.
+
+45.6 Voice Group / Scope
+New:
+- local;
+- team-lead;
+- command;
+- mission/event;
+or equivalent mission-scoped groups.
+Do not hard-code operational group names into the architecture.
+
+45.7 Different-Frequency Gatewaying
+New:
+Local and remote gateway radios need not share a frequency because MULE carries
+audio/PTT as IP between gateway endpoints.
+
+45.8 Failback
+New SHALL:
+Loss of the MULE voice path shall return users to available local/direct RF
+without making handheld voice dependent on IP restoration.
+
+M. Section 46 Amateur-Radio Governance
+Add explicit statement that:
+- MULE RoIP does not itself authorize amateur retransmission;
+- applicable remote-control, third-party traffic, encryption/message-content,
+  identification, automatic-control, and forwarding rules must be satisfied;
+- amateur egress remains mission-profile gated and disabled by default.
+
+N. Section 50 Modes / EMCON if appropriate
+Add:
+RoIP gateway can be independently enabled/disabled by mission profile.
+EMCON may suppress linked voice or WAN voice without disabling the operator's
+physical radio.
+
+O. Section 53 Training
+Add:
+Normal users require minimal additional training because voice remains through
+the DM-32/PTT.
+Team Leads/admins require:
+- linked/local voice state awareness;
+- gateway failure recognition;
+- local RF fallback;
+- channel-plan awareness;
+- no assumption that Tailscale reachability grants voice authorization.
+
+P. Section 54 AAR
+Add collection of:
+- voice path selected;
+- linked/unlinked state;
+- packet loss/jitter;
+- PTT contention/timeouts;
+without storing raw voice by default unless separately authorized.
+
+Q. Section 78 Qualification Stages
+Add or expand validation for:
+- local RoIP;
+- HaLow RoIP;
+- different local frequencies;
+- Tailscale RoIP;
+- mesh-to-WAN RoIP;
+- WAN loss;
+- loop protection;
+- QoS under video/file load;
+- power/thermal impact;
+- radio/audio interface RF immunity.
+
+R. Section 79 Success Criteria
+Add explicit success criteria for:
+1. DM-32 integration does not break normal local RF use.
+2. Voice crosses local MULE IP path.
+3. Voice crosses Tailscale.
+4. Different local RF frequencies are permitted.
+5. WAN loss preserves local RF.
+6. No persistent gateway loop/self-keying.
+7. Ordinary user interface remains radio/PTT based.
+
+S. Section 81 Scope
+Remove "remote PTT/audio bridging" from any exclusion/stretch wording if present.
+Native DMR protocol routing/MMDVM MAY remain out of baseline.
+
+T. Section 83 Review
+Add practitioner review emphasis for:
+- RF/spectrum;
+- amateur governance;
+- RoIP/PTT fail-safe behavior;
+- human factors;
+- audio/RF coexistence.
+
+U. Section 85 Traceability
+Map new voice criteria to the appropriate Stage 4/6/8/11 equivalents.
+
+V. Section 86 Change Control
+No conceptual change required.
+Record this change package and approvals.
+
+===============================================================================
+9. SAD UPDATE STRATEGY
+===============================================================================
+
+Recommended SAD target:
+v0.4 or next controlled pre-PDR architecture revision.
+
+Add persistent ADRs:
+- FML-ADR-051 DM-32 selected external voice-radio candidate
+- FML-ADR-052 audio/PTT RoIP baseline
+- FML-ADR-053 integrated gateway-radio architecture
+- FML-ADR-054 radio-primary user headset/audio topology
+
+Suggested architectural location:
+
+Primary Linux Compute
+  |
+  +-- Network Plane
+  |    Wi-Fi / HaLow / Tailscale / routing
+  |
+  +-- Mission Service Plane
+  |    TAK / web / status
+  |
+  +-- Voice Gateway Service
+       ALSA / codec / PTT state / session control
+            |
+       USB audio/PTT interface
+            |
+       Integrated gateway DM-32UV
+            |
+          RF antenna
+
+Voice Gateway Service SHALL NOT receive direct authority to arbitrarily alter
+host RF/network policy outside controlled interfaces.
+
+Add new failure domains:
+- gateway radio failure;
+- audio-interface failure;
+- stuck PTT;
+- false RX/activity detection;
+- RoIP loop;
+- IP jitter/loss;
+- gateway unauthorized transmit;
+- audio feedback;
+- RF desense/coexistence with HaLow/LoRa/Wi-Fi;
+- enclosure thermal impact.
+
+Add mitigations:
+- max-TX timer;
+- explicit origin/session ID;
+- loop suppression;
+- per-group arbitration;
+- mission allowlist;
+- gateway disable state;
+- watchdog;
+- no local RF dependency on RoIP process;
+- QoS.
+
+===============================================================================
+10. SOFTWARE ARCHITECTURE
+===============================================================================
+
+The coding agent shall acknowledge that integrated RF adds a new actual software
+service, not merely a BOM item.
+
+Required software functions:
+
+1. USB AUDIO
+   - ALSA capture from gateway radio
+   - ALSA playback to gateway radio
+
+2. PTT CONTROL
+   - assert transmit
+   - release transmit
+   - maximum TX timeout
+   - fail-safe unkey on process crash
+
+3. RX ACTIVITY DETECTION
+   TBR:
+   - hardware COS/COR if available; OR
+   - validated squelch/audio detection.
+
+   Do not assume VOX/audio-energy detection is adequate until tested.
+
+4. AUDIO CODEC
+   Preferred starting point:
+   Opus mono voice.
+
+5. TRANSPORT
+   - local peer IP;
+   - HaLow/Wi-Fi;
+   - Tailscale;
+   - no cloud dependency for local operation.
+
+6. SIGNALING
+   At minimum:
+   - origin node;
+   - session ID;
+   - voice group;
+   - PTT start;
+   - PTT stop;
+   - destination;
+   - authorization result;
+   - timeout;
+   - loop metadata.
+
+7. AUTHORIZATION
+   Distinct from network reachability.
+   Tailscale peer != automatic radio keying permission.
+
+8. LOOP CONTROL
+   A remote stream shall not be re-ingested as a new local transmission and
+   sent back indefinitely.
+
+9. HALF-DUPLEX ARBITRATION
+   Initial baseline may support one talker per voice group.
+
+10. QoS
+    Active voice should beat:
+    - video;
+    - bulk file transfer;
+    - background sync.
+
+11. STATUS
+    Expose:
+    - gateway radio present;
+    - audio device healthy;
+    - PTT state;
+    - linked peers;
+    - local/mesh/WAN state;
+    - packet loss;
+    - jitter;
+    - last fault;
+    - gateway enabled/disabled.
+
+12. LOGGING
+    Log metadata, not raw voice by default:
+    - session start/stop;
+    - source/destination node;
+    - group;
+    - path;
+    - errors;
+    - PTT timeout;
+    - loop suppression.
+
+13. CONFIGURATION
+    Version-control:
+    - radio codeplug;
+    - channel plan;
+    - voice-group map;
+    - mission profile;
+    - gateway enablement;
+    - routing policy.
+
+===============================================================================
+11. SOFTWARE IMPLEMENTATION TRADE
+===============================================================================
+
+Create TBR-VOICE-SW-01.
+
+Compare:
+A. thin FML-native service:
+   ALSA + Opus + authenticated UDP/QUIC/RTP-like transport + PTT signaling
+
+B. SvxLink-class OSS
+
+C. AllStar/Asterisk-class OSS
+
+D. another actively maintained open-source RoIP solution
+
+Selection criteria:
+- Debian stable ARM64 support;
+- USB audio;
+- external PTT;
+- no mandatory public Internet;
+- low RAM/CPU;
+- easy deployment;
+- local-first;
+- Tailscale compatible;
+- observability;
+- authentication;
+- manageable complexity;
+- active maintenance;
+- ability to avoid unnecessary custom code.
+
+Do NOT make MMDVM/native DMR protocol handling mandatory for v1.
+
+Native DMR metadata/talkgroup/location integration may be a later enhancement.
+
+===============================================================================
+12. NETWORKING PATH / POLICY
+===============================================================================
+
+Voice should be treated as an application carried by the existing MULE IP
+fabric.
+
+Path priority is route-quality/policy dependent, not necessarily hard-coded by
+radio type.
+
+Potential paths:
+- direct MULE peer IP;
+- conventional Wi-Fi;
+- HaLow;
+- Ethernet;
+- authorized WAN-gateway route;
+- Tailscale.
+
+LoRa/Meshtastic:
+NOT a baseline voice bearer.
+
+Voice-group routing:
+Must be mission scoped.
+
+Example logical services:
+    voice.team-local
+    voice.tl
+    voice.command
+
+Names are examples only.
+
+MULE SHOULD prefer direct/local IP reachability over unnecessary WAN hairpinning
+when both endpoints are locally reachable.
+
+===============================================================================
+13. HARDWARE / BOM IMPACT
+===============================================================================
+
+Prototype integrated-RF addition per continuously RoIP-capable team/MULE:
+
+1. BAOFENG DM-32UV dedicated gateway radio
+   ~1 per MULE/team gateway
+
+2. USB audio/PTT interface
+   DigiRig Mobile-class initial prototype
+
+3. DM-32/Kenwood-K1 audio/PTT cable
+
+4. short internal USB host cable
+
+5. internal mechanical retention
+
+6. external RF feed/antenna appropriate to the gateway radio
+
+7. potential shielding/ground isolation only if test evidence requires
+
+Preferred prototype:
+use a complete DM-32 gateway radio first.
+
+Preferred production cost-down:
+after successful electrical/RF qualification, consider:
+- integrating equivalent USB audio/PTT electronics internally;
+- retaining actual DM-32 radio hardware if packaging allows; OR
+- evaluating a radio module only if it maintains the controlled user/radio
+  interface and does not create a new proprietary sustainment burden.
+
+Do not prematurely design a custom RF transceiver.
+
+===============================================================================
+14. HEADSET / PTT USER-INTERFACE RULE
+===============================================================================
+
+For normal users:
+
+    ear protection/headset
+        |
+    existing PTT
+        |
+    personal DM-32UV
+
+MULE SHALL NOT be placed inline between the normal user's PTT and radio in the
+v1 baseline.
+
+MULE SHALL NOT simultaneously inject the same linked radio audio directly into
+the user's single-lead headset while also retransmitting it over RF.
+
+Reason:
+double/echoed voice.
+
+The integrated gateway radio is the bridge.
+
+This preserves:
+- normal radio ergonomics;
+- normal radio failure behavior;
+- direct RF fallback;
+- simple volunteer training.
+
+===============================================================================
+15. PROPOSED REQUIREMENT CANDIDATES
+===============================================================================
+
+VOICE-MSN-001
+MULE SHALL support integration with the group-standard DM-32UV voice radio while
+preserving independent direct RF operation when MULE services are unavailable.
+
+VOICE-L1-001
+MULE SHALL support RX audio input, TX audio output, and PTT control through a
+controlled radio-gateway interface.
+
+VOICE-L1-002
+Baseline linked voice SHALL operate at the audio/PTT level and SHALL NOT require
+native DMR protocol routing.
+
+VOICE-L1-003
+Authorized linked voice SHALL be capable of traversing approved MULE IP bearers
+meeting required performance.
+
+VOICE-L1-004
+LoRa/Meshtastic SHALL NOT be a baseline voice bearer.
+
+VOICE-L1-005
+Remote RF gateways SHALL NOT be required to use the same RF frequency.
+
+VOICE-L1-006
+Loss of RoIP SHALL NOT prevent normal local/direct RF voice.
+
+VOICE-L1-007
+EUDs SHALL NOT join Tailscale to obtain linked radio voice.
+
+VOICE-L1-008
+MULE SHALL remain the WAN security/routing boundary.
+
+VOICE-L1-009
+Voice-group authorization SHALL be separate from network reachability.
+
+VOICE-L1-010
+MULE SHALL prevent persistent RoIP loops.
+
+VOICE-L1-011
+MULE SHALL provide a fail-safe maximum transmit duration and shall release PTT
+on gateway-service fault where technically feasible.
+
+VOICE-L1-012
+Initial baseline SHALL support half-duplex talker arbitration.
+
+VOICE-L1-013
+Voice SHALL receive traffic preference over video and bulk background transfer.
+
+VOICE-L1-014
+Normal user's headset/PTT path SHALL remain direct-to-radio.
+
+VOICE-L1-015
+Radio/codeplug configurations SHALL be version controlled and tied to the
+applicable mission profile.
+
+VOICE-L1-016
+Amateur-radio mission configuration SHALL prevent prohibited transmission
+settings/behaviors and SHALL require the existing CONOPS amateur-control
+governance.
+
+VOICE-L1-017
+Raw voice audio SHALL NOT be persistently stored by default.
+
+===============================================================================
+16. VERIFICATION DELTA
+===============================================================================
+
+Add tests:
+
+VOICE-T01 - DM-32 electrical/audio compatibility
+- RX audio
+- TX audio
+- PTT
+- no unintended keying
+- analog
+- DMR
+- RF immunity
+
+VOICE-T02 - local two-MULE RoIP
+- voice across conventional Wi-Fi
+- voice across HaLow
+
+VOICE-T03 - different RF frequencies
+- gateway A local channel != gateway B local channel
+- linked voice still works
+
+VOICE-T04 - Tailscale
+- RF -> MULE -> Tailscale -> MULE -> RF
+
+VOICE-T05 - mesh-to-WAN
+- originating MULE has no direct WAN
+- reaches separate WAN-gateway MULE
+- remote voice succeeds
+
+VOICE-T06 - WAN failure
+- remove WAN during linked operation
+- linked WAN voice stops/degrades cleanly
+- local/direct RF remains available
+
+VOICE-T07 - loop prevention
+- three or more gateways
+- no self-keying loop
+
+VOICE-T08 - stuck-PTT failsafe
+- crash gateway process while PTT asserted
+- radio shall release within defined safe timeout
+
+VOICE-T09 - contention
+- simultaneous talkers
+- defined arbitration behavior
+
+VOICE-T10 - QoS
+Concurrent:
+- TAK/PLI
+- GeoChat
+- RoIP
+- file transfer
+- video
+Verify:
+- voice intelligible;
+- critical TAK usable;
+- bulk/video yield.
+
+VOICE-T11 - compute
+4 GB CM4 under:
+- maximum representative service-host workload;
+- active RoIP;
+- all radio bearers;
+- Tailscale;
+- observability.
+
+VOICE-T12 - packaging
+- RF coexistence/desense;
+- thermal;
+- antenna spacing;
+- internal gateway fit;
+- cabling/strain relief.
+
+VOICE-T13 - audio topology
+Verify normal user hears ONE copy of linked radio voice through personal
+DM-32/headset path.
+
+===============================================================================
+17. OPEN TBRs
+===============================================================================
+
+TBR-VOICE-01
+Exact DM-32 audio/PTT electrical behavior with selected interface.
+
+TBR-VOICE-02
+Reliable receive activity detection:
+hardware COS/COR vs software/squelch detection.
+
+TBR-VOICE-03
+RoIP software stack selection.
+
+TBR-VOICE-04
+Codec bitrate/frame/jitter settings.
+
+TBR-VOICE-05
+Maximum acceptable end-to-end PTT setup latency.
+
+TBR-VOICE-06
+Voice QoS markings/queueing policy.
+
+TBR-VOICE-07
+Voice-group mission configuration schema.
+
+TBR-VOICE-08
+Integrated DM-32 gateway packaging and antenna placement.
+
+TBR-VOICE-09
+Whether DigiRig remains in first field article or is replaced by an integrated
+audio/PTT board after Article 0.
+
+TBR-VOICE-10
+Whether later native DMR/MMDVM integration provides enough value to justify
+added complexity.
+
+TBR-VOICE-11
+Whether DM-32 GPS/DMR position reports should later be normalized into TAK/CoT.
+
+TBR-VOICE-12
+Whether direct MULE/private audio to headset is useful enough to justify a
+future dual-comm/audio-mixer architecture.
+
+Not v1.
+
+===============================================================================
+18. CODING AGENT DELIVERABLE REQUEST
+===============================================================================
+
+The coding/architecture agent receiving this file should:
+
+1. Produce a controlled CONOPS v1.1 change proposal, not a silent edit.
+2. Preserve existing section numbering wherever possible.
+3. Show CURRENT TEXT / PROPOSED TEXT / RATIONALE for each changed CONOPS section.
+4. Add new SHALLs only where needed.
+5. Update Section 78 validation stages if required.
+6. Update Section 79 success criteria.
+7. Update Section 85 traceability.
+8. Preserve Section 86 change-control rules.
+9. Produce SAD update with persistent FML-ADR-051 through 054.
+10. Add voice/RoIP software and failure-domain architecture.
+11. Draft TRD requirements from Section 15 of this handoff.
+12. Draft ICD interfaces for:
+    - gateway radio <-> MULE audio/PTT;
+    - RoIP MULE <-> MULE;
+    - voice-group authorization;
+    - Tailscale transport boundary.
+13. Update BOM/CI to include:
+    - DM-32 gateway radio;
+    - audio/PTT interface;
+    - cable;
+    - mechanical retention;
+    - RF feed.
+14. Update ATP and RTM using Section 16 test set.
+15. Identify any conflict with existing:
+    - HaLow;
+    - LoRa;
+    - high-rate Wi-Fi;
+    - USB-C power/WAN;
+    - CM4 USB resources;
+    - enclosure;
+    - thermal/power budget.
+16. Do not silently remove existing local-first, PACE, security, or amateur
+    governance requirements.
+17. Keep native DMR/MMDVM integration optional unless a separate trade selects it.
+18. Keep direct MULE-to-user-headset audio out of the v1 baseline.
+19. Return unresolved conflicts/TBRs explicitly.
+20. Provide a redline/change-log summary.
+
+===============================================================================
+19. ACCEPTANCE INTENT
+===============================================================================
+
+The target end state is:
+
+USER:
+- familiar DM-32UV;
+- familiar PTT;
+- familiar ear protection/headset;
+- familiar ATAK EUD.
+
+MULE:
+- integrated RF gateway;
+- conventional Wi-Fi;
+- HaLow;
+- LoRa;
+- Ethernet;
+- USB-C power/data/WAN;
+- Tailscale;
+- TAK/field services;
+- bearer-aware linked voice.
+
+When everything works:
+voice can be extended transparently.
+
+When WAN fails:
+local MULE-linked paths may remain.
+
+When MULE fails:
+ordinary direct RF remains.
+
+When the EUD fails:
+ordinary RF remains.
+
+The technology should increase range and interoperability without making the
+volunteer operator learn a new voice interface or making local voice depend on
+the digital system.
+
+===============================================================================
+20. SOURCE REFERENCES
+===============================================================================
+
+Primary controlled sources used for this change handoff:
+
+1. FML_MULE_CONOPS_v1.01_BASELINE.txt
+   - Section 42 Local WAN Gateway
+   - Section 43 WAN Overlay
+   - Section 44 Remote Team Operation
+   - Section 45 External VHF/UHF/HF Integration
+   - Section 46 Amateur-Radio Governance
+   - Section 83 Review
+   - Section 85 Verification Traceability
+   - Section 86 Change Control
+
+2. FML_MULE_System_Architecture_Description_v0.31.txt
+   - single primary Debian compute
+   - FML-ADR namespace
+   - MULE as WAN/Tailscale boundary
+   - external dongle fragility mitigation
+   - four-radio planning baseline
+   - thin custom-service philosophy
+   - configuration/recovery principles
+
+3. FML_MULE_Prototype_BOM_v0.2.txt / .xlsx
+   - existing PTT/voice feature bookmark
+   - CM4 compact carrier
+   - current RF architecture
+   - pouch-class field appliance design
+
+4. FML_MULE_Prototype_BOM_v0_4_DM32_RoIP_Baseline_Handoff.txt
+   - proposed DM-32 gateway hardware
+   - DigiRig prototype
+   - cost and verification additions
+
+END OF HANDOFF
