@@ -25,9 +25,19 @@ three closure-evidence items is supplied, and the decision itself is not made.
   do **not** share a mesh by default. With different `mesh_id`, identical
   prefixes and identical host addresses are harmless.
 
-Together those are **one** of the three items, the interoperability exercise.
-The collision analysis over expected external networks is still missing, and
-the schema question is reported rather than answered.
+- `2026-08-31-external-network-collision-analysis.md` -- the collision analysis
+  over expected external networks. Any external route more specific than the
+  mesh `/16` silently takes that slice of the mesh away, and the rest keeps
+  working. A Tailscale subnet router advertising a `/17` takes half of it. The
+  failure is not a property of `10.41.0.0/16`, so **selecting a different prefix
+  cannot remove it**.
+
+**All three closure-evidence items now exist.** The trade is still `OPEN`: it
+closes when a named owner accepts the evidence and the resulting decision is
+entered in the ADR register, and no decision has been made. The schema question
+is reported rather than answered, and the third artifact argues that the
+trade's question as written cannot be answered in a way that removes the risk
+it is about.
 
 **Read them in that order.** The collision is not what happens when two
 deployments meet; it is what happens once they deliberately converge on one

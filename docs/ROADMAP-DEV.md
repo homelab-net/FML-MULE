@@ -441,9 +441,19 @@ prefix hardly matters; if they can agree one, the prefix matters entirely.
 
 **That gap is now `TBR-NET-03`, item 1.5a, and this item depends on it.**
 
-Still missing here: the collision analysis over expected external networks,
-which is desk work against the parent Homelab prefixes rather than a bench run,
-and the decision itself. No hardware needed for either, but 1.5a comes first.
+**The collision analysis is now done too, and it reframes this item.** Any
+external route more specific than the mesh `/16` silently takes that slice of
+the mesh away while the rest keeps working -- a venue LAN on `10.41.5.0/24`
+removes exactly the mesh nodes in that range, and a `/17` from a Tailscale
+subnet router removes half the field prefix. Nothing warns, because
+longest-prefix match is behaving correctly. **The failure is not a property of
+`10.41.0.0/16`**: any fixed prefix behaves identically, so selecting a different
+one cannot remove the risk. What is needed is a rule about how the node routes,
+not what it is numbered.
+
+All three closure-evidence items now exist. Still missing: the decision itself,
+which needs 1.5a first, and which the third artifact argues cannot be a pure
+prefix choice.
 
 **Read first:** the trade itself, `os/config/interfaces.conf.template` for the
 consequences already written down, and `THREAT_MODEL.md` — an address derived
