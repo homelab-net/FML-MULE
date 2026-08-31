@@ -406,7 +406,16 @@ leaving it to the analysis.
 
 ### 1.5 `TBR-NET-01`, the addressing plan
 
-**State:** open, cited by one file, no hardware needed.
+**State:** open. One of the three closure-evidence items exists: the
+interoperability exercise is done and recorded under
+`docs/evidence/TBR-NET-01/`. Two independently configured deployments sharing
+the prefix conflict **silently** -- one node wins ARP consistently, the loser
+resolves its peers, marks them `REACHABLE`, and cannot talk to them, with no
+kernel message and nothing in `batctl` to explain it.
+
+Still missing: the collision analysis over expected external networks, a run
+showing that non-colliding deployments do interoperate, and the decision
+itself. No hardware needed for any of them.
 
 **Read first:** the trade itself, `os/config/interfaces.conf.template` for the
 consequences already written down, and `THREAT_MODEL.md` — an address derived
