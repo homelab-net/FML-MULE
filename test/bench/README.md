@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Three procedures. No measurement has been taken.**
+**Four procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -47,6 +47,14 @@ four candidate mechanisms `TBR-NET-01` has to choose between. It selects
 nothing: its useful output is the table, not the exit code. It exists because
 `FML-ADR-060` was superseded one day after it was written for deciding
 something untested, and the next decision was `TBR-NET-01`'s.
+
+`tak-state.sh` reproduces the two `TBR-TAK-01` findings a decision now rests
+on: that OpenTAKServer is three processes and upstream's container runs one, and
+that a database-only restore restores every row and authenticates nobody while
+reporting healthy. `FML-ADR-034` makes PostgreSQL conditional on that state
+study, so the measurement has to be reproducible by somebody other than its
+author. It needs Podman and pulls three images, so like the others it does not
+run in CI.
 
 ## What can be verified without hardware, and what cannot
 

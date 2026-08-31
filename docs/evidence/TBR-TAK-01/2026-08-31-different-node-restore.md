@@ -97,9 +97,20 @@ were zero at backup time. The user row is the decisive one and the certificate
 finding rests on the CA fingerprints rather than on enrolled clients, but a
 restore carrying real enrolled certificates was not performed.
 
-**No attempt was made to restore correctly.** Copying `config.yml` and `ca/`
-alongside the database was not tried, so this shows the failure and not the fix.
-That is worth doing and is not done here.
+**The remedy is confirmed, added 2026-08-31.** Copying `config.yml` and `ca/`
+alongside the database **does** restore a working node: the default
+administrator logs in on the replacement, the certificate authority is the
+origin's, and the restore is a restore rather than a new deployment.
+
+That was established by planting it as a violation in
+`test/bench/tak-state.sh`, whose assertion is that the credential must **fail**
+after a database-only restore. Carrying the data folder across makes the
+credential succeed and the assertion fire, which proves the check can fail and
+demonstrates the fix in the same run.
+
+So the finding is complete in both directions: **a database-only restore
+authenticates nobody, and a restore that also carries `config.yml` and `ca/`
+works.**
 
 **One backup method.** `pg_dump` and restore, not streaming replication, not a
 filesystem snapshot, not the `OTS_BACKUP_COUNT` mechanism the configuration
