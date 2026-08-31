@@ -90,7 +90,8 @@ None of that is gated by `mesh_id`, so no answer in `TBR-NET-03` removes it.
 
 Retain `10.41.0.0/16`, or select another prefix.
 
-**Amended 2026-08-31: those two options are incomplete, and both are IPv4.**
+**Amended 2026-08-31, twice. First:** the two options above are both IPv4 and a
+third existed.
 RFC 4193 Unique Local Addresses exist precisely so independently administered
 networks that were never coordinated do not collide: a random 40-bit global ID
 makes deployment-against-deployment collision about 2^-40 rather than certain,
@@ -103,10 +104,21 @@ constraint, not a judgement about the field mesh. `docs/change-requests/`
 carries the `PBCR-###` mechanism for exactly that, and its README states such
 requests "do not block MULE work".
 
-**The deciding question is whether ATAK, the TAK server, `meshtasticd` and
-`dnsmasq` work over IPv6, and it is untested.** See
-`docs/evidence/TBR-NET-01/2026-08-31-the-option-the-trade-does-not-list.md`.
-Nothing is selected.
+**Then: the Program Owner excluded IPv6 for MULE v1**, on 2026-08-31, for
+**broader hardware support and older systems in the mesh.** CONOPS plans four to
+eight volunteer-owned EUDs per MULE and the program does not choose what a
+volunteer brings; an EUD whose stack does not do IPv6 well does not work at all.
+`FML-ADR-038` already treats EUD client compatibility as an operational burden.
+
+**So this trade is decided inside IPv4**, and the option space is now the two
+originally stated. See
+`docs/evidence/TBR-NET-01/2026-08-31-the-option-the-trade-does-not-list.md`,
+which is retained with its disposition because the reasoning behind an exclusion
+is worth as much as the reasoning behind a selection.
+
+**What that leaves unsolved, and the decision must address rather than prevent:**
+the venue-overlap failure has no clean answer inside IPv4. Policy routing moves
+the loss and a VRF requires every mesh-using application to bind into it.
 
 Ancillary questions that belong here: exact reservations and node ranges, which
 become ICD-controlled values; how an EUD on the access point is addressed

@@ -3,8 +3,11 @@
 **Trade:** `TBR-NET-01`.
 **Date:** 2026-08-31.
 **Taken by:** Cameron Zobrist.
-**Status of this artifact:** analysis. **No measurement, and it selects
-nothing.** It reports that the trade's option space is incomplete.
+**Status of this artifact:** analysis. **No measurement.** It reported that the
+trade's option space was incomplete. **The option it names has since been
+excluded by the Program Owner; see Disposition at the end.** The analysis is
+retained because the reasoning behind an exclusion is worth as much as the
+reasoning behind a selection.
 
 ## Why this exists
 
@@ -114,3 +117,44 @@ It **does not** select ULA, propose a change request, or assert that the
 applications work. Selecting an option is the trade's job and the named owner's
 acceptance, and this program has already superseded one ADR for deciding ahead
 of its evidence.
+
+## Disposition: excluded, 2026-08-31
+
+**The Program Owner has excluded IPv6 for MULE v1**, on a ground this artifact
+did not weigh: **broader hardware support, and older systems in the mesh.**
+
+CONOPS plans four to eight **volunteer-owned** EUDs per MULE. The program does
+not choose what a volunteer brings, and `FML-ADR-038` already accepts "the
+provisioning burden of per-device certificates on volunteer-owned EUDs" and
+names "EUD client compatibility" as an operational burden on the Communications
+and Identity Management function.
+
+Requiring IPv6 of those same devices is a larger burden with a harder failure
+mode. An EUD that is awkward to provision still works once provisioned. **An EUD
+whose stack does not do IPv6 well does not work at all**, and a volunteer
+disaster response cannot turn away a responder because their tablet is old.
+
+**That outweighs the addressing property**, and this artifact accepts the
+decision rather than arguing it. An addressing scheme that is elegant and
+excludes participants is the wrong trade for this program.
+
+### What the exclusion costs, so nobody thinks the problem went away
+
+Every measurement under this trade stands, and the IPv4 failures are now the
+ones the program will live with:
+
+- Two deployments sharing a prefix conflict **silently**, and `FML-ADR-061`
+  makes automatic merging the normal case.
+- A venue LAN overlapping the mesh prefix takes that slice of the mesh away,
+  with nothing logged.
+- **No routing mechanism fixes the second one.** Policy routing moves the loss;
+  a VRF separates the two networks only per application, and requires every
+  mesh-using application to bind into it.
+
+The trade must therefore be decided inside IPv4, knowing that **the venue-overlap
+failure has no clean answer** and the decision has to say what a node does about
+it rather than what prevents it.
+
+**IPv4 link-local, RFC 3927, is not a substitute** and is not proposed. It is not
+routable, Debian does not configure it by default, and it carries none of the
+per-site randomness that made a ULA relevant here.
