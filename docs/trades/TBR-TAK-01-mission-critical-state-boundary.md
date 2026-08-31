@@ -2,7 +2,7 @@
 id: TBR-TAK-01
 title: Mission-critical state boundary
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: TAK
 priority: 9
 function-owner: TAK + SRE
@@ -23,8 +23,9 @@ target-date: TBD-SRR
 **Function owner:** TAK + SRE. **Named owner:** `TBD-SRR`.
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
-individual and one calendar target date to every open TBR. `TBD-SRR` marks the
-gap explicitly rather than hiding it behind a functional organization.
+individual and one calendar target date to every open TBR. The named individual
+is assigned as of 2026-08-31. **The target date is not**, and `TBD-SRR` still
+marks that half of the action rather than hiding it behind an invented date.
 
 ## Question
 

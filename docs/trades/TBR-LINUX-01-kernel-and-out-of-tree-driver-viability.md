@@ -2,7 +2,7 @@
 id: TBR-LINUX-01
 title: Kernel and out-of-tree driver viability
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: LINUX
 priority: 8
 function-owner: Linux/Platform
@@ -23,8 +23,9 @@ target-date: TBD-SRR
 **Function owner:** Linux/Platform. **Named owner:** `TBD-SRR`.
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
-individual and one calendar target date to every open TBR. `TBD-SRR` marks the
-gap explicitly rather than hiding it behind a functional organization.
+individual and one calendar target date to every open TBR. The named individual
+is assigned as of 2026-08-31. **The target date is not**, and `TBD-SRR` still
+marks that half of the action rather than hiding it behind an invented date.
 
 ## Question
 

@@ -583,11 +583,25 @@ does and does not simulate, and that list is the test plan for day one.
 
 ## Track 3 — analysis
 
-### The blocker that gates everything
+### The blocker that gated everything, half cleared 2026-08-31
 
-**All sixteen trades have owner `TBD-SRR`.** Trades close on evidence accepted
-by a *named owner*. So no trade in this repository can close today, regardless
-of what evidence exists, including the four on the critical path:
+**Every trade now has a named owner: Cameron Zobrist.** Trades close on evidence
+accepted by a named owner, so this removes the reason no trade could close.
+
+**It closes nothing by itself.** SAD section 30.2 says a TBR closes when its
+listed evidence exists, the named owner accepts it, **and the resulting
+architecture decision is entered into the ADR register**. The third condition is
+unmet everywhere: no trade in this repository has a decision written against it
+yet. `TBR-NET-01` is the closest -- all three of its closure-evidence items now
+exist -- and it still cannot close, because it has no decision and because it
+depends on `TBR-NET-03`.
+
+**The other half of the SRR exit action is still open.** Section 30.2 asks for a
+named individual *and a calendar target date*. Every `target-date` is still
+`TBD-SRR`, deliberately: a date is a commitment and inventing one would be
+inventing a specification. That remains the Program Owner's to set.
+
+The four critical-path trades, for reference:
 
 | Pri | Trade | Question | Hardware |
 | ---: | --- | --- | --- |
@@ -596,10 +610,10 @@ of what evidence exists, including the four on the critical path:
 | 3 | `TBR-THERM-01` | Thermal architecture | yes |
 | 9 | `TBR-TAK-01` | Mission-critical state boundary | no |
 
-**This is the highest-value five minutes available to the Program Owner**, and
-nobody else can do it. Assigning named owners in `docs/trades/*.md` frontmatter
-and regenerating `STATUS.md` converts a register of permanently open questions
-into a register that can be worked.
+That assignment converted a register of permanently open questions into one
+that can be worked. What each trade now needs is a **decision**, written as an
+ADR, which is a different and larger piece of work than the evidence that
+supports it.
 
 ### `TBR-TAK-01`
 

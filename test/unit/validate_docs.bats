@@ -346,28 +346,42 @@ SH
   [ "$status" -ne 0 ]
 }
 
-@test "gen-status reports every unowned critical-path trade as a risk" {
-  run sh "$REPO/tools/gen-status.sh" --check
-  [ "$status" -eq 0 ]
+@test "gen-status reports an unowned critical-path trade as a risk" {
+  make_sandbox
 
-  # Derived from the trade files rather than matched against a phrase this test
-  # and the generator would both have to hardcode. An earlier version grepped
-  # for one sentence, and went stale silently when the wording changed.
-  unowned=0
-  for f in "$REPO"/docs/trades/TBR-*.md; do
+  # PLANTED, not observed. An earlier version of this test scanned the working
+  # tree for critical-path trades with a TBD owner and asserted at least one
+  # existed, so that the check could not pass vacuously. That was right while
+  # every trade was unowned, and on 2026-08-31 every trade was assigned a named
+  # owner and the test failed -- not because the generator regressed, but
+  # because the condition it depended on had been fixed. A test that breaks
+  # when the repository improves is testing the repository, not the generator.
+  #
+  # So the condition is created here and removed with the sandbox.
+  target=""
+  for f in "$SANDBOX"/docs/trades/TBR-*.md; do
     [ -e "$f" ] || continue
     case "$(basename "$f")" in _*) continue ;; esac
     grep -q "^critical-path: true" "$f" || continue
-    owner=$(sed -n 's/^owner: *//p' "$f" | head -1)
-    case "$owner" in TBD | TBD-*) ;; *) continue ;; esac
-    unowned=$((unowned + 1))
-    id=$(sed -n 's/^id: *//p' "$f" | head -1)
-    # Whatever the wording, the risk section must name the trade.
-    grep -q "$id" "$REPO/STATUS.md"
+    target="$f"
+    break
   done
+  # If nothing is on the critical path at all, this test has nothing to say and
+  # should fail loudly rather than pass quietly.
+  [ -n "$target" ]
 
-  # The assertion is worthless if no trade qualifies, so prove some did.
-  [ "$unowned" -ge 1 ]
+  sed -i 's/^owner: .*/owner: TBD-SRR/' "$target"
+  id=$(sed -n 's/^id: *//p' "$target" | head -1)
+
+  run sh -c "cd '$SANDBOX' && sh tools/gen-status.sh"
+  [ "$status" -eq 0 ]
+
+  # Whatever the wording, the risk section must name the trade.
+  grep -q "$id" "$SANDBOX/STATUS.md"
+
+  # And the count must have noticed it, so the check cannot pass on the trade
+  # merely being listed somewhere in the register table.
+  grep -qE '[1-9][0-9]* have no named owner' "$SANDBOX/STATUS.md"
 }
 
 @test "gen-traceability --check fails on a binding requirement with no stage" {

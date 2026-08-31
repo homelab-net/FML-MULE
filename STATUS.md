@@ -108,26 +108,26 @@ Ordered by the SAD v0.31 section 30.2 priority.
 
 | Pri | ID | Question | Status | Function owner | Named owner | HW |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | `TBD-SRR` | yes |
-| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | `TBD-SRR` | partly |
-| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | `TBD-SRR` | yes |
-| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | `TBD-SRR` | yes |
-| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | `TBD-SRR` | yes |
-| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `TBD-SRR` | partly |
-| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `TBD-SRR` | yes |
-| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `TBD-SRR` | yes |
-| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `TBD-SRR` | no |
-| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `TBD-SRR` | yes |
-| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `TBD-SRR` | yes |
-| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `TBD-SRR` | partly |
-| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `TBD-SRR` | yes |
-| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no |
-| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no |
-| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | `Cameron Zobrist` | yes |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
+| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | `Cameron Zobrist` | yes |
+| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | `Cameron Zobrist` | yes |
+| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | `Cameron Zobrist` | yes |
+| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `Cameron Zobrist` | partly |
+| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `Cameron Zobrist` | yes |
+| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `Cameron Zobrist` | yes |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `Cameron Zobrist` | no |
+| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `Cameron Zobrist` | yes |
+| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `Cameron Zobrist` | yes |
+| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `Cameron Zobrist` | partly |
+| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `Cameron Zobrist` | yes |
+| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `Cameron Zobrist` | no |
+| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `Cameron Zobrist` | no |
+| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
 | 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
 
-18 open trades. 16 have no named owner.
+18 open trades. 0 have no named owner.
 
 ## Critical path
 
@@ -135,10 +135,10 @@ Marked CRITICAL in the SAD v0.31 body. Ordered by SAD priority.
 
 | Pri | ID | Question | Named owner | HW |
 | ---: | --- | --- | --- | --- |
-| 1 | `TBR-PWR-01` | Endurance and battery mass | `TBD-SRR` | yes |
-| 2 | `TBR-COMP-01` | CPU and memory budget | `TBD-SRR` | partly |
-| 3 | `TBR-THERM-01` | Thermal architecture | `TBD-SRR` | yes |
-| 9 | `TBR-TAK-01` | Mission-critical state boundary | `TBD-SRR` | no |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `Cameron Zobrist` | yes |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `Cameron Zobrist` | partly |
+| 3 | `TBR-THERM-01` | Thermal architecture | `Cameron Zobrist` | yes |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `Cameron Zobrist` | no |
 
 ## Maintainer roles
 
@@ -162,22 +162,6 @@ being raised as a program risk. See `MAINTAINERS.md`.
 
 - **16 vacant maintainer slots.** A role with no name is a role nobody
   answers for. See `MAINTAINERS.md`.
-- **`TBR-COMP-01` is CRITICAL and has no named owner.** Assigning a named
-  individual and a target date to every open TBR is an SRR exit action
-  (SAD section 30.2). A trade cannot close while nobody can accept its
-  evidence.
-- **`TBR-PWR-01` is CRITICAL and has no named owner.** Assigning a named
-  individual and a target date to every open TBR is an SRR exit action
-  (SAD section 30.2). A trade cannot close while nobody can accept its
-  evidence.
-- **`TBR-TAK-01` is CRITICAL and has no named owner.** Assigning a named
-  individual and a target date to every open TBR is an SRR exit action
-  (SAD section 30.2). A trade cannot close while nobody can accept its
-  evidence.
-- **`TBR-THERM-01` is CRITICAL and has no named owner.** Assigning a named
-  individual and a target date to every open TBR is an SRR exit action
-  (SAD section 30.2). A trade cannot close while nobody can accept its
-  evidence.
 
 ---
 
