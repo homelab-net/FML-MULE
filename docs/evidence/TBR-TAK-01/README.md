@@ -34,7 +34,16 @@
   authentication store**: 41 tables, not 36. `config.yml` holds 12
   secret-bearing keys including MFA secrets, and the CA private key is on disk.
 
-**Three of the six outstanding items still need a client connected**, and none of
+- `2026-08-31-cot-end-to-end-with-pytak.md` -- a connected PyTAK client.
+  **OpenTAKServer is three processes and upstream's container runs one**, so a
+  container built from upstream's Dockerfile accepts no TAK clients at all.
+  A default `administrator` account is created with the password `password`.
+  The PLI path works end to end, the EUD self-registers without a certificate,
+  and **outstanding item 3 is answered for that path**: the only queue is
+  `cot_parser`, non-durable, carrying reconstructable state.
+
+**Items 4, 5 and 6 remain**, plus the chat, direct-message and DataSync half of
+item 3, which a single client sending position reports does not exercise, and none of
 them is hardware: durable-queue inspection, a different-node restore, the four
 workflow tests, and the cache question.
 
