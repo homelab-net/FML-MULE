@@ -89,6 +89,15 @@ is right: counted from `__tablename__` declarations in the installed package,
 
 16 + 15 + 5 = 36.
 
+**Corrected the same day: there are 41 tables, not 36.** A running PostgreSQL
+holds five more, and the enumeration method missed them because their names come
+from Flask-Security mixins rather than `__tablename__` literals: `user`, `role`,
+`roles_users`, `web_authn` and `alembic_version`. **The first four are the entire
+authentication and authorisation store**, which is the most security-critical
+26.1 state in the system. All five are **26.1**: a restore whose schema version
+disagrees with the code is not a working restore either. See
+`2026-08-31-opentakserver-actually-run.md`. Corrected totals: 21, 15, 5.
+
 ## Two findings
 
 ### `packages` was mapped to the wrong SAD category

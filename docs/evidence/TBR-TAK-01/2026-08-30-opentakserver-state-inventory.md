@@ -30,6 +30,12 @@ not finished.
 | Host | Debian 13, Python 3.13 |
 | Method | Enumerating `opentakserver/models/*.py` and their `__tablename__` |
 
+**The method has a blind spot, found 2026-08-31 by running the server.** It sees
+only tables whose name is a `__tablename__` literal, so it misses any table
+named by a library mixin. It missed `user`, `role`, `roles_users` and
+`web_authn` -- the whole authentication store -- plus `alembic_version`. A
+running PostgreSQL holds 41 tables.
+
 ## The relational tables
 
 Thirty-six, from the shipped models.
