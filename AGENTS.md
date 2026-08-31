@@ -216,6 +216,16 @@ applies to what it builds. `test/bench/80211s-mesh.sh` omitted
 check 20 now fails any script that creates a `batadv` interface without naming
 the setting.
 
+**Read the source of an external tool, not only its schema.** A protobuf, a
+JSON schema or a header gives declared defaults; behaviour lives in the code
+that consumes them. On 2026-08-30 the `meshtastic` package's protobuf defaults
+were inspected to answer whether two stock deployments join the same LoRa
+channel. They are proto3 zero values and answer nothing, and the question was
+about to be recorded as unverifiable without a second radio. The firmware
+source settles it in three functions, and its own comment calls the compiled-in
+key the `public` default channel that every device powers up on. Fetching two files took under a
+minute. When a behavioural claim matters, get the implementation.
+
 Never disable a linter wholesale to make something pass. Adjust the rule
 deliberately and record why in the config.
 
