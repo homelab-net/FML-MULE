@@ -71,7 +71,22 @@
   years**; and **revocation is not consulted** on the header path, where the
   verification store receives the CA and no CRL. A certificate that
   authenticates on public data, lasts a decade, and is not checked against the
-  revocation list sitting on disk.
+  revocation list sitting on disk -- and **nothing revokes at all**: no code
+  path, an empty CA index, an empty CRL. The three findings **chain**: enrollment
+  signs any CN, the Mission API takes the CN as the acting user, and the header
+  authenticates on the certificate alone, so a low-privilege account can enrol
+  `CN=administrator` and act as administrator with no private key and no
+  password. Upstream default behaviour, recorded for `services/ingress/` to
+  constrain.
+
+- `2026-08-31-shared-credentials-across-mules-and-euds.md` -- what the shared
+  TAK credentials do across the topology. **The administrator password is
+  identical on every MULE** and **trust is not shared**: each node has its own
+  CA, so an EUD enrolled on one MULE is rejected by the MULE next to it, even
+  though `FML-ADR-061` merges their meshes automatically. Behind one MULE,
+  several EUD certificates with the same CN are all accepted and
+  indistinguishable. The worst of both: the per-node thing is shared and the
+  shared thing is per-node.
 
 **Items 5 and 6 remain in part**: DataSync content, mission packages, and the
 cache question, and none of
