@@ -77,13 +77,33 @@ written, the value agreed out of band, and the addressing collision solved
 before the procedure can be used, so it depends on `TBR-NET-01`'s answer rather
 than merely feeding it.
 
-**A third, incident-scoped mesh both sides join.** Neither deployment changes
-its own mesh; nodes that need to cooperate join an additional mesh, which
-`FML-ADR-045` already permits by having a node carry several bearers into one
-`batman-adv` interface. It would be the right answer if partial cooperation is
-what is actually wanted: a liaison node from each side rather than two whole
-deployments merging. It costs a bearer or a radio, and `TBR-RF-03` is where
-that cost lands.
+**A liaison node that ROUTES between deployments.** Neither deployment changes
+its own mesh. One node on each side takes an additional bearer, both join a
+third incident-scoped mesh, and each liaison **routes** between that mesh and
+its own. Only one node per deployment is reconfigured.
+
+**The word "routes" is the whole option, and getting it wrong reverses the
+result.** `FML-ADR-045` describes a node carrying several bearers into **one**
+`batman-adv` interface, which is what `test/bench/80211s-mesh.sh` builds in its
+line topology. A liaison that does that is a **bridge**: the two deployments
+become one layer 2 domain and
+`docs/evidence/TBR-NET-01/2026-08-30-collision-exercise.md` applies in full. The
+value here comes from the liaison holding the two meshes in **separate** layer 2
+domains and forwarding at layer 3 between them, so no ARP resolution ever
+crosses a deployment boundary and the collision is structurally impossible
+rather than avoided by agreement.
+
+It would be the right answer if partial cooperation is what is wanted -- a
+liaison from each side rather than two whole deployments merging -- and if the
+trust boundary below is acceptable.
+
+It costs a bearer or a radio on one node per deployment, and `TBR-RF-03` is
+where that cost lands. **It also creates a trust boundary and a single point of
+failure**: the liaison carries traffic between two organizations that have not
+authenticated each other, and nothing in this program says who authorises one or
+what the liaison is permitted to forward. That is a smaller exposure than a
+layer 2 merge, where every node reaches every node rather than one, but it is
+not nothing and `THREAT_MODEL.md` has to be asked about it.
 
 **Deferring.** Deciding that MULE v1 does not support interoperation between
 deployments, and saying so. It would be the right answer if the evidence shows
@@ -91,6 +111,39 @@ the operational case is rare and the cost of any mechanism is high. It is a
 real option and it must be written down as a decision rather than left as an
 absence, because the current absence reads as an oversight and the schema's
 own description implies the question was considered.
+
+### Every option but deferral forces `TBR-NET-01`'s answer
+
+Not one of the three mechanisms works while two deployments can hold the same
+address prefix, and each fails for its own reason:
+
+- A fixed program-wide `mesh_id` puts both deployments in one layer 2 domain,
+  which is the collision exercise exactly.
+- A convergence procedure produces the same domain deliberately, so it needs
+  the collision solved before the procedure is usable at all.
+- A routing liaison needs an interface in each deployment. **Two interfaces in
+  the same subnet cannot be routed between**, so identical prefixes defeat it
+  before any policy question arises. It fails loudly rather than silently,
+  which is better, but it fails.
+
+So selecting any mechanism **forces `address_prefix` to be per-deployment**,
+which is one of the things `TBR-NET-01` is open to decide and which its schema
+field records as undecided: "whether the prefix is fixed or per-deployment ...
+[is] open".
+
+**The dependency therefore runs both ways, and the frontmatter shows only one
+of them.** `TBR-NET-01` cannot be decided before this trade, because whether
+the collision is reachable depends on whether deployments can converge. And
+this trade's answer constrains `TBR-NET-01`'s, because every answer except
+deferral removes the fixed-prefix option. Deferral is the only branch that
+leaves `TBR-NET-01` free.
+
+**Deferral does not close `TBR-NET-01` either, and it should not be sold as
+doing so.** That trade's remaining evidence item is a collision analysis
+against expected external networks -- a venue LAN, the parent Homelab
+`10.77.0.0/16` and `10.78.0.0/16`, ranges partner organizations use. None of
+that is gated by `mesh_id`. Deferring removes the deployment-to-deployment
+collision path and leaves the external one untouched.
 
 ## Closure evidence
 
@@ -113,8 +166,14 @@ published constant identifying a MULE deployment; a per-incident value agreed
 over voice is something an adversary can hear. Both are disclosure and the
 options differ in what they disclose.
 
-**The interaction with `TBR-NET-01` stated explicitly**, since converging is
-the event that makes the addressing collision reachable.
+**If the selected mechanism is a liaison, a statement of what it is permitted
+to forward and who authorises one.** A node routing between two organizations
+that have not authenticated each other is a trust boundary, and an unstated
+boundary is one nobody is enforcing.
+
+**The interaction with `TBR-NET-01` stated explicitly**, since converging is the
+event that makes the addressing collision reachable, and since every mechanism
+forces that trade to a per-deployment prefix.
 
 No hardware is required for any of it. The separation result was obtained with
 `mac80211_hwsim` and the convergence exercise can be too, at tier `SIMULATED`.

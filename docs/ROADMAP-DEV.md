@@ -476,6 +476,14 @@ adversary can hear. `THREAT_MODEL.md` has to be asked about whichever is
 chosen, and the options differ in what they disclose rather than in whether
 they disclose.
 
+**It constrains 1.5's answer, not just its order.** Every mechanism 1.5a
+considers fails while two deployments can hold the same prefix -- merging them
+reproduces the collision, and a routing liaison cannot route between two
+interfaces in the same subnet. So selecting any mechanism removes the
+fixed-prefix option from 1.5. Deferral is the only branch that leaves it free,
+and deferral still does not close 1.5, whose remaining item is a collision
+analysis against external networks that no `mesh_id` answer touches.
+
 **Work it before 1.5.** No hardware; the separation result came from
 `mac80211_hwsim` and the convergence exercise can too.
 
