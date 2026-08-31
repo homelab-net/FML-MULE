@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**One procedure. No measurement has been taken.**
+**Two procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -24,6 +24,23 @@ several bearers joined into one mesh is what `FML-ADR-045` describes and what
 It does not run in CI and cannot: a hosted runner's kernel has no wireless
 stack at all. Run it on a development machine, as root. See
 `docs/dev-machine.md`.
+
+`keyed-mesh.sh` proves that a keyed 802.11s mesh admits only credential
+holders, which is what `FML-ADR-061` decides and what `FML-ADR-060` was
+superseded for getting wrong. It needs `wpasupplicant` as well as `iw`.
+
+**It exists because the decision came first.** `FML-ADR-061` supersedes another
+ADR on the strength of a measurement that, until 2026-08-31, lived only in a
+scratch directory: nothing in the repository could reproduce it. A decision
+resting on an unreproducible measurement is a decision resting on somebody's
+word.
+
+Its assertions read `mesh plink`, `authenticated` and `authorized`, never a
+count of peers, because **`iw station dump` lists peers the radio has merely
+seen**. A node that failed authentication still appears, in state `LISTEN`.
+Counting those lines reports success for a node that got nowhere, and that
+mistake was made while producing `FML-ADR-061` and caught only by reading the
+flags. The generated credentials are per-run and nothing is committed.
 
 ## What can be verified without hardware, and what cannot
 
