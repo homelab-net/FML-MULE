@@ -77,8 +77,19 @@ wpa=TBD
 wpa_key_mgmt=TBD
 rsn_pairwise=TBD
 # The passphrase is NEVER stored in this repository, in any form, including in
-# an example. It comes from the mission configuration package at generation
-# time. See SECURITY.md, publication rule.
+# an example. See SECURITY.md, publication rule.
+#
+# AMENDED 2026-08-31: this comment used to say the passphrase "comes from the
+# mission configuration package at generation time". It cannot.
+# mission/schema/mission-package.schema.json sets additionalProperties: false at
+# the root and on network, and its own ap_ssid entry says the passphrase "is NOT
+# part of this schema and never appears in a committed package". A package
+# cannot carry the field, and mission/local/ validates against the same schema.
+#
+# So where this value comes from is UNDECIDED. The same gap covers the mesh
+# credential FML-ADR-061 requires; see os/config/wpa_supplicant.conf.template.
+# TBR-SEC-01 holds credentials as protected assets and already scopes fleet
+# rekey.
 wpa_passphrase=TBD
 
 # --- Isolation --------------------------------------------------------------
