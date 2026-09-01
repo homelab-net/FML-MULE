@@ -413,22 +413,22 @@ leaving it to the analysis.
 
 ### 1.5 `TBR-NET-01`, the addressing plan
 
-**State:** open, and **all three closure-evidence items now exist** under
-`docs/evidence/TBR-NET-01/`. What is missing is the decision, and this item
-depends on 1.5a.
+**State:** the decision is made -- **`FML-ADR-063`, `SELECTED`** -- and the
+trade is **ready to close on the named owner's acceptance**. All three
+closure-evidence items exist under `docs/evidence/TBR-NET-01/` and a decision is
+in the register; SAD section 30.2 makes acceptance the remaining step, which is
+the owner's act, not the author's.
 
-**The decision can now be written.** It was held for one day because the option
-space was incomplete -- RFC 4193 ULAs answer this trade's exact question and
-were never listed. **The Program Owner excluded IPv6 on 2026-08-31**, for
-broader hardware support and older systems in the mesh: CONOPS plans four to
-eight volunteer-owned EUDs and an EUD whose stack does not do IPv6 well does not
-work at all. That closes the option space at the two originally stated.
+The decision: the field prefix is **per-deployment**, generated not derived from
+identity, and a node **never carries an overlapping uplink silently** --
+detection is required, silence is prohibited. IPv6 was excluded 2026-08-31 for
+broader hardware support and older EUDs, which closed the option space to IPv4;
+RFC 4193 ULAs would have answered the question but were ruled out on that ground,
+recorded with a disposition. What a node *does* about an overlap beyond reporting
+it is left to service-plane policy (`TBR-TAK-01`, `services/`).
 
-**What the decision must address rather than prevent.** Inside IPv4 the
-venue-overlap failure has no clean answer: policy routing moves the loss and a
-VRF requires every mesh-using application to bind into it. So the ADR has to say
-what a node **does** when its uplink overlaps its mesh prefix, not what stops it
-happening.
+`FML-ADR-063` being `SELECTED` also **met the condition on `FML-ADR-061`'s
+liaison half** (1.5a): per-deployment prefixes are what a routed liaison needs.
 
 The interoperability exercise is done. Two independently configured deployments
 sharing
@@ -712,16 +712,31 @@ goes unrecorded.
 
 The only critical-path trade needing no hardware. It gates the mission-critical
 state boundary, and through it `services/mission-trust/` and
-`services/status-aggregator/`, which hold a README and nothing else by decision.
+`services/status-aggregator/`.
 
-**Read first:** the trade, `FML-ADR-049`, CONOPS section 26 for TAK state
-classes and section 29 for the partition posture, and `FML-ADR-052` for what a
-`mule/` decision function may and may not do about a blocked component's subject
-matter.
+**State, 2026-08-31: well advanced, not closed.** Seven evidence artifacts
+exist, including a **running OpenTAKServer instance** with PyTAK clients. The
+closure gate's classification half is met: all 41 tables classified into CONOPS
+section 26 classes, plus the state outside the database. Of the six empirical
+items the analysis listed, **three are closed** -- durable-queue inspection (no
+durable queue exists), the different-node restore (restores every row,
+authenticates nobody, because the salt and CA live in `OTS_DATA_FOLDER`), and the
+relational decomposition -- **one answered from source** (durable state
+locations), and two of the four workflow tests are done (mission API, certificate
+enrollment). What remains: DataSync content, mission-package upload, the map-cache
+question, and the named owner's acceptance.
 
-**Deliberately not first.** Analysis was proposed twice while `os/` held 117
-lines of `TBD`, and both times that was the wrong call. It matters, and it is
-behind Track 1 until the network plane can do something.
+The implementation that follows is now **Track 4.1**, because running the server
+established that the TAK service is three processes, not one.
+
+**Read first:** the trade, `FML-ADR-049`, CONOPS section 26, and the seven
+`TBR-TAK-01` artifacts. Several carry findings beyond the state study: a default
+`administrator`/`password`, a certificate authenticated on a header with no proof
+of possession, and no revocation path at all. Those are recorded for
+`services/ingress/` and `THREAT_MODEL.md`.
+
+**No longer deliberately-not-first.** It was held behind Track 1 while `os/` was
+all `TBD`; that is no longer true, and the TAK work was done this session.
 
 ## Track 4 — the mission-service plane
 
@@ -856,8 +871,10 @@ here, and the only thing preventing it is whoever is reading a diff.
 Work the numbered items in Track 1 in order, skipping any whose `State:` line
 says it is waiting on something. Track 2 starts the day hardware arrives and
 takes precedence over everything, because it converts assumptions into
-measurements. Track 3 item one is the Program Owner's and costs five minutes;
-the rest of Track 3 stays behind Track 1.
+measurements. Track 3's blocker item is the Program Owner's and costs five
+minutes; `TBR-TAK-01` itself was worked this session and is well advanced. Track
+4 is blocked at the catalog gate for the services and on `CCR-03` for voice, but
+its analysis, the TAK state study, is largely done.
 
 An item's number is its dependency position, not a queue ticket. Two items with
 nothing between them can be worked at once.
