@@ -439,3 +439,15 @@ mutations:
     describe: a fake may describe a radio linked without being present
     find: "        if absent:"
     replace: "        if False:"
+
+  # --- radio_parse: the None-versus-empty distinction ---------------------
+  - id: M67
+    file: test/flatsat/radio_parse.py
+    describe: a failed station-dump command reports zero peers instead of unknown
+    find: "    if station_dump_output is None:\n        return None"
+    replace: "    if station_dump_output is None:\n        return 0"
+  - id: M68
+    file: test/flatsat/radio_parse.py
+    describe: originator count includes the header line, over-counting by one
+    find: "        if line.lstrip().startswith(\"*\")"
+    replace: "        if not line.lstrip().startswith(\"#\")"

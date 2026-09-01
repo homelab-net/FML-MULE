@@ -1,0 +1,11 @@
+phy#223
+	Interface wlan0
+		ifindex 346
+		wdev 0xdf00000001
+		addr 7e:78:93:e9:62:b2
+		type mesh point
+		channel 1 (2412 MHz), width: 20 MHz (no HT), center1: 2412 MHz
+		txpower 30.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	40	0	0	0	0	4896		40
