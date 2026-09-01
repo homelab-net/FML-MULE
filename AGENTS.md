@@ -24,7 +24,7 @@ also lists the four facts to check before building anything.
 
 ## Done
 
-A change is not done until all six hold. Say which ones you actually ran.
+A change is not done until all seven hold. Say which ones you actually ran.
 
 1. `tools/lint.sh` passes. It runs every linter, the document checks, the
    mission schema, the shell tests and the mutation check. **Read its exit
@@ -46,6 +46,19 @@ A change is not done until all six hold. Say which ones you actually ran.
    had to correct roadmap State lines in follow-up PRs more than once for
    exactly this. **A change that leaves a doc contradicting the change is not
    done, and is not ready to report.**
+7. **Anything you call blocked is qualified by a separate agent before it
+   stands.** Your own assessment that something cannot be done is not
+   trustworthy enough to record: this program had a `RadioState` reader written
+   off as "blocked" on two counts, both false, both caught only by the Program
+   Owner asking "are you sure". So before "blocked", "needs hardware" or "cannot
+   be done here" goes into a doc or a commit, dispatch a **separate agent** to
+   investigate it independently and either **confirm** it with the specific
+   reason, or **find the route that works**. A blocked claim you reached alone
+   is a hypothesis, not a finding. Confirm the claim, name the agent's verdict,
+   and only then is it done. This does not apply to a genuine external gate you
+   have already demonstrated -- a purchase not yet made, a trade the Program
+   Owner must accept -- but it does apply to every "I can't because" you are
+   tempted to write from your own reading.
 
 ## The five that waste the most work
 
