@@ -69,11 +69,15 @@ class FakeRadio:
             )
             raise ImpossibleHardwareState(message)
 
-    def enumerated(self) -> list[Bearer]:
-        """Bearers whose hardware is present and whose driver has attached."""
+    def enumerated(self) -> list[Bearer] | None:
+        """Bearers whose hardware is present and whose driver has attached.
+
+        A scripted fake always knows, so it never returns `None`; the type
+        matches the Protocol, which a real reader needs.
+        """
         return list(self.present)
 
-    def associated(self, bearer: Bearer) -> bool:
+    def associated(self, bearer: Bearer) -> bool | None:
         """Whether the bearer has formed its link."""
         return bearer in self.linked
 

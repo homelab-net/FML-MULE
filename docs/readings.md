@@ -104,20 +104,19 @@ wrong on a current kernel.
 
 ## Radio state (network plane)
 
-`RadioState` in `test/flatsat/interfaces.py`, the `enumerated()`/`associated()`
-boundary the network plane reads. **The interface is blocked** on
-`TBR-LINUX-01`, `TBR-RF-01` and `TBR-RF-03` and stays in the flat-sat, so these
-rows describe the board-independent parse core that exists
-(`test/flatsat/radio_parse.py`), not a finished reader. Two things a full reader
-still needs are blocked and are **not** rows here: the interface-to-`Bearer` map,
-which is per board and `TBR-HW-01`/`TBR-RF-03` own, and `None` semantics on the
-`RadioState` Protocol itself.
+`RadioState` in `test/flatsat/interfaces.py`, read by `CommandRadio` in
+`test/flatsat/radio.py` over the parse core in `test/flatsat/radio_parse.py`.
+The reader exists; the interface stays in the flat-sat pending `TBR-LINUX-01`,
+`TBR-RF-01` and `TBR-RF-03`, and moves to `mule/` with the Protocol when a
+production consumer needs it. The interface-to-`Bearer` map is per board and
+empty until `TBR-HW-01`, injected exactly as the thermal zone map is, so on real
+hardware the reader returns `[]`/`None` until a board supplies it.
 
 | Reading | Kind | Real source | Units | Status |
 | --- | --- | --- | --- | --- |
-| `interfaces` | `command` | `iw dev`, package `iw`. Kernel interface is nl80211 netlink; `iw` is the tool that speaks it, and no `sysfs` equivalent lists interface type. | name and type | `PARSE ONLY`. Interface-to-bearer map is per board, `TBR-HW-01`. |
-| `station_count` | `command` | `iw dev <iface> station dump`, package `iw`. Mesh peers, or AP clients. | count | `PARSE ONLY` |
-| `originator_count` | `command` | `batctl meshif <if> originators`, package `batctl`. Selected next hops only. Netlink, same as the mesh-state rows above. | count | `PARSE ONLY` |
+| `interfaces` | `command` | `iw dev`, package `iw`. Kernel interface is nl80211 netlink; `iw` is the tool that speaks it, and no `sysfs` equivalent lists interface type. | name and type | `READER` (`CommandRadio.enumerated`). Map per board, empty until `TBR-HW-01`. |
+| `station_count` | `command` | `iw dev <iface> station dump`, package `iw`. Mesh peers, or AP clients. | count | `READER` (`CommandRadio.associated`). |
+| `originator_count` | `command` | `batctl meshif <if> originators`, package `batctl`. Selected next hops only. Netlink, same as the mesh-state rows above. | count | `PARSE ONLY`. No Protocol method consumes it yet; parser ready for when one does. |
 
 **`None` is the command not running; empty is a real zero.** `radio_parse`
 returns `None` when the command's output is `None` (absent `iw`/`batctl`, no
