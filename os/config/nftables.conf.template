@@ -59,11 +59,25 @@ table inet filter {
   chain forward {
     type filter hook forward priority filter; policy drop;
 
-    # TBD: whether EUD traffic is forwarded onto the mesh at all, or whether
-    #      an EUD reaches only services on its own node. This is a
-    #      significant architectural question and is not decided. It
-    #      interacts with TBR-TAK-01 and with the ap_isolate setting in
-    #      hostapd.conf.template.
+    # DECIDED: an EUD on the access point is forwarded to the WAN uplink and
+    #          receives general IP connectivity through it. FML-ADR-068. The
+    #          Program Owner accepted the exposure: a device the node cannot
+    #          vet or contain is given reach to the uplink and thus the overlay
+    #          (FML-ADR-039). THREAT_MODEL.md records the consequence.
+    #          Interface names are TBR-LINUX-01.
+    #   iifname $AP_IFACE  oifname $WAN_IFACE accept
+    #   iifname $WAN_IFACE oifname $AP_IFACE  ct state established,related accept
+    #          The masquerade in `table ip nat` below is REQUIRED alongside
+    #          these: the bench proved masquerade alone does not pass traffic
+    #          while this policy is drop. This path is suppressed under an
+    #          emission or mission profile that forbids WAN emission, because an
+    #          EUD's uplink traffic makes the node transmit; see mission/profiles/.
+    #
+    # TBD: whether EUD traffic is forwarded onto the MESH at all, distinct from
+    #      the uplink decided above, or whether an EUD reaches only services on
+    #      its own node and the uplink. This is a significant architectural
+    #      question and is not decided. It interacts with TBR-TAK-01 and with
+    #      the ap_isolate setting in hostapd.conf.template.
     # TBD: mesh to mesh forwarding. Note that batman-adv routes at layer 2,
     #      so much inter-node traffic does not traverse this chain at all.
     #      Do not assume this chain sees the mesh.
@@ -77,6 +91,31 @@ table inet filter {
     #      a service that transmits despite the profile is a safety problem,
     #      not a bug. See mission/profiles/ and THREAT_MODEL.md.
     #      Whether this is enforceable here or belongs elsewhere is TBD.
+  }
+}
+
+table ip nat {
+  # Source NAT for the EUD-to-WAN passthrough decided in FML-ADR-068. REQUIRED
+  # together with the forward accepts above: the bench proved neither the
+  # masquerade nor the accepts passes traffic alone, because the filter forward
+  # policy is drop.
+  chain postrouting {
+    type nat hook postrouting priority srcnat; policy accept;
+
+    # DECIDED: masquerade EUD traffic leaving the WAN uplink so an associated
+    #          device reaches the internet through the node. FML-ADR-068.
+    #          Interface and prefix names are TBR-LINUX-01 and TBR-NET-01.
+    #   ip saddr $EUD_PREFIX oifname $WAN_IFACE masquerade
+    #
+    #          The match is the EUD prefix, NOT the mesh prefix, on purpose:
+    #          FML-ADR-068 does not grant mesh-wide internet egress. A device
+    #          reached across the mesh (another MULE, or its EUD) does not get
+    #          the uplink through this rule. Mesh egress is a separate decision
+    #          needing batman-adv gateway mode; see networkd.conf.template.
+    #
+    # This is IPv4 masquerade. TBR-NET-01 has not decided the address family;
+    # if addressing is IPv6 the passthrough is routed, not masqueraded, and this
+    # table changes shape. See interfaces.conf.template.
   }
 }
 

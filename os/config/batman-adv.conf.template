@@ -96,8 +96,14 @@ orig_interval=TBD              # Originator message interval, ms. Default 1000.
 
 hop_penalty=TBD                # TBR-RF-01
 
-gw_mode=TBD                    # Gateway mode. Local-first means there is
-                               # usually no gateway; see docs/NON-GOALS.md.
+gw_mode=TBD                    # Gateway mode. Local-first means a node with no
+                               # uplink usually announces no gateway; see
+                               # docs/NON-GOALS.md. But FML-ADR-069 makes WAN a
+                               # mesh-wide capability: a node that HOLDS an
+                               # authorized uplink uses this to fan it out to
+                               # WAN-less nodes, and TBR-NET-04 decides whether
+                               # several uplinks are pooled. This value is set by
+                               # that trade, not by hand.
 
 multicast_mode=0               # Multicast optimisation OFF.
                                #
