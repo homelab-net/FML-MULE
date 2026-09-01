@@ -51,7 +51,7 @@ Identifiers in this repository are permanent and never reused. The routing ADR
 in particular is cited across `mule/`, the templates and the benches. **The
 voice decisions must be renumbered from the next free block**, allocated with
 `tools/new-adr.sh` (the highest in use at receipt was `FML-ADR-063`). The `VOICE-L1-*`
-requirement tags and `TBR-VOICE-SW-01` do not collide and are fine, but a `VOICE`
+requirement tags and `TBR-VOICE-01` do not collide, but a `VOICE`
 trade area and any ADRs must be allocated with `tools/new-adr.sh` /
 `tools/new-trade.sh` rather than hand-numbered, which is how this collision
 would have been avoided.
@@ -76,7 +76,7 @@ would have been avoided.
 
 Section 6 requires a "thin MULE RoIP controller" and Status Aggregator fields.
 That is a service, and `services/catalog/` is empty by decision: adding one is a
-catalog entry and a Quadlet, gated on selection. `TBR-VOICE-SW-01` (thin native
+catalog entry and a Quadlet, gated on selection. `TBR-VOICE-01` (thin native
 vs SvxLink vs AllStar) is the selection trade and must exist before anything
 runs. It also lands on `TBR-COMP-01`, which the package correctly says must be
 re-tested with an active RoIP session on the 4 GB CM4.

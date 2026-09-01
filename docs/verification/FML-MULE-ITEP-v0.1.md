@@ -253,6 +253,12 @@ programme.
    Assessing collision risk for a prefix is assessing a consequence, and
    whether the cause can occur is this item. Analysis plus an exercise on
    virtual interfaces; no hardware.
+8. **`TBR-VOICE-01` gateway implementation, analysis half.** For each candidate
+   RoIP gateway, its resident footprint and whether `FML-ADR-067`'s
+   single-egress invariant can be enforced in or around it, against loopback
+   and virtual peers. Latency and PTT timing wait on hardware (GATE VOICE-01)
+   and are not part of this campaign. **Gated on `CCR-03` approval**, because the
+   capability is a proposed CONOPS v1.1 change; recorded so the plan tracks it.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The remaining five produce written

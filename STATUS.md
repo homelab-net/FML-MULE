@@ -88,6 +88,15 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
 
+### PROPOSED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-064` | DM-32UV is the group-standard external voice radio | TBR-VOICE-01 |
+| `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
+| `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
+| `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
+
 ### SUPERSEDED
 
 | ID | Decision | Open trades it depends on |
@@ -130,8 +139,9 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
 | 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
+| 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 
-18 open trades. 0 have no named owner.
+19 open trades. 0 have no named owner.
 
 ## Critical path
 

@@ -16,7 +16,7 @@ set -eu
 
 usage() {
   printf 'Usage: %s AREA "Question in sentence case"\n' "$0" >&2
-  printf '\nAreas in use: LINUX PWR COMP THERM HW RF TAK HA SEC TIME REC CARRIER NET\n' >&2
+  printf '\nAreas in use: LINUX PWR COMP THERM HW RF TAK HA SEC TIME REC CARRIER NET VOICE\n' >&2
   printf 'A new area is fine. Add it to docs/trades/README.md in the same change.\n' >&2
   exit 2
 }

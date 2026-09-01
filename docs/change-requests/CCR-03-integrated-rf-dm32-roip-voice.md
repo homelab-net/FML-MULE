@@ -45,11 +45,23 @@ taken:
 | `FML-ADR-054` | **bridge loop avoidance disabled on the mesh** (superseded by `FML-ADR-056`, retained permanently) |
 
 Identifiers here are permanent and never reused, and two of these are load-
-bearing across `mule/`, the config templates and the benches. **The four voice
-decisions shall be allocated fresh with `tools/new-adr.sh`** (the highest in use
-at receipt was `FML-ADR-063`), never by reusing 051-054. The `VOICE-L1-*`
-requirement tags and `TBR-VOICE-SW-01` do not collide; a `VOICE` trade area is
-created with `tools/new-trade.sh`.
+bearing across `mule/`, the config templates and the benches. **Resolved
+2026-08-31: the four voice decisions were allocated fresh**, never reusing
+051-054:
+
+| Handoff number | Deconflicted number | Subject |
+| --- | --- | --- |
+| `FML-ADR-051` | `FML-ADR-064` | DM-32UV is the group-standard external voice radio |
+| `FML-ADR-052` | `FML-ADR-065` | audio and PTT over IP, not native DMR |
+| `FML-ADR-053` | `FML-ADR-066` | integrated dedicated gateway radio per node |
+| `FML-ADR-054` | `FML-ADR-067` | an operator receives linked voice through exactly one audio path |
+
+All four are `PROPOSED` and carry no weight until this change request is
+approved. `FML-ADR-067` in particular states the single-audio-egress invariant
+as a baseline requirement: an operator's headset receives a linked session
+through exactly one path. The `VOICE` trade area exists as `TBR-VOICE-01` (the
+handoff's `TBR-VOICE-SW-01`, renamed to the repository's `TBR-<AREA>-<NN>`
+convention).
 
 ## What it changes, so the change is scoped rather than open-ended
 
@@ -88,7 +100,7 @@ plane, explicitly *not* a general-purpose telephony platform.
   competes with the routing daemon `services/catalog/` warns is starved first.
 - **`services/catalog/` and `FML-ADR-029`.** The gateway is a service. The
   catalog is empty by decision; adding it is a catalog entry, a Quadlet, and the
-  `TBR-VOICE-SW-01` selection trade (thin native vs SvxLink vs AllStar) before
+  `TBR-VOICE-01` selection trade (thin native vs SvxLink vs AllStar) before
   anything runs. It also adds a worst-case contributor to `TBR-COMP-01`, which
   the handoff correctly folds into that trade rather than asserting the 4 GB CM4
   suffices.
@@ -97,7 +109,7 @@ plane, explicitly *not* a general-purpose telephony platform.
 
 The audio/PTT gateway over native DMR tunnelling keeps the MULE out of the RF-
 protocol business, consistent with `docs/NON-GOALS.md`. The radio-primary
-headset rule (proposed `FML-ADR-054`-equivalent, to be renumbered) and the
+headset rule (`FML-ADR-067`) and the
 double-audio prohibition are good human-factors calls that prevent echo and keep
 the MULE off the critical path for ordinary voice. Local-first degradation is
 stated as a `[SHALL]`, not a hope. No frequencies are hard-coded; regulatory
@@ -121,8 +133,9 @@ default-off.
 ## Next actions if the Program Owner accepts the direction
 
 1. Approve or defer the `v1.1` scope. Committing this record does neither.
-2. Allocate the four voice ADRs with `tools/new-adr.sh` and open the `VOICE`
-   trade area, starting with `TBR-VOICE-SW-01`.
+2. The four voice ADRs (`FML-ADR-064`-`067`, `PROPOSED`) and the `VOICE` trade
+   area (`TBR-VOICE-01`) are allocated. On approval they move from `PROPOSED`
+   to a selected status.
 3. Fold the seven new Section 79 criteria into
    `docs/verification/requirements.md` and the ITEP, since that file tracks the
    Section 79 set.
