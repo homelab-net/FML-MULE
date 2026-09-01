@@ -1,254 +1,155 @@
-# Mission-critical state classification, analysis half
+# Evidence for TBR-TAK-01
 
-**Trade:** `TBR-TAK-01`, mission-critical state boundary.
-**Date:** 2026-08-27.
-**Produced by:** analysis against controlling documents. No hardware, no
-running service, no measurement.
-**Status of this artifact:** `UNVERIFIED`. It is reasoning, not a result.
+**Trade:** Mission-critical state boundary
 
-## What this is, and what it is not
+**Trade file:** `docs/trades/TBR-TAK-01-mission-critical-state-boundary.md`
 
-`TBR-TAK-01`'s closure gate has two halves. This is the first:
+**Priority:** 9 of 16 (SAD v0.31 section 30.2). **Function owner:** TAK + SRE.
+**Named owner:** `TBD-SRR`.
 
-> Enumerate every state object the mission-service plane holds against the ten
-> categories in SAD section 14.1, classify each into a CONOPS section 26 class
-> with a stated justification, and describe partition and rejoin behaviour for
-> the durable set including its conflict resolution rule.
+**Current contents:** the analysis half only. This trade remains `OPEN`.
 
-**It does not close the trade**, for three reasons, each of which is a rule
-this program wrote down in advance:
+- `2026-08-27-state-classification-analysis.md` -- method, the ten SAD 14.1
+  categories classified, and the partition and rejoin behaviour of the durable
+  set including its conflict-resolution rule.
+- `2026-08-30-opentakserver-state-inventory.md` -- what state exists at all,
+  from the shipped models. Classifies nothing by design.
+- `2026-08-31-relational-state-decomposed-into-conops-classes.md` -- **all 36
+  tables classified** into CONOPS 26.1, 26.2 and 26.3 with a justification each,
+  which is the join the first two left undone. It corrects the inventory's
+  count and its `packages` mapping, and records that
+  `meshtastic_channels` carries a `psk`, so a credential lives inside the
+  relational state that `FML-ADR-034` may replicate.
 
-1. The second half of the listed evidence is empirical: a different-node
-   restore, plus DataSync, mission-package, certificate and map-cache tests.
-   None has been performed.
-2. SAD section 14.2: **database support claimed by an ORM is not sufficient
-   acceptance evidence.** By the same standard, a classification derived from
-   documentation is not evidence about where an implementation actually puts
-   things. This document says what each category *is*; only a running instance
-   says where it *lives*.
-3. The trade's named owner is `TBD-SRR`. A trade closes when its evidence
-   exists **and a named owner accepts it**. No name exists to do that.
-   **Superseded 2026-08-31: every trade now names an owner.** This reason no
-   longer holds; reasons 1 and 2 do.
+- `2026-08-31-durable-state-outside-the-database.md` -- **outstanding item 2,
+  answered.** Durable state lives in three places outside SQL: `config.yml`,
+  which holds the password salt and node identity; `ca/`, the certificate
+  authority; and `uploads/`. A database high-availability mechanism protects
+  none of them. Losing the salt makes every stored password hash unverifiable.
 
-This artifact deliberately names **no OpenTAKServer table, schema, endpoint or
-file path.** Writing one from memory would be inventing a specification, and it
-would be the most plausible-looking kind: specific, confident, and unsourced.
+- `2026-08-31-opentakserver-actually-run.md` -- **the first artifact with a
+  running server.** No official OTS container image exists to pin, upstream's
+  Dockerfile is unpinned at three layers, its chosen Python 3.13 base makes
+  `gevent` assert, and the state inventory had **missed the entire
+  authentication store**: 41 tables, not 36. `config.yml` holds 12
+  secret-bearing keys including MFA secrets, and the CA private key is on disk.
 
-## Method
+- `2026-08-31-cot-end-to-end-with-pytak.md` -- a connected PyTAK client.
+  **OpenTAKServer is three processes and upstream's container runs one**, so a
+  container built from upstream's Dockerfile accepts no TAK clients at all.
+  A default `administrator` account is created with the password `password`.
+  The PLI path works end to end, the EUD self-registers without a certificate,
+  and **outstanding item 3 is answered for that path**: the only queue is
+  `cot_parser`, non-durable, carrying reconstructable state.
 
-Each of the ten categories in SAD section 14.1 is placed into one of the three
-CONOPS section 26 classes. Where a category does not fit one class, that is
-recorded as a finding rather than resolved by choosing the nearest.
+- `2026-08-31-no-durable-queue-holds-anything.md` -- **outstanding item 3,
+  closed.** Two PyTAK clients and a GeoChat message: the text reaches the
+  database, a chatroom is created with both participants, and RabbitMQ still
+  holds exactly one queue, `cot_parser`, non-durable and empty. The durable
+  exchanges have no queues bound to them, and an exchange with no queue stores
+  nothing. **No durable queue holds a sole copy because no durable queue
+  exists.** Caveat: the clients are PyTAK, not ATAK.
 
-The classes, from CONOPS section 26:
+- `2026-08-31-different-node-restore.md` -- **outstanding item 4, performed.**
+  A database-only backup restored to a replacement host with an empty data
+  folder. Every row survived; the ability to use any of it did not. The default
+  administrator logs in on the origin and fails on the replacement, because the
+  password salt lives in `config.yml`. The replacement **silently generated a
+  different certificate authority**. It reports `/api/health` `200` throughout.
 
-| Class | Defining property |
-| --- | --- |
-| Common trust and configuration (26.1) | Shall be **consistent** across all eligible service hosts. |
-| Mission-critical persistent state (26.2) | Shall **survive failover** before a replacement service is fully authoritative. |
-| Reconstructable or ephemeral (26.3) | **May be rebuilt** from reconnecting clients or new network activity. |
+- `2026-08-31-mission-api-and-the-header-that-authenticates.md` -- the Mission
+  API, run **first** because it was the case most likely to overturn item 3. It
+  does not: the `missions` exchange still has no queue bound. Getting there
+  found that `X-Ssl-Cert` **authenticates on a certificate alone with no proof
+  of possession**, that the CA key opens with the default password, and that
+  the API reported failure after creating the mission.
 
-The test applied throughout is CONOPS section 26.3's own: *can this be rebuilt
-from reconnecting clients or new network activity?* If yes, it is ephemeral. If
-no, the next question is whether it must merely survive (26.2) or must also be
-identical everywhere (26.1).
+- `2026-08-31-certificate-enrollment.md` -- the **certificate** test of the
+  four. Enrollment works over Basic auth with upstream's default administrator
+  credential. Three findings that compound: the issued certificate is **not
+  bound to a user**, so authorisation dereferences `None`; it is valid for **ten
+  years**; and **revocation is not consulted** on the header path, where the
+  verification store receives the CA and no CRL. A certificate that
+  authenticates on public data, lasts a decade, and is not checked against the
+  revocation list sitting on disk -- and **nothing revokes at all**: no code
+  path, an empty CA index, an empty CRL. The three findings **chain**: enrollment
+  signs any CN, the Mission API takes the CN as the acting user, and the header
+  authenticates on the certificate alone, so a low-privilege account can enrol
+  `CN=administrator` and act as administrator with no private key and no
+  password. Upstream default behaviour, recorded for `services/ingress/` to
+  constrain.
 
-## Classification
+- `2026-08-31-shared-credentials-across-mules-and-euds.md` -- what the shared
+  TAK credentials do across the topology. **The administrator password is
+  identical on every MULE** and **trust is not shared**: each node has its own
+  CA, so an EUD enrolled on one MULE is rejected by the MULE next to it, even
+  though `FML-ADR-061` merges their meshes automatically. Behind one MULE,
+  several EUD certificates with the same CN are all accepted and
+  indistinguishable. The worst of both: the per-node thing is shared and the
+  shared thing is per-node.
 
-| SAD 14.1 category | Class | Justification |
+- `2026-08-31-datasync-and-package-workflows.md` -- two of the four workflow
+  tests. **Mission-package upload round-trips fully** (upload, disk, retrieval),
+  confirming `uploads/` as durable state outside the database. **DataSync mission
+  content and data packages are separate stores** keyed by different hashes; the
+  mission lifecycle works and a content round-trip through `mission_content` is
+  the remaining sliver. **The map-cache question is blocked on a real ATAK
+  client** -- OTS handles no map tiles.
+
+**What remains for `TBR-TAK-01`:** the DataSync content round-trip (a sliver, no
+hardware), the map-cache question (needs an ATAK client), and the named owner's
+acceptance. The gate's classification half is complete, and none of
+them is hardware: durable-queue inspection, a different-node restore, the four
+workflow tests, and the cache question.
+
+| Artifact | What it is | Status |
 | --- | --- | --- |
-| Relational database state | **Spans all three** | Not a class of state. A container holding items from every class. See finding 1. |
-| DataSync and Mission API state | 26.2 | CONOPS 26.2 names "selected DataSync content" explicitly. "Selected" is load-bearing: the boundary is a TRD deliverable, per CONOPS 26.2. |
-| Mission packages and uploaded files | 26.2 | Cannot be rebuilt from reconnecting clients. A team that loses an overlay loses work product, not a cache. |
-| Certificate enrollment, issuance, authorization | **26.1 and 26.2** | Trust anchors, issued-identity validity and revocation are 26.1: "certificate trust" is an explicit 26.1 example, and inconsistency here is a security boundary failure. Enrollment-authorization records are 26.2. See finding 2. |
-| Group and channel configuration | 26.1 | "Role definitions" and "shared service configuration" are explicit 26.1 examples. Two hosts disagreeing about who may see a channel is a disclosure fault, not a convenience fault. |
-| Server configuration | 26.1 | Same. Configuration divergence between eligible hosts makes "which host is authoritative" unanswerable. |
-| RabbitMQ and transient messaging | 26.3 | Transient by construction; rebuilt as clients reconnect. Conditional on finding 3. |
-| Reconstructable PLI, presence, session | 26.3 | Named verbatim in CONOPS 26.3. Position reports are replaced by the next report. |
-| Local map, tile and cache state | **26.3 by default, 26.2 where it is the only copy** | The SAD's own qualifier, "whose loss would be operationally visible after failover", is the classification. See finding 4. |
-| Immutable mission-package state | 26.1 | Part of the approved mission configuration, a 26.1 example. Immutability makes it the only category that cannot conflict. |
+| `2026-08-27-state-classification-analysis.md` | The ten SAD section 14.1 categories placed into the three CONOPS section 26 classes, with the durable set and its partition and rejoin behaviour | `UNVERIFIED` |
 
-**The durable set** is everything classified 26.1 or 26.2: DataSync and mission
-API content within the TRD boundary, mission packages and uploaded files, the
-whole of the certificate and trust category, group and channel configuration,
-server configuration, immutable mission-package state, and any map or cache
-content that is the only copy.
+**That artifact does not close this trade**, and says so in its own opening
+section. The listed evidence also requires a different-node restore and the
+DataSync, mission-package, certificate and map-cache tests, none of which has
+been performed. SAD section 14.2 is explicit that support claimed rather than
+demonstrated is not acceptance evidence, and a classification derived from
+documentation is a claim about what state *is*, not about where an
+implementation *puts* it.
 
-## Findings
+Five findings in it are worth a reader's attention before the empirical half
+runs, particularly the fifth: at least two members of the durable set appear to
+sit outside any plausible SQL backend, which would make database high
+availability necessary and not sufficient, and would change the shape of
+`TBR-HA-01`.
 
-### 1. Relational database state is not a class and must be decomposed
+This directory existed before the work did, deliberately. The closure gate is
+written in the trade file before evidence is gathered, so the result cannot be
+graded against a standard invented after seeing it.
 
-It is the largest of the ten categories and the only one that cannot be
-classified as a unit. It holds 26.1, 26.2 and 26.3 items simultaneously, and
-which rows fall where is a property of the implementation rather than of the
-architecture.
+## What belongs here
 
-This is the single strongest reason the empirical half is mandatory rather than
-desirable. No amount of further reading resolves it.
+Read the **Closure evidence** and **Closure gate** sections of the trade file
+named above. Those sections are transcribed from the SAD and are authoritative;
+this file does not restate them, so that the two cannot drift apart.
 
-### 2. Losing revocation state fails open
+Every artifact follows the naming and recording rules in
+`docs/evidence/README.md`:
 
-Certificate enrollment splits across two classes, and the 26.1 half carries a
-specific hazard: a failover that loses or lags revocation state produces a
-replacement service that **accepts an identity the program has revoked**.
+- `YYYY-MM-DD-<what>-<node-or-configuration>.<ext>`
+- Measurements record instrument, date, node, image build, configuration,
+  ambient conditions, and who took them.
+- Vendor datasheets go in `datasheets/` with a `.SOURCE.md` recording the
+  URL, retrieval date, and document revision. Archive them when you cite them;
+  vendors delete PDFs. SAD section 34 is the program's external source register.
+- Nothing real: no deployment location, member identity, callsign, credential,
+  or operational capture. Strip photograph metadata. See `SECURITY.md`.
 
-This is the same shape as `FML-ADR-042`, which forbids trust validation failing
-open on invalid time. A revocation set that silently reverts is a trust
-validation failing open on stale state. Recommend the same posture: a
-replacement host that cannot demonstrate current revocation data refuses to
-validate rather than validating against what it has.
+**Requires hardware:** No. A design and analysis trade, resolvable against documentation, protocol
 
-That posture is a proposal, not a decision. It belongs to `TBR-HA-01` and the
-security architecture; recorded here because this analysis is where the hazard
-becomes visible.
+## Closing
 
-### 3. A durable queue holding the only copy of a mission-critical item
+Evidence here is necessary and not sufficient. SAD section 30.2: a TBR closes
+only when its listed evidence exists, **the named owner accepts the evidence**,
+and the resulting architecture decision is entered into the persistent ADR
+register.
 
-Messaging state is 26.3 **if** it is genuinely transient. If any durable queue
-holds the sole copy of an item in flight at the moment of failover, that item is
-26.2 and the queue is part of the durable set.
-
-Confirmable only against a running instance. Recorded so the empirical half
-looks for it, because the natural assumption is that a message broker is
-ephemeral and the natural assumption is what this trade exists to test.
-
-### 4. Cache is not ephemeral in a disconnected deployment
-
-The ordinary reason cached tiles are ephemeral is that they can be re-fetched.
-A MULE deployment is defined by the WAN being absent, so the upstream that would
-serve a re-fetch is exactly what is unavailable when the cache is needed.
-
-The distinguishing test is therefore not "is this a cache" but **"will the
-source be reachable at failover time?"** Where it will not, the cache is the
-only copy and belongs in the durable set. This inverts the intuitive answer and
-is the kind of inversion that gets discovered in the field otherwise.
-
-### 5. Database high availability alone cannot protect the durable set
-
-`FML-ADR-034` makes PostgreSQL preferred **conditional on** Stage 5 showing
-that mission-critical state requiring authoritative continuity is stored in the
-SQL backend.
-
-This classification puts at least two members of the durable set outside any
-plausible SQL backend: mission packages and uploaded files, and map or cache
-content that is the only copy. Both are filesystem-shaped.
-
-If that holds empirically, then a database HA mechanism is **necessary and not
-sufficient**, and `TBR-HA-01` is selecting a mechanism for a subset of the
-problem. The program would need a second continuity mechanism for
-filesystem-shaped state, or an explicit decision that such state is not
-protected and the operator is told so.
-
-This is the most consequential finding here and the one most likely to change
-the shape of `TBR-HA-01`. It is stated as a conditional because the empirical
-half has not run.
-
-## Partition and rejoin behaviour of the durable set
-
-### Common trust and configuration (26.1)
-
-**Not writable during a partition.** Trust anchors, revocation, roles, channel
-and server configuration change through the mission package supply path, which
-is administrative and deliberately out of band. A partitioned host has no
-authority to alter them.
-
-On rejoin, divergence in 26.1 is **a fault to report, not a difference to
-merge**. The mission package version is the authority. A host whose 26.1 state
-does not match the current package is not eligible to be authoritative, and says
-so.
-
-### Mission-critical persistent state (26.2)
-
-This is where conflict is real: two partitions can both accept edits.
-
-**Proposed conflict resolution rule.** The partition that held authority
-retains it. On rejoin:
-
-1. The authoritative side's 26.2 state is the surviving state.
-2. The non-authoritative side's divergent writes are **retained and surfaced**,
-   never silently discarded and never automatically merged.
-3. The operator is told the state is not fully authoritative, using the SAD
-   section 22 reason codes: `PARTITION` while split, `STATE_LAG` where a
-   replacement is behind, `NO_SAFE_AUTHORITY` where neither side may claim it.
-
-This satisfies CONOPS section 14.3's requirement that recovered state be
-explicitly marked authoritative, degraded, partial, non-authoritative or
-unknown.
-
-### Why not last-writer-wins
-
-**Timestamp-based conflict resolution is unavailable to this program.**
-
-`FML-ADR-042` permits a node to run with `TIME_DEGRADED`: an RTC whose backup
-cell has failed, or a node that never established credible time. Under
-last-writer-wins, the node with the **least** trustworthy clock wins every
-conflict, and wins it silently. A node whose clock reads far in the future would
-overwrite correct mission state from a healthy node, and nothing in the
-resolution would notice.
-
-This constrains `TBR-HA-01` before it starts: any mechanism it selects must
-establish authority by something other than comparing wall-clock timestamps
-across hosts. Lease, quorum and witness approaches remain available; naive
-last-write-wins does not.
-
-### Why not automatic merge
-
-Merging requires understanding what mission state means. A mission package,
-a tasking and a DataSync item have no general merge semantics, and a merge that
-guesses produces a plausible mission picture that no participant authored. The
-program's stated posture on non-authoritative data is to mark it, not to
-reconcile it.
-
-## What must be confirmed against a running instance
-
-Everything in this section is outstanding. It needs a laptop and a container,
-not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
-
-1. ~~**Decompose the relational database state.**~~ **Done 2026-08-31.** All
-   41 tables classified; see
-   `2026-08-31-relational-state-decomposed-into-conops-classes.md` and the
-   correction in `2026-08-31-opentakserver-actually-run.md`.
-2. ~~**Locate every durable-set member.**~~ **Done 2026-08-31.** Three
-   locations outside SQL: `config.yml`, `ca/` and `uploads/`. See
-   `2026-08-31-durable-state-outside-the-database.md`, confirmed by the restore.
-3. ~~**Inspect durable queues** for sole-copy mission-critical items.~~
-   **Closed 2026-08-31: no durable queue exists.** One non-durable queue,
-   `cot_parser`, and the durable exchanges have nothing bound to them. See
-   `2026-08-31-no-durable-queue-holds-anything.md`.
-4. ~~**Different-node restore.**~~ **Done 2026-08-31.** Every row survived and
-   nothing was usable: authentication fails because the salt is not in the
-   database, and the replacement silently generated a different certificate
-   authority. It reported healthy throughout. See
-   `2026-08-31-different-node-restore.md`.
-5. **The four workflow tests** named in the trade: DataSync, mission package,
-   certificate, map cache.
-6. **Confirm the cache question empirically**: what a client observes after
-   failover when the tile source is unreachable. Finding 4.
-
-## What this changes if accepted
-
-`TBR-HA-01` gains two constraints and one open question before it begins:
-
-- No timestamp-comparison authority mechanism.
-- A replacement host that cannot demonstrate current revocation refuses to
-  validate.
-- Whether a second, filesystem-shaped continuity mechanism is required, or
-  whether the program accepts unprotected state and tells the operator.
-  **Answered 2026-08-31: it is required.** `config.yml` holds
-  `SECURITY_PASSWORD_SALT`, without which every stored password hash is
-  unverifiable, and the certificate authority is a directory. Neither is in the
-  database. See `2026-08-31-durable-state-outside-the-database.md`.
-
-`FML-ADR-034`'s condition is testable rather than assumed, and finding 5
-suggests it may not hold in the form the ADR anticipates.
-
-## Provenance
-
-Derived from: CONOPS v1.01 sections 26 and 14.3; SAD v0.31 sections 14.1, 14.2,
-14.3, 14.4 and 22; `FML-ADR-034`; `FML-ADR-042`; the closure gate in
-`docs/trades/TBR-TAK-01-mission-critical-state-boundary.md`.
-
-No external source was consulted, and no claim here rests on one. Where a
-statement depends on how an implementation behaves, it is written as a condition
-to be tested rather than as a fact.
+Closing a trade whose named owner is still `TBD-SRR` is not possible, because
+there is nobody to accept the evidence.
