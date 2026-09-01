@@ -605,6 +605,30 @@ and `fragmentation` remain `TBD`, and the figures previously recorded against
 parameter decides is convergence after a topology change on a lossy link, which
 a perfect wire cannot pose.
 
+### 1.8 Mesh WAN gateway sharing
+
+**State:** target set, mechanism open. `FML-ADR-069` decides that WAN is a
+mesh-wide capability -- a MULE with an uplink fans it out to WAN-less nodes, and
+several nodes' uplinks are pooled -- as the CONOPS section 42 end state beyond
+the v1 single-gateway baseline. `FML-ADR-068` is the node-local first step, an
+EUD reaching its own node's uplink, demonstrated `SIMULATED` on the prototype
+access point. The mechanism -- `batman-adv` gateway mode, gateway election,
+single-active versus pooled multi-active, load-share versus failover -- is
+`TBR-NET-04` and undecided.
+
+**CONOPS basis:** section 42 (any MULE may hold the local WAN-gateway role),
+section 43 and section 744 (the MULE is the overlay boundary and EUD traffic must
+not cross it), section 410 (the gateway is a property of the mesh, not of the
+node an EUD sits on).
+
+**Blocked by:** `TBR-NET-04`, and the `gw_mode` half of item 1.7. A local
+`mac80211_hwsim` mesh can exercise gateway election and a WAN-less node reaching a
+peer's uplink; the RF and real-uplink behaviour need hardware and `TBR-RF-01`.
+
+**Do not** route EUD traffic onto the secure overlay while building this. CONOPS
+section 43 and section 744 keep the MULE the routing and security boundary; the
+firewall rules match the EUD prefix to the general uplink, never the overlay.
+
 ## Track 2 — hardware
 
 **State:** unchanged. No hardware selected, no image built, nothing in this

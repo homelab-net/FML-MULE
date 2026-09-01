@@ -65,6 +65,10 @@ band. Coexistence may suppress or schedule transmission; see `FML-ADR-027` and
 *Reason:* CONOPS section 42 permits any standard MULE to assume an authorized
 local WAN-gateway role, with **one active gateway at a time** as the initial
 baseline. Automatic competing multi-gateway operation is not required for v1.
+This is a v1 boundary, not a permanent refusal: `FML-ADR-069` makes pooled
+mesh-wide WAN sharing the end-state target, and `TBR-NET-04` holds the
+mechanism. What stays out of v1 is the *automatic competing* multi-gateway
+operation, not the capability.
 
 ### No custom role-encrypted peer multicast
 

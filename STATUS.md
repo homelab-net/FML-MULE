@@ -48,6 +48,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
 | `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-NET-03, TBR-NET-01, TBR-SEC-01 |
 | `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | TBR-NET-01, TBR-NET-03, TBR-NET-02 |
+| `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
 
 ### SELECTED PRINCIPLE
 
@@ -67,6 +68,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-038` | EAP-TLS is the production EUD admission target | TBR-SEC-01, TBR-TIME-01, TBR-RF-03 |
+| `FML-ADR-069` | A MULE shares its WAN uplink across the mesh and available uplinks are pooled | TBR-NET-04 |
 
 ### SELECTED PLANNING BASELINE
 
@@ -140,9 +142,10 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
 | 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
+| 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 
-20 open trades. 0 have no named owner.
+21 open trades. 1 have no named owner.
 
 ## Critical path
 

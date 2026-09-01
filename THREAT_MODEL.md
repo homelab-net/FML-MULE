@@ -203,6 +203,38 @@ normal event, not an edge case.
 - Operationally: a lost node is reported immediately, and mission credentials
   are rotated. That procedure does not exist yet and belongs in the CONOPS.
 
+### A forwarded EUD reaches the WAN uplink and the overlay
+
+**Added 2026-08-31, `FML-ADR-068`.** The Program Owner decided that an end user
+device on the access point is forwarded to the node's WAN uplink and receives
+general IP connectivity through it, because being the operator's connectivity is
+a role the MULE is expected to fill.
+
+- **An EUD the node cannot vet or contain is given reach to the general uplink.**
+  The document already records that MULE cannot detect or contain a compromised
+  EUD. Passthrough extends that device's reach to the general WAN uplink
+  (Starlink, Ethernet, cellular). The blast radius of a bad EUD grows from
+  node-local to that uplink.
+- **It does not reach the secure overlay.** CONOPS section 43 and section 744
+  make the MULE the routing and security boundary and forbid EUDs on the overlay;
+  the passthrough rules match the EUD prefix to the uplink, not the overlay
+  (`FML-ADR-039`). So the exposure is to the internet uplink, not to the other
+  MULEs and infrastructure the overlay reaches. That boundary is load-bearing:
+  if a future change routed EUD traffic onto the overlay, this bullet would be
+  wrong.
+- **Mesh-wide sharing widens it further, by design and separately.**
+  `FML-ADR-069` makes WAN a mesh-wide capability, so a device several hops away
+  can reach an uplink. The same overlay boundary must then hold across the mesh,
+  not just at one node; that is the exposure `TBR-NET-04` has to keep bounded.
+- **The compensating controls are organisational and deferred, not structural.**
+  Mission-time vetting of who holds an EUD is the primary control; the emission
+  profile suppresses the path under EMCON; and a narrower gating policy is
+  future work under `TBR-TAK-01`. Until that gating exists the exposure is
+  un-narrowed.
+- **It is reversible.** Removing the forward accept and the uplink masquerade
+  returns an EUD to node-local services only. This is a firewall decision, not a
+  structural one; see `os/config/nftables.conf.template`.
+
 ### Other explicit non-defences
 
 - **No defence against jamming or denial of service.** Any of the bearers can
