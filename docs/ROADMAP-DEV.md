@@ -548,23 +548,30 @@ none, accepted by a named owner. See the blocker in Track 3.
 
 ### 1.6 Turn `RadioState` into an implementation
 
-**State:** a `Protocol` in `test/flatsat/interfaces.py`, a fake behind it, and
-now the **board-independent parse core** in `test/flatsat/radio_parse.py`:
-authentic `iw`/`batctl` output to structured readings, `None` for a command that
-could not run and a real zero for one that ran and found nothing, tested against
-`mac80211_hwsim` fixtures and held by mutations `M67`/`M68`.
+**State:** built. `test/flatsat/interfaces.py` holds the Protocol,
+`test/flatsat/radio_parse.py` the parse core, and `test/flatsat/radio.py` the
+real reader `CommandRadio`: it reads `iw dev` and `iw station dump` through an
+injected runner and returns `enumerated()`/`associated()`, with `None` wherever
+it cannot tell. It is built exactly as `mule.sysfs.SysfsThermalReadings` is --
+an injected per-board interface-to-`Bearer` map, empty until `TBR-HW-01`, and an
+injected command runner so tests feed fixtures and a node runs the binaries.
+Tested against `mac80211_hwsim` fixtures; mutations `M67`-`M70` hold the
+`None`-versus-real-reading line.
 
-**The full reader is more blocked than it looks, and two blockers are real.**
-Building it needs (1) `None` semantics on the `RadioState` Protocol -- the trap
-below requires every reading to be `T | None`, but the Protocol returns bare
-`bool`, so completing it *changes a blocked interface* -- and (2) the
-interface-to-`Bearer` map, which is per board and `TBR-HW-01`/`TBR-RF-03` own.
-Neither is a thing to invent on the bench; both are why the interface sits in the
-flat-sat. The parse core is the half that is not blocked, and it is done.
+**An earlier note here called this "blocked" on two counts and it was wrong.**
+The `T | None` fix to the Protocol is applied inside the flat-sat, which is not
+the promotion the interface note prohibits, and `modes.py` consumes tuples, not
+the Protocol methods, so it was untouched. The per-board map is the same
+injected-empty pattern `SysfsThermalReadings` already ships. Both were doable and
+are done.
 
-**Blocked by:** those two, and by having no wireless on hosted CI. The parser
-runs anywhere against fixtures; a live reader needs a machine with radios and the
-per-board map.
+**What actually remains, and is smaller than it looked:** the reader lives in the
+flat-sat, not `mule/`, because the interface is still held there pending
+`TBR-LINUX-01`/`TBR-RF-01`/`TBR-RF-03`; it moves to `mule/` with the Protocol
+when a production consumer wires it to `mule/modes.py`. And the per-board map is
+empty until `TBR-HW-01` names a board, so on real hardware the reader returns
+`[]`/`None` until that map is supplied -- which is the honest state, the same one
+the thermal reader is in.
 
 **Read first:** `test/flatsat/interfaces.py`, `test/flatsat/fakes.py`, and
 `docs/readings.md` — **before** writing the interface, not after. Every reading

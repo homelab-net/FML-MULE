@@ -48,12 +48,23 @@ class RadioState(Protocol):
     interface stays on the reading side of it.
     """
 
-    def enumerated(self) -> list[Bearer]:
-        """Bearers whose hardware is present and whose driver has attached."""
+    def enumerated(self) -> list[Bearer] | None:
+        """Bearers whose hardware is present and whose driver has attached.
+
+        `None` when the node cannot tell -- the enumerating command could not
+        run. An empty list is a real reading: the command ran and no mapped
+        bearer is present. The two differ and a reader must not collapse them,
+        which is the `T | None` rule `docs/readings.md` applies everywhere.
+        """
         ...
 
-    def associated(self, bearer: Bearer) -> bool:
-        """Whether the bearer has formed its link: mesh peer, or AP serving."""
+    def associated(self, bearer: Bearer) -> bool | None:
+        """Whether the bearer has formed its link: mesh peer, or AP serving.
+
+        `None` when the node cannot tell -- the bearer maps to no known
+        interface, or the command could not run. `False` is a real reading: the
+        interface is present and has no station.
+        """
         ...
 
 

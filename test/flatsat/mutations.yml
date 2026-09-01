@@ -451,3 +451,15 @@ mutations:
     describe: originator count includes the header line, over-counting by one
     find: "        if line.lstrip().startswith(\"*\")"
     replace: "        if not line.lstrip().startswith(\"#\")"
+
+  # --- CommandRadio: the reader's None discipline and semantics -----------
+  - id: M69
+    file: test/flatsat/radio.py
+    describe: an unmapped bearer reports not-associated instead of unknown
+    find: "        if interface is None:\n            return None"
+    replace: "        if interface is None:\n            return False"
+  - id: M70
+    file: test/flatsat/radio.py
+    describe: a bearer with no peer reports associated
+    find: "        return count > 0"
+    replace: "        return count >= 0"
