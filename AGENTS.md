@@ -24,7 +24,7 @@ also lists the four facts to check before building anything.
 
 ## Done
 
-A change is not done until all five hold. Say which ones you actually ran.
+A change is not done until all six hold. Say which ones you actually ran.
 
 1. `tools/lint.sh` passes. It runs every linter, the document checks, the
    mission schema, the shell tests and the mutation check. **Read its exit
@@ -36,6 +36,16 @@ A change is not done until all five hold. Say which ones you actually ran.
 4. If you touched ADR or trade frontmatter, `STATUS.md` and the traceability
    matrix are regenerated and committed in the same change.
 5. You can name the evidence for every claim you wrote down.
+6. **Every doc your change made stale is updated in the same change.** A commit
+   that decides a trade updates the roadmap `**State:**` line for it; a commit
+   that creates a trade or service points the roadmap item at it; a commit that
+   supersedes an ADR fixes the trades that cited the old one; a finding that
+   lands in an evidence artifact updates that trade's README. This is not
+   optional cleanup for a later PR. It is part of the change, because a stale
+   doc read as current is the same failure as a wrong one, and this program has
+   had to correct roadmap State lines in follow-up PRs more than once for
+   exactly this. **A change that leaves a doc contradicting the change is not
+   done, and is not ready to report.**
 
 ## The five that waste the most work
 
