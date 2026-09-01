@@ -69,6 +69,14 @@ Each of these is intent. None is demonstrated.
 
 - **Passive interception of mission content in transit** across the IP mesh and
   the access point, by transport confidentiality between authenticated peers.
+  **Program Owner principle, 2026-08-31: anything that leaves a MULE is
+  encrypted.** That is the consolidation of mechanisms already chosen -- the
+  keyed 802.11s mesh (`FML-ADR-061`, WPA2/SAE), the EUD access point (WPA2, not
+  open), the WAN overlay (`FML-ADR-039`, Tailscale), browser and API services
+  (`services/ingress/` TLS), and RoIP voice as an encrypted IP session (below).
+  The rule is stated as a boundary: at the edge of a node, in the clear is a
+  defect. It does not extend to an external RF bearer that regulation forbids
+  encrypting -- see the RoIP note.
 - **Unauthorised participation**, by requiring node and participant admission
   through a program PKI and a mission trust layer, so an unadmitted device
   cannot join the operational domain and read or inject mission data.

@@ -46,6 +46,27 @@ requires: it does not become a DMR router. The gateway is radio-agnostic, so
 whose addressing is `FML-ADR-063` and whose behaviour under load is
 `TBR-RF-01`, and it needs the QoS treatment `CCR-03` proposes.
 
+## The two layers are governed separately
+
+**Program Owner clarification, 2026-08-31, recorded because it prevents a
+category error.** RoIP is an IP transport and the DM-32's RF is a radio
+emission, and they answer to different rules:
+
+- **The IP side can and shall be encrypted.** The audio and PTT session between
+  gateways is IP, so it rides the encrypted paths `THREAT_MODEL.md` requires of
+  anything leaving a MULE: the keyed mesh, the WAN overlay, or a TLS/authenticated
+  session. Carrying voice in the clear across the mesh would violate that rule.
+- **The RF side stays regulator-compliant.** The DM-32 transmits on its own
+  band under its own authority, and `regions/`/`REGULATORY.md` govern it. Where
+  the operating rules forbid obscuring content -- an amateur profile in
+  particular -- the RF is **not** encrypted, and RoIP does not change that,
+  because RoIP encrypts the IP transport between gateways, not the RF waveform a
+  handheld emits. `FML-ADR-064`'s radio stays FCC-compliant on the air while its
+  decoded audio is protected on the wire.
+
+Encrypting the IP transport therefore does not put the RF out of compliance, and
+keeping the RF compliant does not put mission audio in the clear on the mesh.
+
 ## Accepted cost
 
 **Audio quality and added latency of decode-recode**, versus a native protocol
