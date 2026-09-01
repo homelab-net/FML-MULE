@@ -548,11 +548,23 @@ none, accepted by a named owner. See the blocker in Track 3.
 
 ### 1.6 Turn `RadioState` into an implementation
 
-**State:** a `Protocol` in `test/flatsat/interfaces.py` with two methods,
-`enumerated()` and `associated()`, and a fake behind it.
+**State:** a `Protocol` in `test/flatsat/interfaces.py`, a fake behind it, and
+now the **board-independent parse core** in `test/flatsat/radio_parse.py`:
+authentic `iw`/`batctl` output to structured readings, `None` for a command that
+could not run and a real zero for one that ran and found nothing, tested against
+`mac80211_hwsim` fixtures and held by mutations `M67`/`M68`.
 
-**Blocked by:** not by a trade, but sequence it after 1.2. Reading real radio
-state is worth little until something brings radios up in a known order.
+**The full reader is more blocked than it looks, and two blockers are real.**
+Building it needs (1) `None` semantics on the `RadioState` Protocol -- the trap
+below requires every reading to be `T | None`, but the Protocol returns bare
+`bool`, so completing it *changes a blocked interface* -- and (2) the
+interface-to-`Bearer` map, which is per board and `TBR-HW-01`/`TBR-RF-03` own.
+Neither is a thing to invent on the bench; both are why the interface sits in the
+flat-sat. The parse core is the half that is not blocked, and it is done.
+
+**Blocked by:** those two, and by having no wireless on hosted CI. The parser
+runs anywhere against fixtures; a live reader needs a machine with radios and the
+per-board map.
 
 **Read first:** `test/flatsat/interfaces.py`, `test/flatsat/fakes.py`, and
 `docs/readings.md` — **before** writing the interface, not after. Every reading

@@ -1,0 +1,38 @@
+Station 12:50:52:59:c6:bc (on wlan0)
+	inactive time:	788 ms
+	rx bytes:	3119
+	rx packets:	37
+	tx bytes:	172
+	tx packets:	3
+	tx retries:	0
+	tx failed:	0
+	rx drop misc:	20
+	signal:  	-20 dBm
+	signal avg:	-20 dBm
+	Toffset:	0 us
+	tx bitrate:	2.0 MBit/s
+	tx duration:	0 us
+	rx duration:	0 us
+	mesh llid:	47537
+	mesh plid:	55638
+	mesh plink:	ESTAB
+	mesh airtime link metric: 8193
+	mesh connected to gate:	no
+	mesh connected to auth server:	no
+	mesh local PS mode:	ACTIVE
+	mesh peer PS mode:	ACTIVE
+	mesh non-peer PS mode:	ACTIVE
+	authorized:	yes
+	authenticated:	yes
+	associated:	yes
+	preamble:	long
+	WMM/WME:	yes
+	MFP:		no
+	TDLS peer:	no
+	DTIM period:	2
+	beacon interval:1000
+	short slot time:yes
+	connected time:	8 seconds
+	associated at [boottime]:	204444.861s
+	associated at:	1788226308096 ms
+	current time:	1788226316051 ms

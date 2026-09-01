@@ -102,6 +102,34 @@ reach.
 that assumed these values could be read the way thermal zones are read is
 wrong on a current kernel.
 
+## Radio state (network plane)
+
+`RadioState` in `test/flatsat/interfaces.py`, the `enumerated()`/`associated()`
+boundary the network plane reads. **The interface is blocked** on
+`TBR-LINUX-01`, `TBR-RF-01` and `TBR-RF-03` and stays in the flat-sat, so these
+rows describe the board-independent parse core that exists
+(`test/flatsat/radio_parse.py`), not a finished reader. Two things a full reader
+still needs are blocked and are **not** rows here: the interface-to-`Bearer` map,
+which is per board and `TBR-HW-01`/`TBR-RF-03` own, and `None` semantics on the
+`RadioState` Protocol itself.
+
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `interfaces` | `command` | `iw dev`, package `iw`. Kernel interface is nl80211 netlink; `iw` is the tool that speaks it, and no `sysfs` equivalent lists interface type. | name and type | `PARSE ONLY`. Interface-to-bearer map is per board, `TBR-HW-01`. |
+| `station_count` | `command` | `iw dev <iface> station dump`, package `iw`. Mesh peers, or AP clients. | count | `PARSE ONLY` |
+| `originator_count` | `command` | `batctl meshif <if> originators`, package `batctl`. Selected next hops only. Netlink, same as the mesh-state rows above. | count | `PARSE ONLY` |
+
+**`None` is the command not running; empty is a real zero.** `radio_parse`
+returns `None` when the command's output is `None` (absent `iw`/`batctl`, no
+such interface) and `0`/`[]` when it ran and found nothing. A node without `iw`
+and a node with `iw` and no peers are different states, and the parser keeps
+them apart at the boundary so a reader inherits it. Mutations `M67` and `M68`
+hold that line.
+
+**Both packages, `iw` and `batctl`, must be in the image**, which
+`os/kernel/PINS.md` already requires for `batctl` under `FML-ADR-040`; `iw` joins
+it. A reading that shells out depends on the image carrying the binary.
+
 ## Translation table
 
 `mule/loops.py`, the `TranslationReadings` Protocol. No reader exists.
