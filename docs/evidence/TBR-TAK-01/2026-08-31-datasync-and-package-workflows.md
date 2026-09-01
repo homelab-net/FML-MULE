@@ -92,6 +92,15 @@ real ATAK client**, which is a device, and is recorded as such rather than
 answered with a contrived substitute. That is the honest result: the question is
 about client behaviour, and there is no client here that renders a map.
 
+**Do not read this as "MULE cannot serve maps".** Two different things are being
+distinguished. Device-side tile *caching* is an ATAK function, and that is what
+this item asks about. Serving maps *locally* -- being the tile source -- is a
+separate capability that OpenTAKServer does not provide and is not ATAK-only.
+CONOPS section 9.2 makes "selected cached maps" a MULE **S1** local mission
+service, a higher availability tier than the TAK server's S2. A local
+map/tile service on the node is therefore a real and CONOPS-required capability;
+it is roadmap item 4.4 and is not part of this trade.
+
 ## Where the trade now stands
 
 Of the six empirical items the 2026-08-27 analysis listed, this closes the

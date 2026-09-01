@@ -849,6 +849,40 @@ surprises. Each needs work before 4.2 can be planned in detail.
   shape as the keyed-mesh admission finding, and it needs the credential
   distribution that `TBR-SEC-01` records as absent.
 
+### 4.4 A local map service
+
+**CONOPS basis:** section 9.2 (S1 local mission services -- "selected cached
+maps"), and the high-rate bearer's "map packages" purpose. Decision: none yet.
+
+**State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
+cache". Two things were being conflated. **Device-side tile caching** is an ATAK
+client function -- the client caches tiles it renders -- and is what
+`TBR-TAK-01`'s cache question (item 6) is about, which is why that item needs a
+real client. **Serving maps locally** is a different thing: not a TAK-server
+function at all (OpenTAKServer handles no tiles), not ATAK-only, and per CONOPS
+section 9.2 a **MULE S1 service**. The TAK server is S2. So maps sit in a
+*higher* availability tier than TAK and are supposed to remain when TAK is gone.
+
+**What it is:** a local tile/map source on the node -- offline tiles, an MBTiles
+store, or a WMTS/XYZ endpoint -- so EUDs render maps with no internet and no
+reachable external tile server. It is a service-plane capability distinct from
+the TAK service, and nothing in `services/` provides it.
+
+**Read first:** CONOPS section 9.2 for the S1 tier, `services/catalog/` for the
+gate every service passes, and `docs/NON-GOALS.md` to confirm map serving is not
+excluded (it is not; it is required as an S1 example).
+
+**The constraint people miss:** this is S1, above the TAK server, so it must run
+locally on the node under the same one-compute-element budget (`FML-ADR-021`,
+`TBR-COMP-01`) and the same catalog and Quadlet gates. A tile store is also
+storage, which bears on the pack and on `TBR-SEC-01`'s at-rest posture if the
+imagery is sensitive.
+
+**Done when:** a trade selects a local map-serving mechanism, a catalog entry
+and Quadlet exist for it with the image pinned by digest, and an EUD renders a
+map from the node with no external network. No hardware to start the selection;
+the field demo needs a device.
+
 ## Sequencing
 
 **Where the state lives, because this section kept going stale.** Each item
@@ -960,6 +994,7 @@ carries which part of the CONOPS**.
 | 1, 4, 5 | Local-first, WAN-independence, design principles | Track 1, and the principle behind every track |
 | 6 | EUDs per node, addressing | `1.3`, `1.4` (`TBR-NET-02`) |
 | 9 | Service criticality, shedding order | Track 4, and `CCR-02` for the order below S3 |
+| 9.2 | S1 local map service (cached maps) | `4.4` |
 | 26, 27 | TAK state classes and continuity | Track 3 (`TBR-TAK-01`), Track 4.1 |
 | 39-44 | Adaptive routing, traffic preference, WAN gateway/overlay, remote teams | Track 1, `1.5`/`1.5a` addressing, `4.2` for voice paths |
 | 45 | External VHF/UHF/HF integration | Track 4.2, 4.3 (`CCR-03`) |
