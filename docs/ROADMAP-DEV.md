@@ -994,6 +994,12 @@ From `AGENTS.md`. All five, and say which ones you actually ran.
 4. If you touched ADR or trade frontmatter, `STATUS.md`, the traceability matrix
    and the decision index are regenerated and committed in the same change.
 5. You can name the evidence for every claim you wrote down.
+6. **Every doc your change made stale is updated in the same change**, this
+   file first. If your change decides a trade, creates one, supersedes an ADR,
+   or lands a finding, the `**State:**` line, the item text, or the affected
+   README moves with it. A stale State line is the failure this file's own
+   single-source rule exists to prevent; leaving one for a follow-up PR is not
+   done.
 
 And one more that this roadmap adds, because it is where the time went:
 
