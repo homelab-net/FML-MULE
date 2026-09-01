@@ -202,13 +202,15 @@ throughout, per section 1.1.
 **Trades:** `TBR-TAK-01` (pri 9, CRITICAL), `TBR-NET-01` (15), `TBR-ID-01` (14),
 `TBR-SEC-01` analysis half (6), `TBR-COMP-01` service-plane half (2, CRITICAL),
 `TBR-NET-02` (no SAD register position; see its frontmatter notes),
-`TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`)
+`TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`),
+`TBR-VOICE-01` and `TBR-MAP-01` (no SAD register position; analysis halves)
 
 **Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
-`TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`.
+`TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`, `TBR-VOICE-01/`,
+`TBR-MAP-01/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -259,6 +261,11 @@ programme.
    and virtual peers. Latency and PTT timing wait on hardware (GATE VOICE-01)
    and are not part of this campaign. **Gated on `CCR-03` approval**, because the
    capability is a proposed CONOPS v1.1 change; recorded so the plan tracks it.
+9. **`TBR-MAP-01` tile store and server, analysis half.** For each candidate,
+   its resident footprint serving a representative view and the store size for a
+   representative area and zoom, on Debian ARM64. The offline-render acceptance
+   needs a device and is not part of this campaign. CONOPS section 9.2 makes the
+   local map source an S1 service with no current coverage.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The remaining five produce written

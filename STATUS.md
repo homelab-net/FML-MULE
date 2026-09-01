@@ -137,11 +137,12 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `Cameron Zobrist` | no |
 | 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `Cameron Zobrist` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
+| 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
 | 99 | `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 
-19 open trades. 0 have no named owner.
+20 open trades. 0 have no named owner.
 
 ## Critical path
 

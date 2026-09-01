@@ -132,6 +132,7 @@ rule after a leak is impossible.
 | `catalog/` | Approved service catalog definitions. |
 | `quadlets/` | Podman Quadlet and systemd unit definitions. |
 | `tak/` | TAK-compatible service deployment and state notes. OpenTAKServer preferred (`FML-ADR-032`). |
+| `map/` | Local map/tile service outline. Serves `z/x/y` tiles to an EUD offline. `TBR-MAP-01`. |
 | `ingress/` | Local DNS and HAProxy configuration (`FML-ADR-031`). |
 | `identity/` | PKI (`step-ca`, `FML-ADR-036`), admission (`FML-ADR-038`), mission trust material. |
 | `status-aggregator/` | Placeholder. Do not implement. |
