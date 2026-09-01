@@ -67,4 +67,20 @@
 #     FML-ADR-042 names it as the time daemon, and docs/readings.md depends on
 #     "chronyc tracking" for the synchronized reading.
 #
+#   openssh-server
+#     Program Owner direction, 2026-08-31: a node is remotely managed, so the
+#     image carries an SSH server. It is NOT in install-deps.sh, which installs
+#     only the tools that check this repository; a field node's operational
+#     packages live here. A fresh Debian for a MULE has it; a fresh checkout for
+#     a contributor does not.
+#
+#     SECURITY POSTURE, not optional. THREAT_MODEL.md makes physical capture an
+#     expected condition, so an SSH server is attack surface on a device
+#     designed to be lost. Whoever pins it shall also decide, and record: key
+#     authentication only (no passwords), the interface it listens on (a
+#     management or WAN-overlay interface, not the EUD access point), and whether
+#     EMCON or a mission profile disables it. Shipping openssh-server with
+#     password auth on the EUD AP would hand a captured or nearby node a login
+#     prompt, which is the opposite of what this manifest is for.
+#
 # --- No packages pinned. ---
