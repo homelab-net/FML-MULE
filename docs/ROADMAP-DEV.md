@@ -852,7 +852,8 @@ surprises. Each needs work before 4.2 can be planned in detail.
 ### 4.4 A local map service
 
 **CONOPS basis:** section 9.2 (S1 local mission services -- "selected cached
-maps"), and the high-rate bearer's "map packages" purpose. Decision: none yet.
+maps"), and the high-rate bearer's "map packages" purpose. Decision: none yet;
+the selection is `TBR-MAP-01` and the service outline is `services/map/README.md`.
 
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
 cache". Two things were being conflated. **Device-side tile caching** is an ATAK
@@ -868,9 +869,12 @@ store, or a WMTS/XYZ endpoint -- so EUDs render maps with no internet and no
 reachable external tile server. It is a service-plane capability distinct from
 the TAK service, and nothing in `services/` provides it.
 
-**Read first:** CONOPS section 9.2 for the S1 tier, `services/catalog/` for the
-gate every service passes, and `docs/NON-GOALS.md` to confirm map serving is not
-excluded (it is not; it is required as an S1 example).
+**Read first:** `services/map/README.md`, the service outline, which commits to
+one interface -- a `z/x/y` tile endpoint and an ATAK map-source definition --
+and leaves the mechanism to `TBR-MAP-01`. Then CONOPS section 9.2 for the S1
+tier, `services/catalog/` for the gate every service passes, and
+`docs/NON-GOALS.md` to confirm map serving is required as an S1 example rather
+than excluded.
 
 **The constraint people miss:** this is S1, above the TAK server, so it must run
 locally on the node under the same one-compute-element budget (`FML-ADR-021`,
@@ -878,7 +882,7 @@ locally on the node under the same one-compute-element budget (`FML-ADR-021`,
 storage, which bears on the pack and on `TBR-SEC-01`'s at-rest posture if the
 imagery is sensitive.
 
-**Done when:** a trade selects a local map-serving mechanism, a catalog entry
+**Done when:** `TBR-MAP-01` selects a tile store and server, a catalog entry
 and Quadlet exist for it with the image pinned by digest, and an EUD renders a
 map from the node with no external network. No hardware to start the selection;
 the field demo needs a device.
