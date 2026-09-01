@@ -88,11 +88,18 @@ until the boring one passes.
 
 ## The three tracks
 
-| Track | What it is | Gated by | Who can do it |
-| --- | --- | --- | --- |
-| 1 — Network plane | The multi-bearer mesh. The product. | Mostly nothing | Anyone, no hardware |
-| 2 — Hardware | Boards, radios, batteries, and the trades they close | A purchase | Whoever has the hardware |
-| 3 — Analysis | `TBR-TAK-01` and the decisions behind the blocked services | A named owner | Anyone, needs the Program Owner |
+| Track | What it is | CONOPS basis | Gated by | Who can do it |
+| --- | --- | --- | --- | --- |
+| 1 — Network plane | The multi-bearer mesh. The product. | 1, 39-45 | Mostly nothing | Anyone, no hardware |
+| 2 — Hardware | Boards, radios, batteries, and the trades they close | 78, 82 | A purchase | Whoever has the hardware |
+| 3 — Analysis | `TBR-TAK-01` and the decisions behind the blocked services | 26, 27, 30.2 | A named owner | Anyone, needs the Program Owner |
+| 4 — Mission-service plane | TAK, voice, and the services on the node | 9, 26, 27, 45 | A selection, and `CCR-03` for voice | Anyone, some needs hardware |
+
+**Every item cites its CONOPS basis.** A roadmap item exists to close a CONOPS
+obligation or to build what one requires; an item that maps to no CONOPS section
+is either mis-scoped or a gap in the CONOPS, and the coverage map at the end of
+this file is where that is checked. The rule is the same one the traceability
+matrix applies to requirements: a point with no allocation is a defect.
 
 Track 1 is the default. If you are picking up this repository with no hardware
 and no special context, work Track 1 from the top.
@@ -716,6 +723,117 @@ matter.
 lines of `TBD`, and both times that was the wrong call. It matters, and it is
 behind Track 1 until the network plane can do something.
 
+## Track 4 — the mission-service plane
+
+**State:** blocked at the gate, by design. `services/catalog/` is empty because
+no service is approved, and `services/quadlets/` holds no unit. Adding a service
+is a decision with a record, not a file appearing in `quadlets/`. What this
+track holds is the implementation work that becomes unblocked the moment a
+service is selected, and what has already been learned about each from running
+it on the bench.
+
+The one piece of standing guidance: every service competes with the routing
+daemon for one compute element (`FML-ADR-021`). The failure mode is specific and
+`services/catalog/` names it -- a service takes memory, routing is starved, mesh
+links flap, and the node looks like it has a radio fault when it has a scheduling
+fault. `TBR-COMP-01` is where that is bounded.
+
+### 4.1 The TAK service is three processes, not one
+
+**CONOPS basis:** section 26 (TAK state classes), section 27 (TAK service
+continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
+`FML-ADR-034`, `FML-ADR-035`, `FML-ADR-029`.
+
+**State:** the state study is well advanced (`TBR-TAK-01`, seven evidence
+artifacts) and the implementation is not started, but the shape is now known
+from a running instance. `OpenTAKServer` is **three** console entry points, and
+upstream's own container runs only the first:
+
+- `opentakserver` -- the web application and API;
+- `eud_handler` -- the CoT listener that binds the TCP/SSL/UDP streaming ports.
+  **Without it the server accepts no TAK client at all;**
+- `cot_parser` -- the worker that turns received CoT into rows.
+
+**The implementation is therefore three Quadlet units, not one**, with a
+dependency order (`eud_handler` and `cot_parser` need the database and broker;
+all three share `OTS_DATA_FOLDER`), and `TBR-COMP-01` must budget three Python
+processes. See `docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md`.
+
+**Read first:** `services/tak/README.md`, `services/quadlets/README.md`,
+`FML-ADR-035` for service control, and the seven `TBR-TAK-01` artifacts, which
+record what state each process holds and what a restore does and does not carry.
+
+**The constraint people miss:** the durable set is not all in the database. A
+failover that copies only the database restores every row and authenticates
+nobody, because the password salt and the certificate authority live in
+`OTS_DATA_FOLDER`. Any service definition that ignores the data folder produces a
+node that looks healthy and works for no one. See
+`2026-08-31-different-node-restore.md`.
+
+**Done when:** three Quadlet units exist, are catalog entries with their images
+pinned by digest (`FML-ADR-029`), start in a defensible order, and a
+different-node restore that carries the data folder produces a working
+replacement. Gated on `TBR-TAK-01` acceptance and a catalog decision.
+
+### 4.2 The RF voice gateway (RoIP)
+
+**CONOPS basis:** section 45 (external VHF/UHF/HF integration), section 5
+(familiar-interface and local-first principles), section 40 (traffic
+preference), section 41 (WAN independence). Decision: `FML-ADR-064` through
+`FML-ADR-067`, all `PROPOSED`.
+
+**State:** proposed, not approved. The whole capability is a CONOPS v1.1 change,
+`CCR-03`, and nothing here is built or should be until that is approved. The
+decisions are allocated so the identifiers are fixed: DM-32UV as the radio
+(`FML-ADR-064`), audio/PTT over IP not native DMR (`FML-ADR-065`), a dedicated
+integrated gateway radio (`FML-ADR-066`), and the single-audio-egress invariant
+(`FML-ADR-067`).
+
+**The baseline requirement to carry through implementation:** an operator's
+headset receives a linked voice session through **exactly one path**
+(`FML-ADR-067`). In v1 that path is always the operator's own radio over local
+RF. The software must guarantee no second copy arrives -- no direct
+MULE-to-headset audio, self-echo suppression by origin/session ID, and a single
+active gateway per voice group per local net. A voice baseline that can put two
+copies in one ear is not acceptable, which is why this is an invariant and not a
+tuning goal.
+
+**Read first:** `docs/change-requests/CCR-03-integrated-rf-dm32-roip-voice.md`,
+the four ADRs, `TBR-VOICE-01` for the implementation trade, and
+`hardware/prototype/BOM-v0.4-DM32-RoIP-handoff.README.md` for the hardware and
+its gates.
+
+**The constraint people miss:** the gateway is a service like any other. It
+needs a catalog entry, a Quadlet, and `TBR-VOICE-01` selected before it runs,
+and it adds a worst-case contributor to `TBR-COMP-01`. Its QoS demand competes
+with the routing daemon this track's standing guidance warns about.
+
+**Done when:** `CCR-03` is approved, `TBR-VOICE-01` selects an implementation,
+and the gateway runs as a catalog service meeting `FML-ADR-067`'s invariant,
+verified at the BOM's GATE VOICE-06. Everything before that is blocked on the
+change request.
+
+### 4.3 The unknowns to resolve before RoIP can be scheduled
+
+**State:** open questions, recorded so they become roadmap items rather than
+surprises. Each needs work before 4.2 can be planned in detail.
+
+- **RX activity detection** (`CCR-03` section 10.3, CONOPS 45): hardware COS/COR
+  versus validated squelch. The handoff warns not to assume audio-energy or VOX
+  detection is adequate. This is a hardware-interface unknown and gates reliable
+  PTT arbitration.
+- **RF coexistence** (`TBR-RF-02`, `FML-ADR-027`, CONOPS 45): a transmitting
+  gateway radio inside the enclosure with HaLow and LoRa in the same band.
+  Measured at the BOM's GATE VOICE-01 and VOICE-09; nothing on the bench can
+  answer it.
+- **Compute under a live session** (`TBR-COMP-01`, CONOPS 9): whether the 4 GB
+  CM4 holds the full service-host load plus an active RoIP session. The BOM
+  makes this a gate with an explicit fail-back to 8 GB.
+- **Voice-group authorization distinct from reachability** (`FML-ADR-061`,
+  CONOPS 43, 44): being on the mesh must not be being in the voice group. Same
+  shape as the keyed-mesh admission finding, and it needs the credential
+  distribution that `TBR-SEC-01` records as absent.
+
 ## Sequencing
 
 **Where the state lives, because this section kept going stale.** Each item
@@ -809,3 +927,45 @@ And one more that this roadmap adds, because it is where the time went:
 instrument that produced it.** If you cannot, it is not a number yet. Three
 configuration verdicts were recorded as measured results, and all three were
 smaller than the resolution of the loop that produced them.
+
+## CONOPS coverage map
+
+The roadmap should be all-encompassing: every operational obligation in the
+CONOPS should either be covered by a roadmap item or be visibly a gap. This map
+is where that is checked. It is a coarse map, section-group to track, not a
+clause-level matrix -- the clause-level trace lives in
+`docs/verification/traceability.md` and SAD section 35, and duplicating it here
+would rot. This answers the different question of **which part of this roadmap
+carries which part of the CONOPS**.
+
+| CONOPS sections | Subject | Carried by |
+| --- | --- | --- |
+| 1, 4, 5 | Local-first, WAN-independence, design principles | Track 1, and the principle behind every track |
+| 6 | EUDs per node, addressing | `1.3`, `1.4` (`TBR-NET-02`) |
+| 9 | Service criticality, shedding order | Track 4, and `CCR-02` for the order below S3 |
+| 26, 27 | TAK state classes and continuity | Track 3 (`TBR-TAK-01`), Track 4.1 |
+| 39-44 | Adaptive routing, traffic preference, WAN gateway/overlay, remote teams | Track 1, `1.5`/`1.5a` addressing, `4.2` for voice paths |
+| 45 | External VHF/UHF/HF integration | Track 4.2, 4.3 (`CCR-03`) |
+| 46 | Amateur-radio governance | `CCR-03` (voice egress gating); `regions/`, `REGULATORY.md` |
+| 50, 51 | Operating modes, exercise control | `1.6` (`RadioState`), `CCR-01` for mode axes |
+| 52 | Diagnostic tier | `FML-ADR-046` status aggregator (blocked service) |
+| 78, 79, 82, 85 | Qualification stages, success criteria, verification | Track 2, `docs/verification/` and the ITEP |
+| 81 | Scope exclusions, non-goals | `docs/NON-GOALS.md`; `CCR-03` moves RoIP off it |
+| 86 | Change control | `docs/change-requests/` (`CCR-01`, `CCR-02`, `CCR-03`, `PBCR-01`) |
+
+**Known coverage gaps, stated rather than hidden:**
+
+- **Time, storage-at-rest, and recovery** (`TBR-TIME-01`, `TBR-SEC-01`,
+  `TBR-REC-01`) have decisions and `mule/` readers but no dedicated roadmap
+  track; they surface only where another item touches them. They belong to Track
+  2 and Track 4 work not yet written up as items.
+- **Identity** (`TBR-ID-01`, `FML-ADR-036`/`037`/`038`) is on the critical path
+  for the service plane and appears only inside `4.1`'s findings and the
+  `X-Ssl-Cert` work in `services/ingress/`. It needs its own item under Track 4.
+- **Power and thermal** (`TBR-PWR-01`, `TBR-THERM-01`) are Track 2 trades with
+  no roadmap item beyond the purchase note, because nothing in software advances
+  them.
+
+These gaps are the honest state: the roadmap is network-complete and
+service-plane-partial, and this map is what makes that visible instead of
+implied.
