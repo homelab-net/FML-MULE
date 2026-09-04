@@ -8,6 +8,13 @@ render a map with no internet and no reachable external tile server.
 service outline. Roadmap item 4.4 holds its place in the plan, and `TBR-MAP-01`
 is the mechanism selection.
 
+The **interface** below -- the `z/x/y` endpoint and the ATAK/iTAK map-source
+definition -- has a `SIMULATED` bench demonstration under
+`docs/evidence/TBR-MAP-01/` (2026-09-04): an `MBTiles` store served over `z/x/y`,
+a valid PNG returned for an XYZ request, and a map-source definition for it. That
+settles the interface works; it does not select the server, measure the CM4
+footprint, or render on an EUD, so the trade stays `OPEN`.
+
 ## What this is, and what it is not
 
 **It is a tile source, not a map cache.** Two things are commonly confused:

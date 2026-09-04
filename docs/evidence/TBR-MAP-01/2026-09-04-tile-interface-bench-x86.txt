@@ -1,0 +1,76 @@
+Tile-service interface demonstration -- TBR-MAP-01
+==================================================
+
+What was measured
+  That the interface services/map/README.md commits to works end to end on a
+  bench: an MBTiles store (SQLite, the leading candidate offline container) is
+  read by a server that exposes z/x/y tiles, and an XYZ GET returns a valid PNG.
+  Reproduced by 2026-09-04-tile-interface-bench.py in this directory.
+
+Evidence tier
+  SIMULATED. Exercised end to end against a stand-in server; no claim about
+  physical behaviour, footprint, or an EUD rendering. See CONTRIBUTING.md.
+
+What this is NOT
+  - NOT CM4 footprint evidence. This ran on x86_64, not the CM4 (FML-ADR-021).
+    The trade's closure gate demands resident memory and CPU while serving a
+    representative view ON THE CM4, alongside the service-host load
+    (TBR-COMP-01). That number does not exist yet and is not produced here.
+  - NOT an EUD render. The acceptance -- an EUD rendering a map from the node
+    with no external network -- needs a device and is Stage 4/8. Not done here.
+  - NOT a selection. http.server is a stand-in exercising the z/x/y contract,
+    not the production single-binary tile server the trade must choose. The
+    store format (MBTiles) and the XYZ/TMS handling are demonstrated; the server
+    binary is not selected.
+  - NOT map data. Tiles are procedurally generated solid-colour placeholders,
+    one distinct colour per z/x/y. No imagery, no location, no licensed data.
+    So the TBR-SEC-01 at-rest question (public vs sensitive imagery) is not
+    touched and stays open.
+
+Instrument / environment
+  Host arch:        x86_64 (bench, NOT the target CM4)
+  Python:           3.13.5 (stdlib sqlite3, http.server; no third-party deps)
+  Store format:     MBTiles 1.3 schema (metadata + tiles, TMS tile_row)
+  Server:           stand-in http.server, XYZ path /tiles/{z}/{x}/{y}.png,
+                    XYZ->TMS row flip on read
+  Date:             2026-09-04
+  Node identifier:  bench (dev laptop); no node/image build id -- not a node run
+  Configuration:    loopback 127.0.0.1:8811; placeholder store, zoom 0-2
+
+Who
+  Cameron Zobrist, with Claude Code (bench assist).
+
+Raw output
+----------
+MBTILES built: .../docs/evidence/TBR-MAP-01/bench-placeholder.mbtiles
+  tiles: 21  zoom: 0-2  store bytes: 28672
+z/x/y fetches against http://127.0.0.1:8811/tiles/{z}/{x}/{y}.png :
+  GET 0/0/0.png -> 200 image/png 564B pngsig=True
+  GET 1/0/0.png -> 200 image/png 569B pngsig=True
+  GET 1/1/1.png -> 200 image/png 568B pngsig=True
+  GET 2/3/3.png -> 200 image/png 568B pngsig=True
+  GET 9/9/9.png -> 404 (out-of-range correctly refused)
+RESULT: PASS
+
+Reading
+  - PNG signature present on every served tile: the store round-trips real PNG
+    bytes, not an error page.
+  - XYZ request maps to the right TMS row: 1/1/1 and 2/3/3 resolve, and the
+    per-tile colour scheme means a wrong row flip would have served the wrong
+    tile, not a 404. The flip is correct.
+  - Out-of-range 9/9/9 returns 404, not a stale or wrong tile.
+  - The .mbtiles is regenerated deterministically by the script and is NOT
+    committed (it is a build product, and a binary the repo does not need).
+
+What remains for closure (owner: Cameron Zobrist)
+  1. Select the production tile server (single-binary vs static tree vs
+     library-behind-wrapper), rootless and digest-pinned (FML-ADR-029),
+     reachable through services/ingress/ by name.
+  2. CM4 footprint: resident memory and CPU serving a representative view,
+     alongside the routing daemon and service-host load (TBR-COMP-01).
+  3. Store size for a representative area and zoom range with real imagery,
+     and the public-vs-sensitive call that decides the TBR-SEC-01 interaction.
+  4. EUD render acceptance: a device rendering a map from the node offline,
+     using a map-source definition like 2026-09-04-mule-local-tiles.xml.
+  Until 1-4 exist with the measured basis the closure gate demands, TBR-MAP-01
+  stays OPEN and no ADR is entered.

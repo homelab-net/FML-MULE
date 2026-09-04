@@ -51,6 +51,23 @@ element, and whether the imagery falls under `TBR-SEC-01`'s at-rest posture.
 - **A heavier map server** (vector tiles, on-node styling). Right only if
   pre-rendered raster tiles prove inadequate, which v1 does not assume.
 
+## Bench progress
+
+`OPEN`. A `SIMULATED` demonstration of the **interface** exists under
+`docs/evidence/TBR-MAP-01/` (2026-09-04): an `MBTiles` store is read by a
+stand-in server that exposes `z/x/y`, an XYZ fetch returns a valid PNG with the
+correct XYZ-to-TMS row handling, an out-of-range tile is refused, and an
+ATAK/iTAK map-source definition for the endpoint is captured. This settles that
+the committed interface works and that `MBTiles` round-trips cleanly.
+
+It does **not** advance the closure gate. It ran on `x86_64`, not the CM4, so it
+is not the footprint measurement the gate demands; it uses a stand-in
+`http.server`, so it selects no production tile server; its tiles are
+procedurally generated placeholders, not imagery, so the public-versus-sensitive
+call and the `TBR-SEC-01` interaction are untouched; and no EUD rendered a map,
+which is the Stage 4/8 acceptance. The trade stays `OPEN` and no ADR is entered
+until the measured basis below exists.
+
 ## Closure evidence
 
 For the selected mechanism: resident memory and CPU while serving a

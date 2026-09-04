@@ -906,6 +906,12 @@ real client. **Serving maps locally** is a different thing: not a TAK-server
 function at all (OpenTAKServer handles no tiles), not ATAK-only, and per CONOPS
 section 9.2 a **MULE S1 service**. The TAK server is S2. So maps sit in a
 *higher* availability tier than TAK and are supposed to remain when TAK is gone.
+As of 2026-09-04 the committed **interface** has a `SIMULATED` bench
+demonstration -- an `MBTiles` store served over `z/x/y` and an iTAK map-source
+definition, under `docs/evidence/TBR-MAP-01/` -- prompted by "does OTS feed maps
+to iTAK offline" (it does not; OTS serves no tiles, so this service is the only
+offline basemap path). The gap is unchanged for closure: no server selected, no
+CM4 footprint, no EUD render.
 
 **What it is:** a local tile/map source on the node -- offline tiles, an MBTiles
 store, or a WMTS/XYZ endpoint -- so EUDs render maps with no internet and no
