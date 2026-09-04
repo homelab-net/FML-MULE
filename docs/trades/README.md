@@ -68,10 +68,11 @@ SAD section 30.2 records an SRR exit action:
 > the Program Owner assigns one named individual and one calendar target date to
 > every open TBR.
 
-Every trade currently reads `TBD-SRR` for both the named owner and the target
-date. The SAD is explicit that this marker exists so the gap is visible rather
-than hidden behind a functional organization, and `STATUS.md` reports it as a
-program risk.
+Both halves of that action are now done: every trade names Cameron Zobrist as
+owner (2026-08-31), and on 2026-09-04 the Program Owner set every open trade's
+`target-date` to 2026-09-30. `STATUS.md` reports the resulting single-owner
+concentration as a program risk, which is the second half of the same section
+30.1 finding the assignment instantiates.
 
 A trade **cannot** close while its named owner is `TBD-SRR`, because closure
 requires the named owner to accept the evidence.

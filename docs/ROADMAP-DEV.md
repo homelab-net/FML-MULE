@@ -164,12 +164,13 @@ whether a node is one Meshtastic identity or a gateway fronting four to eight
 EUDs — is answered by
 `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md`. A MULE is one
 Meshtastic node, several users behind it collapse to one address, and the
-recipient rides as a deployment-scoped one-byte tag inside the payload.
+recipient rides in upstream's own fields -- `Contact.callsign` and `GeoChat.to`
+-- per `FML-ADR-070`, rather than a custom tag.
 
-The trade is still `OPEN` and cannot close, because every owner is `TBD-SRR`.
-That is a governance gap rather than a technical one: the specification is
-enough to shape an interface against, and an interface built to it will not have
-to be replaced by the act of a named owner signing the same document.
+The trade is now `CLOSED` (`FML-ADR-070`, 2026-09-04): the specification was
+enough to shape an interface against, and the owner's acceptance of the
+upstream-field encoding made it final rather than replacing the interface built
+to it.
 
 **The gap is now only the signature.** Checked item by item, the specification
 satisfies all five closure-evidence items and the closure gate's additional
@@ -406,8 +407,9 @@ node, so several users behind one MULE collapse to one address on the bearer
 CONOPS section 50.8 makes the lifeline.
 
 **Done when:** the four artifacts in the trade's closure evidence exist under
-`docs/evidence/TBR-NET-02/` and a named owner accepts them. See the Track 3
-blocker: no trade can close while every owner is `TBD-SRR`.
+`docs/evidence/TBR-NET-02/` and a named owner accepts them. **Done 2026-09-04:**
+`TBR-NET-02` is `CLOSED`, the owner accepted the specification, and the encoding
+is `FML-ADR-070`.
 
 **Traps:** the natural implementation of "cannot resolve the recipient" is to
 deliver to everyone. It looks like helpfulness and CONOPS section 23 makes it
@@ -492,8 +494,8 @@ observing traffic.
 independently built deployments meet at an incident. That rules out a fixed
 prefix chosen once.
 
-**Done when:** evidence under `docs/evidence/TBR-NET-01/` accepted by a named
-owner. See the blocker in Track 3; today no trade can close.
+**Done 2026-09-04:** the evidence under `docs/evidence/TBR-NET-01/` was accepted
+by the named owner and `TBR-NET-01` is `CLOSED` on `FML-ADR-063`.
 
 ### 1.5a `TBR-NET-03`, how two deployments converge
 
@@ -683,18 +685,21 @@ does and does not simulate, and that list is the test plan for day one.
 **Every trade now has a named owner: Cameron Zobrist.** Trades close on evidence
 accepted by a named owner, so this removes the reason no trade could close.
 
-**It closes nothing by itself.** SAD section 30.2 says a TBR closes when its
-listed evidence exists, the named owner accepts it, **and the resulting
-architecture decision is entered into the ADR register**. The third condition is
-unmet everywhere: no trade in this repository has a decision written against it
-yet. `TBR-NET-01` is the closest -- all three of its closure-evidence items now
-exist -- and it still cannot close, because it has no decision and because it
-depends on `TBR-NET-03`.
+**Owner assignment closed nothing by itself.** SAD section 30.2 says a TBR
+closes when its listed evidence exists, the named owner accepts it, **and the
+resulting architecture decision is entered into the ADR register**. As of
+2026-09-04 three trades have met all three and are `CLOSED`: `TBR-NET-02`
+(`FML-ADR-070`), `TBR-NET-01` (`FML-ADR-063`) and `TBR-NET-03` (`FML-ADR-061`).
+The rest remain `OPEN`, most gated on evidence that needs hardware, which is the
+expected state at SRR.
 
-**The other half of the SRR exit action is still open.** Section 30.2 asks for a
-named individual *and a calendar target date*. Every `target-date` is still
-`TBD-SRR`, deliberately: a date is a commitment and inventing one would be
-inventing a specification. That remains the Program Owner's to set.
+**The SRR exit action is complete.** Section 30.2 asks for a named individual
+*and a calendar target date* on every open TBR. The named individual was
+assigned 2026-08-31, and on 2026-09-04 the Program Owner set the calendar target
+date to **2026-09-30** across every open trade. For a hardware-gated trade that
+date is a target the program drives toward, not a claim the capability exists by
+then; setting it is the commitment SAD section 30.2 asks of the owner, which is
+the owner's act to make rather than a specification this repository invented.
 
 The four critical-path trades, for reference:
 
@@ -733,24 +738,26 @@ of them cannot close before hardware exists anyway.
 Everything else in that table is gated on CONOPS stages 1, 2, 5, 7, 8, 9 or 13,
 which are test campaigns, and most need hardware.
 
-### The one remaining SRR item is blocked, and not on us
+### The remaining SRR item, target dates, is set
 
-Target dates. Every `target-date` is `TBD-SRR`, and setting them is not a typing
-task:
+The Program Owner set every open trade's `target-date` to **2026-09-30** on
+2026-09-04, performing the section 30.2 exit action. The reasoning below is why
+that date is a *target* rather than a promise of capability, kept because it
+still shapes what the date means and what would move it.
 
-**Every closure gate is a milestone, and no milestone has a date.** From the
-section 30.2 register: hardware PDR, host selection, hardware/enclosure PDR,
-RF/BOM lock, HW/HA/security lock, hardware block lock, production software PDR,
-HA architecture lock, PDR, RF design lock, CDR-lite, production image baseline,
-Security Architecture lock, ICD baseline, production hardware-block lock.
+**Every closure gate is a milestone, and most milestones are hardware-gated.**
+From the section 30.2 register: hardware PDR, host selection, hardware/enclosure
+PDR, RF/BOM lock, HW/HA/security lock, hardware block lock, production software
+PDR, HA architecture lock, PDR, RF design lock, CDR-lite, production image
+baseline, Security Architecture lock, ICD baseline, production hardware-block
+lock.
 
-Section 30.2 is explicit about why they are undated: *No calendar schedule has
-yet been baselined for FML/MULE. This SAD therefore does not invent dates.*
-
-So the SRR exit action needs **a baselined program schedule**, and the trade
-dates fall out of it. That reduces the task from eighteen dates to roughly
-fifteen milestones, and it is the Program Owner's, not this repository's.
-Inventing dates here would be inventing a specification.
+Section 30.2 recorded why the SAD itself left them undated: *No calendar schedule
+has yet been baselined for FML/MULE. This SAD therefore does not invent dates.*
+The Program Owner setting one blanket date is a different act from the SAD
+inventing dates -- it is the owner's commitment, which section 30.2 explicitly
+asks for -- and a baselined program schedule would still refine 2026-09-30 into
+the per-milestone dates the hardware-gated trades really answer to.
 
 ### A risk this repository created on 2026-08-31
 

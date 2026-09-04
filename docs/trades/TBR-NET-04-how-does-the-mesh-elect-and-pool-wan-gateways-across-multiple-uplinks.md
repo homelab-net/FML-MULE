@@ -12,7 +12,7 @@ feeds: []
 requires-hardware: partly
 evidence: docs/evidence/TBR-NET-04/
 adr: [FML-ADR-069]
-target-date: TBD-SRR
+target-date: 2026-09-30
 ---
 
 # TBR-NET-04 How does the mesh elect and pool WAN gateways across multiple uplinks
