@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ATAK/iTAK custom map source for the MULE local tile service (TBR-MAP-01).
+
+  This is the map-source definition half of the interface services/map/README.md
+  commits to: it names a z/x/y URL template, the tile scheme, and the zoom range,
+  so an EUD renders a basemap from the node with no internet.
+
+  Delivery: rides the EUD provisioning / data-package path, the same route the
+  TAK data package uses (see TBR-ID-01). On the device it is dropped under
+  atak/maps (ATAK) or imported from a data package (iTAK).
+
+  Address: the bench demonstration served 10.41.0.1:8811 (the MULE AP gateway on
+  the bench). In production the URL resolves the node by NAME through the ingress
+  reverse proxy (services/ingress/), not a literal address; the port and path are
+  whatever TBR-MAP-01 and the ingress owner settle on. The {$z}/{$x}/{$y}
+  placeholders are ATAK's XYZ scheme, matching the endpoint the bench proved.
+-->
+<customMapSource>
+  <name>MULE Local Tiles</name>
+  <minZoom>0</minZoom>
+  <maxZoom>2</maxZoom>
+  <tileType>png</tileType>
+  <tileUpdate>None</tileUpdate>
+  <url>http://10.41.0.1:8811/tiles/{$z}/{$x}/{$y}.png</url>
+  <backgroundColor>#000000</backgroundColor>
+</customMapSource>
