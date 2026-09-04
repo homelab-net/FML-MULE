@@ -12,7 +12,7 @@ feeds: []
 requires-hardware: partly
 evidence: docs/evidence/TBR-MAP-01/
 adr: []
-target-date: TBD-SRR
+target-date: 2026-09-30
 ---
 
 # TBR-MAP-01 Which local tile store and server serves maps to an EUD offline

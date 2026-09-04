@@ -12,7 +12,7 @@ feeds: [TBR-RF-01, TBR-RF-03]
 requires-hardware: yes
 evidence: docs/evidence/TBR-LINUX-01/
 adr: [FML-ADR-040, FML-ADR-022, FML-ADR-023, FML-ADR-024]
-target-date: TBD-SRR
+target-date: 2026-09-30
 ---
 
 # TBR-LINUX-01 Kernel and out-of-tree driver viability
@@ -24,8 +24,9 @@ target-date: TBD-SRR
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
 individual and one calendar target date to every open TBR. The named individual
-is assigned as of 2026-08-31. **The target date is not**, and `TBD-SRR` still
-marks that half of the action rather than hiding it behind an invented date.
+is assigned as of 2026-08-31. The target date was set to 2026-09-30 on 2026-09-04; for a hardware-gated
+trade it is a target the program drives toward, not a claim the capability
+exists by then.
 
 ## Question
 

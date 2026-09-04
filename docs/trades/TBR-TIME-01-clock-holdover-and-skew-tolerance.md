@@ -12,7 +12,7 @@ feeds: [TBR-HW-01, TBR-SEC-01, TBR-HA-01, TBR-ID-01, TBR-CARRIER-01]
 requires-hardware: yes
 evidence: docs/evidence/TBR-TIME-01/
 adr: [FML-ADR-042, FML-ADR-036]
-target-date: TBD-SRR
+target-date: 2026-09-30
 ---
 
 # TBR-TIME-01 Clock holdover and skew tolerance
@@ -24,8 +24,9 @@ target-date: TBD-SRR
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
 individual and one calendar target date to every open TBR. The named individual
-is assigned as of 2026-08-31. **The target date is not**, and `TBD-SRR` still
-marks that half of the action rather than hiding it behind an invented date.
+is assigned as of 2026-08-31. The target date was set to 2026-09-30 on 2026-09-04; for a hardware-gated
+trade it is a target the program drives toward, not a claim the capability
+exists by then.
 
 ## Question
 

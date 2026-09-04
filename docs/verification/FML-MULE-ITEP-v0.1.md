@@ -82,10 +82,12 @@ and states that a TBR closes only when its evidence exists, **the named owner
 accepts the evidence**, and the resulting decision is entered into the ADR
 register.
 
-**All sixteen trades currently read `TBD-SRR`.** Work can be performed against
-this plan, and evidence can be gathered, but **no trade can close**, because
-there is nobody empowered to accept the evidence. Campaigns will complete and
-their trades will remain `OPEN`.
+**Every trade read `TBD-SRR` until 2026-08-31, when Cameron Zobrist was assigned
+to each; open trades also carry a 2026-09-30 target date as of 2026-09-04.**
+Work proceeds against this plan and evidence is gathered. Three trades have since
+closed on accepted evidence and a registered decision (`TBR-NET-01`,
+`TBR-NET-02`, `TBR-NET-03`); the rest, most gated on hardware, complete their
+campaigns and remain `OPEN` until that evidence exists.
 
 SAD section 31 additionally carries *"one individual owns too many TBRs/release
 functions"* as an OPEN risk, to be reviewed once names exist. This plan assigns

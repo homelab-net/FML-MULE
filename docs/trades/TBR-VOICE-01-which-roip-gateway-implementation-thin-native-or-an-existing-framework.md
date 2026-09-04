@@ -12,7 +12,7 @@ feeds: []
 requires-hardware: partly
 evidence: docs/evidence/TBR-VOICE-01/
 adr: [FML-ADR-065, FML-ADR-066, FML-ADR-067]
-target-date: TBD-SRR
+target-date: 2026-09-30
 ---
 
 # TBR-VOICE-01 Which RoIP gateway implementation, thin native or an existing framework
