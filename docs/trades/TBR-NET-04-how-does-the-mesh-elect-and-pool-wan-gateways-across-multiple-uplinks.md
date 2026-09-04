@@ -56,6 +56,31 @@ Every option must preserve the CONOPS section 43 boundary: the uplink-owning nod
 stays the security boundary, and EUD traffic does not enter the secure overlay
 through the shared path.
 
+## Bench progress
+
+`OPEN`. A `SIMULATED` demonstration of the routing logic exists under
+`docs/evidence/TBR-NET-04/` (2026-09-04), reproduced by
+`test/bench/wan-gateway-sharing.sh` on `mac80211_hwsim`: two gateway-holding
+nodes and one WAN-less node. It records a client selecting a gateway through
+`batman-adv` gateway mode (observed in the DHCP lease and default route, not set
+by hand), reaching a server that lives only behind that gateway's uplink, failing
+over to the surviving uplink when the serving gateway leaves, and losing only WAN
+-- not its local stack -- across an induced partition, with recovery on rejoin.
+This settles that the `batman-adv`-native mechanism (the first two options) can
+elect a gateway and carry a WAN-less node's egress.
+
+It does **not** advance the closure gate. It selects no pooling-vs-failover
+answer: it shows single-active selection with failover, and whether v1 pools
+several active uplinks is the comparison this trade's owner records. It measures
+no throughput and states no real-radio selection -- `hwsim` gave both gateways
+equal TQ, so its tie-break chose the winner, and across runs it chose each; those
+are hardware items (`requires-hardware: partly`, `TBR-RF-01`). And the CONOPS
+section 43 boundary is enforced by the firewall, not routing; the run only
+asserts no overlay interface is in the shared path. The trade stays `OPEN`, no
+`GatewayMode` ADR is entered, and `os/config/networkd.conf.template` keeps its
+`TBD`, until the decision, the hardware evidence, and named-owner acceptance
+exist.
+
 ## Closure evidence
 
 A multi-node exercise -- on `mac80211_hwsim` for the routing logic, and on real
