@@ -57,6 +57,14 @@ interface before `wpa_supplicant` has associated.
 It proves nothing about RF. `hwsim` models the 802.11 MAC: no propagation, no
 path loss, no interference, no rate adaptation, no antenna.
 
+**A live EUD against a real service stack.** With a Wi-Fi adapter that does AP
+mode you can run the whole service-plane flow -- an access point, OpenTAKServer
+behind mutual TLS, and a real iTAK client enrolling and streaming CoT.
+`docs/bench-service-bringup.md` records that bench, how it is made
+reboot-persistent, and, most usefully, **every place its bring-up differs from
+the CM4 field node** the BOM specifies -- the onboard AP radio, `arm64` images,
+Quadlets, `networkd`, and the footprint questions this x86 bench cannot answer.
+
 | Capability | Why CI cannot | Roadmap item |
 | --- | --- | --- |
 | 802.11s association, via `mac80211_hwsim` | GitHub hosted runners ship no wireless stack at all | 1.7 |
