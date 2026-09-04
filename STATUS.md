@@ -32,7 +32,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-028` | Mission services share the Debian host but cannot directly own network/RF configuration | TBR-COMP-01 |
 | `FML-ADR-029` | Rootless Podman + Quadlet is default OCI execution model | TBR-HA-01, TBR-COMP-01 |
 | `FML-ADR-030` | Shared-kernel logical isolation using users/namespaces/cgroups/nftables | TBR-COMP-01 |
-| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | TBR-NET-01, TBR-TAK-01 |
+| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | TBR-TAK-01 |
 | `FML-ADR-033` | PyTAK is preferred custom CoT transport/gateway library | none |
 | `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | TBR-HA-01, TBR-TAK-01, TBR-COMP-01 |
 | `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | TBR-ID-01 |
@@ -43,13 +43,13 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
 | `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
 | `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
-| `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01, TBR-NET-01 |
+| `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01 |
 | `FML-ADR-058` | Development toolchain versions are pinned in a lock file | none |
-| `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-NET-01, TBR-RF-01 |
-| `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-NET-03, TBR-NET-01, TBR-SEC-01 |
-| `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | TBR-NET-01, TBR-NET-03, TBR-NET-02 |
+| `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-RF-01 |
+| `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-SEC-01 |
+| `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | none |
 | `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
-| `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | TBR-NET-02 |
+| `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
 
 ### SELECTED PRINCIPLE
 
@@ -61,7 +61,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
 | `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
-| `FML-ADR-057` | What traffic transits the node and what does not | TBR-NET-02, TBR-ID-01 |
+| `FML-ADR-057` | What traffic transits the node and what does not | TBR-ID-01 |
 | `FML-ADR-062` | The HaLow bearer must present a standard mesh-capable mac80211 interface | TBR-LINUX-01, TBR-RF-01, TBR-RF-03, TBR-HW-01 |
 
 ### SELECTED TARGET
@@ -76,7 +76,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
-| `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
+| `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
 
 ### PREFERRED
 
@@ -104,10 +104,10 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-NET-01, TBR-LINUX-01 |
+| `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
 | `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
-| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-NET-02, TBR-ID-01, TBR-RF-03 |
-| `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | TBR-NET-03, TBR-NET-01 |
+| `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-ID-01, TBR-RF-03 |
+| `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | none |
 
 ### RETIRED
 
@@ -138,14 +138,12 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `Cameron Zobrist` | partly |
 | 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `Cameron Zobrist` | yes |
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `Cameron Zobrist` | no |
-| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `Cameron Zobrist` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
-| 99 | `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | `Cameron Zobrist` | no |
 | 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 
-20 open trades. 1 have no named owner.
+18 open trades. 1 have no named owner.
 
 ## Critical path
 
