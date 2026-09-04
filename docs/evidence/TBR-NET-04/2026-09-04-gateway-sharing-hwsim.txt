@@ -1,0 +1,119 @@
+Mesh WAN gateway sharing on mac80211_hwsim -- TBR-NET-04
+========================================================
+
+What was measured
+  The routing-logic half of the TBR-NET-04 closure evidence, on mac80211_hwsim:
+  two gateway-holding nodes and one WAN-less node, recording which gateway the
+  client selects, that the WAN-less node reaches a peer's uplink, failover when
+  the serving gateway leaves, and the default-route state on both sides of an
+  induced partition. Reproduced by test/bench/wan-gateway-sharing.sh.
+
+Evidence tier
+  SIMULATED. hwsim models the 802.11 MAC and nothing physical. See
+  CONTRIBUTING.md and test/bench/80211s-mesh.sh for the standing caveat.
+
+Mechanism (batman-adv's own, not routes set by hand)
+  A gateway node runs `batctl gw_mode server <bw>`; the WAN-less node runs
+  `gw_mode client`, and batman-adv steers its DHCP to the SELECTED gateway. The
+  lease the client obtains and the default route it installs are therefore
+  batman's selection, observed, not imposed. Egress is source NAT on the gateway
+  for the mesh prefix -- the FML-ADR-068 rule generalised one hop across the
+  mesh (FML-ADR-069).
+
+What this is NOT
+  - NOT the pooling-vs-failover decision. This shows single-active selection
+    with failover; whether v1 should pool multiple active uplinks or hold them
+    as failover is the comparison TBR-NET-04's owner records, not a threshold
+    fixed by this run.
+  - NOT a throughput measurement. No number here is a WAN throughput: hwsim has
+    no propagation, path loss or rate adaptation. The closure evidence's
+    throughput bullet is a hardware item (TBR-NET-04 requires-hardware: partly).
+  - NOT which gateway a real mesh selects. hwsim gave equal TQ (75/75) to both
+    gateways, so its tie-break, not bandwidth, chose the winner; across runs it
+    selected each gateway. The bench records the selection, it does not assert
+    one. Real-radio TQ is a hardware item.
+  - NOT the overlay boundary proof. CONOPS section 43 is enforced by the
+    firewall (nftables EUD-prefix match), not by routing. This run only asserts
+    no wireguard/tailscale/tun interface exists in the shared path, i.e. the
+    uplink shared is the GENERAL uplink.
+
+Instrument / environment
+  Host arch:        x86_64 (bench, NOT the target CM4)
+  Kernel module:    mac80211_hwsim, 3 virtual radios, one flat mesh, 2412 MHz
+  batman-adv:       BATMAN_IV (FML-ADR-053), bridge_loop_avoidance 0
+                    (FML-ADR-056), hard-interface MTU 1560
+  Gateway mode:     gw_mode server 100.0/20.0 (node2) and 2.0/0.5 MBit (node3);
+                    client gw_mode client; DHCP via dnsmasq per gateway
+  Date:             2026-09-04
+  Node identifier:  bench (dev laptop); no node/image build id -- not a node run
+  Who:              Cameron Zobrist, with Claude Code (bench assist).
+
+Raw output (dnsmasq log lines removed for length; run is deterministic in
+structure, selection varies by hwsim tie-break)
+------------------------------------------------------------------------
+== Mesh forms and carries traffic (single-step before anything clever) ==
+  client reaches both gateway nodes over the mesh
+
+== Gateways come up with uplinks (node 2 -> WAN A, node 3 -> WAN B) ==
+  client is WAN-less: only lo, wlan0 and bat0 exist in its namespace
+  no wireguard/tailscale/tun interface in any node: the shared uplink is the general one
+
+== 1. Gateway announcement and election ==
+  client sees both gateways:
+    [B.A.T.M.A.N. adv 2024.2, MainIF/MAC: wlan0/... BATMAN_IV]
+      Router            ( TQ) Next Hop          [outgoingIf]  Bandwidth
+      9e:4a:eb:31:f7:dd ( 75) 9e:4a:eb:31:f7:dd [     wlan0]: 2.0/0.5 MBit
+    * 8a:42:d7:16:5e:30 ( 75) 8a:42:d7:16:5e:30 [     wlan0]: 100.0/20.0 MBit
+  batman selected gateway 10.41.0.2; client lease: ip=10.41.2.68 router=10.41.0.2
+
+== 2. A WAN-less node reaches the selected peer's uplink ==
+  client reached 10.201.0.254 (only behind gateway 10.41.0.2's uplink): 3 received
+  client cannot reach 10.202.0.254: the reach above is genuinely through 10.41.0.2's uplink
+
+== 3. Failover: the serving gateway leaves ==
+  taking gateway 10.41.0.2 (fmlgw2) out of service
+  client re-selected surviving gateway 10.41.0.3; lease: ip=10.41.3.68 router=10.41.0.3
+  client now reaches 10.202.0.254 through the surviving uplink 10.41.0.3: 3 received
+
+== 4. Induced partition, and the default-route state on both sides ==
+  isolating the client from the mesh (it leaves the 802.11s mesh)
+  client side of the partition:
+    gateways seen: 1
+    default route: default via 10.41.0.3 dev bat0
+    WAN unreachable from the isolated client, as it must be
+    (the default route can linger stale until batman ages the gateway out;
+     what matters is that it carries nothing, shown above)
+    client keeps its own local stack (CONOPS 41: lose WAN, not local services)
+  gateway side of the partition (10.41.0.3 keeps its uplink):
+    gateway 10.41.0.3 still reaches its uplink server 10.202.0.254
+
+== Recovery: the client rejoins ==
+  client rejoined, re-selected a gateway and reached the WAN again
+
+PASS. (exit 0)
+
+Reading
+  - Selection is observable and operational: the client's DHCP lease and default
+    route follow batman's gateway selection, and batctl marks the selected
+    gateway with `*`. A prior run selected the other gateway; both passed. This
+    settles that the batman-native mechanism (TBR-NET-04 option 1/2) elects a
+    gateway and steers a WAN-less node's egress to it.
+  - Reachability is genuinely through the peer's uplink: the server reached lives
+    ONLY in a namespace behind that gateway's NAT, and the client cannot reach
+    the other gateway's server. So this is not the mesh and not the client's own
+    link (asserted WAN-less).
+  - Failover works: removing the serving gateway re-homes the client to the
+    surviving uplink and it reaches that uplink's server.
+  - Partition degrades safely: the isolated client loses WAN (the default route
+    lingers stale but carries nothing) while keeping its local stack; the
+    gateway side keeps its own uplink. Recovery on rejoin restores WAN.
+
+What remains for closure (owner: TBD-SRR; assignment is an SRR exit action)
+  1. The pooling-vs-failover decision: whether v1 pools multiple active uplinks
+     or holds them as failover, recorded against observed resilience and
+     contention -- and the resulting GatewayMode ADR against FML-ADR-069.
+  2. Hardware: real-radio TQ-driven selection, real-uplink reachability and
+     throughput, on the CM4 with real bearers (TBR-RF-01, requires-hardware).
+  3. Named-owner acceptance of the closure gate (SAD section 30.2).
+  Until 1-3 exist, TBR-NET-04 stays OPEN and GatewayMode in
+  os/config/networkd.conf.template stays TBD.

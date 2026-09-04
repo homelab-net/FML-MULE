@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Four procedures. No measurement has been taken.**
+**Five procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -24,6 +24,18 @@ several bearers joined into one mesh is what `FML-ADR-045` describes and what
 It does not run in CI and cannot: a hosted runner's kernel has no wireless
 stack at all. Run it on a development machine, as root. See
 `docs/dev-machine.md`.
+
+`wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
+`mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the
+routing-logic half of `TBR-NET-04` -- a client selecting a gateway (through the
+DHCP the gateway mode steers, not a route set by hand), reaching a server that
+lives only behind that gateway's uplink, failing over to the surviving uplink,
+and losing only WAN across an induced partition. It selects no
+pooling-vs-failover answer and measures no throughput: `hwsim` has no RF, so
+which gateway its equal-TQ tie-break picks is not a real-radio result, and
+`FML-ADR-069`'s mechanism stays open. It needs `dnsmasq`, `iptables` and
+`busybox` as well as `iw` and `batctl`, and like the others it does not run in
+CI.
 
 `keyed-mesh.sh` proves that a keyed 802.11s mesh admits only credential
 holders, which is what `FML-ADR-061` decides and what `FML-ADR-060` was

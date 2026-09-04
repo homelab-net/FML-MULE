@@ -607,14 +607,19 @@ a perfect wire cannot pose.
 
 ### 1.8 Mesh WAN gateway sharing
 
-**State:** target set, mechanism open. `FML-ADR-069` decides that WAN is a
-mesh-wide capability -- a MULE with an uplink fans it out to WAN-less nodes, and
-several nodes' uplinks are pooled -- as the CONOPS section 42 end state beyond
-the v1 single-gateway baseline. `FML-ADR-068` is the node-local first step, an
-EUD reaching its own node's uplink, demonstrated `SIMULATED` on the prototype
-access point. The mechanism -- `batman-adv` gateway mode, gateway election,
-single-active versus pooled multi-active, load-share versus failover -- is
-`TBR-NET-04` and undecided.
+**State:** target set, mechanism open, routing logic now demonstrated
+`SIMULATED`. `FML-ADR-069` decides that WAN is a mesh-wide capability -- a MULE
+with an uplink fans it out to WAN-less nodes, and several nodes' uplinks are
+pooled -- as the CONOPS section 42 end state beyond the v1 single-gateway
+baseline. `FML-ADR-068` is the node-local first step, an EUD reaching its own
+node's uplink, demonstrated `SIMULATED` on the prototype access point. As of
+2026-09-04 the mesh half is exercised too: `test/bench/wan-gateway-sharing.sh`
+runs `batman-adv` gateway mode on `mac80211_hwsim` and a WAN-less node selects a
+peer's gateway, reaches its uplink, fails over to the surviving uplink, and loses
+only WAN on partition (`docs/evidence/TBR-NET-04/`, `SIMULATED`). The decision
+that stays open -- single-active versus pooled multi-active, load-share versus
+failover -- is `TBR-NET-04`, and the throughput and real-radio selection it also
+needs are hardware.
 
 **CONOPS basis:** section 42 (any MULE may hold the local WAN-gateway role),
 section 43 and section 744 (the MULE is the overlay boundary and EUD traffic must
