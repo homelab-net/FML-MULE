@@ -1,27 +1,20 @@
 {
   "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. This is not a real mission configuration and does not describe a real deployment, location, or group. No real mission configuration is ever committed to this repository; a real package belongs in mission/local/, which is git-ignored. See SECURITY.md.",
-  "_purpose": "VALID example: every field populated, including optional ones.",
-  "_note": "address_prefix is an illustrative per-deployment IPv4 prefix (FML-ADR-063: generated, per-deployment). 10.83.0.0/16 is an example value, not a real or proposed allocation and not the retired program-wide constant.",
+  "_purpose": "INVALID example. MUST BE REJECTED.",
+  "_violates": "network.address_prefix is '2001:db8::/32', which is not a well-formed IPv4 CIDR. FML-ADR-063 made the field a per-deployment IPv4 prefix and the schema now constrains it with a pattern, so a non-IPv4-CIDR value is rejected. This example exists so that the addressing-configuration check is itself tested; without the pattern it would validate.",
   "schema_version": "0.1",
   "mission": {
-    "id": "example-full",
-    "name": "Example training exercise, fictional",
+    "id": "example-bad-prefix",
+    "name": "Example with a malformed address prefix, fictional",
     "example": true,
     "region": "us-915"
   },
   "network": {
-    "mesh_id": "example-mesh-full",
+    "mesh_id": "example-mesh-bad-prefix",
     "local_domain": "example.invalid",
-    "address_prefix": "10.83.0.0/16",
+    "address_prefix": "2001:db8::/32",
     "ap_ssid": "example-node-ap"
   },
   "profile": "exercise",
-  "services": [
-    "example-service-a",
-    "example-service-b"
-  ],
-  "trust": {
-    "trust_anchor_ref": "example-trust-anchor-reference-not-material"
-  },
   "notes": "Fictional example package used to exercise the schema. Contains no real identity, location, callsign or credential."
 }

@@ -74,8 +74,9 @@
           "maxLength": 253
         },
         "address_prefix": {
-          "description": "TBD. Address family, whether the prefix is fixed or per-deployment, and whether host addresses derive from node identity are all open. TBR-NET-01. Note that an address derived from a durable node identifier IS a durable identifier visible to any observer; see THREAT_MODEL.md.",
-          "type": "string"
+          "description": "Per-deployment IPv4 mesh prefix in CIDR notation, for example 10.83.0.0/16. FML-ADR-063: the prefix is per-deployment, not the retired program-wide constant, and is generated rather than derived from node or deployment identity -- a derived address is itself a durable identifier visible to any observer; see THREAT_MODEL.md. A node that holds an uplink whose range overlaps this prefix shall report the overlap (FML-ADR-063).",
+          "type": "string",
+          "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])/(?:[0-9]|[12][0-9]|3[0-2])$"
         },
         "ap_ssid": {
           "description": "EUD access point SSID. The passphrase is NOT part of this schema and never appears in a committed package; see SECURITY.md.",

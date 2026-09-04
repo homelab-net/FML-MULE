@@ -1,7 +1,7 @@
 ---
 id: TBR-NET-02
 title: How does a node address the EUDs behind it
-status: OPEN
+status: CLOSED
 owner: Cameron Zobrist
 area: NET
 priority: 99
@@ -11,11 +11,32 @@ depends-on: []
 feeds: [TBR-ID-01]
 requires-hardware: no
 evidence: docs/evidence/TBR-NET-02/
-adr: [FML-ADR-057, FML-ADR-056, FML-ADR-026, FML-ADR-048]
+adr: [FML-ADR-070, FML-ADR-057, FML-ADR-056, FML-ADR-026, FML-ADR-048]
 target-date: TBD-SRR
 ---
 
 # TBR-NET-02 How does a node address the EUDs behind it
+
+## Resolution
+
+`CLOSED` 2026-09-04. The Program Owner (Cameron Zobrist) accepted the addressing
+specification and its encoding decision.
+
+The five closure-evidence items are satisfied: the mapping table, the worked
+trace per plane, the operator-facing statement of what is lost at the boundary,
+and the unresolved-recipient fail-closed rule are in
+`docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md`, which also
+states what changes when `TBR-ID-01` closes and what does not. Item 4, the LoRa
+tag encoding, is decided by **`FML-ADR-070`**: EUD identity and recipient use
+upstream's `Contact.callsign` and `GeoChat.to` rather than a custom one-byte
+index, because the index was measured to have nowhere to go under `FML-ADR-048`.
+The specification's earlier selection of the index is marked superseded in place.
+
+Two follow-ups are recorded as consequences of `FML-ADR-070`, not as open parts
+of this trade: an artificial composition character limit sized to the 231-byte
+usable payload (roadmap item 1.1 step 2), and confirming what `GeoChat.to`
+actually contains (a callsign, a UID, or otherwise) before recipient resolution
+is implemented.
 
 ## Question
 

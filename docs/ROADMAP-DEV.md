@@ -371,19 +371,22 @@ translation-table entry rather than a local one.
 so the governance blocker is gone. Nothing technical is missing for the IP
 half.
 
-**What is missing now is a decision, and it is not the one the specification
-expected.** `2026-08-30-opentakserver-meshtastic-path.md` read the first of
-`FML-ADR-048`'s three gateways and found two things. A payload on a private
-port is discarded by it, which is where a custom one-byte member tag would
-sit. And the ATAK plugin protobuf it does handle already carries
-`Contact.callsign` and `GeoChat.to`, so identity and recipient are on the wire
-already, as upstream's strings rather than this program's index.
+**The decision is made and the trade is `CLOSED` (2026-09-04).**
+`2026-08-30-opentakserver-meshtastic-path.md` read the first of `FML-ADR-048`'s
+three gateways and found two things. A payload on a private port is discarded by
+it, which is where a custom one-byte member tag would sit. And the ATAK plugin
+protobuf it does handle already carries `Contact.callsign` and `GeoChat.to`, so
+identity and recipient are on the wire already, as upstream's strings rather than
+this program's index.
 
-So the specification's chosen encoding is not available in combination with
-`FML-ADR-048`: adding the index means replacing upstream's format, which that
-ADR orders the program not to do first. The owner picks between using what
-upstream carries, at more airtime, or keeping the index and writing an ADR
-against `FML-ADR-048`. Neither is implementation work and both are decisions.
+So the specification's chosen encoding was not available in combination with
+`FML-ADR-048`: adding the index means replacing upstream's format, which that ADR
+orders the program not to do first. The Program Owner chose **using what upstream
+carries** -- `Contact.callsign` and `GeoChat.to` -- accepting the higher airtime,
+recorded as **`FML-ADR-070`**. Two follow-ups fall out of it, tracked as
+consequences rather than open trade parts: an artificial composition character
+limit sized to the 231-byte usable payload (step 2 below), and confirming what
+`GeoChat.to` contains before recipient resolution is built.
 
 **Blocked by:** nothing. `TBR-ID-01` is deliberately not a prerequisite: this
 trade exists to structure addressing so authentication can be added to it later
@@ -415,9 +418,13 @@ leaving it to the analysis.
 
 **State:** the decision is made -- **`FML-ADR-063`, `SELECTED`** -- and the
 trade is **ready to close on the named owner's acceptance**. All three
-closure-evidence items exist under `docs/evidence/TBR-NET-01/` and a decision is
-in the register; SAD section 30.2 makes acceptance the remaining step, which is
-the owner's act, not the author's.
+closure-evidence items now exist under `docs/evidence/TBR-NET-01/`: the third,
+that the mission schema validates a deployment's addressing configuration, was
+the change `FML-ADR-063` required but did not make, and was supplied 2026-09-04
+by constraining `network.address_prefix` to a per-deployment IPv4 CIDR with a
+machine-checked counter-example (`2026-09-04-schema-validates-addressing.md`).
+A decision is in the register; SAD section 30.2 makes acceptance the remaining
+step, which is the owner's act, not the author's.
 
 The decision: the field prefix is **per-deployment**, generated not derived from
 identity, and a node **never carries an overlapping uplink silently** --
@@ -502,9 +509,15 @@ mesh** on a liaison node so the boundary is revocable without rekeying the
 fleet. Measured: a node without the credential never reaches `ESTAB`;
 `test/bench/keyed-mesh.sh` reproduces it.
 
-**It still does not close.** One closure item is unsupplied -- what a liaison
-may forward and who authorises one -- and the liaison half stays conditional on
-1.5 selecting per-deployment prefixes.
+**It does not close yet, but the reason is now sequencing, not evidence.** As of
+2026-09-04 the last unsupplied item -- what a liaison may forward and who
+authorises one -- is supplied
+(`docs/evidence/TBR-NET-03/2026-09-04-what-a-liaison-forwards-and-who-authorises.md`:
+default-deny, enumerated flows only, a liaison a declared authorised role rather
+than a radio act). Every closure-evidence item now exists. What remains is the
+trade's own gate that a liaison mechanism is not accepted while 1.5 is open;
+1.5's per-deployment-prefix selection met `FML-ADR-061`'s condition, so `TBR-NET-03`
+is ready for acceptance the moment `TBR-NET-01` closes.
 
 The routed-liaison option works end to end for one route per liaison, layer 2
 never merges, and the collision is structurally unreachable. Two operational findings came with

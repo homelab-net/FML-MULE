@@ -34,9 +34,13 @@ one of its four closure-evidence items and selects nothing.
   per mesh, so a captured node means rekeying everyone. `FML-ADR-061`
   supersedes `FML-ADR-060` on the strength of it.
 
-Still missing: the operator-facing statement of the procedure, the
-`THREAT_MODEL.md` assessment, the statement of what a liaison may forward and
-who authorises one, and the decision itself.
+The operator-facing statement and the `THREAT_MODEL.md` assessment are in
+`2026-08-31-what-it-discloses-and-what-an-operator-does.md`; the decision is
+`FML-ADR-061`; and the statement of what a liaison may forward and who authorises
+one is `2026-09-04-what-a-liaison-forwards-and-who-authorises.md`. Every
+closure-evidence item is now supplied. What remains is not evidence but the
+sequencing gate: the trade's own gate holds that a liaison mechanism is not
+accepted while `TBR-NET-01` is open, so acceptance follows `TBR-NET-01`'s closure.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,
