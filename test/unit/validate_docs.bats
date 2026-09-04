@@ -384,6 +384,63 @@ SH
   grep -qE '[1-9][0-9]* have no named owner' "$SANDBOX/STATUS.md"
 }
 
+@test "gen-status drops a closed trade from a decision's open-dependency column" {
+  make_sandbox
+
+  # PLANTED, not observed. The decisions table column is headed "Open trades it
+  # depends on", and until trades started closing every dependency was open, so
+  # nothing exercised the filter. A decision and its dependency are created here
+  # so the test does not rely on the repository keeping an open dependency as it
+  # closes trades.
+  cat >"$SANDBOX/docs/trades/TBR-ZZZ-99-planted-dependency.md" <<'TRADE'
+---
+id: TBR-ZZZ-99
+title: Planted open dependency
+status: OPEN
+owner: Test
+area: ZZZ
+priority: 99
+function-owner: Test
+critical-path: false
+depends-on: []
+feeds: []
+requires-hardware: no
+evidence: docs/evidence/TBR-ZZZ-99/
+adr: []
+target-date: TBD
+---
+# TBR-ZZZ-99 Planted open dependency
+TRADE
+
+  cat >"$SANDBOX/docs/adr/FML-ADR-901-planted-decision.md" <<'ADR'
+---
+id: FML-ADR-901
+title: Planted decision depending on a trade
+status: SELECTED
+date: 2026-09-04
+supersedes: none
+superseded-by: none
+trades: [TBR-ZZZ-99]
+verification: TBD
+---
+# FML-ADR-901 Planted decision depending on a trade
+ADR
+
+  # While the dependency is open, the decision's row lists it.
+  run sh -c "cd '$SANDBOX' && sh tools/gen-status.sh"
+  [ "$status" -eq 0 ]
+  grep -qE '`FML-ADR-901`.*TBR-ZZZ-99' "$SANDBOX/STATUS.md"
+
+  # Close the dependency: the decision must stay, but must no longer list it as
+  # an open dependency.
+  sed -i 's/^status: OPEN/status: CLOSED/' \
+    "$SANDBOX/docs/trades/TBR-ZZZ-99-planted-dependency.md"
+  run sh -c "cd '$SANDBOX' && sh tools/gen-status.sh"
+  [ "$status" -eq 0 ]
+  grep -q '`FML-ADR-901`' "$SANDBOX/STATUS.md"
+  ! grep -qE '`FML-ADR-901`.*TBR-ZZZ-99' "$SANDBOX/STATUS.md"
+}
+
 @test "gen-traceability --check fails on a binding requirement with no stage" {
   make_sandbox
   # A requirement with no validating stage is a defect, not a gap.

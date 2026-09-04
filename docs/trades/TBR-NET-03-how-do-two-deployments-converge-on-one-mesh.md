@@ -1,7 +1,7 @@
 ---
 id: TBR-NET-03
 title: How do two deployments converge on one mesh
-status: OPEN
+status: CLOSED
 owner: Cameron Zobrist
 area: NET
 priority: 99
@@ -201,12 +201,14 @@ question. Measured afterwards: a node without the credential never reaches
 `ESTAB` and gets 100% packet loss. `FML-ADR-061` keeps `FML-ADR-060`'s routing
 requirements in full and changes only who may merge.
 
-**This trade does not close on it yet.** Its own closure gate says a selected
-mechanism is not accepted while `TBR-NET-01` remains open, and `FML-ADR-061`'s
-liaison half stays conditional on that trade selecting per-deployment prefixes.
-As of 2026-09-04 every closure-evidence item is supplied; what remains is that
-sequencing gate, not more evidence, and `TBR-NET-01` selected per-deployment
-prefixes (`FML-ADR-063`), meeting the condition.
+**`CLOSED` 2026-09-04**, on the named owner's (Cameron Zobrist) acceptance. Its
+own closure gate held that a selected mechanism is not accepted while
+`TBR-NET-01` remained open; `TBR-NET-01` closed the same day on the strength of
+`FML-ADR-063`'s per-deployment prefix, which also met the condition
+`FML-ADR-061`'s liaison half carried forward, so the sequencing gate is lifted.
+Every closure-evidence item is supplied, the decision is `FML-ADR-061` in the
+register, and the last item -- what a liaison may forward and who authorises one
+-- is `2026-09-04-what-a-liaison-forwards-and-who-authorises.md`.
 
 All five evidence items and their state:
 

@@ -48,6 +48,21 @@ frontmatter_field() {
   ' "$1"
 }
 
+# True when a trade is still outstanding (its dependency is not yet discharged).
+# Used to keep the "Open trades it depends on" column of the decisions table
+# honest once trades start closing: a CLOSED or ABANDONED trade is no longer an
+# open dependency and must not be listed as one. An unknown id is kept, so a
+# typo shows up rather than vanishing.
+trade_outstanding() {
+  for tf in "$TRADE_DIR/$1-"*.md; do
+    [ -e "$tf" ] || return 0
+    case "$(frontmatter_field "$tf" status)" in
+      CLOSED | ABANDONED) return 1 ;;
+      *) return 0 ;;
+    esac
+  done
+}
+
 tmp=$(mktemp)
 trap 'rm -f "$tmp" "$tmp.trades" "$tmp.out"' EXIT INT TERM
 
@@ -86,9 +101,14 @@ HEADER
       id=$(frontmatter_field "$f" id)
       title=$(frontmatter_field "$f" title)
       trades=$(frontmatter_field "$f" trades)
-      [ "$trades" = "[]" ] && trades='none'
-      trades=$(printf '%s' "$trades" | sed -e 's/^\[//' -e 's/\]$//')
-      rows="$rows| \`$id\` | $title | $trades |
+      trades=$(printf '%s' "$trades" | sed -e 's/^\[//' -e 's/\]$//' -e 's/,/ /g')
+      open_trades=''
+      for t in $trades; do
+        trade_outstanding "$t" && open_trades="$open_trades$t, "
+      done
+      open_trades=$(printf '%s' "$open_trades" | sed 's/, $//')
+      [ -n "$open_trades" ] || open_trades='none'
+      rows="$rows| \`$id\` | $title | $open_trades |
 "
     done
     [ -n "$rows" ] || continue

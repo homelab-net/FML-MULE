@@ -416,15 +416,13 @@ leaving it to the analysis.
 
 ### 1.5 `TBR-NET-01`, the addressing plan
 
-**State:** the decision is made -- **`FML-ADR-063`, `SELECTED`** -- and the
-trade is **ready to close on the named owner's acceptance**. All three
-closure-evidence items now exist under `docs/evidence/TBR-NET-01/`: the third,
+**State:** **`CLOSED` 2026-09-04.** The decision is **`FML-ADR-063`,
+`SELECTED`**, and the named owner accepted the evidence. All three
+closure-evidence items exist under `docs/evidence/TBR-NET-01/`: the third,
 that the mission schema validates a deployment's addressing configuration, was
 the change `FML-ADR-063` required but did not make, and was supplied 2026-09-04
 by constraining `network.address_prefix` to a per-deployment IPv4 CIDR with a
 machine-checked counter-example (`2026-09-04-schema-validates-addressing.md`).
-A decision is in the register; SAD section 30.2 makes acceptance the remaining
-step, which is the owner's act, not the author's.
 
 The decision: the field prefix is **per-deployment**, generated not derived from
 identity, and a node **never carries an overlapping uplink silently** --
@@ -499,9 +497,10 @@ owner. See the blocker in Track 3; today no trade can close.
 
 ### 1.5a `TBR-NET-03`, how two deployments converge
 
-**State:** open, raised 2026-08-30. **A decision exists -- `FML-ADR-061`,
-`SELECTED`** -- and four artifacts support it. `FML-ADR-060` was superseded the
-day after it was written and must not be read as current.
+**State:** **`CLOSED` 2026-09-04**, on the named owner's acceptance, once
+`TBR-NET-01` closed and lifted the sequencing gate. **The decision is
+`FML-ADR-061`, `SELECTED`**, with five artifacts supporting it. `FML-ADR-060`
+was superseded the day after it was written and must not be read as current.
 
 The mesh is keyed with `key_mgmt=SAE`, MULEs of one deployment merge
 automatically on a shared credential, and a partner gets a **separate keyed
@@ -509,15 +508,14 @@ mesh** on a liaison node so the boundary is revocable without rekeying the
 fleet. Measured: a node without the credential never reaches `ESTAB`;
 `test/bench/keyed-mesh.sh` reproduces it.
 
-**It does not close yet, but the reason is now sequencing, not evidence.** As of
-2026-09-04 the last unsupplied item -- what a liaison may forward and who
-authorises one -- is supplied
+**Closed the same day as 1.5, in that order.** The last unsupplied item -- what
+a liaison may forward and who authorises one -- was supplied 2026-09-04
 (`docs/evidence/TBR-NET-03/2026-09-04-what-a-liaison-forwards-and-who-authorises.md`:
 default-deny, enumerated flows only, a liaison a declared authorised role rather
-than a radio act). Every closure-evidence item now exists. What remains is the
-trade's own gate that a liaison mechanism is not accepted while 1.5 is open;
-1.5's per-deployment-prefix selection met `FML-ADR-061`'s condition, so `TBR-NET-03`
-is ready for acceptance the moment `TBR-NET-01` closes.
+than a radio act). The trade's own gate held that a liaison mechanism is not
+accepted while 1.5 was open; 1.5's per-deployment-prefix selection met
+`FML-ADR-061`'s condition and 1.5 then closed, lifting the gate, so `TBR-NET-03`
+closed on the owner's acceptance immediately after.
 
 The routed-liaison option works end to end for one route per liaison, layer 2
 never merges, and the collision is structurally unreachable. Two operational findings came with
