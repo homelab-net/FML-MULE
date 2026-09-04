@@ -20,7 +20,7 @@ target-date: TBD-SRR
 **Source:** SAD v0.31 section 4.2, and the TBR register in SAD section
 30.2 (priority 15 of 16).
 
-**Function owner:** Network. **Named owner:** `TBD-SRR`.
+**Function owner:** Network. **Named owner:** Cameron Zobrist.
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
 individual and one calendar target date to every open TBR. The named individual
@@ -39,9 +39,14 @@ generated rather than derived from identity; and **a node never carries an
 overlapping uplink silently.**
 
 **This trade is ready to close** on the named owner's acceptance. Its three
-closure-evidence items exist, a decision is entered in the ADR register, and SAD
-section 30.2 makes acceptance the remaining step. It is not marked `CLOSED`
-here, because acceptance is the owner's act and not the author's.
+closure-evidence items now exist -- the third, that the mission schema validates
+a deployment's addressing configuration, was the one `FML-ADR-063` required and
+did not make; it was supplied 2026-09-04 by constraining
+`network.address_prefix` to a per-deployment IPv4 CIDR with a machine-checked
+counter-example (`docs/evidence/TBR-NET-01/2026-09-04-schema-validates-addressing.md`).
+A decision is entered in the ADR register, and SAD section 30.2 makes acceptance
+the remaining step. It is not marked `CLOSED` here, because acceptance is the
+owner's act and not the author's.
 
 **What the decision does not solve, stated in the ADR:** venue overlap cannot be
 solved inside IPv4, and what a node does beyond reporting an overlap is

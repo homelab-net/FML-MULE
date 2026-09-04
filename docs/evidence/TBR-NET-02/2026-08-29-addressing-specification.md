@@ -143,6 +143,18 @@ CONOPS section 6 plans four to eight EUDs per MULE. A twenty-MULE deployment is
 therefore around 160 members, inside 255. A two-byte index is available if a
 deployment ever exceeds that, at a cost that is still under one percent.
 
+**Superseded 2026-09-04 by `FML-ADR-070`: the index is not the encoding.** This
+selection was made before `2026-08-30-opentakserver-meshtastic-path.md` read
+`FML-ADR-048`'s first gateway and found the index has nowhere to go -- a private
+port is discarded, and upstream's ATAK-plugin protobuf has no spare field, so
+the index means replacing upstream's encoding, which `FML-ADR-048` forbids
+first. Upstream already carries `Contact.callsign` (per-person identity) and
+`GeoChat.to` (recipient). The Program Owner accepted using those instead. The
+airtime costing above stands as the reason the index looked right; `FML-ADR-070`
+records why it is not available, and that the higher airtime of the callsign is
+accepted with an artificial message-length limit to keep a message plus identity
+inside the 231-byte usable payload.
+
 A UUID costs fifteen percent of every packet to carry a name nobody reads, on
 the bearer with the least capacity. It is listed to be ruled out.
 

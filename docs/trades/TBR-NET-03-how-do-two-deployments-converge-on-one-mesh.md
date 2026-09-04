@@ -204,10 +204,11 @@ requirements in full and changes only who may merge.
 **This trade does not close on it yet.** Its own closure gate says a selected
 mechanism is not accepted while `TBR-NET-01` remains open, and `FML-ADR-061`'s
 liaison half stays conditional on that trade selecting per-deployment prefixes.
-One closure item also remains unsupplied: what a liaison may forward and who
-authorises one.
+As of 2026-09-04 every closure-evidence item is supplied; what remains is that
+sequencing gate, not more evidence, and `TBR-NET-01` selected per-deployment
+prefixes (`FML-ADR-063`), meeting the condition.
 
-All four evidence items and their state:
+All five evidence items and their state:
 
 | Item | State |
 | --- | --- |
@@ -215,7 +216,7 @@ All four evidence items and their state:
 | What an operator does | `2026-08-31-what-it-discloses-and-what-an-operator-does.md`. The typed procedure **fails** this trade's own test and is only acceptable declared. |
 | `THREAT_MODEL.md` assessment | Same artifact. Merging meshes is an admission decision taken by radio configuration, bypassing admission control. |
 | Interaction with `TBR-NET-01` stated explicitly | This file, and the condition `FML-ADR-061` carries forward. |
-| **What a liaison may forward, and who authorises one** | **Not supplied.** |
+| What a liaison may forward, and who authorises one | `2026-09-04-what-a-liaison-forwards-and-who-authorises.md`. Default-deny, enumerated flows only; a liaison is a declared, authorised role in the mission package, not a radio act. |
 
 ## Closure evidence
 
