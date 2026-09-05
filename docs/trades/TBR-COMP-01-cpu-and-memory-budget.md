@@ -56,6 +56,19 @@ sufficient to remain responsive during application load. Whether that is a
 systemd resource reservation, a dedicated core, or priority alone is part of
 this trade.
 
+**Storage is now a first-class axis, not a footnote.** A 2026-09-04 bench
+session sized the on-node map repository (`TBR-MAP-01`): an area of operations at
+full detail is tens of MB, but a multi-state region at street detail is hundreds
+of GB and CONUS at detail is tens of TB
+(`docs/evidence/TBR-MAP-01/2026-09-04-real-eud-offline-map-and-storage.md`). The
+32 GB eMMC holds an AO; useful regional detail, and the Program Owner's
+map/service-server direction, require added storage -- a `>=256 GB SSD`, which is
+the `TBR-CARRIER-01` M.2-versus-radio slot decision and the `FML-ADR-050`/USB2
+Postgres-survivability question. The compute budget must state the storage
+class, capacity, and bus alongside CPU and memory, and OTS + PostGIS + the tile
+server serving that repository is part of the load this trade measures on the
+CM4.
+
 ## Closure evidence
 
 Measured RAM, CPU, OOM and cgroup behaviour for the components SAD section 25.3

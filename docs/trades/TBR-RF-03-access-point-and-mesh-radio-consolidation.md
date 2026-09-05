@@ -62,6 +62,25 @@ three-radio mental model**.
 4. **Access point only when needed**, brought up on operator action. Reduces
    contention and emissions; complicates operation.
 
+## Bench progress
+
+`OPEN`. A `SIMULATED` demonstration of **option 1** exists under
+`docs/evidence/TBR-RF-03/` (2026-09-04): a mesh-capable `mac80211` radio
+advertises `#{ managed, AP, mesh point }` concurrent on one channel, and on
+`mac80211_hwsim` an AP interface and an 802.11s mesh interface were brought up
+live on one radio with an EUD associated to the AP while the mesh was joined.
+Two findings: the **RTL8812AU has no mesh mode** (so the consolidated radio must
+be a mesh-capable chip -- `ath9k`, `mt76`, `ath10k` -- which bears on
+`TBR-LINUX-01`); and consolidation is the lever that **frees the carrier's single
+M.2 slot for a storage SSD** (the slot otherwise holds the QCA6174 mesh radio;
+see `TBR-CARRIER-01`).
+
+This does **not** advance the closure gate: `hwsim` shows no RF, so the airtime
+contention between a busy AP and the inter-node mesh -- the concrete operational
+risk this trade names -- and the stream/antenna count are untouched and need real
+radios. The trade stays `OPEN` and `FML-ADR-045`'s two-radio planning baseline
+stands until that hardware evidence exists.
+
 ## Closure evidence
 
 SAD section 5.2 fixes the required closure evidence:
