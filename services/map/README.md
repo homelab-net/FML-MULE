@@ -101,6 +101,28 @@ choice `TBR-MAP-01` makes.
   in the scheme the store uses; reconciling projections is the mapping
   toolchain's job upstream of the store.
 
+## Learned on a real EUD (2026-09-04)
+
+A real iTAK EUD rendered a high-detail map streamed from a node with WAN cut
+(`docs/evidence/TBR-MAP-01/2026-09-04-real-eud-offline-map-and-storage.md`). It
+confirmed this interface and added constraints this outline now carries:
+
+- **The store cannot be OpenStreetMap's public tiles.** Bulk provisioning is
+  IP-blocked and forbidden by OSM's tile policy; it returns an "Access blocked"
+  image the node would then serve. The store is populated from a **permitted
+  source** -- USGS National Map (free, no key, US coverage), Esri
+  imagery/topo (keyless, attribution), or a licensed provider. Which one, and
+  its licence and sensitivity, is `TBR-MAP-01` and touches `TBR-SEC-01`.
+- **A storage-equipped node is a map server for the mesh, not only its own
+  EUDs.** Provisioning is area-scoped by storage (an AO is tens of MB; a region
+  at street detail is hundreds of GB -- see the evidence), so a node carrying a
+  large repository serves it to its own EUDs *and*, acting as a server, to other
+  nodes over the mesh -- the same share-a-resource pattern as the WAN gateway
+  (CONOPS section 42, `TBR-NET-04`). The M.2 slot this needs is `TBR-CARRIER-01`.
+- **Clients cache tiles by position, not by source.** A tile-store update needs
+  a cache-invalidation story (a changed source path forced a real EUD to refetch;
+  a same-path swap did not), which the EUD-provisioning path must account for.
+
 ## Done when
 
 `TBR-MAP-01` selects a store format and a tile server, a `catalog/` entry and a

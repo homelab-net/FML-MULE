@@ -7,8 +7,15 @@
 **Priority:** 4 of 16 (SAD v0.31 section 30.2). **Function owner:** Network + RF.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** one `SIMULATED` interface-combination demonstration of
+option 1. This trade is `OPEN`: the airtime-contention and antenna/stream
+evidence the closure gate demands is hardware and not produced.
+
+- `2026-09-04-one-radio-ap-plus-mesh-hwsim.md` -- a mesh-capable `mac80211`
+  radio advertises AP + mesh-point concurrent on one channel, and on `hwsim` an
+  AP interface and an 802.11s mesh interface were brought up live on one radio
+  with an EUD associated. Notes that the RTL8812AU has no mesh mode, and that
+  this consolidation is what frees the M.2 slot for storage (`TBR-CARRIER-01`).
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

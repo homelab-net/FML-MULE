@@ -68,6 +68,34 @@ call and the `TBR-SEC-01` interaction are untouched; and no EUD rendered a map,
 which is the Stage 4/8 acceptance. The trade stays `OPEN` and no ADR is entered
 until the measured basis below exists.
 
+**Real-EUD render, 2026-09-04.** A real iTAK EUD on a node's access point
+selected the node's `z/x/y` source and **rendered a continuous high-detail map,
+streamed from the node and cached client-side**, with the node's WAN cut
+(hundreds of `200`s across z12-19, no internet path). See
+`docs/evidence/TBR-MAP-01/2026-09-04-real-eud-offline-map-and-storage.md`. It
+settles the **interface and client model** -- the node is the tile source, the
+EUD streams and caches, no map is hand-loaded -- and adds three findings the
+trade must carry:
+
+- The store **cannot** come from OpenStreetMap's public tiles (bulk pulls are
+  IP-blocked; OSM serves an "Access blocked" image the node then serves
+  faithfully). It needs a **permitted source** -- USGS National Map, Esri, or a
+  licensed provider -- which sharpens the imagery-licence item and the
+  `TBR-SEC-01` interaction.
+- Storage is **area-scoped by physics**: an AO at full detail is tens of MB, but
+  a multi-state region at street detail is hundreds of GB and CONUS at detail is
+  tens of TB (figures in the evidence). The CM4's 32 GB eMMC holds an AO, not a
+  region at detail; regional detail needs added storage (`TBR-COMP-01`,
+  `TBR-CARRIER-01`).
+- A **storage-equipped node serves its map repository to its EUDs and, acting as
+  a server, to other nodes over the mesh** -- the share-a-resource pattern of the
+  WAN gateway (CONOPS section 42, `TBR-NET-04`). This is the map-server role the
+  service outline should name.
+
+Still not settled and still required for closure: the production server
+selection, the **CM4 footprint**, the imagery source/licence, and the store size
+from a permitted source. The real-device render does not close the trade.
+
 ## Closure evidence
 
 For the selected mechanism: resident memory and CPU while serving a

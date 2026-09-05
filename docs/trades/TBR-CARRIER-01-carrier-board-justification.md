@@ -63,6 +63,36 @@ because each individual wiring problem seemed easier to solve with one.
    are settled. Legitimate and probably right for the prototype, provided it is
    a decision rather than a drift.
 
+## The M.2 slot is radio-versus-storage, and that is now a stated requirement
+
+Added 2026-09-04 after a bench session that provisioned a real EUD map. The
+Waveshare CM4-IO-BASE-C has **one M.2 M-key slot, and the BOM spends it on the
+QCA6174 high-rate mesh radio** ("no NVMe path", `prototype-bom-revA.csv`); the
+carrier is USB2-only, so even USB storage is throttled. Committed storage in the
+BOM is 32 GB eMMC plus a *USB2 SSD test article* -- no production SSD.
+
+The Program Owner's stated direction: **M.2 hosting is a baseline capability, and
+the design shall keep the option and the path for large on-node map/service
+storage** -- storage need not be fitted on every commercial node, but a node
+that carries it becomes a **map/service server for its EUDs and for the mesh**
+(`TBR-MAP-01`, the WAN-gateway share pattern of CONOPS section 42). The map-storage
+arithmetic makes the size concrete: an AO is tens of MB, a multi-state region at
+street detail is hundreds of GB, so the requirement is a **>=256 GB SSD, M.2
+preferred** (`docs/evidence/TBR-MAP-01/2026-09-04-real-eud-offline-map-and-storage.md`).
+
+That cannot coexist with the QCA6174 on this carrier's single M.2. The carrier
+selection therefore has to answer one of:
+
+- a carrier with a **second M.2** (radio in one, NVMe storage in the other);
+- **relocating the high-rate radio off M.2** so the slot carries storage -- the
+  option-1 AP+mesh consolidation in `TBR-RF-03`, shown feasible at the
+  interface-combination level on the bench, is the enabler;
+- accepting **USB storage** (the current BOM path), at USB2 speed and with the
+  Postgres-survivability question in `FML-ADR-050`/`TBR-COMP-01`.
+
+This is a genuine input the carrier justification must now carry, alongside the
+assembly and RF evidence below.
+
 ## Closure evidence
 
 SAD section 25.6 fixes the closure evidence: per-unit assembly time; number of

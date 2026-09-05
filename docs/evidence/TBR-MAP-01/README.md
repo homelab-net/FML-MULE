@@ -17,9 +17,17 @@ of the measured basis the closure gate demands.
 - `2026-09-04-mule-local-tiles.xml` -- an ATAK/iTAK map-source definition for
   the endpoint, the client half of the interface.
 
-What remains for closure is in the run record and in the trade's **Bench
+- `2026-09-04-real-eud-offline-map-and-storage.md` -- a **real iTAK EUD**
+  rendering a high-detail map streamed from the node with WAN cut, plus the
+  storage arithmetic (AO vs region vs CONUS) and the findings that cost the most
+  time: the store cannot come from OSM's public tiles (permitted source
+  required), and the client caches tiles by position not by source.
+
+What remains for closure is in the run records and in the trade's **Bench
 progress** section: server selection, CM4 footprint (`TBR-COMP-01`), store size
-with real imagery and the `TBR-SEC-01` call, and the EUD offline render.
+with real imagery from a permitted source and the `TBR-SEC-01` call. The
+real-device render settles the interface and client model, not the mechanism or
+the CM4 cost.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,
