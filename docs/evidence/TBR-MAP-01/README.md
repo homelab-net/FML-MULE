@@ -23,6 +23,14 @@ of the measured basis the closure gate demands.
   time: the store cannot come from OSM's public tiles (permitted source
   required), and the client caches tiles by position not by source.
 
+- `2026-09-05-map-server-over-mesh-hwsim.md` -- a `SIMULATED` demonstration of
+  the **map-server-for-the-mesh role** the real-EUD session identified: a
+  storage node serves its `z/x/y` store over `batman-adv`, and a storage-less
+  node fetches a tile that is byte-identical to the store's copy. The
+  routing-and-interface half of the role; it selects no store or server and
+  measures no serve rate (`hwsim` has no medium). Reproduced by
+  `test/bench/map-server-mesh.sh`.
+
 What remains for closure is in the run records and in the trade's **Bench
 progress** section: server selection, CM4 footprint (`TBR-COMP-01`), store size
 with real imagery from a permitted source and the `TBR-SEC-01` call. The

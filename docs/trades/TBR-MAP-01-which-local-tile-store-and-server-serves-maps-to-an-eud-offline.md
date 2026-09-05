@@ -92,6 +92,15 @@ trade must carry:
   WAN gateway (CONOPS section 42, `TBR-NET-04`). This is the map-server role the
   service outline should name.
 
+**Map-server-over-mesh, 2026-09-05 (`SIMULATED`).** The third finding above --
+the map-server-for-the-mesh role -- now has a bench: a storage-less node fetches
+a repository tile from a storage node across `batman-adv`, byte-identical to the
+store's copy (`test/bench/map-server-mesh.sh`,
+`docs/evidence/TBR-MAP-01/2026-09-05-map-server-over-mesh-hwsim.md`). Like the
+interface bench it uses a stand-in `http.server` and generated tiles on `hwsim`,
+so it advances the role's routing-and-interface half only: it selects no server,
+measures no serve rate, and does not touch the closure gate.
+
 Still not settled and still required for closure: the production server
 selection, the **CM4 footprint**, the imagery source/licence, and the store size
 from a permitted source. The real-device render does not close the trade.

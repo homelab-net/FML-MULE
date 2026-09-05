@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Five procedures. No measurement has been taken.**
+**Six procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -36,6 +36,18 @@ which gateway its equal-TQ tie-break picks is not a real-radio result, and
 `FML-ADR-069`'s mechanism stays open. It needs `dnsmasq`, `iptables` and
 `busybox` as well as `iw` and `batctl`, and like the others it does not run in
 CI.
+
+`map-server-mesh.sh` is the map analog of the gateway bench. A storage node
+serves its `z/x/y` tile store over the mesh; a storage-less node fetches a tile
+across `batman-adv` and it is byte-identical to the store's copy -- the
+map-server-for-the-mesh role `services/map/README.md` names, which is the
+`TBR-NET-04` share-a-resource pattern applied to `TBR-MAP-01`
+(`docs/evidence/TBR-MAP-01/2026-09-05-map-server-over-mesh-hwsim.md`). It builds
+its own store from a raw-PNG encoder, so no imagery is committed, and it selects
+its two radios from the `mac80211_hwsim` device tree under `/sys` rather than by
+name -- selecting mesh radios by a name or mode match once moved a live radio on
+this bench host, and the driver-tree selector by construction cannot name a real
+phy. It measures no serve rate: `hwsim` has no medium.
 
 `keyed-mesh.sh` proves that a keyed 802.11s mesh admits only credential
 holders, which is what `FML-ADR-061` decides and what `FML-ADR-060` was
