@@ -30,7 +30,9 @@ footprint, or render on an EUD, so the trade stays `OPEN`.
 "selected cached maps" as an **S1 Local Mission Service**, one that should remain
 available even when all external hosts are absent. The TAK server is **S2**. So
 the map source is meant to survive when TAK does not, and it must run **locally
-on the node**, not on a shared host.
+on the node**, not on a shared host. That tier placement drives the whole serving
+model -- local-first, with a storage-constrained mesh fallback -- which
+`serving-across-the-mesh.md` in this directory sets out.
 
 The program does not make maps, redraw them, or own a projection. It serves
 tiles a mapping toolchain produced, over an interface EUD clients already speak.
@@ -113,17 +115,21 @@ confirmed this interface and added constraints this outline now carries:
   source** -- USGS National Map (free, no key, US coverage), Esri
   imagery/topo (keyless, attribution), or a licensed provider. Which one, and
   its licence and sensitivity, is `TBR-MAP-01` and touches `TBR-SEC-01`.
-- **A storage-equipped node is a map server for the mesh, not only its own
-  EUDs.** Provisioning is area-scoped by storage (an AO is tens of MB; a region
-  at street detail is hundreds of GB -- see the evidence), so a node carrying a
-  large repository serves it to its own EUDs *and*, acting as a server, to other
-  nodes over the mesh -- the same share-a-resource pattern as the WAN gateway
-  (CONOPS section 42, `TBR-NET-04`). The M.2 slot this needs is `TBR-CARRIER-01`.
-  This role has a `SIMULATED` bench: a storage-less node fetches a repository
-  tile from a storage node across `batman-adv`, byte-identical to the store's
-  copy (`test/bench/map-server-mesh.sh`,
-  `docs/evidence/TBR-MAP-01/2026-09-05-map-server-over-mesh-hwsim.md`). It shows
-  the pattern works; it does not size the serve or select a server.
+- **A storage-equipped node can serve maps to other nodes over the mesh, but
+  that is a fallback, not the model.** Because maps are an S1 *local* service
+  (CONOPS section 9.2), the primary model is that each capable node carries its
+  own repository and serves its own EUDs locally; a node sourcing tiles from a
+  peer over the mesh is a storage-constrained fallback that degrades map
+  availability to mesh-path availability. Provisioning is area-scoped by storage
+  (an AO is tens of MB; a region at street detail is hundreds of GB -- see the
+  evidence), which is why the fallback exists and why the `TBR-CARRIER-01` M.2
+  storage baseline exists to minimise reliance on it. The transport half has a
+  `SIMULATED` bench -- a storage-less node fetches a byte-identical repository
+  tile from a storage node across `batman-adv` (`test/bench/map-server-mesh.sh`,
+  `docs/evidence/TBR-MAP-01/2026-09-05-map-server-over-mesh-hwsim.md`) -- but that
+  is a static point-to-point proxy, not holder discovery or failover. The full
+  model, and what the fallback still needs, is in
+  `serving-across-the-mesh.md`.
 - **Clients cache tiles by position, not by source.** A tile-store update needs
   a cache-invalidation story (a changed source path forced a real EUD to refetch;
   a same-path swap did not), which the EUD-provisioning path must account for.
