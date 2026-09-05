@@ -929,12 +929,22 @@ real client. **Serving maps locally** is a different thing: not a TAK-server
 function at all (OpenTAKServer handles no tiles), not ATAK-only, and per CONOPS
 section 9.2 a **MULE S1 service**. The TAK server is S2. So maps sit in a
 *higher* availability tier than TAK and are supposed to remain when TAK is gone.
-As of 2026-09-04 the committed **interface** has a `SIMULATED` bench
-demonstration -- an `MBTiles` store served over `z/x/y` and an iTAK map-source
-definition, under `docs/evidence/TBR-MAP-01/` -- prompted by "does OTS feed maps
-to iTAK offline" (it does not; OTS serves no tiles, so this service is the only
-offline basemap path). The gap is unchanged for closure: no server selected, no
-CM4 footprint, no EUD render.
+Since 2026-09-04 the capability has three results under
+`docs/evidence/TBR-MAP-01/`: the committed **interface** exercised (`SIMULATED` --
+an `MBTiles` store served over `z/x/y` with an iTAK map-source definition,
+prompted by "does OTS feed maps to iTAK offline" -- it does not; OTS serves no
+tiles, so this service is the only offline basemap path); a **real iTAK EUD
+rendering a high-detail map** streamed from the node with WAN cut (2026-09-04),
+which settles the interface and client model and meets the EUD-render
+acceptance; and the **map-server-for-the-mesh role** -- a storage-less node
+fetching a repository tile from a storage node across `batman-adv`,
+byte-identical to the store's copy (`SIMULATED`, 2026-09-05,
+`test/bench/map-server-mesh.sh`). What remains for closure is the mechanism, not
+the interface: no production server selected, no CM4 footprint (`TBR-COMP-01`),
+and no store size from real imagery on a permitted source with the `TBR-SEC-01`
+call. The 2026-09-04 session also found the store cannot come from OSM's public
+tiles (a permitted source is required) and that clients cache tiles by position,
+not by source.
 
 **What it is:** a local tile/map source on the node -- offline tiles, an MBTiles
 store, or a WMTS/XYZ endpoint -- so EUDs render maps with no internet and no
@@ -958,6 +968,116 @@ imagery is sensitive.
 and Quadlet exist for it with the image pinned by digest, and an EUD renders a
 map from the node with no external network. No hardware to start the selection;
 the field demo needs a device.
+
+## Before the BOM: what to bank on current hardware
+
+**The goal, stated by the Program Owner 2026-09-05:** get the program to a full
+system readiness review and begin prototype creation, and use the current bench
+to de-risk as much as possible **before any prototype material is ordered**, so
+the BOM is chosen on evidence and the first build is integration rather than
+discovery.
+
+This is a *different* question from the SRR exit action, which is already met
+(named owners and a target date on every open trade -- see "What SRR exit
+actually needs" above; trades are expected `OPEN` at SRR and closing them is not
+what the gate asks). SRR readiness is a governance state. This section is the
+engineering state that makes the prototype worth building: the work that is
+free now and expensive to discover after the boards are on the bench.
+
+**"Current hardware" is not "no hardware."** The bench today is an x86 dev host,
+`mac80211_hwsim`, one real AP-capable USB radio (RTL8812AU, no mesh mode), the
+onboard CYW43455, the full OpenTAKServer container stack, and a real iTAK EUD.
+That is rig R0 plus a real access point and a real client -- enough to exercise
+every plane except the physical ones (`TBR-RF-*`, `TBR-PWR-01`, `TBR-THERM-01`),
+which need the BOM and are Track 2's day-one work. Nothing below waits on a
+purchase.
+
+The work sorts into three buckets by what it produces.
+
+### Bank A -- what can actually close now (software only, plus the owner's act)
+
+These need no hardware. Each needs its evidence finished and then the owner's
+acceptance and an ADR -- the governance half, not more engineering.
+
+- **`TBR-TAK-01`, the mission-critical state boundary (Track 3, `4.1`).** The one
+  critical-path trade needing no hardware, and the highest-value pre-order item:
+  it gates `services/mission-trust/`, `services/status-aggregator/` and
+  `services/gateways/`, which are placeholders until it closes. It is well
+  advanced -- seven artifacts, a running OTS instance -- and what remains is
+  software: DataSync content, mission-package upload, the map-cache question, and
+  two of four workflow tests. Finish those on the bench, then the owner accepts
+  and writes the ADR.
+- **The gateway tag probe (`TBR-NET-02` falsifier #3, "The gateway tag probe"
+  above).** One software probe on `meshtasticd`: can the gateway carry an
+  application tag in the payload. It can confirm or invalidate the LoRa
+  addressing encoding `FML-ADR-070` rests on, and it costs one probe. Do it
+  before anything is built on the tag.
+- **`4.1`, the TAK service as three Quadlet units.** Buildable now against the
+  bench containers: the three catalog entries with images pinned by digest, a
+  defensible start order, and a different-node restore that carries
+  `OTS_DATA_FOLDER`. Gated only on the `TBR-TAK-01` acceptance above and a
+  catalog decision, both the owner's.
+
+### Bank B -- what to mature now to "only a hardware measurement remains"
+
+These stay `OPEN` because their closure gate has a hardware item, but their
+software half is bankable now, so the day the BOM arrives the trade is a
+measurement rather than a design.
+
+- **`TBR-COMP-01`, the service-plane budget.** Marked `requires-hardware: partly`
+  precisely because half is not. RAM, CPU, OOM and cgroup behaviour for OTS's
+  three processes, RabbitMQ, PostgreSQL, the tile server and the map-server-over-
+  mesh load are measurable on the current bench at steady state and at the
+  start-up and association peaks against fakes. Bank that budget now; only the
+  mesh-under-RF-load and real-radio association-storm cases wait for hardware.
+- **`TBR-MAP-01`, the tile store and server (`4.4`).** The interface, the client
+  model, the EUD render and the map-server-for-the-mesh role are all
+  demonstrated (see `4.4`). The store format and production server are software
+  decisions makeable on the bench now; only the CM4 footprint and the real-
+  imagery store size remain, and the *selection* need not wait for them.
+- **Interface bring-up and `RadioState` (`1.2`, `1.6`).** The bring-up ordering
+  and the `RadioState` reader are software, exercisable on `hwsim` plus the real
+  AP radio. Finishing them means that the day a board arrives, bring-up follows a
+  known sequence instead of being an experiment, and Track 2 day one is running
+  the flat-sat against real interfaces to find which fakes were lying.
+- **The rest of the `batman-adv` and 802.11s template (`1.7`).** Decide the mesh
+  configuration in the template before radios exist, so the mesh is a
+  known-good config on the prototype rather than a variable.
+
+### Bank C -- the decisions that choose the BOM (make them before the purchase)
+
+These are the trades whose answers *determine what to order*. Making them after
+the purchase is how the wrong parts get bought. None needs the prototype; each
+has bench evidence already or needs only the owner's direction.
+
+- **`TBR-RF-03`, AP and mesh radio consolidation.** The one-radio AP-plus-mesh
+  concurrency has a `SIMULATED` bench
+  (`docs/evidence/TBR-RF-03/2026-09-04-one-radio-ap-plus-mesh-hwsim.md`). The
+  *direction* -- consolidate onto one mesh-capable radio, or keep AP and mesh on
+  separate boards -- sets how many Wi-Fi boards the BOM carries and whether the
+  single M.2 slot is freed. It is the hinge the other two hardware decisions turn
+  on.
+- **`TBR-CARRIER-01`, the M.2 slot: radio or storage.** Decides whether the
+  prototype carries a `>=256 GB SSD` for the map and service repository -- the
+  M.2-baseline-capability direction the owner set (a node must have the option
+  and the path to a large map repository that serves clients and the mesh).
+  Depends on `TBR-RF-03` freeing the slot.
+- **`TBR-COMP-01`'s hardware axes: memory class and storage.** The 4 GB versus
+  8 GB CM4 fail-back (the RoIP gate in `4.3`) and the storage class and bus. The
+  Bank B software-load measurement informs the memory call directly.
+- **The prototype BOM itself (`hardware/prototype/`).** Once RF-03, CARRIER-01
+  and the COMP-01 software budget are set, the BOM's open cells -- a committed
+  SSD, the Wi-Fi board count -- resolve, and the purchase is made against a
+  de-risked design.
+
+**What this buys.** When the BOM is ordered, the network plane, the TAK service,
+the map service and the compute budget are already exercised end to end against
+fakes and one real EUD; the services that were placeholders have interfaces; and
+the hardware trades are measurements with a known method (`test/bench/` and the
+ITEP's rigs), not open designs. The prototype build becomes integration plus the
+physical measurements only hardware can settle -- `TBR-RF-*`, `TBR-PWR-01`,
+`TBR-THERM-01` -- which is the smallest, cheapest first build the evidence
+allows.
 
 ## Sequencing
 
