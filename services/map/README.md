@@ -119,6 +119,11 @@ confirmed this interface and added constraints this outline now carries:
   large repository serves it to its own EUDs *and*, acting as a server, to other
   nodes over the mesh -- the same share-a-resource pattern as the WAN gateway
   (CONOPS section 42, `TBR-NET-04`). The M.2 slot this needs is `TBR-CARRIER-01`.
+  This role has a `SIMULATED` bench: a storage-less node fetches a repository
+  tile from a storage node across `batman-adv`, byte-identical to the store's
+  copy (`test/bench/map-server-mesh.sh`,
+  `docs/evidence/TBR-MAP-01/2026-09-05-map-server-over-mesh-hwsim.md`). It shows
+  the pattern works; it does not size the serve or select a server.
 - **Clients cache tiles by position, not by source.** A tile-store update needs
   a cache-invalidation story (a changed source path forced a real EUD to refetch;
   a same-path swap did not), which the EUD-provisioning path must account for.
