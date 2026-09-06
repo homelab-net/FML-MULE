@@ -88,10 +88,29 @@
   indistinguishable. The worst of both: the per-node thing is shared and the
   shared thing is per-node.
 
-**Items 5 and 6 remain in part**: DataSync content, mission packages, and the
-cache question, and none of
-them is hardware: durable-queue inspection, a different-node restore, the four
-workflow tests, and the cache question.
+- `2026-08-31-datasync-and-package-workflows.md` -- two of the four workflow
+  tests. **Mission-package upload round-trips fully** (upload, disk, retrieval),
+  confirming `uploads/` as durable state outside the database. **DataSync
+  mission content and data packages are separate stores** keyed by different
+  hashes; the mission lifecycle works and a content round-trip through
+  `mission_content` was the remaining sliver.
+
+- `2026-09-05-datasync-content-round-trip.md` -- **that sliver, closed.** Content
+  uploaded through the DataSync content path (`/Marti/sync/upload`) lands in
+  `mission_content` (0 rows in `data_packages`) and retrieves byte-identical, and
+  attaches to a mission through `mission_content_mission` with an `ADD_CONTENT`
+  change. Reproduces and pins the "API 500s but still creates the mission" quirk:
+  `put_mission()` dereferences a user from the cert CN. With this, **all four
+  workflow tests and every empirical closure item are performed.**
+
+**What remains is not another workflow.** The gate's classification half is
+complete (41 tables, the outside-SQL durable set), the durable-queue inspection,
+the different-node restore and all four workflow tests are done. Left before
+acceptance: the **map/tile/cache item**, answerable by classification rather than
+an ATAK client (OTS holds no tile state; it is the EUD's own 26.3 cache and the
+separate S1 map service, `TBR-MAP-01`); an on-bench **partition/rejoin exercise**
+of the durable set (Program Owner's call, 2026-09-05, beyond the gate's
+"described"); and the **named owner's acceptance** with the resulting ADR.
 
 | Artifact | What it is | Status |
 | --- | --- | --- |
