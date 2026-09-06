@@ -75,6 +75,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-070` | SELECTED | `test/bench/geochat-survival.sh` | `AGENTS.md`, `docs/ROADMAP-DEV.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md`, `docs/evidence/TBR-NET-02/2026-09-06-geochat-to-survives-the-meshtastic-bearer.md`, `docs/evidence/TBR-NET-02/README.md`, `docs/prior-art/reticulum.md`, `test/bench/README.md` |
 | `FML-ADR-071` | SELECTED | *not yet* | `docs/ROADMAP-DEV.md` |
 | `FML-ADR-072` | SELECTED PRINCIPLE | *not yet* | `services/map/README.md`, `services/map/filling-the-store-from-wan.md` |
+| `FML-ADR-073` | SELECTED | *not yet* | `docs/ROADMAP-DEV.md`, `services/map/README.md`, `services/map/hot-swappable-mission-stores.md` |
 
 ## Trades
 

@@ -23,15 +23,17 @@ MULE, which is always there. A store the node cannot read becomes a served
 ## The store is a mount point, not a device
 
 The tile server roots at a **stable mount point** -- a path, not a device or a
-partition. A mission map drive **auto-mounts there by filesystem label**: any
-drive carrying the agreed label mounts at the same path, driven by a udev rule or
-a systemd mount unit in the OS image (`os/`). Then:
+partition. `FML-ADR-073` makes the provisioned store per-mission **MBTiles**, so
+the mount point holds one `.mbtiles` file, and the server reads it; a mission map
+drive **auto-mounts there by filesystem label**: any drive carrying the agreed
+label mounts at the same path, driven by a udev rule or a systemd mount unit in
+the OS image (`os/`). Then:
 
-- **drive present** -> the mount point holds that mission's tiles -> the server
-  serves them;
-- **drive absent** -> the mount point holds the node's baseline store (the eMMC
-  area) or nothing -> the server serves the baseline, or a miss -- never an error
-  to the EUD.
+- **drive present** -> the mount point holds that mission's store -> the server
+  serves from it;
+- **drive absent** -> the mount point holds the node's baseline store (an eMMC
+  MBTiles) or nothing -> the server serves the baseline, or a miss -- never an
+  error to the EUD.
 
 Because the map store is separate from the node's operational storage (the eMMC
 and whatever `TBR-COMP-01` puts PostgreSQL on), pulling the map drive touches
@@ -39,9 +41,10 @@ neither the TAK service nor the node's own state.
 
 ## Hot-swap
 
-Pull mission A's drive, insert mission B's: the mount point now holds B's tiles,
-and the static tile server serves B on the next request. **No EUD change, no
-source-URL change, no service restart** for a server that reads the directory.
+Pull mission A's drive, insert mission B's: the mount point now holds B's
+`.mbtiles`, and the tile server serves B on the next request. **No EUD change, no
+source-URL change, no service restart** for a server that reads the store at the
+mount point.
 
 It is safe because the map store is **read-only**: a drive pulled mid-serve
 yields `ENOENT` for the tiles it held, which the service turns into a gray tile,

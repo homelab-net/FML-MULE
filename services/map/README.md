@@ -4,9 +4,12 @@ Deployment and design notes for the **local map/tile service** in the
 mission-service plane: the node's own source of map tiles for EUDs, so operators
 render a map with no internet and no reachable external tile server.
 
-**Nothing is deployed, and no mechanism is selected.** This directory is the
-service outline. Roadmap item 4.4 holds its place in the plan, and `TBR-MAP-01`
-is the mechanism selection.
+**Nothing is deployed.** This directory is the service outline. Roadmap item 4.4
+holds its place in the plan, and `TBR-MAP-01` is the mechanism selection --
+`FML-ADR-073` (`SELECTED`) selects the store format and server -- per-mission
+MBTiles served as `z/x/y` behind ingress. The build (a catalog entry and Quadlet)
+is the next step; the trade stays `OPEN` for the CM4 footprint and a USB2
+read-latency check.
 
 The **interface** below -- the `z/x/y` endpoint and the ATAK/iTAK map-source
 definition -- has a `SIMULATED` bench demonstration under
@@ -62,10 +65,11 @@ choice `TBR-MAP-01` makes.
 
 `TBR-MAP-01` selects the mechanism. The real choices:
 
-- **Tile store format.** `MBTiles` (a SQLite file of tiles) is the common
-  offline container and diffs and ships as one file. `GeoPackage` and a plain
-  directory of `z/x/y` files are alternatives. The store is **pre-loaded**;
-  nothing here downloads tiles in the field.
+- **Tile store format** -- **selected: `FML-ADR-073` makes it per-mission
+  `MBTiles`.** `MBTiles` (a SQLite file of tiles) is the common offline container
+  and diffs and ships as one file; `GeoPackage` and a plain directory of `z/x/y`
+  files were the alternatives, the last kept as the ADR's fallback. The store is
+  **pre-loaded**; nothing here downloads tiles in the field.
 - **Tile server.** A small dedicated server that reads the store and exposes
   `z/x/y` -- a single-binary server, a library behind a thin wrapper, or a
   static file server for a pre-rendered tree. It must be rootless (`FML-ADR-029`),

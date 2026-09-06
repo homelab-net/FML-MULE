@@ -51,6 +51,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
 | `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
 | `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-HA-01 |
+| `FML-ADR-073` | The local tile store is per-mission MBTiles served as z/x/y behind ingress | TBR-MAP-01 |
 
 ### SELECTED PRINCIPLE
 
