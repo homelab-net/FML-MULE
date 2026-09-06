@@ -104,7 +104,7 @@ choice `TBR-MAP-01` makes.
   fetched from a permitted source and cached locally. It preserves the offline
   invariant above -- it enriches, it does not make the node depend on the field
   having internet -- and it revises this v1 boundary, a decision recorded as
-  `FML-ADR-072` (`PROPOSED`). It is designed in `filling-the-store-from-wan.md`.
+  `FML-ADR-072` (`SELECTED PRINCIPLE`). It is designed in `filling-the-store-from-wan.md`.
 - **No rendering or styling on the node.** Tiles are pre-rendered. Vector tiles
   and on-node styling are a later question, not a v1 baseline.
 - **No projection or datum handling.** The service serves what the store holds

@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-072
 title: WAN tile-fetch is guarded enrichment of the local map store, not a provisioning path
-status: PROPOSED
+status: SELECTED PRINCIPLE
 date: 2026-09-06
 supersedes: none
 superseded-by: none
@@ -56,11 +56,13 @@ of no field tile download accordingly.
 
 ## Status
 
-`PROPOSED`. The Program Owner directed the capability on 2026-09-06; this ADR
-records the scope revision and the guards for acceptance. On acceptance it
-becomes `SELECTED PRINCIPLE`: the capability and its guards are decided, while the
-upstream source, the cache and write-through policy, and the emission-gate wiring
-are left to `TBR-MAP-01` and the map service's implementation.
+`SELECTED PRINCIPLE`. Accepted by the named owner (Cameron Zobrist) on
+2026-09-06. The capability and its guards are decided: WAN-fetch is opportunistic
+enrichment, never a dependency; the upstream is a permitted source, never OSM's
+public tiles; the fetch is EMCON-gated; and a fetched tile is ephemeral, cached
+distinctly from the provisioned store and evicted on expiry. The **mechanism** is
+left to `TBR-MAP-01` and the map service's implementation: the upstream source,
+the expiry interval and rule and the size cap, and the emission-gate wiring.
 
 ## Consequences
 
