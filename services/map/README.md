@@ -94,9 +94,15 @@ choice `TBR-MAP-01` makes.
 
 ## What it deliberately does not do in v1
 
-- **No field tile download.** The store is provisioned before deployment. A node
-  with no internet cannot fetch what it was not given, and pretending otherwise
-  is the failure this whole program is built against.
+- **No field tile download as the provisioning path.** The store is provisioned
+  before deployment, and a node with no internet works from what it was given --
+  pretending otherwise is the failure this whole program is built against. The
+  Program Owner has since directed an **opportunistic WAN-enrichment** capability
+  (2026-09-06): when WAN is up and the operating mode permits, a missing tile is
+  fetched from a permitted source and cached locally. It preserves the offline
+  invariant above -- it enriches, it does not make the node depend on the field
+  having internet -- and it revises this v1 boundary, which is a decision to be
+  recorded. It is designed in `filling-the-store-from-wan.md`.
 - **No rendering or styling on the node.** Tiles are pre-rendered. Vector tiles
   and on-node styling are a later question, not a v1 baseline.
 - **No projection or datum handling.** The service serves what the store holds

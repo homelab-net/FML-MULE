@@ -127,5 +127,11 @@ server for the mesh is a heavier node than a leaf that only serves itself.
   tracked on its own, it should be minted as its own trade rather than assumed
   here.
 
+A **third** source sits below these two: when the node has a WAN route and the
+operating mode permits, a tile missing from both the local store and the mesh can
+be fetched from a permitted upstream and cached locally. That is
+`filling-the-store-from-wan.md`, and it is opportunistic enrichment, never a
+dependency.
+
 See `README.md` in this directory for the service outline and the `z/x/y`
 interface this builds on.
