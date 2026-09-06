@@ -11,7 +11,7 @@ depends-on: []
 feeds: [TBR-HA-01, TBR-COMP-01, TBR-SEC-01, TBR-REC-01]
 requires-hardware: no
 evidence: docs/evidence/TBR-TAK-01/
-adr: [FML-ADR-032, FML-ADR-034]
+adr: [FML-ADR-032, FML-ADR-034, FML-ADR-071]
 target-date: 2026-09-30
 ---
 

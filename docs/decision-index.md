@@ -73,6 +73,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-068` | SELECTED | `os/config/nftables.conf.template`, `test/bench/wan-gateway-sharing.sh` | `THREAT_MODEL.md`, `docs/ROADMAP-DEV.md`, `docs/bench-service-bringup.md` |
 | `FML-ADR-069` | SELECTED TARGET | `os/config/batman-adv.conf.template`, `test/bench/wan-gateway-sharing.sh` | `THREAT_MODEL.md`, `docs/NON-GOALS.md`, `docs/ROADMAP-DEV.md`, `docs/verification/FML-MULE-ITEP-v0.1.md`, `test/bench/README.md` |
 | `FML-ADR-070` | SELECTED | *not yet* | `docs/ROADMAP-DEV.md`, `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` |
+| `FML-ADR-071` | PROPOSED | *not yet* | `docs/ROADMAP-DEV.md` |
 
 ## Trades
 
