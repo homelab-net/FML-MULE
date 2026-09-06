@@ -14,6 +14,45 @@ this program needs them visible:
 
 ## Unreleased
 
+### TBR-TAK-01 evidence complete, and a clobbered analysis recovered
+
+The empirical half of the mission-critical state boundary is done. All four
+workflow tests now run against the live OpenTAKServer and PostgreSQL: the last,
+a DataSync content round-trip, uploads through `/Marti/sync/upload` into
+`mission_content` (byte-identical on retrieval, and provably not the
+`data_packages` file-share), and attaches to a mission. The map/tile/cache item,
+once deferred as "blocked on an ATAK client", is resolved by classification --
+OpenTAKServer holds no tile state, so it is the EUD's own reconstructable cache
+and the separate S1 map service, not TAK-server state. And the partition/rejoin
+exercise found reconciliation **structurally impossible** on the current stack:
+OpenTAKServer writes `isFederatedChange=False` at every site and starts no
+federation listener, PostgreSQL has zero replication, and the change log's only
+cross-host ordering signal is a wall clock the program allows to be
+`TIME_DEGRADED` -- which is the empirical basis for the analysis rejecting
+last-writer-wins. An independent assessor fixed that exercise's scope before it
+ran. With this, every empirical and classification item is performed; only the
+named owner's acceptance and the resulting ADR remain.
+
+While verifying the above, the analysis-half artifact was found to have been
+silently overwritten with a copy of the directory README five commits earlier,
+losing the durable set's partition/rejoin analysis and its conflict-resolution
+rule -- closure-gate content. It was recovered from git and brought current.
+
+### The local map service: S1-local, and served across the mesh
+
+The on-node map/tile service gained a serving model and evidence. It is an S1
+local service (CONOPS 9.2), distinct from the S2 TAK server, which serves no
+tiles: the primary model is that each capable node carries its own repository
+and serves its own EUDs, surviving isolation. A storage-constrained node can
+source tiles from a peer over the batman-adv mesh, but that is a fallback that
+degrades map availability to mesh-path availability, gated behind the
+holder-discovery question `TBR-MAP-01` still owns. The transport half has a
+`SIMULATED` bench (a storage-less node fetches a byte-identical tile across the
+mesh) and a real-iTAK demonstration on the live bench: 395 tiles rendered on a
+real EUD, served by a peer over the mesh through a storage-less node, with a kill
+test confirming the source. `services/map/serving-across-the-mesh.md` sets out
+the model and the open discovery/failover question.
+
 ### The mesh carries traffic
 
 `.github/workflows/mesh-probe.yml` forms a three-node batman-adv mesh in

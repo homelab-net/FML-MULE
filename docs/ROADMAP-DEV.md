@@ -780,17 +780,23 @@ The only critical-path trade needing no hardware. It gates the mission-critical
 state boundary, and through it `services/mission-trust/` and
 `services/status-aggregator/`.
 
-**State, 2026-08-31: well advanced, not closed.** Seven evidence artifacts
-exist, including a **running OpenTAKServer instance** with PyTAK clients. The
-closure gate's classification half is met: all 41 tables classified into CONOPS
-section 26 classes, plus the state outside the database. Of the six empirical
-items the analysis listed, **three are closed** -- durable-queue inspection (no
-durable queue exists), the different-node restore (restores every row,
-authenticates nobody, because the salt and CA live in `OTS_DATA_FOLDER`), and the
-relational decomposition -- **one answered from source** (durable state
-locations), and two of the four workflow tests are done (mission API, certificate
-enrollment). What remains: DataSync content, mission-package upload, the map-cache
-question, and the named owner's acceptance.
+**State, 2026-09-05: evidence-complete, pending acceptance.** Fifteen evidence
+artifacts exist, including a **running OpenTAKServer instance** with PyTAK
+clients. The closure gate's classification half is met in full: all 41 tables
+classified into CONOPS section 26 classes, the state outside the database
+(`config.yml`, `ca/`, `uploads/`), and the map/tile/cache item (classified as
+**not TAK-server state** -- OTS serves no tiles). Every empirical item is now
+done: durable-queue inspection (no durable queue exists), the different-node
+restore (restores every row, authenticates nobody, because the salt and CA live
+in `OTS_DATA_FOLDER`), all four workflow tests (mission API, certificate,
+mission-package, and DataSync content through `mission_content`), and the
+partition/rejoin exercise -- which found reconciliation **structurally
+impossible**, no OTS federation and no PostgreSQL replication, so the durable set
+cannot converge and the only schema-supported merge is a wall clock the program
+allows to be `TIME_DEGRADED`. **What remains is not engineering: the named
+owner's acceptance and the resulting ADR** stating the boundary -- `TBR-HA-01`
+must carry SQL plus `config.yml`, `ca/` and `uploads/`, and must not fix
+authority by comparing wall clocks.
 
 The implementation that follows is now **Track 4.1**, because running the server
 established that the TAK service is three processes, not one.
@@ -825,9 +831,9 @@ fault. `TBR-COMP-01` is where that is bounded.
 continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
 `FML-ADR-034`, `FML-ADR-035`, `FML-ADR-029`.
 
-**State:** the state study is well advanced (`TBR-TAK-01`, seven evidence
-artifacts) and the implementation is not started, but the shape is now known
-from a running instance. `OpenTAKServer` is **three** console entry points, and
+**State:** the state study is **complete** (`TBR-TAK-01` evidence-complete,
+pending the owner's acceptance) and the implementation is not started, but the
+shape is now known from a running instance. `OpenTAKServer` is **three** console entry points, and
 upstream's own container runs only the first:
 
 - `opentakserver` -- the web application and API;
@@ -841,7 +847,7 @@ all three share `OTS_DATA_FOLDER`), and `TBR-COMP-01` must budget three Python
 processes. See `docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md`.
 
 **Read first:** `services/tak/README.md`, `services/quadlets/README.md`,
-`FML-ADR-035` for service control, and the seven `TBR-TAK-01` artifacts, which
+`FML-ADR-035` for service control, and the `TBR-TAK-01` artifacts, which
 record what state each process holds and what a restore does and does not carry.
 
 **The constraint people miss:** the durable set is not all in the database. A
@@ -924,8 +930,11 @@ the selection is `TBR-MAP-01` and the service outline is `services/map/README.md
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
 cache". Two things were being conflated. **Device-side tile caching** is an ATAK
 client function -- the client caches tiles it renders -- and is what
-`TBR-TAK-01`'s cache question (item 6) is about, which is why that item needs a
-real client. **Serving maps locally** is a different thing: not a TAK-server
+`TBR-TAK-01`'s cache question (item 6) was about. That item is now **resolved by
+classification**: map/tile/cache is not TAK-server state (OTS serves no tiles),
+so it is the EUD's own 26.3 cache and this S1 service, not TAK state
+(`docs/evidence/TBR-TAK-01/2026-09-05-map-tile-cache-state-classification.md`).
+**Serving maps locally** is a different thing: not a TAK-server
 function at all (OpenTAKServer handles no tiles), not ATAK-only, and per CONOPS
 section 9.2 a **MULE S1 service**. The TAK server is S2. So maps sit in a
 *higher* availability tier than TAK and are supposed to remain when TAK is gone.
@@ -1002,11 +1011,10 @@ acceptance and an ADR -- the governance half, not more engineering.
 - **`TBR-TAK-01`, the mission-critical state boundary (Track 3, `4.1`).** The one
   critical-path trade needing no hardware, and the highest-value pre-order item:
   it gates `services/mission-trust/`, `services/status-aggregator/` and
-  `services/gateways/`, which are placeholders until it closes. It is well
-  advanced -- seven artifacts, a running OTS instance -- and what remains is
-  software: DataSync content, mission-package upload, the map-cache question, and
-  two of four workflow tests. Finish those on the bench, then the owner accepts
-  and writes the ADR.
+  `services/gateways/`, which are placeholders until it closes. Its evidence is
+  **complete** as of 2026-09-05 -- fifteen artifacts, a running OTS instance,
+  every empirical and classification item done -- so what remains is only the
+  owner's acceptance of the evidence and the resulting ADR.
 - **The gateway tag probe (`TBR-NET-02` falsifier #3, "The gateway tag probe"
   above).** One software probe on `meshtasticd`: can the gateway carry an
   application tag in the payload. It can confirm or invalidate the LoRa
@@ -1102,9 +1110,10 @@ Work the numbered items in Track 1 in order, skipping any whose `State:` line
 says it is waiting on something. Track 2 starts the day hardware arrives and
 takes precedence over everything, because it converts assumptions into
 measurements. Track 3's blocker item is the Program Owner's and costs five
-minutes; `TBR-TAK-01` itself was worked this session and is well advanced. Track
-4 is blocked at the catalog gate for the services and on `CCR-03` for voice, but
-its analysis, the TAK state study, is largely done.
+minutes; `TBR-TAK-01`'s evidence is complete as of this session and only the
+owner's acceptance and ADR remain. Track 4 is blocked at the catalog gate for the
+services and on `CCR-03` for voice, but its analysis, the TAK state study, is
+done.
 
 An item's number is its dependency position, not a queue ticket. Two items with
 nothing between them can be worked at once.
