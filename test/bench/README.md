@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Six procedures. No measurement has been taken.**
+**Seven procedures. No measurement has been taken.**
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -71,6 +71,17 @@ four candidate mechanisms `TBR-NET-01` has to choose between. It selects
 nothing: its useful output is the table, not the exit code. It exists because
 `FML-ADR-060` was superseded one day after it was written for deciding
 something untested, and the next decision was `TBR-NET-01`'s.
+
+`geochat-survival.sh` verifies that `FML-ADR-070`'s chosen LoRa encoding survives
+the Meshtastic bearer: a `TAKPacket` with `Contact.callsign` and `GeoChat.to`
+sent between two `meshtasticd` nodes arrives with both fields intact. It is the
+bearer half the gateway state study (`docs/evidence/TBR-NET-02/`) left untested,
+on upstream's own ATAK plugin port rather than a custom tag. It needs `docker`
+(not `podman`: with docker installed, `br_netfilter` sends podman-bridge frames
+through docker's default-drop FORWARD chain, so the multicast `meshtasticd` uses
+does not cross a podman bridge) and the `meshtastic` client in `.venv-lora`, and
+like the others it does not run in CI here -- though `.github/workflows/lora-probe.yml`
+runs the same daemon under docker on a hosted runner.
 
 `tak-state.sh` reproduces the two `TBR-TAK-01` findings a decision now rests
 on: that OpenTAKServer is three processes and upstream's container runs one, and
