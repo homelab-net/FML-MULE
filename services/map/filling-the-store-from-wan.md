@@ -73,20 +73,31 @@ preference.
 
 ## What it is, mechanically
 
-A caching reverse proxy. On a store miss, with WAN reachable and the mode
-permitting, the local map service fetches `z/x/y` from the permitted upstream,
-returns it to the client, and writes it through to the store. This is the same
-shape as the mesh proxy in `serving-across-the-mesh.md`, with a WAN upstream and
-a local write-through; the store is the cache. `nginx` `proxy_cache` or a small
-tile cache provides it.
+A caching reverse proxy, over **two tiers**. On a `z/x/y` request the service
+serves from the **provisioned store** (permanent, installed before deployment)
+or the **fetch cache** (ephemeral) if a live copy is held. On a miss, with WAN
+reachable and the mode permitting, it fetches from the permitted upstream,
+returns the tile to the client, and writes it into the **fetch cache** -- not the
+provisioned store -- with an expiration attached. The two tiers are kept distinct
+so eviction never touches a provisioned tile. This is the same shape as the mesh
+proxy in `serving-across-the-mesh.md`, with a WAN upstream and a time-bounded
+local cache. `nginx` `proxy_cache` or a small tile cache provides it.
+
+The distinction matters operationally: a tile an EUD happened to pull once is not
+the same as a map installed to the node, and only the former ages out. An expired
+tile requested again while WAN is up is re-fetched, so the cache also stays fresh
+rather than serving stale imagery.
 
 ## Constraints it runs under
 
 - **One compute element** (`FML-ADR-021`, `TBR-COMP-01`): a caching proxy is
   light but not free.
-- **Storage** (`TBR-CARRIER-01`, `FML-ADR-050`): write-through grows the store,
-  so a bounded write policy applies -- the store is not allowed to fill a disk
-  without limit, and `FML-ADR-050`'s write-amplification budget covers the churn.
+- **Storage** (`TBR-CARRIER-01`, `FML-ADR-050`): the fetch cache is bounded by
+  time first -- each tile expires (the interval a deployment value, not a literal)
+  -- and by a size cap as a backstop, so field maps do not become permanent and
+  do not blow up the footprint. The exact rule (expiry from fetch versus last
+  access, plus the cap) is `TBR-MAP-01`'s; `FML-ADR-050`'s write-amplification
+  budget covers the churn. The provisioned store is separate and permanent.
 - **At-rest security** (`TBR-SEC-01`): fetched tiles are stored; if the imagery
   is sensitive its at-rest posture applies, if it is public map data it does not.
 
@@ -105,8 +116,10 @@ tile cache provides it.
 - **The scope expansion itself** is recorded as `FML-ADR-072` (`PROPOSED`) --
   field tile download was a stated v1 non-goal of the service, and adopting
   WAN-fetch revises it; accepting the ADR is the Program Owner's act.
-- The upstream source selection and the cache and write-through policy
-  (`TBR-MAP-01`).
+- The upstream source selection, and the fetch-cache policy -- the expiry
+  interval and rule (from fetch versus from last access) and the size cap
+  (`TBR-MAP-01`). The *principle* that fetched tiles expire and provisioned tiles
+  do not is decided in `FML-ADR-072`; the numbers are the deployment's.
 - Fetching over a **peer's** shared WAN, not only the node's own (`TBR-NET-04`).
 - The exact EMCON/mode gate wiring, from the Status Aggregator's `EMCON` state
   into the map service.
