@@ -11,6 +11,13 @@
 option 1. This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
 
+- `2026-09-06-consolidation-to-free-the-m2-slot.md` -- analysis (`UNVERIFIED`):
+  whether AP-plus-mesh consolidation can free the M.2 slot for a storage SSD. It
+  separates `TBR-RF-03` from `TBR-CARRIER-01` and finds that consolidation frees
+  the slot only if the surviving radio is off M.2 (the single-stream onboard part
+  or a scarce USB2-capped one), so the storage goal is more cleanly a carrier
+  decision. Names the hardware checks that would confirm it.
+
 - `2026-09-04-one-radio-ap-plus-mesh-hwsim.md` -- a mesh-capable `mac80211`
   radio advertises AP + mesh-point concurrent on one channel, and on `hwsim` an
   AP interface and an 802.11s mesh interface were brought up live on one radio
