@@ -1,7 +1,7 @@
 ---
 id: TBR-TAK-01
 title: Mission-critical state boundary
-status: OPEN
+status: CLOSED
 owner: Cameron Zobrist
 area: TAK
 priority: 9
@@ -31,6 +31,28 @@ exists by then.
 ## Question
 
 What TAK state is mission-critical and where is it stored?
+
+## Decision status
+
+**`FML-ADR-071`, `SELECTED`, 2026-09-06.** The mission-critical persistent state
+boundary is the union of the CONOPS 26.2 relational state in the SQL backend and
+the out-of-SQL durable set -- `config.yml` (the password salt and node identity),
+the `ca/` certificate authority, and `uploads/`. Database high availability is
+necessary but not sufficient; `TBR-HA-01`'s mechanism must carry both, must
+establish authority without comparing wall clocks, and must surface rather than
+merge a non-authoritative side's writes.
+
+**`CLOSED` 2026-09-06**, on the named owner's (Cameron Zobrist) acceptance. Every
+item in the closure evidence exists: the state inventory and the classification
+of all 41 tables, the out-of-SQL durable set, the durable-queue inspection, the
+different-node restore, all four workflow tests (mission API, certificate,
+mission-package, and DataSync content through `mission_content`), the
+map/tile/cache classification, and the partition/rejoin exercise that found
+reconciliation structurally impossible. The classification half is complete and
+the empirical half is performed; see `docs/evidence/TBR-TAK-01/`. The decision is
+`FML-ADR-071` in the ADR register, satisfying SAD section 30.2. `FML-ADR-034`'s
+condition is resolved affirmatively for the relational store; whether to flip it
+`CONDITIONAL` to `SELECTED` is a follow-up the owner may take.
 
 ## Why it matters
 
