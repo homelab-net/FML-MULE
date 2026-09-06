@@ -368,10 +368,6 @@ finding that artifact itself flagged as untested: an EUD behind one MULE reaches
 an EUD behind another, two hops away, and the far node holds it as a global
 translation-table entry rather than a local one.
 
-**The trade has a named owner and is still `OPEN`.** Cameron Zobrist owns it,
-so the governance blocker is gone. Nothing technical is missing for the IP
-half.
-
 **The decision is made and the trade is `CLOSED` (2026-09-04).**
 `2026-08-30-opentakserver-meshtastic-path.md` read the first of `FML-ADR-048`'s
 three gateways and found two things. A payload on a private port is discarded by
@@ -1017,11 +1013,12 @@ acceptance and an ADR -- the governance half, not more engineering.
   gated `services/mission-trust/`, `services/status-aggregator/` and
   `services/gateways/`; what unblocks them next is `TBR-HA-01` (the mechanism the
   boundary constrains) and a catalog decision, not more state study.
-- **The gateway tag probe (`TBR-NET-02` falsifier #3, "The gateway tag probe"
-  above).** One software probe on `meshtasticd`: can the gateway carry an
-  application tag in the payload. It can confirm or invalidate the LoRa
-  addressing encoding `FML-ADR-070` rests on, and it costs one probe. Do it
-  before anything is built on the tag.
+- **The GeoChat.to survival probe ("The GeoChat.to survival probe" above).** One
+  software probe on `meshtasticd`: does `FML-ADR-070`'s encoding --
+  `Contact.callsign` and `GeoChat.to` in a `TAKPacket` -- survive between two
+  nodes with both fields intact. The custom-tag falsifier is answered and moot;
+  this verifies the *selected* encoding on the bearer, on upstream's own ATAK
+  port. Do it before the recipient-resolution path is built on `GeoChat.to`.
 - **`4.1`, the TAK service as three Quadlet units.** Buildable now against the
   bench containers: the three catalog entries with images pinned by digest, a
   defensible start order, and a different-node restore that carries
@@ -1133,23 +1130,27 @@ This is the durable part, and it changes only if a dependency changes.
 - **The gateway tag probe is on no numbered item**, because it is not
   sequencing work. It is described below and can be taken at any time.
 
-### The gateway tag probe
+### The GeoChat.to survival probe
 
-`docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` lists three
-things that would falsify it. The third is the one nobody has tested:
+The original falsifier here was a **custom** one-byte member index in the
+payload. It is answered and moot: the Program Owner chose upstream's own
+`Contact.callsign` and `GeoChat.to` instead (`FML-ADR-070`), and `TBR-NET-02` is
+`CLOSED`. `docs/evidence/TBR-NET-02/2026-08-30-opentakserver-meshtastic-path.md`
+found a custom tag on a private port is discarded by the `FML-ADR-048` gateway,
+which is exactly why the program pivoted to the fields the ATAK plugin protobuf
+already carries.
 
-> **If the gateway cannot carry an application tag** in the payload alongside
-> the message, the encoding above is unimplementable and option D, one radio
-> per EUD, becomes the serious alternative. `FML-ADR-048` fixes the gateway
-> order and none of the three has been exercised.
+What is still worth exercising is whether `FML-ADR-070`'s chosen encoding
+survives the **bearer** end to end: a `TAKPacket` carrying `Contact.callsign` and
+`GeoChat.to`, sent between two Meshtastic nodes and decoded with both fields
+intact. The gateway evidence inspected the fields the gateway *handles*; it did
+not carry a live GeoChat two nodes apart. This is software, on upstream's own
+ATAK plugin port rather than a channel invented beside it (`AGENTS.md` rule 6),
+and it runs the way `.github/workflows/lora-probe.yml` runs its message check --
+`meshtasticd` nodes exchanging over the simulated segment.
 
-That is answerable in software, the same way 1.1 step 1 answered whether the
-LoRa plane could be exercised at all, and for the same reason: a design built
-on an untested assumption is worth less than the assumption is worth checking.
-It costs one probe and it can invalidate a specification that is otherwise
-ready to close.
-
-**Do it before anything is built on the tag**, not after.
+**Do it before the recipient-resolution path is built on `GeoChat.to`**, not
+after.
 
 ### What actually blocks tagging behind a MULE
 
@@ -1161,11 +1162,12 @@ would be reasonable to assume otherwise.
 | A named owner accepting the specification | Governance. Nothing technical outstanding. |
 | The gateway can carry an application tag | **Untested.** The probe above. |
 | A mission package participant roster and index | Schema change, named in the specification and deliberately not made. `additionalProperties: false` makes it explicit. |
-| A gateway to read and write the tag | `services/gateways/` is a placeholder blocked on `TBR-TAK-01` (`CRITICAL`) and `TBR-RF-02`. **This is the real blocker.** |
+| A gateway to read and write the tag | `services/gateways/` is a placeholder. `TBR-TAK-01` is now `CLOSED`, so it is blocked on `TBR-RF-02` (hardware) and a catalog decision. **`TBR-RF-02` is the real blocker.** |
 | `TBR-ID-01` | **Not required.** The specification separates addressing from authentication on purpose. |
 
-So the critical path to tagging runs through `TBR-TAK-01`, which needs no
-hardware and is Track 3 item one.
+So the critical path to tagging now runs through `TBR-RF-02` (hardware):
+`TBR-TAK-01` is `CLOSED`, and the gateway to carry the tag waits on the RF
+coexistence trade and a catalog decision.
 
 ## Definition of done for anything on this roadmap
 
