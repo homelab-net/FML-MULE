@@ -85,7 +85,9 @@ choice `TBR-MAP-01` makes.
 - **Storage.** A tile store is the largest static asset a node is likely to
   carry, and it is storage at rest. If the imagery is sensitive, it falls under
   `TBR-SEC-01`'s at-rest posture; if it is public map data, it does not, and the
-  trade records which.
+  trade records which. The store can live on a hot-swappable, mission-scoped USB
+  drive behind the service -- the EUD never addresses the drive, only the node --
+  which `hot-swappable-mission-stores.md` sets out.
 - **The catalog and Quadlet gates.** Like every service, it is a `catalog/`
   entry and a `quadlets/` unit with the image pinned by digest, not a file
   appearing in `quadlets/`.
