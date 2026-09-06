@@ -15,8 +15,9 @@ evidence the closure gate demands is hardware and not produced.
   whether AP-plus-mesh consolidation can free the M.2 slot for a storage SSD. It
   separates `TBR-RF-03` from `TBR-CARRIER-01` and finds that consolidation frees
   the slot only if the surviving radio is off M.2 (the single-stream onboard part
-  or a scarce USB2-capped one), so the storage goal is more cleanly a carrier
-  decision. Names the hardware checks that would confirm it.
+  or a scarce USB2-capped one), so *fast* storage is more cleanly a carrier
+  decision -- but the map store is read-mostly and rides a **USB2 SSD** with the
+  radio still on M.2, so maps need neither. Names the hardware checks.
 
 - `2026-09-04-one-radio-ap-plus-mesh-hwsim.md` -- a mesh-capable `mac80211`
   radio advertises AP + mesh-point concurrent on one channel, and on `hwsim` an
