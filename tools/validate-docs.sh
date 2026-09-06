@@ -22,6 +22,7 @@
 #  16. Every numeric reading carries its unit in its name.
 #  17. Every reading declares a source kind; command sources name a package.
 #  18. A blocked service README names the mule/ modules that act on its ADR.
+#  19. No evidence artifact is a near-duplicate of its directory README.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
@@ -880,6 +881,33 @@ if [ -f "$ROADMAP" ]; then
 fi
 
 info "$roadmap_items roadmap item(s) checked for a state line"
+
+# --- check 19: no evidence artifact is a near-duplicate of its directory
+# README. On 2026-09-05 an evidence file was silently overwritten with a copy of
+# its directory README and went unnoticed for five commits, losing closure-gate
+# analysis that had to be recovered from git. A near-identical artifact and
+# README is the signature. The threshold is deliberately high: an artifact that
+# merely shares a directory's boilerplate lines does not trip it, while a clobber
+# is near-total.
+ev_checked=0
+for readme in docs/evidence/*/README.md; do
+  [ -e "$readme" ] || continue
+  ev_dir=$(dirname "$readme")
+  for art in "$ev_dir"/*.md; do
+    [ -e "$art" ] || continue
+    if [ "$art" = "$readme" ]; then continue; fi
+    art_lines=$(grep -c '[^[:space:]]' "$art" || true)
+    if [ "${art_lines:-0}" -lt 20 ]; then continue; fi
+    shared=$(grep -Fxf "$readme" "$art" 2>/dev/null | grep -c '[^[:space:]]' || true)
+    shared=${shared:-0}
+    if [ $((shared * 100)) -ge $((art_lines * 85)) ]; then
+      pct=$((shared * 100 / art_lines))
+      fail "$art is ${pct}% identical to $readme: an evidence artifact that has become a copy of its directory README, the signature of a clobber (see the 2026-09-05 recovery). Restore the artifact's own content."
+    fi
+    ev_checked=$((ev_checked + 1))
+  done
+done
+info "$ev_checked evidence artifact(s) checked against their directory README"
 
 # --- result -----------------------------------------------------------------
 printf '\n'

@@ -59,6 +59,19 @@ make_sandbox() {
   [ "$status" -ne 0 ]
 }
 
+@test "validate-docs detects an evidence artifact clobbered into its README" {
+  make_sandbox
+  # An unrelated commit once overwrote an evidence artifact with a copy of its
+  # directory README, losing closure-gate analysis for five commits. Reproduce
+  # that shape: an artifact that is now identical to the directory README.
+  cp "$SANDBOX/docs/evidence/TBR-TAK-01/README.md" \
+    "$SANDBOX/docs/evidence/TBR-TAK-01/2026-08-27-state-classification-analysis.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"copy of its directory README"* ]]
+}
+
 @test "validate-docs detects a duplicated ADR identifier" {
   make_sandbox
   # Identifiers are permanent and never reused. Copy one onto a new filename
