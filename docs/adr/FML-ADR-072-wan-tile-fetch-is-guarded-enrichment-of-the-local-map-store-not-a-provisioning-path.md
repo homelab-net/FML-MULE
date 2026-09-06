@@ -38,13 +38,20 @@ either unbuilt or, worse, built without the guards.
 ## Decision
 
 The map service **may** source a tile absent from its local store from a
-**permitted** upstream over WAN, and **shall** write that tile through to the
-local store. The fetch **shall** be gated: it happens only when the node has a
-WAN route and the operating mode permits emission, and it is **enrichment, not
-provisioning** -- the service **shall** function fully with WAN absent, and a
-store miss with no WAN **shall** be served from what the store holds, never
-blocked on WAN. Provisioning before deployment remains the baseline; this permits
-opportunistic enrichment on top of it, and revises the map service's v1 non-goal
+**permitted** upstream over WAN, and **shall** cache it locally for reuse. A
+WAN-fetched tile is **ephemeral cache**, held as a class distinct from the
+**provisioned store**: it **shall** carry an expiration and be evicted when that
+lapses, so opportunistically fetched field tiles do not accumulate as permanent
+storage. The **provisioned store** -- tiles installed to the node before
+deployment -- **shall not** expire, and the two classes **shall** be
+distinguished so that expiry never touches a provisioned tile.
+
+The fetch **shall** be gated: it happens only when the node has a WAN route and
+the operating mode permits emission, and it is **enrichment, not provisioning**
+-- the service **shall** function fully with WAN absent, and a store miss with no
+WAN **shall** be served from what the store holds, never blocked. Provisioning
+before deployment remains the baseline; this permits opportunistic,
+self-expiring enrichment on top of it, and revises the map service's v1 non-goal
 of no field tile download accordingly.
 
 ## Status
@@ -66,9 +73,16 @@ are left to `TBR-MAP-01` and the map service's implementation.
   under an EMCON or radio-silent mode, exactly as `FML-ADR-068` suppresses the
   WAN passthrough on an emission-forbidding profile, reading the `FML-ADR-046`
   EMCON state.
-- **Storage churn is bounded.** Write-through grows the store, so the bounded
-  write policy of `FML-ADR-050` applies and the store is not allowed to fill a
-  disk without limit; the added capacity is a `TBR-CARRIER-01` concern.
+- **The fetch cache is bounded by time, then by size.** WAN-fetched tiles are the
+  ephemeral class: each carries an expiration, so field maps do not become
+  permanent and do not grow the footprint the way the provisioned store does. The
+  **expiry interval is a deployment value** (region profile or mission package),
+  not a literal in code, so a long operation can outlast a short one; the exact
+  rule -- expiry from fetch versus from last access -- and a size cap as a
+  backstop are `TBR-MAP-01`'s to set, and `FML-ADR-050`'s bounded-write policy and
+  `TBR-CARRIER-01`'s capacity still apply. A lapsed tile requested again while WAN
+  is up is re-fetched, so expiry doubles as imagery freshness. The provisioned
+  store is untouched by any of this.
 - **Compute.** A caching proxy is light but not free, and adds to the one-compute
   budget `TBR-COMP-01` sizes (`FML-ADR-021`).
 - **It runs over shared WAN too.** A node without its own uplink may reach one
