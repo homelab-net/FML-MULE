@@ -60,7 +60,7 @@ A change is not done until all seven hold. Say which ones you actually ran.
    Owner must accept -- but it does apply to every "I can't because" you are
    tempted to write from your own reading.
 
-## The five that waste the most work
+## The six that waste the most work
 
 1. **Implementing the placeholder services.** `services/status-aggregator/`,
    `mission-trust/`, `service-controller/`, `gateways/` hold a README and
@@ -82,6 +82,17 @@ A change is not done until all seven hold. Say which ones you actually ran.
 5. **Reusing or renumbering an identifier.** `FML-ADR-###` and `TBR-XXX-##` are
    permanent. A changed decision gets a new ID and supersedes the old one; it
    never edits it. Use `tools/new-adr.sh`. `[CI]`
+6. **Building what the standard already carries.** This program fits into the
+   existing ATAK/TAK architecture and the standard services it leverages --
+   OpenTAKServer, ATAK and iTAK, Meshtastic, `batman-adv` -- rather than building
+   a parallel mechanism beside them. When a recipient, an identity, a message or
+   a status already has a field or a path in the upstream stack, use it; do not
+   add a custom protocol, port payload or index the stock clients and servers do
+   not speak. `FML-ADR-048` makes the gateway upstream-first, and `FML-ADR-070`
+   carries the LoRa recipient in upstream's own `GeoChat.to` and
+   `Contact.callsign` rather than a custom tag for exactly this reason -- a custom
+   tag on a private port is discarded by the stock gateway, and a design the
+   standard clients cannot read is one no EUD in the field can use. `[review]`
 
 ## Before you write
 
