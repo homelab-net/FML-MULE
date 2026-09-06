@@ -796,7 +796,9 @@ cannot converge and the only schema-supported merge is a wall clock the program
 allows to be `TIME_DEGRADED`. **What remains is not engineering: the named
 owner's acceptance and the resulting ADR** stating the boundary -- `TBR-HA-01`
 must carry SQL plus `config.yml`, `ca/` and `uploads/`, and must not fix
-authority by comparing wall clocks.
+authority by comparing wall clocks. That ADR is drafted as `FML-ADR-071`
+(`PROPOSED`); on the owner's acceptance it becomes `SELECTED` and the trade
+closes.
 
 The implementation that follows is now **Track 4.1**, because running the server
 established that the TAK service is three processes, not one.
