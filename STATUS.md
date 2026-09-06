@@ -100,6 +100,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
 | `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
 | `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
+| `FML-ADR-072` | WAN tile-fetch is guarded enrichment of the local map store, not a provisioning path | TBR-MAP-01, TBR-SEC-01 |
 
 ### SUPERSEDED
 

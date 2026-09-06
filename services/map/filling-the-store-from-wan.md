@@ -47,9 +47,8 @@ offline.
 download" among what v1 deliberately does not do, with a strong rationale.
 WAN-fetch is field tile download, guarded. The two reconcile through the
 invariant above -- offline correctness is untouched -- but the expansion is a
-**decision the Program Owner directed** and should be recorded as one: an ADR
-amending the map-service scope, or a change request if it touches a controlling
-CONOPS clause. This design surfaces that decision rather than assuming it.
+**decision the Program Owner directed**, recorded as `FML-ADR-072` (`PROPOSED`);
+accepting it (`SELECTED PRINCIPLE`) is the owner's act.
 
 ### 2. Permitted source only
 
@@ -103,9 +102,9 @@ tile cache provides it.
 
 **Open (this design surfaces, does not decide):**
 
-- **The scope expansion itself** -- field tile download was a stated v1 non-goal
-  of the service; adopting WAN-fetch revises that and should be an ADR (or a
-  change request), the Program Owner's to enter.
+- **The scope expansion itself** is recorded as `FML-ADR-072` (`PROPOSED`) --
+  field tile download was a stated v1 non-goal of the service, and adopting
+  WAN-fetch revises it; accepting the ADR is the Program Owner's act.
 - The upstream source selection and the cache and write-through policy
   (`TBR-MAP-01`).
 - Fetching over a **peer's** shared WAN, not only the node's own (`TBR-NET-04`).
