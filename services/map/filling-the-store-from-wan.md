@@ -62,7 +62,7 @@ offline.
 download" among what v1 deliberately does not do, with a strong rationale.
 WAN-fetch is field tile download, guarded. The two reconcile through the
 invariant above -- offline correctness is untouched -- but the expansion is a
-**decision the Program Owner directed**, recorded as `FML-ADR-072` (`PROPOSED`);
+**decision the Program Owner directed**, recorded as `FML-ADR-072` (`SELECTED PRINCIPLE`);
 accepting it (`SELECTED PRINCIPLE`) is the owner's act.
 
 ### 2. Permitted source only
@@ -128,7 +128,7 @@ rather than serving stale imagery.
 
 **Open (this design surfaces, does not decide):**
 
-- **The scope expansion itself** is recorded as `FML-ADR-072` (`PROPOSED`) --
+- **The scope expansion itself** is recorded as `FML-ADR-072` (`SELECTED PRINCIPLE`) --
   field tile download was a stated v1 non-goal of the service, and adopting
   WAN-fetch revises it; accepting the ADR is the Program Owner's act.
 - The upstream source selection, and the fetch-cache policy -- the expiry
