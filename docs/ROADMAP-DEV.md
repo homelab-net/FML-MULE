@@ -1013,12 +1013,12 @@ acceptance and an ADR -- the governance half, not more engineering.
   gated `services/mission-trust/`, `services/status-aggregator/` and
   `services/gateways/`; what unblocks them next is `TBR-HA-01` (the mechanism the
   boundary constrains) and a catalog decision, not more state study.
-- **The GeoChat.to survival probe ("The GeoChat.to survival probe" above).** One
-  software probe on `meshtasticd`: does `FML-ADR-070`'s encoding --
-  `Contact.callsign` and `GeoChat.to` in a `TAKPacket` -- survive between two
-  nodes with both fields intact. The custom-tag falsifier is answered and moot;
-  this verifies the *selected* encoding on the bearer, on upstream's own ATAK
-  port. Do it before the recipient-resolution path is built on `GeoChat.to`.
+- **The GeoChat.to survival probe -- done 2026-09-06.** `FML-ADR-070`'s encoding,
+  `Contact.callsign` and `GeoChat.to` in a `TAKPacket`, crossed two `meshtasticd`
+  nodes with both fields intact (`test/bench/geochat-survival.sh`,
+  `docs/evidence/TBR-NET-02/2026-09-06-geochat-to-survives-the-meshtastic-bearer.md`).
+  The custom-tag falsifier was moot; this verified the *selected* encoding on the
+  bearer, on upstream's own ATAK port.
 - **`4.1`, the TAK service as three Quadlet units.** Buildable now against the
   bench containers: the three catalog entries with images pinned by digest, a
   defensible start order, and a different-node restore that carries
@@ -1149,8 +1149,12 @@ ATAK plugin port rather than a channel invented beside it (`AGENTS.md` rule 6),
 and it runs the way `.github/workflows/lora-probe.yml` runs its message check --
 `meshtasticd` nodes exchanging over the simulated segment.
 
-**Do it before the recipient-resolution path is built on `GeoChat.to`**, not
-after.
+**Done 2026-09-06.** A `TAKPacket` with `Contact.callsign` and `GeoChat.to`
+crossed two `meshtasticd` nodes with both fields byte-identical
+(`test/bench/geochat-survival.sh`,
+`docs/evidence/TBR-NET-02/2026-09-06-geochat-to-survives-the-meshtastic-bearer.md`).
+`FML-ADR-070`'s encoding is carriable on the bearer, so the recipient-resolution
+path may be built on `GeoChat.to`.
 
 ### What actually blocks tagging behind a MULE
 
