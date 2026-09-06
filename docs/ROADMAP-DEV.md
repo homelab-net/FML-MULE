@@ -688,8 +688,9 @@ accepted by a named owner, so this removes the reason no trade could close.
 **Owner assignment closed nothing by itself.** SAD section 30.2 says a TBR
 closes when its listed evidence exists, the named owner accepts it, **and the
 resulting architecture decision is entered into the ADR register**. As of
-2026-09-04 three trades have met all three and are `CLOSED`: `TBR-NET-02`
-(`FML-ADR-070`), `TBR-NET-01` (`FML-ADR-063`) and `TBR-NET-03` (`FML-ADR-061`).
+2026-09-06 four trades have met all three and are `CLOSED`: `TBR-NET-02`
+(`FML-ADR-070`), `TBR-NET-01` (`FML-ADR-063`), `TBR-NET-03` (`FML-ADR-061`) and
+`TBR-TAK-01` (`FML-ADR-071`, the one critical-path trade needing no hardware).
 The rest remain `OPEN`, most gated on evidence that needs hardware, which is the
 expected state at SRR.
 
@@ -780,7 +781,7 @@ The only critical-path trade needing no hardware. It gates the mission-critical
 state boundary, and through it `services/mission-trust/` and
 `services/status-aggregator/`.
 
-**State, 2026-09-05: evidence-complete, pending acceptance.** Fifteen evidence
+**State, 2026-09-06: `CLOSED` on `FML-ADR-071` (`SELECTED`).** Fifteen evidence
 artifacts exist, including a **running OpenTAKServer instance** with PyTAK
 clients. The closure gate's classification half is met in full: all 41 tables
 classified into CONOPS section 26 classes, the state outside the database
@@ -793,12 +794,11 @@ mission-package, and DataSync content through `mission_content`), and the
 partition/rejoin exercise -- which found reconciliation **structurally
 impossible**, no OTS federation and no PostgreSQL replication, so the durable set
 cannot converge and the only schema-supported merge is a wall clock the program
-allows to be `TIME_DEGRADED`. **What remains is not engineering: the named
-owner's acceptance and the resulting ADR** stating the boundary -- `TBR-HA-01`
-must carry SQL plus `config.yml`, `ca/` and `uploads/`, and must not fix
-authority by comparing wall clocks. That ADR is drafted as `FML-ADR-071`
-(`PROPOSED`); on the owner's acceptance it becomes `SELECTED` and the trade
-closes.
+allows to be `TIME_DEGRADED`. **The decision is `FML-ADR-071`**, accepted by the
+named owner 2026-09-06: the boundary is SQL plus the out-of-SQL durable set
+(`config.yml`, `ca/`, `uploads/`), `TBR-HA-01` must carry both, and it must not
+fix authority by comparing wall clocks. What follows is `TBR-HA-01` (the
+mechanism) and the implementation, not more state study.
 
 The implementation that follows is now **Track 4.1**, because running the server
 established that the TAK service is three processes, not one.
@@ -833,9 +833,9 @@ fault. `TBR-COMP-01` is where that is bounded.
 continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
 `FML-ADR-034`, `FML-ADR-035`, `FML-ADR-029`.
 
-**State:** the state study is **complete** (`TBR-TAK-01` evidence-complete,
-pending the owner's acceptance) and the implementation is not started, but the
-shape is now known from a running instance. `OpenTAKServer` is **three** console entry points, and
+**State:** the state study is **done** (`TBR-TAK-01` is `CLOSED` on
+`FML-ADR-071`) and the implementation is not started, but the shape is now known
+from a running instance. `OpenTAKServer` is **three** console entry points, and
 upstream's own container runs only the first:
 
 - `opentakserver` -- the web application and API;
@@ -1010,13 +1010,13 @@ The work sorts into three buckets by what it produces.
 These need no hardware. Each needs its evidence finished and then the owner's
 acceptance and an ADR -- the governance half, not more engineering.
 
-- **`TBR-TAK-01`, the mission-critical state boundary (Track 3, `4.1`).** The one
-  critical-path trade needing no hardware, and the highest-value pre-order item:
-  it gates `services/mission-trust/`, `services/status-aggregator/` and
-  `services/gateways/`, which are placeholders until it closes. Its evidence is
-  **complete** as of 2026-09-05 -- fifteen artifacts, a running OTS instance,
-  every empirical and classification item done -- so what remains is only the
-  owner's acceptance of the evidence and the resulting ADR.
+- **`TBR-TAK-01`, the mission-critical state boundary (Track 3, `4.1`) -- now
+  `CLOSED`.** The one critical-path trade needing no hardware is closed on
+  `FML-ADR-071` (2026-09-06): fifteen artifacts, a running OTS instance, every
+  empirical and classification item done, the owner's acceptance recorded. It
+  gated `services/mission-trust/`, `services/status-aggregator/` and
+  `services/gateways/`; what unblocks them next is `TBR-HA-01` (the mechanism the
+  boundary constrains) and a catalog decision, not more state study.
 - **The gateway tag probe (`TBR-NET-02` falsifier #3, "The gateway tag probe"
   above).** One software probe on `meshtasticd`: can the gateway carry an
   application tag in the payload. It can confirm or invalidate the LoRa
@@ -1112,8 +1112,7 @@ Work the numbered items in Track 1 in order, skipping any whose `State:` line
 says it is waiting on something. Track 2 starts the day hardware arrives and
 takes precedence over everything, because it converts assumptions into
 measurements. Track 3's blocker item is the Program Owner's and costs five
-minutes; `TBR-TAK-01`'s evidence is complete as of this session and only the
-owner's acceptance and ADR remain. Track 4 is blocked at the catalog gate for the
+minutes; `TBR-TAK-01` is now `CLOSED` on `FML-ADR-071`. Track 4 is blocked at the catalog gate for the
 services and on `CCR-03` for voice, but its analysis, the TAK state study, is
 done.
 

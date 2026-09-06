@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-071
 title: The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set
-status: PROPOSED
+status: SELECTED
 date: 2026-09-06
 supersedes: none
 superseded-by: none
@@ -63,10 +63,9 @@ out-of-SQL durable set as well as the SQL backend.
 
 ## Status
 
-`PROPOSED`. Written from the `TBR-TAK-01` evidence and under review; it carries
-no weight until the named owner accepts that evidence. On acceptance it becomes
-`SELECTED` and `TBR-TAK-01` closes; this ADR is the architecture decision SAD
-section 30.2 requires be entered into the register at closure.
+`SELECTED`. Accepted by the named owner (Cameron Zobrist) on 2026-09-06 on the
+`TBR-TAK-01` evidence; `TBR-TAK-01` is `CLOSED`. This is the architecture
+decision entered into the register at closure, per SAD section 30.2.
 
 ## Consequences
 

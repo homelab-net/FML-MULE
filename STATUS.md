@@ -32,17 +32,17 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-028` | Mission services share the Debian host but cannot directly own network/RF configuration | TBR-COMP-01 |
 | `FML-ADR-029` | Rootless Podman + Quadlet is default OCI execution model | TBR-HA-01, TBR-COMP-01 |
 | `FML-ADR-030` | Shared-kernel logical isolation using users/namespaces/cgroups/nftables | TBR-COMP-01 |
-| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | TBR-TAK-01 |
+| `FML-ADR-031` | Stable local DNS + HAProxy/TCP ingress for logical service identities | none |
 | `FML-ADR-033` | PyTAK is preferred custom CoT transport/gateway library | none |
-| `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | TBR-HA-01, TBR-TAK-01, TBR-COMP-01 |
+| `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | TBR-HA-01, TBR-COMP-01 |
 | `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | TBR-ID-01 |
 | `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | none |
 | `FML-ADR-040` | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | TBR-LINUX-01, TBR-REC-01, TBR-HW-01 |
 | `FML-ADR-042` | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | TBR-TIME-01, TBR-HW-01, TBR-SEC-01, TBR-HA-01 |
-| `FML-ADR-046` | MULE Status Aggregator is approved thin original software | TBR-TAK-01, TBR-HA-01, TBR-TIME-01, TBR-COMP-01 |
-| `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01, TBR-TAK-01 |
-| `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-TAK-01, TBR-RF-02 |
-| `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-TAK-01, TBR-HA-01 |
+| `FML-ADR-046` | MULE Status Aggregator is approved thin original software | TBR-HA-01, TBR-TIME-01, TBR-COMP-01 |
+| `FML-ADR-047` | Mission Trust Service is approved thin original software and is not a CA | TBR-SEC-01, TBR-TIME-01 |
+| `FML-ADR-048` | Gateway translation uses existing OTS/Meshtastic/PyTAK interfaces first; custom translation is protocol-specific glue only | TBR-RF-02 |
+| `FML-ADR-049` | Service Authority Registry is a function of the MULE Status Aggregator, not a separate daemon | TBR-HA-01 |
 | `FML-ADR-056` | What may share a bridge with the mesh interface | TBR-RF-01 |
 | `FML-ADR-058` | Development toolchain versions are pinned in a lock file | none |
 | `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-RF-01 |
@@ -50,6 +50,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | none |
 | `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
 | `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
+| `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-HA-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -58,9 +59,9 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-041` | MULE requires an A/B or equivalently bootable known-good rollback path | TBR-REC-01, TBR-SEC-01, TBR-HW-01 |
 | `FML-ADR-043` | Sensitive local mission data uses LUKS2-class block encryption; key-on-same-media unattended unlock is rejected | TBR-SEC-01, TBR-HW-01, TBR-CARRIER-01, TBR-REC-01 |
 | `FML-ADR-044` | Zeroize is primarily cryptographic key/credential invalidation, not flash overwrite | TBR-SEC-01 |
-| `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01, TBR-TAK-01 |
+| `FML-ADR-050` | Local-storage write amplification is bounded by design through controlled logging/telemetry retention and endurance-qualified storage | TBR-HW-01, TBR-COMP-01 |
 | `FML-ADR-051` | Node decision logic lives in an importable package outside the test tree | none |
-| `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | TBR-TAK-01 |
+| `FML-ADR-052` | The boundary between node decision functions and the blocked placeholder services | none |
 | `FML-ADR-057` | What traffic transits the node and what does not | TBR-ID-01 |
 | `FML-ADR-062` | The HaLow bearer must present a standard mesh-capable mac80211 interface | TBR-LINUX-01, TBR-RF-01, TBR-RF-03, TBR-HW-01 |
 
@@ -82,14 +83,14 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-032` | OpenTAKServer is preferred initial TAK-compatible server | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+| `FML-ADR-032` | OpenTAKServer is preferred initial TAK-compatible server | TBR-COMP-01, TBR-HA-01 |
 | `FML-ADR-036` | Smallstep step-ca is preferred initial PKI | TBR-TIME-01, TBR-SEC-01, TBR-ID-01 |
 
 ### CONDITIONAL
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
-| `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-TAK-01, TBR-COMP-01, TBR-HA-01 |
+| `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
 
 ### PROPOSED
 
@@ -99,7 +100,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
 | `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
 | `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
-| `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-TAK-01, TBR-HA-01 |
 
 ### SUPERSEDED
 
@@ -133,7 +133,6 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `Cameron Zobrist` | partly |
 | 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `Cameron Zobrist` | yes |
 | 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `Cameron Zobrist` | yes |
-| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `Cameron Zobrist` | no |
 | 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `Cameron Zobrist` | yes |
 | 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `Cameron Zobrist` | yes |
 | 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `Cameron Zobrist` | partly |
@@ -144,7 +143,7 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 
-18 open trades. 1 have no named owner.
+17 open trades. 1 have no named owner.
 
 ## Critical path
 
@@ -155,7 +154,6 @@ Marked CRITICAL in the SAD v0.31 body. Ordered by SAD priority.
 | 1 | `TBR-PWR-01` | Endurance and battery mass | `Cameron Zobrist` | yes |
 | 2 | `TBR-COMP-01` | CPU and memory budget | `Cameron Zobrist` | partly |
 | 3 | `TBR-THERM-01` | Thermal architecture | `Cameron Zobrist` | yes |
-| 9 | `TBR-TAK-01` | Mission-critical state boundary | `Cameron Zobrist` | no |
 
 ## Maintainer roles
 
