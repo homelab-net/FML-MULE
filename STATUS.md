@@ -51,6 +51,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
 | `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
 | `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-HA-01 |
+| `FML-ADR-073` | The local tile store is per-mission MBTiles served as z/x/y behind ingress | TBR-MAP-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -101,7 +102,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
 | `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
 | `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
-| `FML-ADR-073` | The local tile store is per-mission MBTiles served as z/x/y behind ingress | TBR-MAP-01 |
 
 ### SUPERSEDED
 

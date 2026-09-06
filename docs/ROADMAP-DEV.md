@@ -923,7 +923,7 @@ surprises. Each needs work before 4.2 can be planned in detail.
 
 **CONOPS basis:** section 9.2 (S1 local mission services -- "selected cached
 maps"), and the high-rate bearer's "map packages" purpose. Decision: `FML-ADR-073`
-(`PROPOSED`) proposes the store and server; the selection is `TBR-MAP-01` and the
+(`SELECTED`) selects the store and server; the selection is `TBR-MAP-01` and the
 service outline is `services/map/README.md`.
 
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map

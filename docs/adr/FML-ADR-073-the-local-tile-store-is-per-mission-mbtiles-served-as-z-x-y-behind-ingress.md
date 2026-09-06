@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-073
 title: The local tile store is per-mission MBTiles served as z/x/y behind ingress
-status: PROPOSED
+status: SELECTED
 date: 2026-09-06
 supersedes: none
 superseded-by: none
@@ -34,40 +34,41 @@ WAN-fetched tiles held in a **distinct, ephemeral** tier (`FML-ADR-072`). Two
 store forms are credible, and the Program Owner asked for both to be laid out.
 
 - **A `z/x/y` directory tree** of pre-rendered tiles, served directly by `nginx`
-  as static files. It is the simplest option and exactly what every bench ran
-  (the real-EUD render, the mesh serve, the WAN cache). Its cost is the shape of
-  the artifact: a mission's tree is on the order of millions of small files, slow
-  to copy onto a drive, heavy on inodes, awkward to verify for integrity, and
-  slow to provision.
+  as static files. It is the simplest option, and it is what the real-EUD render,
+  the mesh serve and the WAN cache benches served tiles from. Its cost is the
+  shape of the artifact: a mission's tree is on the order of millions of small
+  files, slow to copy onto a drive, heavy on inodes, awkward to verify for
+  integrity, and slow to provision.
 - **MBTiles, one SQLite file per mission.** It is the standard offline tile
   container the mapping toolchain (`gdal`, `mbutil`, and the tile pipelines)
-  already produces, so provisioning is one file. That one file is atomic to ship,
-  diff and swap, and it carries its own metadata -- name, bounds, min and max
-  zoom -- which is exactly the per-mission manifest the hot-swap design asked for.
-  Its cost is the server: reading MBTiles and exposing `z/x/y` is not plain
-  `nginx`, it is a tile server that reads SQLite.
+  already produces, so provisioning is one file, and the 2026-09-04 interface
+  bench built and served exactly this, calling it "the leading candidate offline
+  container" (`docs/evidence/TBR-MAP-01/2026-09-04-tile-interface-bench-x86.txt`).
+  That one file is atomic to ship, diff and swap, and it carries its own metadata
+  -- name, bounds, min and max zoom -- which is exactly the per-mission manifest
+  the hot-swap design asked for. Its cost is the server: reading MBTiles and
+  exposing `z/x/y` is not plain `nginx`, it is a tile server that reads SQLite.
 
 ## Decision
 
 The provisioned map store **shall** be **MBTiles, one file per mission**, served
-as `z/x/y` behind ingress by a rootless tile server that reads it **read-only**.
-The WAN ephemeral cache (`FML-ADR-072`) **shall** be a separate `z/x/y` directory
-tree, write-through and expiring, kept distinct from the provisioned MBTiles. A
-mission store's manifest **is** its MBTiles metadata table; no separate manifest
-file is introduced.
+as `z/x/y` behind ingress (`FML-ADR-031`) by a rootless tile server that reads it
+**read-only**. A mission store's manifest **is** its MBTiles metadata table; no
+separate manifest file is introduced.
 
 The runner-up -- a `z/x/y` directory served by `nginx` -- is recorded in Fallback
 below, because the served `z/x/y` interface is identical either way and nothing
-downstream depends on the choice.
+downstream depends on the choice. The WAN ephemeral cache's on-disk form follows
+from this and is covered under Consequences.
 
 ## Status
 
-`PROPOSED`. It recommends MBTiles over the directory tree and states why; the
-named owner decides on this PR -- accept, or switch the Decision to the directory
-form. Even on acceptance, `TBR-MAP-01` stays `OPEN`: this settles the format and
-the server class, while the CM4 footprint (`TBR-COMP-01`) and a USB2
-random-read-latency check on real imagery remain, and the trade closes only when
-those exist and the named owner accepts them.
+`SELECTED`. Accepted by the named owner (Cameron Zobrist) on 2026-09-06: the
+provisioned store is per-mission MBTiles served as `z/x/y`, with the `z/x/y`
+directory form recorded as the Fallback. `TBR-MAP-01` stays `OPEN`: this settles
+the format and the server class, while the CM4 footprint (`TBR-COMP-01`) and a
+USB2 random-read-latency check on real imagery remain, and the trade closes only
+when those exist and the named owner accepts them.
 
 ## Consequences
 
@@ -95,7 +96,7 @@ those exist and the named owner accepts them.
 ## Accepted cost
 
 MBTiles needs a SQLite-reading tile server, not the plain `nginx` static path the
-benches already proved rootless and pinned. That is one more moving part than a
+benches already ran. That is one more moving part than a
 directory of files, and someone will later argue the directory form was simpler.
 The cost is accepted for the one-file-per-mission provisioning, the atomic
 hot-swap, and the built-in manifest -- which the directory form cannot match --
