@@ -103,12 +103,18 @@
   `put_mission()` dereferences a user from the cert CN. With this, **all four
   workflow tests and every empirical closure item are performed.**
 
-**What remains is not another workflow.** The gate's classification half is
-complete (41 tables, the outside-SQL durable set), the durable-queue inspection,
-the different-node restore and all four workflow tests are done. Left before
-acceptance: the **map/tile/cache item**, answerable by classification rather than
-an ATAK client (OTS holds no tile state; it is the EUD's own 26.3 cache and the
-separate S1 map service, `TBR-MAP-01`); an on-bench **partition/rejoin exercise**
+- `2026-09-05-map-tile-cache-state-classification.md` -- **closure item 6,
+  classified.** Map/tile/cache state is not TAK-server state: OTS holds none, so
+  it is the EUD's own client cache (26.3, reconstructable) and the separate S1
+  map service store (`TBR-MAP-01`). A TAK failover does not touch it, so no
+  map/tile/cache state enters the mission-critical set `TBR-HA-01` must carry.
+  Resolves the item the workflow artifact deferred as "blocked on an ATAK
+  client": the gate asks for classification, not client observation.
+
+**What remains is not classification.** The gate's classification half is
+complete (41 tables, the outside-SQL durable set, and the map/tile/cache item),
+the durable-queue inspection, the different-node restore and all four workflow
+tests are done. Left before acceptance: an on-bench **partition/rejoin exercise**
 of the durable set (Program Owner's call, 2026-09-05, beyond the gate's
 "described"); and the **named owner's acceptance** with the resulting ADR.
 
