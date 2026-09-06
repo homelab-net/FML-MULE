@@ -11,7 +11,7 @@ depends-on: []
 feeds: []
 requires-hardware: partly
 evidence: docs/evidence/TBR-MAP-01/
-adr: []
+adr: [FML-ADR-073]
 target-date: 2026-09-30
 ---
 

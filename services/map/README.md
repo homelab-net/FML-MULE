@@ -4,9 +4,11 @@ Deployment and design notes for the **local map/tile service** in the
 mission-service plane: the node's own source of map tiles for EUDs, so operators
 render a map with no internet and no reachable external tile server.
 
-**Nothing is deployed, and no mechanism is selected.** This directory is the
-service outline. Roadmap item 4.4 holds its place in the plan, and `TBR-MAP-01`
-is the mechanism selection.
+**Nothing is deployed.** This directory is the service outline. Roadmap item 4.4
+holds its place in the plan, and `TBR-MAP-01` is the mechanism selection --
+`FML-ADR-073` (`PROPOSED`) proposes the store format and server (per-mission
+MBTiles served as `z/x/y` behind ingress), which the named owner accepts before
+anything is built.
 
 The **interface** below -- the `z/x/y` endpoint and the ATAK/iTAK map-source
 definition -- has a `SIMULATED` bench demonstration under
