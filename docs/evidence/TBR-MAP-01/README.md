@@ -31,6 +31,14 @@ of the measured basis the closure gate demands.
   measures no serve rate (`hwsim` has no medium). Reproduced by
   `test/bench/map-server-mesh.sh`.
 
+- `2026-09-05-real-eud-map-fetch-over-mesh-fallback.md` -- the same fallback with
+  a **real iTAK EUD**: a storage-less serving node renders the EUD's map by
+  sourcing every tile from a peer over the mesh (395 tiles served `200`), and a
+  kill test proves the sourcing -- with the peer stopped, fresh tiles fail `502`
+  and the peer's log is frozen; restoring it resumes serving. Still the transport
+  half only (a hardcoded upstream, no discovery or failover), and the inter-node
+  hop is `hwsim`, so `SIMULATED`. See `services/map/serving-across-the-mesh.md`.
+
 What remains for closure is in the run records and in the trade's **Bench
 progress** section: server selection, CM4 footprint (`TBR-COMP-01`), store size
 with real imagery from a permitted source and the `TBR-SEC-01` call. The
