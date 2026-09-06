@@ -111,12 +111,24 @@
   Resolves the item the workflow artifact deferred as "blocked on an ATAK
   client": the gate asks for classification, not client observation.
 
-**What remains is not classification.** The gate's classification half is
-complete (41 tables, the outside-SQL durable set, and the map/tile/cache item),
-the durable-queue inspection, the different-node restore and all four workflow
-tests are done. Left before acceptance: an on-bench **partition/rejoin exercise**
-of the durable set (Program Owner's call, 2026-09-05, beyond the gate's
-"described"); and the **named owner's acceptance** with the resulting ADR.
+- `2026-09-05-partition-rejoin-no-reconciliation-bench.md` -- the on-bench
+  **partition/rejoin exercise** (Program Owner's call, beyond the gate's
+  "described"). An independent assessor fixed the scope first (CONFIRMED, no
+  route): reconciliation is **structurally impossible** on the current stack --
+  OTS writes `isFederatedChange=False` at every site and starts no federation
+  listener, and PostgreSQL has zero replication -- so the exercise proves the
+  problem (unbounded divergence; a wall-clock-only ordering signal that makes
+  last-writer-wins the only schema-supported merge, which `FML-ADR-042` permits to
+  be degraded), and leaves the proposed conflict *rule* to `TBR-HA-01`, there
+  being no mechanism to run it against.
+
+**Everything the evidence can supply now is supplied.** The gate's classification
+half is complete (41 tables, the outside-SQL durable set, the map/tile/cache
+item), the durable-queue inspection, the different-node restore, all four
+workflow tests, and the partition/rejoin exercise are done. **What remains is not
+engineering: the named owner's acceptance of the evidence, and the resulting ADR
+stating the boundary** -- that `TBR-HA-01` must carry SQL plus `config.yml`,
+`ca/` and `uploads/`, and must not establish authority by comparing wall clocks.
 
 | Artifact | What it is | Status |
 | --- | --- | --- |

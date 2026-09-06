@@ -238,11 +238,17 @@ not MULE hardware, and it is the remaining half of `ITEP-C01` item 1.
    state; a TAK failover does not touch it
    (`2026-09-05-map-tile-cache-state-classification.md`). The gate asks for
    classification, not client observation.
-7. **The durable set's partition and rejoin behaviour on a running instance.**
-   The `## Partition and rejoin behaviour` section below describes it and its
-   conflict-resolution rule (the gate's "described"); the Program Owner asked
-   2026-09-05 for it to also be exercised empirically on the bench before
-   acceptance. That is the one empirical item still outstanding.
+7. ~~**The durable set's partition and rejoin behaviour on a running
+   instance.**~~ **Exercised 2026-09-05.** The section below describes it and its
+   conflict-resolution rule (the gate's "described"); the Program Owner asked for
+   it to also be exercised on the bench. It was, and an independent assessor fixed
+   the scope first: reconciliation is **structurally impossible** on the current
+   stack (OTS writes `isFederatedChange=False` everywhere and starts no federation
+   listener; PostgreSQL has zero replication), so the exercise proves the
+   *problem* -- unbounded divergence and a wall-clock-only ordering signal that
+   makes last-writer-wins the only schema-supported merge -- while the *proposed
+   rule* stays `TBR-HA-01`'s to demonstrate, there being no mechanism to run it
+   against. See `2026-09-05-partition-rejoin-no-reconciliation-bench.md`.
 
 ## What this changes if accepted
 
