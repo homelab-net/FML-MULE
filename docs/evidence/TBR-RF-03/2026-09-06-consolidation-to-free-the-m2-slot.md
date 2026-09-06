@@ -75,6 +75,20 @@ path -- rather than at RF consolidation. Consolidation should be decided on its
 own merits (power, space, airtime), not as the storage lever it cannot cleanly
 be.
 
+**But the storage need is not one need, and the common one does not need the
+M.2 at all.** The CM4 has a single PCIe lane, spent on the QCA6174; NVMe and USB3
+both want that lane, so neither is available while the high-rate radio holds it.
+The CM4's **native USB2** does not touch the lane, and the BOM already frees both
+USB2 ports (the RAK LoRa moved to UART for exactly this). A **USB2 SSD** with the
+QCA6174 still on M.2 therefore gives **high-rate mesh plus mass storage on the
+current BOM**, no slot freed and no carrier change. USB2's ~40 MB/s is tolerable
+for the map repository, which is read-mostly and served a tile at a time. NVMe is
+needed only for the **write-heavy** case -- PostgreSQL -- which is `FML-ADR-050`'s
+write-amplification concern and what the BOM's USB2 SSD test article characterises
+(`TBR-COMP-01`). So the M.2-versus-storage question is really about *fast* storage;
+the **map store does not need it**, and neither the carrier change nor RF
+consolidation is required to carry maps.
+
 ## What would confirm or overturn this, all needing hardware
 
 - `iw phy` on a real CM4: does `brcmfmac`/CYW43455 advertise `mesh point`, and at

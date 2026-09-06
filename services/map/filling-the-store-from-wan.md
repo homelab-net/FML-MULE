@@ -10,13 +10,28 @@ what is still an open decision, and it invents no mechanism.
 
 ## The source order, and where WAN sits
 
-The node's map service resolves a `z/x/y` request in order:
+A tile an EUD needs escalates through four tiers, the first on the device and
+the rest on the node it is connected to.
+
+**First, the EUD's own store** -- the ATAK client's tile cache and any maps
+loaded onto the device, an option within ATAK. A tile the client already holds
+never reaches the MULE. This tier is the client's, not the node's; it is why the
+map/tile/cache state classifies as the EUD's own reconstructable cache
+(`docs/evidence/TBR-TAK-01/2026-09-05-map-tile-cache-state-classification.md`),
+not TAK-server state.
+
+The EUD always addresses **its own MULE** for a tile it does not hold (never a
+far node directly), and the node's map service then resolves that `z/x/y`
+request in order:
 
 1. the node's **own store**;
 2. a **storage peer over the mesh**, if the node lacks the tile and a holder is
    reachable (`serving-across-the-mesh.md`);
 3. a **permitted upstream over WAN**, if the tile is still missing, WAN is
    reachable, and the operating mode permits emission.
+
+So the full escalation is **EUD cache -> MULE store -> MULE mesh -> WAN**, and
+only the last three are the node's to serve.
 
 Every WAN-fetched tile is **written through to the local store**, so the area
 fills in as operators use it and a repeat request is served locally. Across a
