@@ -7,8 +7,16 @@
 **Priority:** 2 of 16 (SAD v0.31 section 30.2). **Function owner:** Platform + TAK.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** one `SIMULATED` size measurement. This trade is `OPEN`:
+the software "size" half is now measured, but the closure gate's hardware half
+(the CM4/arm64 footprint, CPU under load, and the peak under a service-plane
+storm with the network plane co-resident) remains.
+
+- `2026-09-06-service-plane-steady-state-footprint.md` -- the mission-service
+  plane's steady-state resident memory from the running reference deployment:
+  **~650 MB**, dominated by OpenTAKServer's three processes (~536 MB) and
+  RabbitMQ (~98 MB). x86, steady state, no load, no network plane -- the size
+  half only. Reproduced by `test/bench/service-plane-footprint.sh`.
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

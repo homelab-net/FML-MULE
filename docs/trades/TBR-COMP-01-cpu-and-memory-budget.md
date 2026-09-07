@@ -69,6 +69,27 @@ class, capacity, and bus alongside CPU and memory, and OTS + PostGIS + the tile
 server serving that repository is part of the load this trade measures on the
 CM4.
 
+## Bench progress
+
+`OPEN`. The software **size** half is measured; the hardware half is not.
+
+**Service-plane steady-state footprint, 2026-09-06 (`SIMULATED`).** The running
+reference deployment's mission-service plane sizes at **~650 MB resident at idle
+steady state**, dominated by OpenTAKServer's three processes (~536 MB:
+`opentakserver` ~178, `eud_handler` ~115, `cot_parser` ~243) and RabbitMQ
+(~98 MB); PostGIS at idle and the nginx fronts are under 20 MB combined
+(`test/bench/service-plane-footprint.sh`,
+`docs/evidence/TBR-COMP-01/2026-09-06-service-plane-steady-state-footprint.md`).
+The selected tile server (Martin, `FML-ADR-073`) is a further ~8.5 MB idle /
+~28 MB loaded, measured separately. This is the size input the CM4 memory-class
+call is made against; it is `x86_64`, steady state, no load, and no network plane
+co-resident, so it advances no part of the hardware half below.
+
+Still required for closure: the CM4/arm64 footprint, CPU under load, OOM and
+cgroup behaviour, and the **peak** under service start-up, a mesh reconfiguration
+and a client association storm with the network plane co-resident -- the items
+the closure evidence enumerates, which need hardware and the network plane.
+
 ## Closure evidence
 
 Measured RAM, CPU, OOM and cgroup behaviour for the components SAD section 25.3

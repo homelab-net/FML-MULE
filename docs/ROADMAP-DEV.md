@@ -1040,11 +1040,15 @@ software half is bankable now, so the day the BOM arrives the trade is a
 measurement rather than a design.
 
 - **`TBR-COMP-01`, the service-plane budget.** Marked `requires-hardware: partly`
-  precisely because half is not. RAM, CPU, OOM and cgroup behaviour for OTS's
-  three processes, RabbitMQ, PostgreSQL, the tile server and the map-server-over-
-  mesh load are measurable on the current bench at steady state and at the
-  start-up and association peaks against fakes. Bank that budget now; only the
-  mesh-under-RF-load and real-radio association-storm cases wait for hardware.
+  precisely because half is not. The **size half is now banked** (2026-09-06): the
+  service plane sizes at **~650 MB resident** at idle steady state, dominated by
+  OpenTAKServer's three processes (~536 MB) and RabbitMQ (~98 MB), measured from
+  the running reference deployment (`test/bench/service-plane-footprint.sh`,
+  `docs/evidence/TBR-COMP-01/2026-09-06-service-plane-steady-state-footprint.md`).
+  That is the input the CM4 memory-class call (Bank C) is made against. What
+  remains is the hardware half: the arm64/CM4 figure, CPU under load, and the
+  **peak** under start-up, mesh reconfiguration and an association storm with the
+  network plane co-resident -- which need radios.
 - **`TBR-MAP-01`, the tile store and server (`4.4`).** The interface, the client
   model, the EUD render and the map-server-for-the-mesh role are all
   demonstrated (see `4.4`). The store format (`FML-ADR-073`, per-mission MBTiles)
@@ -1081,7 +1085,11 @@ has bench evidence already or needs only the owner's direction.
   Depends on `TBR-RF-03` freeing the slot.
 - **`TBR-COMP-01`'s hardware axes: memory class and storage.** The 4 GB versus
   8 GB CM4 fail-back (the RoIP gate in `4.3`) and the storage class and bus. The
-  Bank B software-load measurement informs the memory call directly.
+  Bank B software-size measurement now informs the memory call directly: the
+  service plane is ~650 MB resident at idle (see Bank B), so the call is between
+  that plus the network-plane reserve, the OS and headroom against 4 GB, versus
+  the room 8 GB gives -- a decision for the owner with the power model, not made
+  here.
 - **The prototype BOM itself (`hardware/prototype/`).** Once RF-03, CARRIER-01
   and the COMP-01 software budget are set, the BOM's open cells -- a committed
   SSD, the Wi-Fi board count -- resolve, and the purchase is made against a
