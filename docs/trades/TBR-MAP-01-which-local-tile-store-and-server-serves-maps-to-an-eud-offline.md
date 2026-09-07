@@ -101,9 +101,25 @@ interface bench it uses a stand-in `http.server` and generated tiles on `hwsim`,
 so it advances the role's routing-and-interface half only: it selects no server,
 measures no serve rate, and does not touch the closure gate.
 
-Still not settled and still required for closure: the production server
-selection, the **CM4 footprint**, the imagery source/licence, and the store size
-from a permitted source. The real-device render does not close the trade.
+**Server selection and software-half footprint, 2026-09-06 (`SIMULATED`).**
+`FML-ADR-073` selected the store as per-mission MBTiles and left the exact server
+binary to the catalog work. That binary is now selected: **Martin (MapLibre)**, a
+rootless, digest-pinned, single Rust binary that reads MBTiles read-only and
+serves `z/x/y`. It was chosen over `mbtileserver` (which publishes no arm64 image,
+so it cannot be pinned for the CM4 without a new artifact, against `AGENTS.md`
+rule 6) and `tileserver-gl-light` (a GL renderer, a v1 non-goal). Measured under
+sustained loopback load: idle RSS ~8.5 MB, peak ~28 MB, 75 k requests with zero
+errors, tile latency p95 3.4 ms; the image is ~650 MB at rest
+(`test/bench/map-server-footprint.sh`,
+`docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md`). This is
+the **software half** on `x86_64`; it selects the server and gives the catalog its
+measured envelope, but it is not the CM4 footprint the closure gate demands.
+
+Still not settled and still required for closure: the **CM4 footprint**
+(`TBR-COMP-01`), the imagery source/licence, the store size from a permitted
+source, and the USB2 random-read-latency check on a real-imagery store. The
+server is now selected; the real-device render and this footprint do not close
+the trade.
 
 ## Closure evidence
 

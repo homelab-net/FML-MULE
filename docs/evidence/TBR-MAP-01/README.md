@@ -4,9 +4,10 @@
 
 **Trade file:** `docs/trades/TBR-MAP-01-which-local-tile-store-and-server-serves-maps-to-an-eud-offline.md`
 
-**Current contents:** one `SIMULATED` interface demonstration. This trade is
-still `OPEN`: the demonstration exercises the `z/x/y` contract but produces none
-of the measured basis the closure gate demands.
+**Current contents:** `SIMULATED` interface and mesh demonstrations, plus the
+server selection and its software-half footprint. This trade is still `OPEN`:
+the server is selected and sized on x86, but the closure gate's CM4 footprint
+(`TBR-COMP-01`) and the real-imagery USB2 read-latency check remain.
 
 - `2026-09-04-tile-interface-bench.py` -- reproducing script. Builds an MBTiles
   store of placeholder tiles and serves `z/x/y` from it; regenerates the store
@@ -39,11 +40,20 @@ of the measured basis the closure gate demands.
   half only (a hardcoded upstream, no discovery or failover), and the inter-node
   hop is `hwsim`, so `SIMULATED`. See `services/map/serving-across-the-mesh.md`.
 
+- `2026-09-06-martin-mbtiles-server-footprint.md` -- the **server selection and
+  its software-half footprint**. Martin (MapLibre) is selected over `mbtileserver`
+  (no arm64 image) and `tileserver-gl-light` (a GL renderer, a v1 non-goal): it is
+  a rootless, digest-pinned, single Rust binary that reads MBTiles and serves
+  `z/x/y`. Measured idle RSS ~8.5 MB, peak ~28 MB under sustained loopback load
+  (75 k requests, 0 errors, p95 3.4 ms), image ~650 MB at rest. x86 only -- the
+  software half; the CM4 footprint is `TBR-COMP-01`. Reproduced by
+  `test/bench/map-server-footprint.sh`.
+
 What remains for closure is in the run records and in the trade's **Bench
-progress** section: server selection, CM4 footprint (`TBR-COMP-01`), store size
-with real imagery from a permitted source and the `TBR-SEC-01` call. The
-real-device render settles the interface and client model, not the mechanism or
-the CM4 cost.
+progress** section: the CM4 footprint (`TBR-COMP-01`), and store size with real
+imagery from a permitted source plus the USB2 read-latency check and the
+`TBR-SEC-01` call. The server is now selected; the real-device render settled the
+interface and client model, and this settles the server, but not the CM4 cost.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,
