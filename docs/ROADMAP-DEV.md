@@ -947,12 +947,19 @@ which settles the interface and client model and meets the EUD-render
 acceptance; and the **map-server-for-the-mesh role** -- a storage-less node
 fetching a repository tile from a storage node across `batman-adv`,
 byte-identical to the store's copy (`SIMULATED`, 2026-09-05,
-`test/bench/map-server-mesh.sh`). What remains for closure is the mechanism, not
-the interface: no production server selected, no CM4 footprint (`TBR-COMP-01`),
-and no store size from real imagery on a permitted source with the `TBR-SEC-01`
-call. The 2026-09-04 session also found the store cannot come from OSM's public
-tiles (a permitted source is required) and that clients cache tiles by position,
-not by source.
+`test/bench/map-server-mesh.sh`). The **production server is now selected and
+sized** (2026-09-06): Martin (MapLibre), a rootless, digest-pinned, single-binary
+MBTiles-to-`z/x/y` server, chosen over `mbtileserver` (no arm64 image) and
+`tileserver-gl-light` (a GL renderer, a v1 non-goal), with a measured software-half
+envelope of idle ~8.5 MB / peak ~28 MB RSS
+(`test/bench/map-server-footprint.sh`,
+`docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md`). What
+remains for closure is the hardware and content basis, not the interface or the
+server: no CM4 footprint (`TBR-COMP-01`), and no store size from real imagery on a
+permitted source with the `TBR-SEC-01` call and a USB2 read-latency check. The
+2026-09-04 session also found the store cannot come from OSM's public tiles (a
+permitted source is required) and that clients cache tiles by position, not by
+source.
 
 **What it is:** a local tile/map source on the node -- offline tiles, an MBTiles
 store, or a WMTS/XYZ endpoint -- so EUDs render maps with no internet and no
@@ -1040,9 +1047,11 @@ measurement rather than a design.
   mesh-under-RF-load and real-radio association-storm cases wait for hardware.
 - **`TBR-MAP-01`, the tile store and server (`4.4`).** The interface, the client
   model, the EUD render and the map-server-for-the-mesh role are all
-  demonstrated (see `4.4`). The store format and production server are software
-  decisions makeable on the bench now; only the CM4 footprint and the real-
-  imagery store size remain, and the *selection* need not wait for them.
+  demonstrated (see `4.4`). The store format (`FML-ADR-073`, per-mission MBTiles)
+  and the production server (Martin, selected and sized software-half, 2026-09-06)
+  are now **made** on the bench; only the CM4 footprint and the real-imagery store
+  size (with the USB2 read-latency check) remain, and neither blocks the now-
+  buildable catalog entry and Quadlet.
 - **Interface bring-up and `RadioState` (`1.2`, `1.6`).** The bring-up ordering
   and the `RadioState` reader are software, exercisable on `hwsim` plus the real
   AP radio. Finishing them means that the day a board arrives, bring-up follows a

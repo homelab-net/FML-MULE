@@ -7,9 +7,13 @@ render a map with no internet and no reachable external tile server.
 **Nothing is deployed.** This directory is the service outline. Roadmap item 4.4
 holds its place in the plan, and `TBR-MAP-01` is the mechanism selection --
 `FML-ADR-073` (`SELECTED`) selects the store format and server -- per-mission
-MBTiles served as `z/x/y` behind ingress. The build (a catalog entry and Quadlet)
-is the next step; the trade stays `OPEN` for the CM4 footprint and a USB2
-read-latency check.
+MBTiles served as `z/x/y` behind ingress. The exact server binary the ADR left to
+"the catalog work" is now **selected and measured: Martin (MapLibre)**, a
+rootless, digest-pinned, single Rust binary that reads MBTiles and serves `z/x/y`
+(`docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md`,
+`test/bench/map-server-footprint.sh`). With a measured software-half envelope, the
+catalog entry and Quadlet are now buildable rather than blocked; the trade stays
+`OPEN` for the CM4 footprint (`TBR-COMP-01`) and a USB2 read-latency check.
 
 The **interface** below -- the `z/x/y` endpoint and the ATAK/iTAK map-source
 definition -- has a `SIMULATED` bench demonstration under
@@ -70,10 +74,12 @@ choice `TBR-MAP-01` makes.
   and diffs and ships as one file; `GeoPackage` and a plain directory of `z/x/y`
   files were the alternatives, the last kept as the ADR's fallback. The store is
   **pre-loaded**; nothing here downloads tiles in the field.
-- **Tile server.** A small dedicated server that reads the store and exposes
-  `z/x/y` -- a single-binary server, a library behind a thin wrapper, or a
-  static file server for a pre-rendered tree. It must be rootless (`FML-ADR-029`),
-  local-first, and reachable through the `ingress/` reverse proxy by name.
+- **Tile server** -- **selected: Martin (MapLibre).** A rootless, digest-pinned,
+  single Rust binary that reads MBTiles read-only and exposes `z/x/y`, with a
+  base-path prefix for ingress. Chosen over `mbtileserver` (no arm64 image, so it
+  cannot be pinned for the CM4) and `tileserver-gl-light` (a GL renderer, which is
+  a v1 non-goal); measured light (idle ~8.5 MB, peak ~28 MB software-half). It
+  is reachable through the `ingress/` reverse proxy by name (`FML-ADR-031`).
 - **How the map-source definition reaches the EUD**, which touches EUD
   provisioning and `TBR-ID-01`.
 - **What imagery, and its licence and sensitivity.** Provisioning tiles is a
