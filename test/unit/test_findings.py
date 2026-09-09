@@ -38,7 +38,12 @@ def validator() -> ModuleType:
 
 @pytest.fixture
 def repository(tmp_path: Path) -> Path:
-    """Copy the authoritative plan, register, and schemas into a temporary tree."""
+    """Copy an open-state register fixture into a temporary tree.
+
+    These tests exercise BASE-01 closure rules. Findings that close later in
+    the remediation campaign must not make this isolated fixture depend on
+    their evidence packets or Git history.
+    """
     files = (
         Path(PLAN_NAME),
         REGISTER_PATH,
@@ -50,12 +55,15 @@ def repository(tmp_path: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / relative, destination)
     document = _register(tmp_path)
+    for finding in document["findings"]:
+        finding["evidence"] = []
+        if finding["state"] == "CLOSED":
+            finding["state"] = "RED-TEAMED"
+            if finding["parent"] is None:
+                _set_plan_state(tmp_path, finding["id"], "RED-TEAMED")
     base = _finding(document, "BASE-01")
     base["reviewer"] = "Independent agent pending"
-    base["state"] = "RED-TEAMED"
-    base["evidence"] = []
     _write_register(tmp_path, document)
-    _set_plan_state(tmp_path, "BASE-01", "RED-TEAMED")
     return tmp_path
 
 

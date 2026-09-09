@@ -24,8 +24,9 @@ findings:
     reviewer: Independent agent pending
     verification: independent
     dependencies: [BASE-01]
-    state: BASELINED
-    evidence: []
+    state: RED-TEAMED
+    evidence:
+      - docs/evidence/findings/BASE-02/2026-09-09-verification.json
     user_gate: null
 
   - &open_independent
