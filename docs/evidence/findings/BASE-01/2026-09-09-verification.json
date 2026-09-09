@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "BASE-01",
+  "implementation_commit": "cceab036e0247be4a7d932248730f4027d18c1fc",
+  "classification": "SIMULATED",
+  "environment": {
+    "os": "Ubuntu 24.04.4 LTS under WSL",
+    "python": "3.12.3",
+    "pytest": "9.1.1",
+    "pyyaml": "6.0.3",
+    "jsonschema": "4.26.0",
+    "ruff": "0.16.5",
+    "bats": "1.10.0",
+    "node": "22.22.2",
+    "markdownlint_cli2": "0.23.2"
+  },
+  "checks": [
+    {
+      "name": "Focused findings tests and validator",
+      "command": ".venv/bin/python -m pytest -q test/unit/test_findings.py && .venv/bin/python tools/validate-findings.py",
+      "exit_code": 0,
+      "result": "21 tests passed; 47 findings; 0 defects"
+    },
+    {
+      "name": "Findings mutation checks",
+      "command": ".venv/bin/python tools/mutation-check.py --only M73,M74,M75,M76,M77,M78,M79",
+      "exit_code": 0,
+      "result": "7 of 7 mutations caught"
+    },
+    {
+      "name": "Complete repository gate",
+      "command": "bash -lc 'sh tools/lint.sh'",
+      "exit_code": 0,
+      "result": "All configured linters and checks clean; 79 of 79 mutations caught; mule coverage 100%; 36 Bats tests passed"
+    },
+    {
+      "name": "Independent P0 verification",
+      "command": ".venv/bin/python -m pytest -q test/unit/test_findings.py && .venv/bin/python tools/validate-findings.py && .venv/bin/python tools/mutation-check.py --only M75,M76,M77,M78,M79",
+      "exit_code": 0,
+      "result": "PASS by /root/gap01_verifier; 21 tests passed; 47 findings and 0 defects; 5 of 5 targeted mutations caught"
+    }
+  ],
+  "red_team": [
+    {
+      "attempt": "Run the pre-change existence test without tools/validate-findings.py",
+      "expected_failure": "The test fails because BASE-01 has no validator",
+      "observed_exit_code": 1
+    },
+    {
+      "attempt": "Remove a plan finding from the register",
+      "expected_failure": "The validator reports the missing finding",
+      "observed_result": "M73 killed"
+    },
+    {
+      "attempt": "Mark a finding CLOSED without its canonical closure packet",
+      "expected_failure": "The validator refuses closure",
+      "observed_result": "M74 killed"
+    },
+    {
+      "attempt": "Record a nonzero test exit in a closure packet",
+      "expected_failure": "The closure schema rejects the packet",
+      "observed_result": "Independent reproduction rejected; M75 killed"
+    },
+    {
+      "attempt": "Close a finding while a declared dependency remains open",
+      "expected_failure": "The validator names the open dependency",
+      "observed_result": "Independent reproduction rejected; M76 killed"
+    },
+    {
+      "attempt": "Use placeholder, mismatched, or whitespace-only closure identities",
+      "expected_failure": "The schemas and validator reject unnamed or non-independent identities",
+      "observed_result": "Independent reproductions rejected; M77 through M79 killed"
+    }
+  ],
+  "redaction": {
+    "credentials": false,
+    "private_keys": false,
+    "tokens": false,
+    "personally_identifying_data": false,
+    "deployment_locations": false,
+    "sensitive_packet_contents": false
+  }
+}

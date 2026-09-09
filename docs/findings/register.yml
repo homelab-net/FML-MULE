@@ -1,0 +1,363 @@
+---
+schema_version: "1.0"
+source_plan: REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md
+findings:
+  - id: BASE-01
+    title: "Create a findings register"
+    severity: P0
+    parent: null
+    owner: Codex
+    reviewer: /root/gap01_verifier
+    verification: independent
+    dependencies: []
+    state: CLOSED
+    evidence:
+      - docs/evidence/findings/BASE-01/closure.md
+      - docs/evidence/findings/BASE-01/2026-09-09-verification.json
+    user_gate: "Schema approved by project owner in the Codex thread on 2026-09-09"
+
+  - id: BASE-02
+    title: "Capture a clean verification baseline"
+    severity: P0
+    parent: null
+    owner: Codex
+    reviewer: Independent agent pending
+    verification: independent
+    dependencies: [BASE-01]
+    state: BASELINED
+    evidence: []
+    user_gate: null
+
+  - &open_independent
+    id: OSS-01
+    title: "Build the prior-art and reuse register"
+    severity: P0
+    parent: null
+    owner: Agent
+    reviewer: Independent agent
+    verification: independent
+    dependencies: [BASE-01]
+    state: OPEN
+    evidence: []
+    user_gate: "Approve any adoption affecting architecture or licensing"
+
+  - <<: *open_independent
+    id: GAP-01
+    title: "Enforce the mission JSON schema"
+    owner: Codex
+    reviewer: gap01_verifier
+    dependencies: [BASE-01]
+    state: VERIFIED
+    user_gate: "Decide size and nesting limits before closure"
+
+  - <<: *open_independent
+    id: GAP-02
+    title: "Enforce the service catalog"
+    dependencies: [BASE-01, OSS-01]
+    user_gate: "Approve catalog contract or service selection"
+
+  - <<: *open_independent
+    id: GAP-03
+    title: "Preserve and validate `address_prefix`"
+    dependencies: [BASE-01]
+    user_gate: "Approve any unspecified address semantics"
+
+  - <<: *open_independent
+    id: GAP-04
+    title: "Make configuration resolution target-aware"
+    dependencies: [BASE-01]
+    user_gate: "Approve capability and target model"
+
+  - <<: *open_independent
+    id: GAP-05
+    title: "Handle unknown radio enumeration safely"
+    dependencies: [BASE-01]
+    user_gate: "Approve unknown and failure semantics"
+
+  - <<: *open_independent
+    id: GAP-06
+    title: "Define consistent operator-status semantics"
+    dependencies: [BASE-01]
+    user_gate: "Approve status semantics and controlling ADR"
+
+  - <<: *open_independent
+    id: GAP-07
+    title: "Correct integration-probe workflow triggers"
+    severity: P1
+    dependencies: [BASE-01, BASE-02]
+    user_gate: null
+
+  - <<: *open_independent
+    id: GAP-08
+    title: "Eliminate documentation decision drift"
+    severity: P1
+    dependencies: [BASE-01]
+    user_gate: "Resolve any conflict between controlling records"
+
+  - <<: *open_independent
+    id: ENV-01
+    title: "Restore normal-user reproducibility"
+    dependencies: [BASE-01]
+    user_gate: "Authorize remote ownership or destructive cleanup separately"
+
+  - <<: *open_independent
+    id: ENV-02
+    title: "Make cross-platform checkout behavior explicit"
+    severity: P3
+    dependencies: [BASE-01]
+    user_gate: "Decide supported checkout platforms"
+
+  - <<: *open_independent
+    id: GAP-09
+    title: "Create a reproducible, deployable product path"
+    severity: P1
+    dependencies: [BASE-01]
+    user_gate: "Approve every component and architecture selection"
+
+  - <<: *open_independent
+    id: GAP-09A
+    title: "Development compute article"
+    severity: P1
+    parent: GAP-09
+    dependencies: [BASE-01, OSS-01]
+    user_gate: "Approve the development compute article"
+
+  - <<: *open_independent
+    id: GAP-09B
+    title: "Reproducible base image"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-09A, OSS-01]
+    user_gate: "Approve the base-image mechanism"
+
+  - <<: *open_independent
+    id: GAP-09C
+    title: "Package manifest and provenance"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-09B]
+    user_gate: "Approve the package set"
+
+  - <<: *open_independent
+    id: GAP-09D
+    title: "MULE runtime packaging"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-09B, GAP-09C]
+    user_gate: "Approve the runtime entry point and installation model"
+
+  - <<: *open_independent
+    id: GAP-09E
+    title: "AP-only network rendering"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-03, GAP-04, GAP-09B, GAP-09C]
+    user_gate: "Approve any unresolved network semantics"
+
+  - <<: *open_independent
+    id: GAP-09F
+    title: "One real service selection"
+    severity: P1
+    parent: GAP-09
+    dependencies: [OSS-01]
+    user_gate: "Approve the milestone service"
+
+  - <<: *open_independent
+    id: GAP-09G
+    title: "Service deployment"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-02, GAP-09C, GAP-09F]
+    user_gate: "Approve the deployment unit and privileges"
+
+  - <<: *open_independent
+    id: GAP-09H
+    title: "Operator procedure"
+    severity: P1
+    parent: GAP-09
+    dependencies: [GAP-09D, GAP-09E, GAP-09G]
+    user_gate: null
+
+  - <<: *open_independent
+    id: GAP-09I
+    title: "Independent milestone acceptance"
+    severity: P1
+    parent: GAP-09
+    verification: independent-plus-operator
+    dependencies: [GAP-09H]
+    user_gate: null
+
+  - <<: *open_independent
+    id: HW-01
+    title: "Establish a qualified hardware path"
+    severity: P2
+    verification: independent-plus-operator
+    dependencies: [BASE-01]
+    user_gate: "Approve every hardware trade and test threshold"
+
+  - &open_hardware
+    <<: *open_independent
+    id: HW-01A
+    title: "RF consolidation decision packet"
+    severity: P2
+    parent: HW-01
+    verification: independent-plus-operator
+    dependencies: [BASE-01, OSS-01]
+    user_gate: "Approve the RF consolidation decision"
+
+  - <<: *open_hardware
+    id: HW-01B
+    title: "Carrier and M.2 decision packet"
+    dependencies: [HW-01A, OSS-01]
+    user_gate: "Approve the carrier and M.2 decision"
+
+  - <<: *open_hardware
+    id: HW-01C
+    title: "Compute memory/storage decision packet"
+    dependencies: [GAP-09A]
+    user_gate: "Approve the compute memory and storage thresholds"
+
+  - <<: *open_hardware
+    id: HW-01D
+    title: "Authorized procurement and article inventory"
+    dependencies: [HW-01A, HW-01B, HW-01C]
+    user_gate: "Authorize procurement"
+
+  - <<: *open_hardware
+    id: HW-01E
+    title: "Linux/driver/firmware viability"
+    dependencies: [HW-01D]
+    user_gate: "Approve the OS and radio stack under test"
+
+  - <<: *open_hardware
+    id: HW-01F
+    title: "RF and coexistence characterization"
+    dependencies: [HW-01E]
+    user_gate: "Approve RF test thresholds"
+
+  - <<: *open_hardware
+    id: HW-01G
+    title: "Power and runtime characterization"
+    dependencies: [HW-01D, HW-01E]
+    user_gate: "Approve power and runtime thresholds"
+
+  - <<: *open_hardware
+    id: HW-01H
+    title: "Thermal characterization"
+    dependencies: [HW-01D, HW-01E]
+    user_gate: "Approve thermal thresholds"
+
+  - <<: *open_hardware
+    id: HW-01I
+    title: "RTC/BMS and hardware-zone behavior"
+    dependencies: [HW-01D, HW-01E]
+    user_gate: "Approve RTC, BMS, and hardware-zone semantics"
+
+  - <<: *open_hardware
+    id: HW-01J
+    title: "Regional profile evidence"
+    dependencies: [HW-01E, HW-01F, HW-01G]
+    user_gate: "Approve the regional profile evidence"
+
+  - &open_security
+    <<: *open_independent
+    id: GAP-10
+    title: "Implement and verify security/service boundaries"
+    severity: P2
+    verification: independent-security
+    dependencies: [BASE-01]
+    user_gate: "Approve every security and service architecture decision"
+
+  - <<: *open_security
+    id: GAP-10A
+    title: "Threat model and trust-zone decision"
+    parent: GAP-10
+    dependencies: [BASE-01, OSS-01]
+    user_gate: "Approve the threat model and trust zones"
+
+  - <<: *open_security
+    id: GAP-10B
+    title: "Identity and admission decision/implementation"
+    parent: GAP-10
+    dependencies: [GAP-10A]
+    user_gate: "Approve identity and admission semantics"
+
+  - <<: *open_security
+    id: GAP-10C
+    title: "Authorization model"
+    parent: GAP-10
+    dependencies: [GAP-10A, GAP-10B]
+    user_gate: "Approve the authorization model"
+
+  - <<: *open_security
+    id: GAP-10D
+    title: "Offline TLS and revocation"
+    parent: GAP-10
+    dependencies: [GAP-10A, GAP-10B]
+    user_gate: "Approve certificate and revocation policy"
+
+  - <<: *open_security
+    id: GAP-10E
+    title: "Ingress trust boundary"
+    parent: GAP-10
+    dependencies: [GAP-10A, GAP-10B, GAP-10C, GAP-10D]
+    user_gate: "Approve ingress identity propagation"
+
+  - <<: *open_security
+    id: GAP-10F
+    title: "OpenTAKServer process deployment"
+    parent: GAP-10
+    dependencies: [GAP-09G, GAP-10E]
+    user_gate: "Approve OpenTAKServer deployment"
+
+  - <<: *open_security
+    id: GAP-10G
+    title: "TAK durable state and HA"
+    parent: GAP-10
+    dependencies: [GAP-10A, GAP-10F]
+    user_gate: "Approve durable state and HA behavior"
+
+  - <<: *open_security
+    id: GAP-10H
+    title: "Backup, restore, and recovery"
+    parent: GAP-10
+    dependencies: [GAP-10G]
+    user_gate: "Approve recovery objectives"
+
+  - <<: *open_security
+    id: GAP-10I
+    title: "At-rest secrets and keys"
+    parent: GAP-10
+    dependencies: [GAP-10A, GAP-10D]
+    user_gate: "Approve key custody and destruction policy"
+
+  - <<: *open_security
+    id: GAP-10J
+    title: "Service controller and status aggregator"
+    parent: GAP-10
+    dependencies: [GAP-05, GAP-06, GAP-10A]
+    user_gate: "Approve service-control and status semantics"
+
+  - <<: *open_security
+    id: GAP-10K
+    title: "Gateways and protocol boundaries"
+    parent: GAP-10
+    dependencies: [GAP-10A]
+    user_gate: "Approve each gateway boundary"
+
+  - <<: *open_security
+    id: GAP-10L
+    title: "Independent security review"
+    parent: GAP-10
+    dependencies:
+      - GAP-10B
+      - GAP-10C
+      - GAP-10D
+      - GAP-10E
+      - GAP-10F
+      - GAP-10G
+      - GAP-10H
+      - GAP-10I
+      - GAP-10J
+      - GAP-10K
+    user_gate: "Approve residual-risk disposition"

@@ -59,6 +59,16 @@ make_sandbox() {
   [ "$status" -ne 0 ]
 }
 
+@test "validate-docs detects a missing remediation findings register" {
+  make_sandbox
+  rm "$SANDBOX/docs/findings/register.yml"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"cannot read findings register"* ]]
+  [[ "$output" == *"remediation findings register"* ]]
+}
+
 @test "validate-docs detects an evidence artifact clobbered into its README" {
   make_sandbox
   # An unrelated commit once overwrote an evidence artifact with a copy of its

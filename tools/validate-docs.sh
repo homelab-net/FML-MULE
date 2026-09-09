@@ -23,9 +23,11 @@
 #  17. Every reading declares a source kind; command sources name a package.
 #  18. A blocked service README names the mule/ modules that act on its ADR.
 #  19. No evidence artifact is a near-duplicate of its directory README.
+#  20. Every remediation finding and closure packet satisfies its declared schema.
 #
 # Exits non-zero on the first category of failure found, after reporting every
-# failure in the run. POSIX sh, no dependencies beyond coreutils, grep and sed.
+# failure in the run. POSIX sh; the findings check uses the repository's pinned
+# Python, PyYAML and jsonschema dependencies.
 
 set -eu
 
@@ -908,6 +910,12 @@ for readme in docs/evidence/*/README.md; do
   done
 done
 info "$ev_checked evidence artifact(s) checked against their directory README"
+
+# --- 20: remediation findings and closure packets ---------------------------
+printf 'Remediation findings\n'
+if ! python3 tools/validate-findings.py "$ROOT"; then
+  fail "the remediation findings register or a closure packet is invalid"
+fi
 
 # --- result -----------------------------------------------------------------
 printf '\n'

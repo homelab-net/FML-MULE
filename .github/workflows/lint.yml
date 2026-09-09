@@ -60,6 +60,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # actions/checkout: "Only a single commit is fetched by default."
+          # Closure packets cite their earlier implementation commit.
+          fetch-depth: 0
 
       - name: Validate the ADR and trade registers
         run: tools/validate-docs.sh
@@ -97,6 +101,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # actions/checkout: "Only a single commit is fetched by default."
+          # Bats runs the closure validator against the tracked tree.
+          fetch-depth: 0
 
       # tools/install-deps.sh is the single source of toolchain versions
       # (FML-ADR-058). Restating the package list or the shfmt version here
@@ -122,6 +130,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # actions/checkout: "Only a single commit is fetched by default."
+          # Findings tests resolve closure implementation commits.
+          fetch-depth: 0
 
       # 3.13 is Debian stable's Python, which FML-ADR-022 selects, and is the
       # interpreter tools/requirements-dev.txt was resolved against. Running a
@@ -170,6 +182,10 @@ jobs:
           apt-get install -y -qq git
 
       - uses: actions/checkout@v7
+        with:
+          # actions/checkout: "Only a single commit is fetched by default."
+          # The complete lint run includes closure validation.
+          fetch-depth: 0
 
       # What the documentation tells a contributor to run, run exactly that.
       # This is the claim: clone on a fresh Debian, run one command, work.

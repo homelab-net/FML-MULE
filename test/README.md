@@ -10,7 +10,8 @@ A green pipeline means:
 - The linters are satisfied.
 - The fakes pass.
 - The documents are internally consistent: identifiers are unique, cited trades
-  exist, `STATUS.md` is not stale, and no image reference uses a mutable tag.
+  exist, the remediation findings register and closure packets agree with the
+  plan, `STATUS.md` is not stale, and no image reference uses a mutable tag.
 
 **It says nothing about whether the system works on hardware.** Not whether a
 radio enumerates, whether a mesh forms, whether the node survives a day on
@@ -129,6 +130,7 @@ about physical behaviour.
 | Subject | How |
 | --- | --- |
 | Documentation consistency | `tools/validate-docs.sh` |
+| Remediation findings and closure packets | `tools/validate-findings.py`, and `test/unit/` |
 | `STATUS.md` freshness | `tools/gen-status.sh --check` |
 | Requirement traceability | `tools/gen-traceability.sh --check` |
 | Mission package schema and repository rules | `tools/validate-mission.py`, and `test/unit/` |
