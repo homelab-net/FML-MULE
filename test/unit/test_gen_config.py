@@ -24,6 +24,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
 MISSION = REPO_ROOT / "mission" / "examples" / "valid-minimal.json"
 MISSION_FULL = REPO_ROOT / "mission" / "examples" / "valid-full.json"
+MISSION_UNKNOWN_FIELD = (
+    REPO_ROOT / "mission" / "examples" / "invalid-unknown-field.json"
+)
 
 
 def _load() -> ModuleType:
@@ -99,6 +102,25 @@ def test_check_mode_reports_gaps_and_exits_zero(capsys: pytest.CaptureFixture) -
     assert "TBR-RF-02" in out
 
 
+def test_check_mode_rejects_an_invalid_mission(
+    capsys: pytest.CaptureFixture,
+) -> None:
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION_UNKNOWN_FIELD),
+            "--check",
+        ]
+    )
+
+    assert code == 2
+    error = capsys.readouterr().err
+    assert "$" in error
+    assert "transmit_power_dbm" in error
+
+
 # --- the success path ----------------------------------------------------
 
 
@@ -110,6 +132,17 @@ def test_fixture_region_resolves() -> None:
     assert params["lora"]["channel"] == 915000000
     assert params["wifi"]["mesh_channel"] == 149
     assert params["amateur"]["enabled"] is False
+
+
+def test_generation_rejects_a_mission_package_with_an_unknown_field() -> None:
+    """The generator shall not bypass the canonical mission schema."""
+    with pytest.raises(gc.ConfigError) as excinfo:
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_UNKNOWN_FIELD)
+
+    message = str(excinfo.value)
+    assert "schema" in message
+    assert "$" in message
+    assert "transmit_power_dbm" in message
 
 
 def test_generation_writes_a_parameter_document(tmp_path: Path) -> None:
@@ -227,10 +260,11 @@ def test_a_package_that_is_not_a_mapping_is_refused(tmp_path: Path) -> None:
     bad = tmp_path / "mission.json"
     bad.write_text("[1, 2, 3]", encoding="utf-8")
 
-    with pytest.raises(gc.MissingParameterError) as excinfo:
+    with pytest.raises(gc.ConfigError) as excinfo:
         gc.load_mission(bad)
 
-    assert "not a mapping" in str(excinfo.value)
+    assert "$" in str(excinfo.value)
+    assert "not of type 'object'" in str(excinfo.value)
 
 
 def test_an_absent_key_names_the_path_it_was_looking_for() -> None:

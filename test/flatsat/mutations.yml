@@ -104,6 +104,18 @@ mutations:
     find: "        if not isinstance(eirp, (int, float)):"
     replace: "        if False:"
 
+  - id: M71
+    file: tools/gen-config.py
+    describe: configuration generation bypasses canonical mission validation
+    find: "        return load_validated_mission(path)"
+    replace: '        return json.loads(Path(path).read_text(encoding="utf-8"))'
+
+  - id: M72
+    file: mission/schema/mission-package.schema.json
+    describe: unknown top-level mission fields are accepted
+    find: '  "additionalProperties": false,'
+    replace: '  "additionalProperties": true,'
+
   - id: M14
     file: test/flatsat/node.py
     describe: services come from a list in the node rather than the package

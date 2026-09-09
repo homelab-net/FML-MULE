@@ -34,6 +34,14 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    # Direct execution starts with tools/ on sys.path. FML-ADR-051 keeps shared
+    # runtime decisions in the importable mule/ package.
+    sys.path.insert(0, str(REPO_ROOT))
+
+from mule.mission import MissionLoadError, validate_document  # noqa: E402
+from mule.mission import load_schema as load_runtime_schema  # noqa: E402
+
 SCHEMA_PATH = REPO_ROOT / "mission" / "schema" / "mission-package.schema.json"
 EXAMPLES_DIR = REPO_ROOT / "mission" / "examples"
 
@@ -50,44 +58,22 @@ SECRET_PATTERNS = [
 FORBIDDEN_FIELDS = {"passphrase", "password", "secret", "private_key", "token"}
 
 
-class MissingDependencyError(Exception):
-    """A dependency the validator needs is not installed.
-
-    Distinct from a validation failure. A package that could not be checked is
-    not a package that passed, and conflating the two would let a CI runner
-    without jsonschema report every package as clean.
-    """
-
-
-def load_schema() -> dict:
+def load_schema() -> dict[str, object]:
     """Read the mission package schema."""
-    with SCHEMA_PATH.open(encoding="utf-8") as handle:
-        return json.load(handle)
+    return load_runtime_schema(SCHEMA_PATH)
 
 
-def check_schema(document: dict, schema: dict) -> list[str]:
+def check_schema(document: object, schema: dict[str, object]) -> list[str]:
     """Validate a document against the JSON Schema.
 
     Returns a list of error messages, empty when the document is valid.
     """
-    try:
-        import jsonschema
-    except ImportError as exc:
-        message = (
-            "jsonschema is not installed, so the schema layer cannot run. "
-            "A package that could not be checked is not a package that "
-            "passed. Install it with: pip install jsonschema"
-        )
-        raise MissingDependencyError(message) from exc
-
-    validator = jsonschema.Draft202012Validator(schema)
     return [
-        f"schema: {error.message}"
-        for error in sorted(validator.iter_errors(document), key=str)
+        f"schema: {issue.render()}" for issue in validate_document(document, schema)
     ]
 
 
-def check_repository_rules(document: dict, path: Path, raw: str) -> list[str]:
+def check_repository_rules(document: object, path: Path, raw: str) -> list[str]:
     """Apply the rules that govern packages committed to this repository.
 
     Returns a list of error messages, empty when the document is acceptable.
@@ -101,9 +87,9 @@ def check_repository_rules(document: dict, path: Path, raw: str) -> list[str]:
     except AttributeError:  # Python < 3.9 has no is_relative_to
         in_examples = str(EXAMPLES_DIR) in str(path.resolve())
 
-    if in_examples:
+    if in_examples and isinstance(document, dict):
         mission = document.get("mission", {})
-        if mission.get("example") is not True:
+        if isinstance(mission, dict) and mission.get("example") is not True:
             errors.append(
                 "repository rule: a package under mission/examples/ must set "
                 "mission.example to true. A real configuration belongs in "
@@ -149,9 +135,15 @@ def _walk_keys(node: object) -> list[str]:
     return keys
 
 
-def validate(path: Path, schema: dict) -> list[str]:
+def validate(path: Path, schema: dict[str, object]) -> list[str]:
     """Validate one package. Returns a list of error messages."""
-    raw = path.read_text(encoding="utf-8")
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        return [f"not valid UTF-8: byte {exc.start}"]
+    except OSError as exc:
+        return [f"cannot read package: {path}: {exc}"]
+
     try:
         document = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -175,7 +167,11 @@ def expected_valid(path: Path) -> bool | None:
 
 def main(argv: list[str]) -> int:
     """Validate the packages named on the command line, or every example."""
-    schema = load_schema()
+    try:
+        schema = load_schema()
+    except MissionLoadError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
     if argv:
         paths = [Path(arg) for arg in argv]
@@ -188,13 +184,7 @@ def main(argv: list[str]) -> int:
 
     failures = 0
     for path in paths:
-        try:
-            errors = validate(path, schema)
-        except MissingDependencyError as exc:
-            # Exit 2, distinct from a validation failure, so that a missing
-            # dependency in CI is not mistaken for a clean run.
-            print(f"ERROR: {exc}", file=sys.stderr)
-            return 2
+        errors = validate(path, schema)
         expectation = expected_valid(path)
 
         if expectation is None:

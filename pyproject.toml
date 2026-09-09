@@ -15,12 +15,13 @@ license = { text = "Apache-2.0" }
 # releases carry, and the userland is Debian-family (FML-ADR-022). Raising it
 # would mean requiring a Python a builder's own distribution does not ship.
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "jsonschema==4.26.0",
+]
 
 [project.optional-dependencies]
 # Installed by CI and by anyone running the full check set locally.
 dev = [
-  "jsonschema>=4.0",
   "coverage>=7.0",
   "PyYAML>=6.0",
   "pytest>=7.0",

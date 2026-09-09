@@ -47,6 +47,19 @@ from typing import Any
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    # Direct execution starts with tools/ on sys.path. FML-ADR-051 keeps shared
+    # runtime decisions in the importable mule/ package.
+    sys.path.insert(0, str(REPO_ROOT))
+
+from mule.mission import (  # noqa: E402
+    MissionLoadError,
+    MissionValidationError,
+)
+from mule.mission import (  # noqa: E402
+    load_mission as load_validated_mission,
+)
+
 REGIONS_DIR = REPO_ROOT / "regions"
 
 #: Marker for a value the program has not determined. Never a default.
@@ -158,17 +171,13 @@ def load_region(region: str) -> dict[str, Any]:
 
 
 def load_mission(path: str | Path) -> dict[str, Any]:
-    """Load a mission configuration package."""
-    resolved = Path(path)
-    if not resolved.is_file():
-        message = f"mission package not found: {resolved}"
-        raise MissingParameterError(message)
-    with resolved.open(encoding="utf-8") as handle:
-        loaded = json.load(handle)
-    if not isinstance(loaded, dict):
-        message = f"mission package is not a mapping: {resolved}"
-        raise MissingParameterError(message)
-    return loaded
+    """Load a mission package through the canonical runtime schema validator."""
+    try:
+        return load_validated_mission(path)
+    except MissionValidationError as exc:
+        raise ConfigError(str(exc)) from exc
+    except MissionLoadError as exc:
+        raise MissingParameterError(str(exc)) from exc
 
 
 def unresolved(
@@ -385,6 +394,7 @@ def main(argv: list[str]) -> int:
 
     if args.check:
         try:
+            load_mission(args.mission)
             region = load_region(args.region)
         except ConfigError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
