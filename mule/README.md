@@ -19,6 +19,7 @@ question you can ask in plain English.
 | `admission.py` | May this device join the network? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
 | `modes.py` | Which operating modes is the node in, and which can it not tell? |
+| `mission.py` | Is a mission package valid according to the declared runtime schema? |
 | `status.py` | What do we tell the operator? |
 
 That is the whole package. If another file appears, it should be because there

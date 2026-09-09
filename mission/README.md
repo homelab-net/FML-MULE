@@ -49,13 +49,15 @@ fake. See `SECURITY.md`.
 
 ## Validation
 
-The schema is validated in CI against both **valid and deliberately invalid**
-example packages. Invalid examples matter as much as valid ones: a schema that
-accepts everything passes every valid example and is worthless.
+`mule/mission.py` is the canonical runtime loader for the declared Draft
+2020-12 schema. Both `tools/gen-config.py` and the flat-sat path use it, while
+`tools/validate-mission.py` adds only the publication rules for files committed
+to this repository. CI exercises valid and deliberately invalid examples; a
+schema that accepts everything passes every valid example and is worthless.
 
-A generated configuration must also be validated against the region profile it
-was generated for. A channel outside the region's permitted set is a regulatory
-problem, not a bug. That validator does not exist yet.
+`tools/gen-config.py` separately validates resolved radio values against the
+selected region profile. No real region profile is resolvable yet, and the tool
+does not render the configuration templates.
 
 ## State
 

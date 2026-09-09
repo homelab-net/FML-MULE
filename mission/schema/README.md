@@ -13,8 +13,10 @@ closed and are marked `TBD` in the schema rather than guessed.
 
 ## Validation
 
-Validated in CI against every example in `mission/examples/`, both the valid
-ones and the deliberately invalid ones.
+`mule/mission.py` loads this schema and enforces it before a mission package can
+enter configuration generation or the flat-sat boot path. The standalone
+repository validator uses the same implementation, and CI exercises every
+example in `mission/examples/`, both valid and deliberately invalid.
 
 **Invalid examples matter as much as valid ones.** A schema that accepts
 everything passes every valid example and catches nothing. Each invalid example
@@ -25,8 +27,8 @@ as a test that quietly started passing.
 ## What the schema cannot check
 
 - **Whether a value is lawful in the deployment's region.** A channel outside
-  the region's permitted set is a regulatory problem, and checking it requires
-  the region profile, not the schema. That validator does not exist yet. See
+  the region's permitted set is a regulatory problem. `tools/gen-config.py`
+  performs that separate check against the selected region profile. See
   `regions/README.md`.
 - **Whether identities are real.** The publication rule is enforced by secret
   scanning and by reviewers, not by a schema. See `SECURITY.md`.

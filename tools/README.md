@@ -1,11 +1,11 @@
 # Tools
 
-Small, dependency-free scripts for documentation validation, identifier
-allocation, and generation.
+Repository scripts for documentation validation, identifier allocation, and
+generation.
 
-Everything here is POSIX `sh` except `validate-mission.py`, which is Python
-because JSON Schema validation in shell would be worse for everyone. No script
-requires anything beyond coreutils, `grep`, `sed`, `awk` and `git`.
+Most tools are POSIX `sh`. The mission and configuration tools are Python and
+use the pinned dependencies installed by `install-deps.sh`; JSON Schema
+validation is shared with the runtime code in `mule/mission.py`.
 
 `install-deps.sh` is the one exception, and is not a validation script: it
 installs the toolchain the others are checked by, so it needs `apt-get`,
@@ -271,7 +271,9 @@ Files named `valid-*.json` are expected to pass and `invalid-*.json` to fail,
 and that expectation is itself checked. A counter-example that stops being
 caught is a regression, not a test that quietly started passing.
 
-Requires `jsonschema`. Without it, the schema layer is skipped and says so.
+Requires the runtime `jsonschema` dependency pinned in `pyproject.toml` and the
+development lock. A missing dependency prevents the validator from starting;
+schema validation is never skipped.
 
 ## Writing a new tool
 
