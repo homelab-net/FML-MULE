@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://feral-mule.invalid/schema/findings-register-1.0.json",
+  "title": "FERAL MULE remediation findings register",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_plan", "findings"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "source_plan": {
+      "const": "REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md"
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/finding" }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "severity",
+        "parent",
+        "owner",
+        "reviewer",
+        "verification",
+        "dependencies",
+        "state",
+        "evidence",
+        "user_gate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(BASE|OSS|GAP|ENV|HW)-[0-9]{2}[A-Z]?$"
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+        "parent": {
+          "type": ["string", "null"],
+          "pattern": "^(GAP|HW)-[0-9]{2}$"
+        },
+        "owner": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "reviewer": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "verification": {
+          "enum": [
+            "independent",
+            "independent-plus-operator",
+            "independent-security"
+          ]
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(BASE|OSS|GAP|ENV|HW)-[0-9]{2}[A-Z]?$"
+          }
+        },
+        "state": {
+          "enum": [
+            "OPEN",
+            "BASELINED",
+            "FIX DESIGNED",
+            "IMPLEMENTED",
+            "RED-TEAMED",
+            "VERIFIED",
+            "CLOSED",
+            "BLOCKED",
+            "AWAITING_USER_DECISION",
+            "DEFERRED",
+            "ACCEPTED_RISK",
+            "REOPENED"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "user_gate": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

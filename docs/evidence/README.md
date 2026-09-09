@@ -1,7 +1,8 @@
 # Evidence
 
-Trades close on evidence, and evidence lives here. One directory per trade,
-named exactly for the trade ID.
+Trades and remediation findings close on evidence, and evidence lives here.
+Trade directories are named exactly for the trade ID. Finding packets live
+under `findings/<ID>/` so they cannot be mistaken for trade evidence.
 
 A closure that cites no path under `docs/evidence/` is not a closure. That rule
 is in `CONTRIBUTING.md`, in `docs/trades/README.md`, and in `AGENTS.md`, because
@@ -35,12 +36,22 @@ docs/evidence/
       vendor-part-rev-b.SOURCE.md
   TBR-PWR-01/
     ...
+  findings/
+    README.md
+    BASE-01/
+      closure.md
+      2026-09-09-verification.json
 ```
 
 Every trade directory exists from the start, with a `README.md` stating what
 that trade's closure gate demands. They are not empty placeholders waiting to
 be created; the gate is written down before the work, so the answer cannot be
 graded against a standard invented after seeing it.
+
+Finding directories are created when they first hold evidence. Their
+`closure.md` frontmatter is validated against
+`docs/findings/closure-packet.schema.json`; raw artifacts named by the packet
+are hash-checked. See `docs/findings/README.md`.
 
 ## Naming
 

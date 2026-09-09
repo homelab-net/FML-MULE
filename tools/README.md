@@ -21,7 +21,8 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | `check-toolchain-arm64.sh` | Check the pinned toolchain could install on arm64. Needs network; not run by `lint.sh`. |
 | `requirements-lora.txt` | The pinned Meshtastic client for LoRa plane work. Generated, never hand-edited. |
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
-| `validate-docs.sh` | Validate the ADR and trade registers, the fork ledger, and image references. |
+| `validate-docs.sh` | Validate decision records, findings, closure packets, the fork ledger, and image references. |
+| `validate-findings.py` | Validate the remediation register and evidence-backed finding closure. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
 | `new-trade.sh` | Allocate the next unused trade identifier and create the file. |
 | `gen-status.sh` | Generate `STATUS.md`. Never hand-edit that file. |
@@ -193,6 +194,23 @@ Checks:
    check did not anticipate. Documentation counter-examples under
    `example.org` and `example.invalid` are exempt, narrowly and deliberately:
    those hostnames cannot resolve to a real registry.
+10. Every remediation-plan finding appears exactly once in the findings
+    register, with matching parent metadata and an acyclic dependency graph.
+11. Every finding evidence link resolves inside that finding's evidence
+    directory. A `CLOSED` finding has a schema-valid closure packet, checked
+    artifact hashes, and the required independent reviewer separation.
+
+The last two checks are implemented by `validate-findings.py`. Run it directly
+for concise findings diagnostics:
+
+```sh
+tools/validate-findings.py
+```
+
+It requires Python, PyYAML, and `jsonschema`. It validates the committed plan,
+`docs/findings/register.yml`, and closure packet frontmatter under
+`docs/evidence/findings/<FINDING-ID>/`. It also resolves implementation commits
+when the repository's Git metadata is available.
 
 ## `new-adr.sh` and `new-trade.sh`
 

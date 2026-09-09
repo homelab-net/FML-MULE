@@ -475,3 +475,40 @@ mutations:
     describe: a bearer with no peer reports associated
     find: "        return count > 0"
     replace: "        return count >= 0"
+
+  # --- remediation findings closure enforcement --------------------------
+  - id: M73
+    file: tools/validate-findings.py
+    describe: a plan finding can disappear from the register undetected
+    find: "    missing = plan_ids - register_ids"
+    replace: "    missing = set()"
+  - id: M74
+    file: tools/validate-findings.py
+    describe: a finding can be marked CLOSED without a closure packet
+    find: '        if state == "CLOSED" and closure_paths != [expected_closure.resolve()]:'
+    replace: "        if False:"
+  - id: M75
+    file: docs/findings/closure-packet.schema.json
+    describe: a failing test result can be presented as closure evidence
+    find: '          "exit_code": { "const": 0 }'
+    replace: '          "exit_code": { "type": "integer" }'
+  - id: M76
+    file: tools/validate-findings.py
+    describe: a finding can close while a declared dependency remains open
+    find: "        if state == \"CLOSED\":\n            open_dependencies = sorted("
+    replace: "        if False:\n            open_dependencies = sorted("
+  - id: M77
+    file: tools/validate-findings.py
+    describe: placeholder text is accepted as a high-impact reviewer identity
+    find: "        if _identity_is_placeholder(reviewer):"
+    replace: "        if False:"
+  - id: M78
+    file: tools/validate-findings.py
+    describe: a closure packet operator can differ from the registered owner
+    find: '    if packet["operator"] != finding["owner"]:'
+    replace: "    if False:"
+  - id: M79
+    file: tools/validate-findings.py
+    describe: a whitespace-only identity is treated as a named reviewer
+    find: "    if not normalized:\n        return True"
+    replace: "    if not normalized:\n        return False"
