@@ -49,6 +49,13 @@ def repository(tmp_path: Path) -> Path:
         destination = tmp_path / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / relative, destination)
+    document = _register(tmp_path)
+    base = _finding(document, "BASE-01")
+    base["reviewer"] = "Independent agent pending"
+    base["state"] = "RED-TEAMED"
+    base["evidence"] = []
+    _write_register(tmp_path, document)
+    _set_plan_state(tmp_path, "BASE-01", "RED-TEAMED")
     return tmp_path
 
 
