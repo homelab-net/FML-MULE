@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://feral-mule.invalid/schema/prior-art-registry-1.0.json",
+  "title": "FERAL MULE prior-art registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_plan",
+    "verification_date",
+    "supporting_documents",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "source_plan": {
+      "const": "REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md"
+    },
+    "verification_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "supporting_documents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/repositoryPath" }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/candidate" }
+    }
+  },
+  "$defs": {
+    "nonBlankString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "pattern": "^docs/prior-art/[a-z0-9][a-z0-9._/-]*\\.md$"
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonBlankString" },
+      "uniqueItems": true
+    },
+    "sourceList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1, "pattern": "\\S" },
+      "uniqueItems": true
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source", "version", "immutable_id", "verified_on"],
+      "properties": {
+        "kind": { "enum": ["git", "oci", "package"] },
+        "source": { "type": "string", "pattern": "^https://" },
+        "version": { "$ref": "#/$defs/nonBlankString" },
+        "immutable_id": { "$ref": "#/$defs/nonBlankString" },
+        "verified_on": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declared",
+        "source",
+        "compatibility",
+        "bundled_dependencies",
+        "notes"
+      ],
+      "properties": {
+        "declared": { "$ref": "#/$defs/nonBlankString" },
+        "source": { "type": "string", "pattern": "^https://" },
+        "compatibility": {
+          "enum": ["compatible", "incompatible", "review-required", "unknown"]
+        },
+        "bundled_dependencies": {
+          "enum": ["complete", "partial", "not-applicable", "pending"]
+        },
+        "notes": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_cadence",
+        "latest_release_date",
+        "last_commit_date",
+        "issue_backlog",
+        "bus_factor",
+        "sources"
+      ],
+      "properties": {
+        "release_cadence": { "$ref": "#/$defs/nonBlankString" },
+        "latest_release_date": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "last_commit_date": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "issue_backlog": { "type": ["integer", "null"], "minimum": 0 },
+        "bus_factor": { "$ref": "#/$defs/nonBlankString" },
+        "sources": { "$ref": "#/$defs/sourceList" }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "value", "unit", "environment", "source"],
+      "properties": {
+        "metric": { "$ref": "#/$defs/nonBlankString" },
+        "value": {
+          "anyOf": [
+            { "type": "number" },
+            { "$ref": "#/$defs/nonBlankString" }
+          ]
+        },
+        "unit": { "$ref": "#/$defs/nonBlankString" },
+        "environment": { "$ref": "#/$defs/nonBlankString" },
+        "source": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "project",
+        "canonical_upstreams",
+        "state",
+        "evaluation_document"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "project": { "$ref": "#/$defs/nonBlankString" },
+        "canonical_upstreams": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^https://" }
+        },
+        "state": {
+          "enum": [
+            "BASELINED",
+            "EVALUATED",
+            "PROTOTYPED",
+            "GATED",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "evaluation_document": {
+          "anyOf": [
+            { "$ref": "#/$defs/repositoryPath" },
+            { "type": "null" }
+          ]
+        },
+        "evaluation_date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "evaluated_artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/artifact" }
+        },
+        "license": { "$ref": "#/$defs/license" },
+        "maintenance": { "$ref": "#/$defs/maintenance" },
+        "platform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hardware", "operating_systems", "architectures", "sources"],
+          "properties": {
+            "hardware": { "$ref": "#/$defs/stringList" },
+            "operating_systems": { "$ref": "#/$defs/stringList" },
+            "architectures": { "$ref": "#/$defs/stringList" },
+            "sources": { "$ref": "#/$defs/sourceList" }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "measurements"],
+          "properties": {
+            "status": {
+              "enum": ["measured", "upstream-claimed", "not-measured"]
+            },
+            "measurements": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/measurement" }
+            }
+          }
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ports",
+            "privileges",
+            "capabilities",
+            "mounts",
+            "secrets",
+            "authentication",
+            "update_behavior",
+            "sources"
+          ],
+          "properties": {
+            "ports": { "$ref": "#/$defs/stringList" },
+            "privileges": { "$ref": "#/$defs/stringList" },
+            "capabilities": { "$ref": "#/$defs/stringList" },
+            "mounts": { "$ref": "#/$defs/stringList" },
+            "secrets": { "$ref": "#/$defs/stringList" },
+            "authentication": { "$ref": "#/$defs/nonBlankString" },
+            "update_behavior": { "$ref": "#/$defs/nonBlankString" },
+            "sources": { "$ref": "#/$defs/sourceList" }
+          }
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["formats", "persistence", "backup", "migration", "sources"],
+          "properties": {
+            "formats": { "$ref": "#/$defs/stringList" },
+            "persistence": { "$ref": "#/$defs/nonBlankString" },
+            "backup": { "$ref": "#/$defs/nonBlankString" },
+            "migration": { "$ref": "#/$defs/nonBlankString" },
+            "sources": { "$ref": "#/$defs/sourceList" }
+          }
+        },
+        "security": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reviewed_on",
+            "advisory_sources",
+            "known_advisories",
+            "audit_status",
+            "sbom_status"
+          ],
+          "properties": {
+            "reviewed_on": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "advisory_sources": { "$ref": "#/$defs/sourceList" },
+            "known_advisories": { "$ref": "#/$defs/stringList" },
+            "audit_status": { "$ref": "#/$defs/nonBlankString" },
+            "sbom_status": { "$ref": "#/$defs/nonBlankString" }
+          }
+        },
+        "mappings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requirements", "findings"],
+          "properties": {
+            "requirements": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^FML-REQ-[0-9]{3}$"
+              }
+            },
+            "findings": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(BASE|OSS|GAP|ENV|HW)-[0-9]{2}[A-Z]?$"
+              }
+            }
+          }
+        },
+        "reuse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "rationale", "approval_ref"],
+          "properties": {
+            "mode": {
+              "enum": ["adopt", "wrap", "port", "pattern-only", "reject", "undecided"]
+            },
+            "rationale": { "$ref": "#/$defs/nonBlankString" },
+            "approval_ref": {
+              "anyOf": [
+                { "$ref": "#/$defs/nonBlankString" },
+                { "type": "null" }
+              ]
+            }
+          }
+        },
+        "prototype": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "commands", "evidence", "gaps"],
+          "properties": {
+            "status": {
+              "enum": ["not-run", "passed", "failed", "not-applicable"]
+            },
+            "commands": { "$ref": "#/$defs/stringList" },
+            "evidence": { "$ref": "#/$defs/stringList" },
+            "gaps": { "$ref": "#/$defs/stringList" }
+          }
+        },
+        "exit_strategy": { "$ref": "#/$defs/nonBlankString" },
+        "decision_questions": { "$ref": "#/$defs/stringList" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "not": { "const": "BASELINED" } } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": [
+              "evaluation_date",
+              "evaluated_artifacts",
+              "license",
+              "maintenance",
+              "platform",
+              "resources",
+              "runtime",
+              "data",
+              "security",
+              "mappings",
+              "reuse",
+              "prototype",
+              "exit_strategy",
+              "decision_questions"
+            ],
+            "properties": {
+              "evaluation_document": { "$ref": "#/$defs/repositoryPath" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
