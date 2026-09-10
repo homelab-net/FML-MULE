@@ -512,3 +512,111 @@ mutations:
     describe: a whitespace-only identity is treated as a named reviewer
     find: "    if not normalized:\n        return True"
     replace: "    if not normalized:\n        return False"
+
+  # --- prior-art intake enforcement --------------------------------------
+  - id: M80
+    file: tools/validate-prior-art.py
+    describe: an approved prior-art candidate can disappear from the registry
+    find: "    for candidate_id in sorted(set(REQUIRED_CANDIDATES) - found):"
+    replace: "    for candidate_id in []:"
+  - id: M81
+    file: tools/validate-prior-art.py
+    describe: a floating git reference is accepted as an immutable artifact
+    find: '    if kind == "git" and not GIT_COMMIT.fullmatch(immutable_id):'
+    replace: '    if kind == "git" and False:'
+  - id: M82
+    file: tools/validate-prior-art.py
+    describe: a missing prior-art evaluation document is accepted
+    find: "        if resolved is not None and not resolved.is_file():"
+    replace: "        if False:"
+  - id: M83
+    file: tools/validate-prior-art.py
+    describe: incompatible prior art can be proposed for direct reuse
+    find: '    if compatibility == "incompatible" and mode in REUSE_REQUIRES_APPROVAL:'
+    replace: "    if False:"
+  - id: M84
+    file: tools/validate-prior-art.py
+    describe: architecture-affecting reuse can proceed without owner approval
+    find: '    if mode in REUSE_REQUIRES_APPROVAL and _placeholder(reuse.get("approval_ref")):'
+    replace: "    if False:"
+  - id: M85
+    file: tools/validate-prior-art.py
+    describe: an unregistered prior-art document can evade registry review
+    find: "        for value in sorted(actual_documents - registered_documents):"
+    replace: "        for value in []:"
+  - id: M86
+    file: tools/validate-prior-art.py
+    describe: unregistered prior-art documents below a nested directory are ignored
+    find: '            for path in directory.rglob("*.md")'
+    replace: '            for path in directory.glob("*.md")'
+  - id: M87
+    file: tools/validate-prior-art.py
+    describe: placeholder words evade review when embedded in an approval phrase
+    find: "    return not normalized or bool(words & PLACEHOLDER_WORDS)"
+    replace: "    return not normalized or normalized in PLACEHOLDER_WORDS"
+  - id: M88
+    file: tools/validate-prior-art.py
+    describe: an impossible artifact verification date is accepted
+    find: '    _parse_date(artifact.get("verified_on"), f"{label} verified_on", errors)'
+    replace: "    pass  # artifact date validation removed"
+  - id: M89
+    file: tools/validate-prior-art.py
+    describe: impossible maintenance dates are accepted
+    find: "    if isinstance(maintenance, dict):"
+    replace: "    if False:"
+  - id: M90
+    file: tools/validate-prior-art.py
+    describe: an impossible security review date is accepted
+    find: "    if isinstance(security, dict):"
+    replace: "    if False:"
+  - id: M91
+    file: docs/prior-art/registry.schema.json
+    describe: an evaluated claim section can omit its evidence sources
+    find: |
+      "sourceList": {
+            "type": "array",
+            "minItems": 1,
+    replace: |
+      "sourceList": {
+            "type": "array",
+            "minItems": 0,
+  - id: M92
+    file: docs/prior-art/registry.schema.json
+    describe: an evaluated candidate can omit its FML requirement mapping
+    find: |
+      "requirements": {
+                    "type": "array",
+                    "minItems": 1,
+    replace: |
+      "requirements": {
+                    "type": "array",
+                    "minItems": 0,
+  - id: M93
+    file: docs/prior-art/registry.schema.json
+    describe: whitespace is accepted as an evidence source
+    find: '      "items": { "type": "string", "minLength": 1, "pattern": "\\S" },'
+    replace: '      "items": { "type": "string", "minLength": 1 },'
+  - id: M94
+    file: tools/validate-prior-art.py
+    describe: a mapped FML requirement need not exist in the requirements register
+    find: "                if isinstance(reference, str) and reference not in requirement_ids:"
+    replace: "                if False:"
+  - id: M95
+    file: tools/validate-prior-art.py
+    describe: a mapped remediation finding need not exist in the findings register
+    find: "                if isinstance(reference, str) and reference not in finding_ids:"
+    replace: "                if False:"
+  - id: M96
+    file: docs/prior-art/registry.schema.json
+    describe: whitespace satisfies required narrative intake fields
+    find: |
+      "nonBlankString": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+    replace: |
+      "nonBlankString": {
+            "type": "string",
+            "minLength": 1
+          },

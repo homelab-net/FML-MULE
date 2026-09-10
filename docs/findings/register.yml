@@ -30,32 +30,42 @@ findings:
       - docs/evidence/findings/BASE-02/2026-09-09-verification.json
     user_gate: null
 
-  - &open_independent
-    id: OSS-01
+  - id: OSS-01
     title: "Build the prior-art and reuse register"
+    severity: P0
+    parent: null
+    owner: Codex
+    reviewer: Independent agent pending
+    verification: independent
+    dependencies: [BASE-01]
+    state: BASELINED
+    evidence:
+      - docs/evidence/findings/OSS-01/execution-card.md
+    user_gate: "Approve any adoption affecting architecture or licensing"
+
+  - id: GAP-01
+    title: "Enforce the mission JSON schema"
+    severity: P0
+    parent: null
+    owner: Codex
+    reviewer: gap01_verifier
+    verification: independent
+    dependencies: [BASE-01]
+    state: VERIFIED
+    evidence: []
+    user_gate: "Decide size and nesting limits before closure"
+
+  - &open_independent
+    id: GAP-02
+    title: "Enforce the service catalog"
     severity: P0
     parent: null
     owner: Agent
     reviewer: Independent agent
     verification: independent
-    dependencies: [BASE-01]
+    dependencies: [BASE-01, OSS-01]
     state: OPEN
     evidence: []
-    user_gate: "Approve any adoption affecting architecture or licensing"
-
-  - <<: *open_independent
-    id: GAP-01
-    title: "Enforce the mission JSON schema"
-    owner: Codex
-    reviewer: gap01_verifier
-    dependencies: [BASE-01]
-    state: VERIFIED
-    user_gate: "Decide size and nesting limits before closure"
-
-  - <<: *open_independent
-    id: GAP-02
-    title: "Enforce the service catalog"
-    dependencies: [BASE-01, OSS-01]
     user_gate: "Approve catalog contract or service selection"
 
   - <<: *open_independent

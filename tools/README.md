@@ -23,6 +23,7 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate decision records, findings, closure packets, the fork ledger, and image references. |
 | `validate-findings.py` | Validate the remediation register and evidence-backed finding closure. |
+| `validate-prior-art.py` | Validate the OSS candidate corpus, immutable references, evaluation links, licenses, and adoption approvals. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
 | `new-trade.sh` | Allocate the next unused trade identifier and create the file. |
 | `gen-status.sh` | Generate `STATUS.md`. Never hand-edit that file. |
@@ -194,14 +195,23 @@ Checks:
    check did not anticipate. Documentation counter-examples under
    `example.org` and `example.invalid` are exempt, narrowly and deliberately:
    those hostnames cannot resolve to a real registry.
-10. Every remediation-plan finding appears exactly once in the findings
+10. Every approved prior-art candidate appears exactly once. Evaluated
+    artifacts use immutable references, evaluation documents resolve, and an
+    architecture-changing reuse mode has a named owner approval.
+11. Every remediation-plan finding appears exactly once in the findings
     register, with matching parent metadata and an acyclic dependency graph.
-11. Every finding evidence link resolves inside that finding's evidence
+12. Every finding evidence link resolves inside that finding's evidence
     directory. A `CLOSED` finding has a schema-valid closure packet, checked
     artifact hashes, and the required independent reviewer separation.
 
-The last two checks are implemented by `validate-findings.py`. Run it directly
-for concise findings diagnostics:
+The prior-art check is implemented by `validate-prior-art.py`:
+
+```sh
+tools/validate-prior-art.py
+```
+
+The last two findings checks are implemented by `validate-findings.py`. Run it
+directly for concise findings diagnostics:
 
 ```sh
 tools/validate-findings.py

@@ -131,6 +131,7 @@ about physical behaviour.
 | --- | --- |
 | Documentation consistency | `tools/validate-docs.sh` |
 | Remediation findings and closure packets | `tools/validate-findings.py`, and `test/unit/` |
+| Prior-art inventory and reuse gates | `tools/validate-prior-art.py`, and `test/unit/` |
 | `STATUS.md` freshness | `tools/gen-status.sh --check` |
 | Requirement traceability | `tools/gen-traceability.sh --check` |
 | Mission package schema and repository rules | `tools/validate-mission.py`, and `test/unit/` |

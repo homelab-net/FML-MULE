@@ -1,6 +1,6 @@
 # FML-MULE Remediation and Verifiable Closure Plan
 
-**Plan date:** 2026-09-08 **Revision:** 9 — BASE-02 closed with independent verification
+**Plan date:** 2026-09-08 **Revision:** 10 — OSS-01 execution card baselined
 **Basis:** `CODEBASE-REPORT-2026-09-08.md` **Source commit:**
 `d849ed40ff5bdbeef2def3eb6f982762768764c1` (verified against GitHub `main` on 2026-09-08) **Scope:**
 Every code, integration, documentation, deployment, security, and workspace issue identified during
@@ -239,7 +239,7 @@ session; “independent agent” means a separate review session that did not im
 | ------- | -------: | ------------- | ----------- | ----------------------------------------- | -------------------------------------------------------------- |
 | BASE-01 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | Schema approved by project owner on 2026-09-09                 |
 | BASE-02 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | None; verification did not change product behavior             |
-| OSS-01  |       P0 | OPEN          | Agent       | Independent agent                         | Approve any adoption affecting architecture or licensing       |
+| OSS-01  |       P0 | BASELINED     | Codex       | Independent agent pending                 | Registry structure approved by project owner on 2026-09-09     |
 | GAP-01  |       P0 | VERIFIED      | Codex       | gap01_verifier passed                     | Decide size and nesting limits before closure                  |
 | GAP-02  |       P0 | OPEN          | Agent       | Independent agent                         | Approve catalog contract or service selection                  |
 | GAP-03  |       P0 | OPEN          | Agent       | Independent agent                         | Approve any unspecified address semantics                      |

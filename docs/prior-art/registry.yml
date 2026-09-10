@@ -1,0 +1,148 @@
+---
+schema_version: "1.0"
+source_plan: REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md
+verification_date: "2026-09-09"
+supporting_documents: []
+candidates:
+  - id: project-nomad
+    project: Project N.O.M.A.D.
+    canonical_upstreams: [https://github.com/Crosstalk-Solutions/project-nomad]
+    state: BASELINED
+    evaluation_document: null
+  - id: openmanet-firmware
+    project: OpenMANET firmware
+    canonical_upstreams: [https://github.com/OpenMANET/firmware]
+    state: BASELINED
+    evaluation_document: null
+  - id: openmanetd
+    project: openmanetd
+    canonical_upstreams: [https://github.com/OpenMANET/openmanetd]
+    state: BASELINED
+    evaluation_document: null
+  - id: reticulum
+    project: Reticulum
+    canonical_upstreams: [https://github.com/markqvist/Reticulum]
+    state: BASELINED
+    evaluation_document: docs/prior-art/reticulum.md
+  - id: nomadnet
+    project: NomadNet
+    canonical_upstreams: [https://github.com/markqvist/NomadNet]
+    state: BASELINED
+    evaluation_document: null
+  - id: martin
+    project: Martin
+    canonical_upstreams: [https://github.com/maplibre/martin]
+    state: BASELINED
+    evaluation_document: null
+  - id: opentakserver
+    project: OpenTAKServer
+    canonical_upstreams: [https://github.com/brian7704/OpenTAKServer]
+    state: BASELINED
+    evaluation_document: null
+  - id: pytak
+    project: PyTAK
+    canonical_upstreams: [https://github.com/snstac/pytak]
+    state: BASELINED
+    evaluation_document: null
+  - id: meshtastic
+    project: Meshtastic
+    canonical_upstreams: [https://github.com/meshtastic/firmware]
+    state: BASELINED
+    evaluation_document: null
+  - id: haproxy
+    project: HAProxy
+    canonical_upstreams: [https://github.com/haproxy/haproxy]
+    state: BASELINED
+    evaluation_document: null
+  - id: podman-quadlet
+    project: Podman and Quadlet
+    canonical_upstreams: [https://github.com/containers/podman]
+    state: BASELINED
+    evaluation_document: null
+  - id: batman-adv
+    project: batman-adv and batctl
+    canonical_upstreams:
+      - https://git.open-mesh.org/batman-adv.git
+      - https://git.open-mesh.org/batctl.git
+    state: BASELINED
+    evaluation_document: null
+  - id: hostapd
+    project: hostapd
+    canonical_upstreams: [https://w1.fi/hostapd/]
+    state: BASELINED
+    evaluation_document: null
+  - id: wpa-supplicant
+    project: wpa_supplicant
+    canonical_upstreams: [https://w1.fi/wpa_supplicant/]
+    state: BASELINED
+    evaluation_document: null
+  - id: dnsmasq
+    project: dnsmasq
+    canonical_upstreams: [https://thekelleys.org.uk/git/dnsmasq.git]
+    state: BASELINED
+    evaluation_document: null
+  - id: systemd-networkd
+    project: systemd-networkd
+    canonical_upstreams: [https://github.com/systemd/systemd]
+    state: BASELINED
+    evaluation_document: null
+  - id: nftables
+    project: nftables
+    canonical_upstreams: [https://git.netfilter.org/nftables]
+    state: BASELINED
+    evaluation_document: null
+  - id: chrony
+    project: chrony
+    canonical_upstreams: [https://gitlab.com/chrony/chrony]
+    state: BASELINED
+    evaluation_document: null
+  - id: openssh-server
+    project: OpenSSH server
+    canonical_upstreams: [https://github.com/openssh/openssh-portable]
+    state: BASELINED
+    evaluation_document: null
+  - id: step-ca
+    project: Smallstep step-ca
+    canonical_upstreams: [https://github.com/smallstep/certificates]
+    state: BASELINED
+    evaluation_document: null
+  - id: postgresql
+    project: PostgreSQL
+    canonical_upstreams: [https://git.postgresql.org/git/postgresql.git]
+    state: BASELINED
+    evaluation_document: null
+  - id: kiwix
+    project: Kiwix
+    canonical_upstreams: [https://github.com/kiwix/kiwix-tools]
+    state: BASELINED
+    evaluation_document: null
+  - id: kolibri
+    project: Kolibri
+    canonical_upstreams: [https://github.com/learningequality/kolibri]
+    state: BASELINED
+    evaluation_document: null
+  - id: protomaps
+    project: ProtoMaps
+    canonical_upstreams: [https://github.com/protomaps/basemaps]
+    state: BASELINED
+    evaluation_document: null
+  - id: pmtiles
+    project: PMTiles
+    canonical_upstreams: [https://github.com/protomaps/PMTiles]
+    state: BASELINED
+    evaluation_document: null
+  - id: tailscale-client
+    project: Tailscale client
+    canonical_upstreams: [https://github.com/tailscale/tailscale]
+    state: BASELINED
+    evaluation_document: null
+  - id: morse-micro-driver
+    project: Morse Micro Linux driver
+    canonical_upstreams: [https://github.com/MorseMicro/morse_driver]
+    state: BASELINED
+    evaluation_document: null
+  - id: morse-micro-firmware
+    project: Morse Micro firmware
+    canonical_upstreams: [https://github.com/MorseMicro/morse-firmware]
+    state: BASELINED
+    evaluation_document: null

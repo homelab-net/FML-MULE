@@ -911,7 +911,13 @@ for readme in docs/evidence/*/README.md; do
 done
 info "$ev_checked evidence artifact(s) checked against their directory README"
 
-# --- 20: remediation findings and closure packets ---------------------------
+# --- 20: prior-art inventory and adoption gates ------------------------------
+printf 'Prior-art registry\n'
+if ! python3 tools/validate-prior-art.py "$ROOT"; then
+  fail "the prior-art registry or an evaluation record is invalid"
+fi
+
+# --- 21: remediation findings and closure packets ---------------------------
 printf 'Remediation findings\n'
 if ! python3 tools/validate-findings.py "$ROOT"; then
   fail "the remediation findings register or a closure packet is invalid"
