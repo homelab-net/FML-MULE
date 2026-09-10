@@ -21,11 +21,13 @@ findings:
     severity: P0
     parent: null
     owner: Codex
-    reviewer: Independent agent pending
+    reviewer: /root/gap01_verifier
     verification: independent
     dependencies: [BASE-01]
-    state: BASELINED
-    evidence: []
+    state: CLOSED
+    evidence:
+      - docs/evidence/findings/BASE-02/closure.md
+      - docs/evidence/findings/BASE-02/2026-09-09-verification.json
     user_gate: null
 
   - &open_independent
