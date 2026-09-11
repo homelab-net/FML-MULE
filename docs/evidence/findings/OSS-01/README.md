@@ -13,8 +13,10 @@ hardware behavior.
 
 ## Evaluation progress
 
-As of 2026-09-10, three of the 28 registered candidates have reached
-`EVALUATED`: Project N.O.M.A.D., OpenMANET firmware, and `openmanetd`. Each is
-retained as pattern-only prior art; this records no architecture adoption. The
-remaining 25 records are `BASELINED`, so OSS-01 remains `BASELINED` in the
-execution register and has no closure packet.
+As of 2026-09-10, six of the 28 registered candidates have reached
+`EVALUATED`: Project N.O.M.A.D., OpenMANET firmware, `openmanetd`, Reticulum,
+NomadNet and Martin. The first five are retained as pattern-only prior art.
+Martin records the narrow tile-server adoption already selected and measured by
+`TBR-MAP-01`; this intake does not widen its role. The remaining 22 records are
+`BASELINED`, so OSS-01 remains `BASELINED` in the execution register and has no
+closure packet.

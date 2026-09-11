@@ -1,82 +1,73 @@
-# Reticulum (RNS)
+# Reticulum
 
-**Evaluated:** 2026-09-06, from the Reticulum manual
-(`reticulum.network/manual`, retrieved 2026-09-06). **Verdict:** does **not**
-fit as an adoption; worth keeping as prior art and a benchmark for two
-sub-problems.
+**Evaluated:** 2026-09-10 at release `1.5.2`, commit
+`ea98db4f53dcf0defc0e71a16e60d28b1229c4e6`. **Verdict:** retain only as
+architectural comparison material; do not use or incorporate the implementation.
 
-## What it is
+## Fit
 
-Reticulum is a complete networking stack **independent of IP** (it can tunnel
-over IP but replaces it). Its properties, from its own manual:
+Reticulum is a user-space Python networking stack that supplies its own
+cryptographic identity, addressing, routing and transport over heterogeneous
+interfaces. IP can carry Reticulum, but Reticulum does not provide the IP bearer
+that ATAK and the selected TAK service path require. Its RNode/LoRa path is also
+separate from the upstream Meshtastic integration selected by `FML-ADR-026` and
+`FML-ADR-070`.
 
-- **Cryptographic, coordination-less addressing.** Every identity is a
-  self-generated 512-bit elliptic-curve keyset (X25519 for encryption, Ed25519
-  for signatures); addresses are derived from keys, with no authority or
-  registry. Packets carry no source address; initiator anonymity is supported.
-- **Encryption by default.** AES-256 with HMAC-SHA256, and forward secrecy from
-  ephemeral per-packet and per-link ECDH on Curve25519.
-- **Self-configuring multi-hop routing over heterogeneous carriers.** One routed
-  layer spans LoRa (via RNode), packet-radio TNCs (KISS), Ethernet/Wi-Fi, serial,
-  I2P, TCP/UDP, and custom interfaces.
-- **Built for scarcity.** Runs in userland on a Pi Zero, over links as slow as
-  a few bits per second, with a 500-byte MTU.
-- **Public domain / permissive** (the Reticulum License), so its ideas are freely
-  usable.
-- Ships higher-level tools of its **own** ecosystem -- LXMF messaging, Nomad
-  Network. It has **no relationship to ATAK, TAK, CoT, or Meshtastic**; the
-  manual does not mention them.
+That makes it useful comparison material for `TBR-ID-01` and `TBR-NET-04`, but
+not a production component. Adding it would create a parallel client, identity
+and routing ecosystem beside the standard ATAK/TAK, Meshtastic and IP paths,
+contrary to `FML-ADR-048` and the upstream-first rule.
 
-## Does it fit FML-MULE? No, and why
+## License correction
 
-FML-MULE is committed to the ATAK/TAK ecosystem: the EUDs are ATAK and iTAK
-clients speaking CoT to OpenTAKServer over IP; the high-rate plane is IP over
-`batman-adv`; the LoRa lifeline is Meshtastic, chosen **because** it carries ATAK
-through the upstream Meshtastic plugin (`FML-ADR-026`, `FML-ADR-070`). Reticulum
-is a parallel stack that intersects none of that:
+The implementation is under the custom **Reticulum License**, not a public-domain
+or OSI-approved license. The pinned license prohibits use in systems that include
+the ability to purposefully harm human beings and prohibits direct or indirect
+use in creating AI, machine-learning or language-model training datasets. Those
+field-of-use restrictions make the implementation incompatible with unrestricted
+FML reuse. The protocol was dedicated to the public domain, but upstream states
+that the reference implementation is the authoritative specification; the
+protocol dedication does not relicense the code.
 
-- It is not IP, so it cannot carry the ATAK-to-TAK-server traffic that needs IP;
-  it would not replace `batman-adv` for the plane the mission actually runs on.
-- Its LoRa (RNode) is not the Meshtastic path ATAK speaks, so swapping the LoRa
-  lifeline to Reticulum would **lose** the ATAK integration that was the reason
-  to pick Meshtastic.
-- Adopting it as a bearer or routing layer is exactly the "parallel mechanism
-  beside the standard" that `AGENTS.md` rule 6 exists to prevent.
+The earlier note's description of the implementation as public-domain,
+permissive and freely reusable was wrong and is superseded by this pinned-source
+review. No implementation code or derivative is proposed.
 
-So Reticulum is not a component to integrate into the current architecture.
+## Intake result
 
-## Does it provide work we need not repeat? As a reference, for two things
+- Maintenance: five releases were published between 2026-07-19 and 2026-08-29.
+  The mirror's contributor summary is heavily concentrated in its maintainer.
+- Platform: Python 3.7 or later, described as operating-system independent. The
+  normal package depends on `cryptography` and `pyserial`; the separately named
+  pure package omits declared dependencies.
+- Runtime: local shared-instance and control endpoints default to TCP 37428 and
+  37429; carrier interfaces add configuration-specific serial, TCP, UDP, KISS,
+  RNode and other access. Interface authentication keys, network identity and
+  the shared-instance RPC key are secrets.
+- Data: configuration, identities, packet/resource caches and transport state
+  live under the Reticulum configuration and storage tree. No operator backup
+  or migration contract was identified in the pinned source.
+- Resources: not measured for a MULE profile.
+- Security: no repository advisory was published through GitHub's advisory
+  endpoint on 2026-09-10. No independent audit or repository SBOM was identified.
+- Prototype: not run. Running it would not change the license or architecture
+  result.
 
-Its value here is as **prior art and a benchmark**, not code to pull in:
+## Exit strategy and questions
 
-- **Decentralised, CA-free cryptographic identity (`TBR-ID-01`).** Reticulum's
-  self-sovereign keypair-as-address model is a mature, public-domain treatment of
-  the identity problem `TBR-ID-01` opens, and a sharp contrast to the TAK
-  certificate model whose failure modes the `TBR-TAK-01` work recorded (a CA per
-  node, indistinguishable same-CN certs, no revocation path). It is a **reference
-  for the trade**, not a drop-in: ATAK authenticates with certificates, and a
-  keypair-address scheme does not speak to a TAK client. `TBR-ID-01` may cite it
-  as an option considered.
-- **Multi-bearer routing over heterogeneous carriers.** Unifying LoRa, serial and
-  IP links into one self-configuring routed layer is the MULE's own premise.
-  FML-MULE keeps the bearers as separate planes with a gateway between them
-  (`FML-ADR-048`) because ATAK needs IP; Reticulum shows the other design point --
-  one crypto-native layer across all bearers -- and is a useful benchmark when
-  `TBR-NET-04` and the routing ADRs are revisited.
+Retain links and conclusions only. Do not vendor, package or depend on the
+implementation. If the program later adds a non-TAK operator messaging path,
+that is a scope and architecture decision before any candidate evaluation. The
+remaining comparison question is whether a public specification or independently
+licensed implementation offers a useful identity or multi-bearer pattern without
+importing this restricted implementation.
 
-## The one concrete "don't build it" candidate
+## Sources
 
-If a future need arises for a **non-TAK, crypto-native, bearer-agnostic operator
-messaging fallback** -- text and small files that must move when IP and the TAK
-server are both gone, beyond what Meshtastic covers -- Reticulum's LXMF is a
-ready, public-domain implementation to evaluate rather than build. That need is
-not in scope now (`docs/NON-GOALS.md`, CONOPS S1/S2 tiers), and raising it is a
-change request, not a quiet adoption. Recorded so the option is not forgotten.
-
-## Bearing
-
-- **`TBR-ID-01`:** a reference for the CA-free identity option.
-- **`TBR-NET-04` and the routing ADRs:** a benchmark for the single-layer
-  multi-bearer alternative the program did not take.
-- Not adopted; if a decision to record that is wanted, it is a `docs/NON-GOALS.md`
-  entry or an ADR, per this directory's README.
+- [Pinned README](https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/README.md)
+- [Pinned license](https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/LICENSE)
+- [Pinned package metadata](https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/setup.py)
+- [Pinned runtime configuration](https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/RNS/Reticulum.py)
+- [Release history](https://github.com/markqvist/Reticulum/releases)
+- [Contributor summary](https://api.github.com/repos/markqvist/Reticulum/contributors)
+- [Repository security advisories](https://github.com/markqvist/Reticulum/security/advisories)

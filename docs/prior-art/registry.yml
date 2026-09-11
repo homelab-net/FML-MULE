@@ -404,18 +404,384 @@ candidates:
   - id: reticulum
     project: Reticulum
     canonical_upstreams: [https://github.com/markqvist/Reticulum]
-    state: BASELINED
+    state: EVALUATED
     evaluation_document: docs/prior-art/reticulum.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/markqvist/Reticulum
+        version: 1.5.2
+        immutable_id: ea98db4f53dcf0defc0e71a16e60d28b1229c4e6
+        verified_on: "2026-09-10"
+    license:
+      declared: Reticulum License
+      source: https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/LICENSE
+      compatibility: incompatible
+      bundled_dependencies: pending
+      notes: >-
+        The implementation license restricts fields of use and AI/ML training
+        use. The protocol's public-domain dedication does not relicense the
+        authoritative reference implementation.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-07-19 through 2026-08-29.
+      latest_release_date: "2026-08-29"
+      last_commit_date: "2026-08-29"
+      issue_backlog: 0
+      bus_factor: GitHub contributor totals are heavily concentrated in one maintainer account.
+      sources:
+        - https://github.com/markqvist/Reticulum/releases
+        - https://api.github.com/repos/markqvist/Reticulum/contributors
+        - https://github.com/markqvist/Reticulum/issues
+    platform:
+      hardware:
+        - General-purpose Python host
+        - Optional RNode, packet-radio TNC, serial and other configured interfaces
+      operating_systems:
+        - Operating-system independent according to pinned package metadata
+      architectures:
+        - Python-runtime dependent
+      sources:
+        - https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/README.md
+        - https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/setup.py
+    resources:
+      status: not-measured
+      measurements: []
+    runtime:
+      ports:
+        - TCP 37428 for the local shared instance by default
+        - TCP 37429 for local instance control by default
+        - Carrier-interface ports are configuration dependent
+      privileges:
+        - Ordinary user-space process plus access to configured radio or serial devices
+      capabilities:
+        - Cryptographic identity, routing and transport over heterogeneous interfaces
+      mounts:
+        - Reticulum configuration and storage tree
+        - Optional serial, radio and packet-TNC device paths
+      secrets:
+        - Reticulum identities and private keys
+        - Interface authentication keys and network identity
+        - Optional shared-instance RPC key
+      authentication: >-
+        Cryptographic destination and interface authentication is native to the
+        stack; local RPC authentication uses a derived or configured key.
+      update_behavior: >-
+        No autonomous updater was identified; package or source updates are
+        operator actions and are not adopted.
+      sources:
+        - https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/RNS/Reticulum.py
+        - https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/RNS/Utilities/rnsd.py
+    data:
+      formats:
+        - Reticulum text configuration
+        - Cryptographic identities and transport state
+        - Packet, resource and discovery caches
+      persistence: Configuration and runtime state persist in the Reticulum storage tree.
+      backup: No complete operator backup contract was identified in the pinned source.
+      migration: No operator migration contract was identified in the pinned source.
+      sources:
+        - https://github.com/markqvist/Reticulum/blob/ea98db4f53dcf0defc0e71a16e60d28b1229c4e6/RNS/Reticulum.py
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/markqvist/Reticulum/security/advisories
+      known_advisories: []
+      audit_status: No independent audit was identified in the pinned repository artifact.
+      sbom_status: No repository SBOM was identified; dependency review remains pending.
+    mappings:
+      requirements: [FML-REQ-003, FML-REQ-013, FML-REQ-016]
+      findings: [OSS-01]
+    reuse:
+      mode: pattern-only
+      rationale: >-
+        The implementation license is incompatible and the separate non-IP
+        identity and routing stack conflicts with the selected upstream paths.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/markqvist/Reticulum.git
+        - git checkout ea98db4f53dcf0defc0e71a16e60d28b1229c4e6
+        - python3 -m venv .venv
+        - .venv/bin/pip install -e .
+        - .venv/bin/python tests/all.py
+      evidence:
+        - docs/prior-art/reticulum.md
+      gaps:
+        - No MULE-host resource measurements
+        - No complete dependency or SBOM review
+        - Custom license excludes unrestricted reuse
+    exit_strategy: >-
+      Retain documentation links only; do not vendor, package or depend on the
+      implementation.
+    decision_questions:
+      - Does independently licensed prior art offer a useful identity comparison?
+      - Is any non-TAK operator messaging path actually in approved scope?
   - id: nomadnet
     project: NomadNet
     canonical_upstreams: [https://github.com/markqvist/NomadNet]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/nomadnet.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/markqvist/NomadNet
+        version: 1.2.0
+        immutable_id: 475c0ee2a0388cf8470e7f1e90d5decb67b579ea
+        verified_on: "2026-09-10"
+    license:
+      declared: GPL-3.0
+      source: https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/LICENSE
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: >-
+        Package metadata incorrectly classifies the project as MIT. Runtime
+        dependencies include LXMF and the restricted Reticulum implementation.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-04-22 through 2026-05-21.
+      latest_release_date: "2026-05-21"
+      last_commit_date: "2026-05-28"
+      issue_backlog: 0
+      bus_factor: GitHub contributor totals are heavily concentrated in one maintainer account.
+      sources:
+        - https://github.com/markqvist/NomadNet/releases
+        - https://api.github.com/repos/markqvist/NomadNet/contributors
+        - https://github.com/markqvist/NomadNet/issues
+    platform:
+      hardware:
+        - General-purpose Python host
+        - Reticulum-compatible interfaces and optional radios
+      operating_systems:
+        - Desktop operating systems with Python
+        - Android through Termux
+        - Alpine Linux in the published container build
+      architectures:
+        - Python-runtime and dependency dependent
+      sources:
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/README.md
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/Dockerfile
+    resources:
+      status: not-measured
+      measurements: []
+    runtime:
+      ports:
+        - No fixed IP service port; Reticulum interface configuration determines network access
+      privileges:
+        - Ordinary user-space client or daemon
+        - Hosted executable pages run with the NomadNet process authority
+      capabilities:
+        - Encrypted messaging and store-and-forward routing through LXMF
+        - Hosted pages, executable pages and file transfer
+      mounts:
+        - NomadNet configuration and storage tree
+        - Reticulum configuration and storage tree
+      secrets:
+        - NomadNet primary identity and private key
+        - Reticulum identities and interface keys
+      authentication: >-
+        Reticulum cryptographic destinations identify peers; hosted resource
+        authorization and executable-page policy require separate review.
+      update_behavior: >-
+        Pip or container updates are operator actions. Pinned examples use
+        mutable image tags and are not an adopted update path.
+      sources:
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/README.md
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/nomadnet/NomadNetworkApp.py
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/nomadnet/Node.py
+    data:
+      formats:
+        - Text configuration
+        - Reticulum and NomadNet cryptographic identities
+        - LXMF messages and propagation state
+        - MessagePack peer settings and directory state
+        - Hosted pages, files, attachments and caches
+      persistence: Data persists beneath the selected NomadNet and Reticulum configuration trees.
+      backup: No complete operator backup contract was identified in the pinned source.
+      migration: No operator migration contract was identified in the pinned source.
+      sources:
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/nomadnet/NomadNetworkApp.py
+        - https://github.com/markqvist/NomadNet/blob/475c0ee2a0388cf8470e7f1e90d5decb67b579ea/Dockerfile
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/markqvist/NomadNet/security/advisories
+      known_advisories: []
+      audit_status: No independent audit was identified in the pinned repository artifact.
+      sbom_status: No repository SBOM was identified; dependency review remains pending.
+    mappings:
+      requirements: [FML-REQ-013, FML-REQ-018, FML-REQ-029]
+      findings: [OSS-01]
+    reuse:
+      mode: pattern-only
+      rationale: >-
+        The separate client ecosystem conflicts with the selected ATAK/TAK and
+        Meshtastic paths, and its runtime depends on restricted Reticulum code.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/markqvist/NomadNet.git
+        - git checkout 475c0ee2a0388cf8470e7f1e90d5decb67b579ea
+        - python3 -m venv .venv
+        - .venv/bin/pip install -e .
+        - .venv/bin/nomadnet --help
+      evidence:
+        - docs/prior-art/nomadnet.md
+      gaps:
+        - No MULE-host resource measurements
+        - No complete dependency or SBOM review
+        - Executable-page isolation and authorization are not characterized
+        - Container examples use mutable tags and optional host networking
+    exit_strategy: >-
+      Retain the evaluation only and package none of NomadNet, LXMF or Reticulum.
+    decision_questions:
+      - Do its store-and-forward patterns expose a gap in the selected upstream path?
+      - Is a separate non-TAK operator client in approved scope?
   - id: martin
     project: Martin
     canonical_upstreams: [https://github.com/maplibre/martin]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/martin.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/maplibre/martin
+        version: martin-v1.16.1
+        immutable_id: 434782d95c08933bf2558135d2a7bac5bfb39274
+        verified_on: "2026-09-10"
+    license:
+      declared: MIT OR Apache-2.0
+      source: https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/Cargo.toml
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: >-
+        The workspace is dual licensed. Cargo.lock is present, but a complete
+        dependency and redistribution review remains pending.
+    maintenance:
+      release_cadence: Martin releases 1.15.0, 1.16.0 and 1.16.1 span 2026-09-02 through 2026-09-09.
+      latest_release_date: "2026-09-09"
+      last_commit_date: "2026-09-10"
+      issue_backlog: 41
+      bus_factor: GitHub contributor totals show a broad multi-maintainer contributor base.
+      sources:
+        - https://github.com/maplibre/martin/releases
+        - https://api.github.com/repos/maplibre/martin/contributors
+        - https://github.com/maplibre/martin/issues
+    platform:
+      hardware:
+        - General-purpose host for local files or PostgreSQL sources
+      operating_systems:
+        - Linux
+        - macOS
+        - Windows
+      architectures:
+        - amd64
+        - arm64
+      sources:
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/README.md
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/.github/workflows/rust.yml
+    resources:
+      status: measured
+      measurements:
+        - metric: Idle resident memory
+          value: 8.5
+          unit: MB RSS
+          environment: Debian 13 x86-64, rootless Podman, synthetic MBTiles
+          source: docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md
+        - metric: Peak resident memory under loopback load
+          value: 27-30
+          unit: MB RSS
+          environment: Debian 13 x86-64, rootless Podman, synthetic MBTiles
+          source: docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md
+        - metric: OCI image size at rest
+          value: 650
+          unit: MB approximate
+          environment: Digest-pinned Martin image measured on Debian 13 x86-64
+          source: docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md
+    runtime:
+      ports:
+        - TCP 3000 on 0.0.0.0 by default; the FML profile places it behind ingress
+      privileges:
+        - Rootless process with read-only access to the selected MBTiles file
+      capabilities:
+        - Serve MBTiles through TileJSON and z/x/y HTTP endpoints
+        - Optional sources and processors not adopted by the FML profile
+      mounts:
+        - One named per-mission MBTiles file mounted read-only
+      secrets:
+        - None for the selected file-only profile
+        - Database or object-store credentials for unselected source types
+      authentication: >-
+        No application authentication is identified for the selected endpoint;
+        FML ingress supplies the service authentication boundary.
+      update_behavior: >-
+        Directory sources hot-reload, while named MBTiles sources are
+        snapshotted at startup. FML adopts the named read-only file profile and
+        promotes an immutable OCI digest.
+      sources:
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/martin/src/config/file/srv.rs
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/docs/content/sources-mbtiles.md
+    data:
+      formats:
+        - MBTiles SQLite file in the selected profile
+        - YAML configuration when used
+      persistence: >-
+        The provisioned per-mission MBTiles file is persistent and mounted
+        read-only; Martin owns no separate durable state in the selected profile.
+      backup: Replace or copy the immutable provisioned MBTiles file outside the serving process.
+      migration: Tile schema and source-content migration remain provisioning responsibilities.
+      sources:
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/docs/content/sources-mbtiles.md
+        - https://github.com/maplibre/martin/tree/434782d95c08933bf2558135d2a7bac5bfb39274/docs/content
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/maplibre/martin/security/advisories
+        - https://github.com/maplibre/martin/blob/434782d95c08933bf2558135d2a7bac5bfb39274/.github/workflows/security.yml
+      known_advisories:
+        - >-
+          GHSA-5x5g-6p4c-jqfh is medium severity, affects versions through
+          1.13.0 and declares 1.14.0 patched; evaluated 1.16.1 is outside the
+          affected range
+        - >-
+          GHSA-6774-6cqw-f586 is high severity, affects versions through
+          1.13.0 and declares no patched version; evaluated 1.16.1 is outside
+          the affected range
+      audit_status: >-
+        Automated Rust dependency auditing is configured; no independent audit
+        was identified.
+      sbom_status: >-
+        No repository SBOM was identified; Cargo.lock supplies dependency
+        pinning, not an SBOM.
+    mappings:
+      requirements: [FML-REQ-018]
+      findings: [OSS-01]
+    reuse:
+      mode: adopt
+      rationale: >-
+        Existing TBR-MAP-01 evidence selects Martin for the narrow rootless,
+        digest-pinned, read-only MBTiles service behind ingress.
+      approval_ref: docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/maplibre/martin.git
+        - git checkout 434782d95c08933bf2558135d2a7bac5bfb39274
+        - cargo test --locked --workspace
+      evidence:
+        - docs/prior-art/martin.md
+        - docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md
+      gaps:
+        - Exact 1.16.1 source or image was not run in this intake
+        - Current multi-architecture OCI digest is not yet recorded
+        - Complete dependency, license and SBOM review remains pending
+        - Target CM4 and permitted-real-imagery checks remain open
+    exit_strategy: >-
+      Preserve the stable z/x/y ingress contract and replace Martin with another
+      compliant MBTiles server if maintenance or platform support fails.
+    decision_questions:
+      - Which immutable 1.16.1 multi-architecture image digest enters the catalog?
+      - Does the narrow rootless profile reproduce on the target compatibility set?
   - id: opentakserver
     project: OpenTAKServer
     canonical_upstreams: [https://github.com/brian7704/OpenTAKServer]
