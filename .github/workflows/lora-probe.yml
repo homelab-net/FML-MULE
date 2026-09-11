@@ -52,7 +52,8 @@ on:
       # The probe sources the meshtasticd image pin from here, so a pin bump
       # must re-run it against the new daemon build (GAP-07).
       - tools/toolchain-versions.sh
-      # The daemon config the probe writes is coupled to this template.
+      # Forward-looking: the probe writes its meshtasticd config inline today,
+      # and this re-runs it when the template (still TBD) gains real values.
       - os/config/meshtasticd.conf.template
 
 permissions:

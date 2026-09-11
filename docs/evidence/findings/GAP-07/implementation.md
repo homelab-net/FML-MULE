@@ -15,11 +15,12 @@ against the new daemon build.
 ## Changes
 
 - `.github/workflows/lora-probe.yml`: trigger paths now include
-  `tools/toolchain-versions.sh` (the pin it sources) and
-  `os/config/meshtasticd.conf.template` (the config it is coupled to).
-- `.github/workflows/mesh-probe.yml`: trigger paths now include
-  `os/config/batman-adv.conf.template` (the settings it verifies are decided
-  there).
+  `tools/toolchain-versions.sh` (the pin it sources -- the load-bearing fix) and,
+  forward-looking, `os/config/meshtasticd.conf.template` (the probe writes its
+  config inline today; this re-runs it when the still-TBD template gains values).
+- `.github/workflows/mesh-probe.yml`: trigger paths now include, forward-looking,
+  `os/config/batman-adv.conf.template` (the probe sets batman-adv inline today;
+  this re-runs it when the still-TBD template gains the settings it will verify).
 - `tools/validate-docs.sh`: a new check (21) fails any workflow that sources
   `tools/toolchain-versions.sh` but does not list it in its trigger paths, so
   this cannot silently regress.

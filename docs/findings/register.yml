@@ -74,9 +74,10 @@ findings:
     dependencies: [BASE-01]
     owner: Claude
     reviewer: gap030507_verifier
-    state: IMPLEMENTED
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-03/implementation.md"
+      - "docs/evidence/findings/GAP-03/closure.md"
     user_gate: "Approve any unspecified address semantics"
 
   - <<: *open_independent
@@ -97,9 +98,10 @@ findings:
     dependencies: [BASE-01]
     owner: Claude
     reviewer: gap030507_verifier
-    state: IMPLEMENTED
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-05/implementation.md"
+      - "docs/evidence/findings/GAP-05/closure.md"
     user_gate: "Approve unknown and failure semantics"
 
   - <<: *open_independent
@@ -121,9 +123,10 @@ findings:
     dependencies: [BASE-01, BASE-02]
     owner: Claude
     reviewer: gap030507_verifier
-    state: IMPLEMENTED
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-07/implementation.md"
+      - "docs/evidence/findings/GAP-07/closure.md"
     user_gate: null
 
   - <<: *open_independent

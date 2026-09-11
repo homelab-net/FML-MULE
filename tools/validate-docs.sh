@@ -23,8 +23,9 @@
 #  17. Every reading declares a source kind; command sources name a package.
 #  18. A blocked service README names the mule/ modules that act on its ADR.
 #  19. No evidence artifact is a near-duplicate of its directory README.
-#  20. Every remediation finding and closure packet satisfies its declared schema.
-#  21. A workflow that sources the toolchain pins triggers on them (GAP-07).
+#  20. Every prior-art candidate and evaluation record satisfies its schema.
+#  21. Every remediation finding and closure packet satisfies its declared schema.
+#  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
