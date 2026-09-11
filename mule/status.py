@@ -61,7 +61,11 @@ class Observations:
     booted: bool
     config_error: str | None
     time: TimeAssessment
-    enumerated: list[Bearer]
+    #: Bearers the platform found present, or None where it could not enumerate
+    #: at all (e.g. the enumeration command failed). None is distinct from an
+    #: empty list: "cannot tell what is present" is not "nothing is present".
+    #: FML-ADR-077. A node that cannot enumerate fails closed to FAULT.
+    enumerated: list[Bearer] | None
     associated: list[Bearer]
     battery_present: bool
     battery_healthy: bool
@@ -136,7 +140,7 @@ def _lora_available(observed: Observations) -> bool:
     here is the expensive direction to be wrong in. Failing closed on an
     unknown is the same judgement FML-ADR-042 makes about retained time.
     """
-    if "lora" not in observed.enumerated:
+    if observed.enumerated is None or "lora" not in observed.enumerated:
         return False
     return observed.lora_stack_responding is True
 
@@ -152,6 +156,15 @@ def _fault(
     """
     if not observed.booted:
         return observed.config_error or "node did not boot"
+    # The platform could not determine which radios are present. Reported
+    # distinctly from RADIO_ABSENT: "cannot tell" is not "confirmed absent",
+    # and the node fails closed rather than assuming the required bearer is
+    # there or claiming it is missing. FML-ADR-077.
+    if observed.enumerated is None:
+        return (
+            "RADIO_ENUMERATION_FAILED: the platform could not determine which "
+            "radios are present"
+        )
     if missing:
         return f"RADIO_ABSENT: required bearer(s) {', '.join(missing)}"
     # A required bearer whose hardware is present but which has not formed a
@@ -188,7 +201,9 @@ def _state(
 
     1. A node that cannot serve users is `FAULT`, whatever else is true. That
        is a required bearer absent (`missing`) or present-but-not-serving
-       (`not_serving`); both mean no user-facing node. FML-ADR-074.
+       (`not_serving`); both mean no user-facing node. FML-ADR-074. A node that
+       cannot enumerate its radios at all (`enumerated is None`) also fails
+       closed to `FAULT`: it cannot confirm it can serve. FML-ADR-077.
     2. Any other fault is `DEGRADED`.
     3. `EMCON` is a deliberate posture, so it outranks a mere degradation, but
        it never hides a fault: a silent node is a choice, a broken one is not.
@@ -199,7 +214,7 @@ def _state(
        This is reported even when the thermal state is UNKNOWN, because the
        hardware states it rather than the node inferring it.
     """
-    if not observed.booted or missing or not_serving:
+    if not observed.booted or observed.enumerated is None or missing or not_serving:
         return "FAULT"
     if fault is not None:
         return "DEGRADED"
@@ -224,14 +239,24 @@ def _network_degraded(observed: Observations) -> bool:
     situations, because operationally they are the same fact; only the fitment
     check separates the broken node from the one that never had a radio.
     """
-    fitted = inter_node_present(observed.enumerated)
+    # None (could not enumerate) reads as no inter-node bearer fitted here: the
+    # node is already FAULT via _state, so this secondary answer is moot, and
+    # treating unknown as "fitted" would report a degraded mesh that may not exist.
+    fitted = inter_node_present(observed.enumerated or [])
     return bool(fitted) and observed.modes.deployment == "STANDALONE"
 
 
 def derive(observed: Observations) -> NodeStatus:
     """Answer the thirteen CONOPS section 67 questions from what was observed."""
-    missing = missing_required(observed.enumerated)
-    not_serving = required_not_serving(observed.associated)
+    # Missing and not-serving are only meaningful once the platform has said
+    # what is present. When it could not enumerate (None), neither is computed
+    # and the node fails closed to FAULT via _fault/_state. FML-ADR-077.
+    if observed.enumerated is None:
+        missing: list[Bearer] = []
+        not_serving: list[Bearer] = []
+    else:
+        missing = missing_required(observed.enumerated)
+        not_serving = required_not_serving(observed.associated)
     fault = _fault(observed, missing, not_serving)
     state = _state(observed, missing, not_serving, fault)
     hosting = observed.hosting_shared_services

@@ -319,6 +319,11 @@ def resolve(
             # a fixed domain across every deployment makes collision certain,
             # which is why there is no default. See services/ingress/.
             "local_domain": mission.get("network", {}).get("local_domain"),
+            # Per-deployment IPv4 mesh prefix (FML-ADR-063). Carried through from
+            # the mission package: the schema validates its CIDR form on load, so
+            # a present value is well-formed. It was previously dropped here, so a
+            # valid prefix never reached the generated configuration (GAP-03).
+            "address_prefix": mission.get("network", {}).get("address_prefix"),
             "ap_ssid": mission.get("network", {}).get("ap_ssid"),
         },
         "amateur": {

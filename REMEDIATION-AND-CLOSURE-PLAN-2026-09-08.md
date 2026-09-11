@@ -242,11 +242,11 @@ session; “independent agent” means a separate review session that did not im
 | OSS-01  |       P0 | BASELINED     | Codex       | `/root/gap01_verifier` passed 21/28       | Registry structure approved by project owner on 2026-09-09     |
 | GAP-01  |       P0 | VERIFIED      | Codex       | gap01_verifier passed                     | Decide size and nesting limits before closure                  |
 | GAP-02  |       P0 | OPEN          | Agent       | Independent agent                         | Approve catalog contract or service selection                  |
-| GAP-03  |       P0 | OPEN          | Agent       | Independent agent                         | Approve any unspecified address semantics                      |
+| GAP-03  |       P0 | IMPLEMENTED   | Claude      | gap030507_verifier                        | Approve any unspecified address semantics                      |
 | GAP-04  |       P0 | CLOSED        | Claude      | gap0406_verifier                          | Approve capability/target model                                |
-| GAP-05  |       P0 | OPEN          | Agent       | Independent agent                         | Approve unknown/failure semantics                              |
+| GAP-05  |       P0 | IMPLEMENTED   | Claude      | gap030507_verifier                        | Approve unknown/failure semantics                              |
 | GAP-06  |       P0 | CLOSED        | Claude      | gap0406_verifier                          | Approve status semantics and controlling ADR                   |
-| GAP-07  |       P1 | OPEN          | Agent       | Independent agent                         | None unless required-check policy changes                      |
+| GAP-07  |       P1 | IMPLEMENTED   | Claude      | gap030507_verifier                        | None unless required-check policy changes                      |
 | GAP-08  |       P1 | OPEN          | Agent       | Independent agent                         | Resolve any conflict between controlling records               |
 | ENV-01  |       P0 | OPEN          | Agent       | Independent agent                         | Authorize remote ownership/destructive cleanup separately      |
 | ENV-02  |       P3 | OPEN          | Agent       | Independent agent                         | Decide supported checkout platforms                            |

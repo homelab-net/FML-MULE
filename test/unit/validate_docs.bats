@@ -595,3 +595,19 @@ REQ
   [[ "$output" == *"without setting bridge_loop_avoidance"* ]]
   [[ "$output" == *"80211s-mesh.sh"* ]]
 }
+
+@test "validate-docs catches a probe sourcing toolchain pins without triggering on them" {
+  make_sandbox
+  # GAP-07: lora-probe.yml sources tools/toolchain-versions.sh for the pinned
+  # meshtasticd image, so a pin bump must re-run it. Removing the pin file from
+  # the trigger paths (while leaving the source line) reproduces the gap: the
+  # probe still reads the pins but no longer re-runs when they change.
+  target="$SANDBOX/.github/workflows/lora-probe.yml"
+  grep -qF '. tools/toolchain-versions.sh' "$target"
+  sed -i '/^      - tools\/toolchain-versions.sh$/d' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"does not list it in its trigger paths"* ]]
+  [[ "$output" == *"lora-probe.yml"* ]]
+}

@@ -58,6 +58,10 @@ class FakeRadio:
 
     present: list[Bearer] = field(default_factory=lambda: ["halow", "wifi_ap", "lora"])
     linked: list[Bearer] = field(default_factory=lambda: ["halow", "wifi_ap", "lora"])
+    #: Whether the platform can enumerate radios at all. False models `iw dev`
+    #: failing to run, so enumerated() returns None -- the platform cannot tell
+    #: what is present, which is distinct from enumerating an empty set.
+    enumerable: bool = True
 
     def __post_init__(self) -> None:
         """Reject hardware that cannot exist before any scenario runs."""
@@ -72,9 +76,12 @@ class FakeRadio:
     def enumerated(self) -> list[Bearer] | None:
         """Bearers whose hardware is present and whose driver has attached.
 
-        A scripted fake always knows, so it never returns `None`; the type
-        matches the Protocol, which a real reader needs.
+        `None` when the platform cannot enumerate at all (`enumerable=False`,
+        modelling `iw dev` failing to run), which is distinct from enumerating an
+        empty set. A scripted fake otherwise always knows.
         """
+        if not self.enumerable:
+            return None
         return list(self.present)
 
     def associated(self, bearer: Bearer) -> bool | None:

@@ -48,6 +48,9 @@ name: Mesh probe
   push:
     paths:
       - ".github/workflows/mesh-probe.yml"
+      # The batman-adv settings this probe verifies are decided in this template,
+      # so a change to it must re-run the probe that confirms them (GAP-07).
+      - "os/config/batman-adv.conf.template"
 
 permissions:
   contents: read

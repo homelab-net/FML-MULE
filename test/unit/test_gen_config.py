@@ -227,6 +227,24 @@ def test_the_mission_package_supplies_the_service_list() -> None:
     assert minimal["network"]["local_domain"] is None
 
 
+def test_the_mission_package_supplies_the_address_prefix() -> None:
+    """FML-ADR-063: the per-deployment IPv4 prefix is carried into config.
+
+    It was previously dropped from the generated network block (GAP-03), so a
+    valid prefix never reached configuration. Asserting the resolved value
+    equals the package's own fails against that drop (KeyError on the missing
+    key). The minimal package omits it, and None is the honest absence.
+    """
+    full_pkg = json.loads(MISSION_FULL.read_text(encoding="utf-8"))
+    expected = full_pkg["network"]["address_prefix"]
+
+    full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+    assert full["network"]["address_prefix"] == expected
+
+    minimal = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION)
+    assert minimal["network"]["address_prefix"] is None
+
+
 # --- bad input is refused with a message, not a traceback -----------------
 
 
