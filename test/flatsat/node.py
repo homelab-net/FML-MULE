@@ -315,7 +315,6 @@ class FlatSatNode:
                 # TBR-TAK-01 and the stand-in is local only.
                 hosting_shared_services=bool(self._shared_services),
                 modes=self.modes(),
-                wan_available=bool(self._wan),
                 lora_stack_responding=self._lora_stack_responding(),
             )
         )

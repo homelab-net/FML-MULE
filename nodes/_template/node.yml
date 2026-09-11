@@ -1,0 +1,16 @@
+---
+# Node descriptor template. Copy this to nodes/<node-id>/node.yml and fill it in.
+#
+# The active bearer set declares which radio functions this node fields. It
+# scopes which configuration targets gen-config must resolve (FML-ADR-075).
+# Distinct from mule/bearers.py REQUIRED_BEARERS (what the node cannot work
+# without): a node may field a bearer it does not require.
+#
+# Each entry must be one of the known configuration targets:
+#   halow | lora | wifi_mesh | wifi_ap
+# An entry that is not a known target is a hard error.
+
+node:
+  id: TBD                       # Matches the directory name, e.g. mule-v001.
+
+active_bearers: []              # e.g. [wifi_ap]. At least one.

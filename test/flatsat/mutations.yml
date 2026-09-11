@@ -89,8 +89,8 @@ mutations:
   - id: M11
     file: tools/gen-config.py
     describe: a TBD value no longer refuses generation
-    find: "        raise UnresolvedValueError(message)\n\n    return {"
-    replace: "        pass\n\n    return {"
+    find: "        raise UnresolvedValueError(message)\n\n    resolved: dict[str, Any] = {"
+    replace: "        pass\n\n    resolved: dict[str, Any] = {"
 
   - id: M12
     file: tools/gen-config.py
@@ -306,11 +306,52 @@ mutations:
     find: "        emcon_active=observed.modes.emission == \"EMCON-SILENT\","
     replace: "        emcon_active=False,"
 
+  # FML-ADR-074: a required bearer present but not serving is a node that
+  # cannot serve users, the same FAULT as an absent one. Dropping not_serving
+  # from the state condition must be caught (a missing bearer is still caught by
+  # `missing`, so this isolates the not-serving contribution).
   - id: M23
     file: mule/status.py
-    describe: a node missing a required bearer is not faulted
-    find: "    if not observed.booted or missing:"
-    replace: "    if not observed.booted:"
+    describe: a required bearer present but not serving is not faulted
+    find: "    if not observed.booted or missing or not_serving:"
+    replace: "    if not observed.booted or missing:"
+
+  # The fault message distinguishes an absent bearer (RADIO_ABSENT) from a
+  # present-but-not-serving one; _fault checks missing before not_serving.
+  # Skipping the missing branch collapses the two, which the RADIO_ABSENT
+  # assertion catches.
+  - id: M97
+    file: mule/status.py
+    describe: an absent bearer is no longer distinguished from a non-serving one
+    find: "    if missing:"
+    replace: "    if False:"
+
+  - id: M98
+    file: mule/status.py
+    describe: a faulted node still reports itself operational
+    find: "        operational=observed.booted and state != \"FAULT\","
+    replace: "        operational=observed.booted,"
+
+  # FML-ADR-076: an unknown WAN must not be collapsed to NO-WAN.
+  - id: M99
+    file: mule/status.py
+    describe: an unknown WAN is reported as no WAN
+    find: "        wan_available=observed.modes.wan,"
+    replace: "        wan_available=observed.modes.wan or \"NO-WAN\","
+
+  # FML-ADR-075: an active bearer with no configuration target is a hard error,
+  # and resolution emits only the active bearers' blocks.
+  - id: M100
+    file: tools/gen-config.py
+    describe: an unknown active bearer is silently accepted
+    find: "    if unknown:"
+    replace: "    if False:"
+
+  - id: M101
+    file: tools/gen-config.py
+    describe: an inactive bearer's block is emitted anyway
+    find: "    if \"halow\" in selected:"
+    replace: "    if True:"
 
   - id: M31
     file: mule/thermal.py

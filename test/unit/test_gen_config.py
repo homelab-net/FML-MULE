@@ -27,6 +27,13 @@ MISSION_FULL = REPO_ROOT / "mission" / "examples" / "valid-full.json"
 MISSION_UNKNOWN_FIELD = (
     REPO_ROOT / "mission" / "examples" / "invalid-unknown-field.json"
 )
+#: The shipped ROADMAP v0.0.1 node, resolved under nodes/ by identifier.
+NODE_V001 = "mule-v001"
+#: A synthetic access-point-only node fixture, loaded by path.
+FIXTURE_NODE_AP_ONLY = (
+    REPO_ROOT / "test" / "fixtures" / "nodes" / "ap-only" / "node.yml"
+)
+US_915 = REPO_ROOT / "regions" / "us-915" / "profile.yml"
 
 
 def _load() -> ModuleType:
@@ -293,6 +300,110 @@ def test_a_profile_that_cannot_name_its_regulator_is_refused(
         gc.generate(str(anonymous), MISSION)
 
     assert "regulator" in str(excinfo.value)
+
+
+# --- target-aware resolution (FML-ADR-075) --------------------------------
+
+
+def test_the_v001_node_declares_only_the_access_point() -> None:
+    """The shipped v0.0.1 descriptor fields wifi_ap and nothing else."""
+    node = gc.load_node(NODE_V001)
+
+    assert gc.active_targets(node) == ["wifi_ap"]
+
+
+def test_an_ap_only_node_refuses_only_on_the_trade_for_its_own_bearer() -> None:
+    """Scoping is what unblocks the first-milestone node.
+
+    us-915 has every value TBD. An AP-only node is still refused -- its own AP
+    channel is TBD (TBR-RF-03) -- but only on that, not on the HaLow/LoRa trade
+    for bearers it does not field. Without target-awareness the refusal named
+    every bearer's trade, which is what the absence assertions below catch.
+    """
+    with pytest.raises(gc.UnresolvedValueError) as excinfo:
+        gc.generate(str(US_915), MISSION, node_ref=NODE_V001)
+
+    message = str(excinfo.value)
+    assert "wifi.ap_channel" in message
+    assert "TBR-RF-03" in message
+    assert "halow" not in message
+    assert "lora" not in message
+    assert "TBR-RF-02" not in message
+
+
+def test_an_ap_only_node_emits_only_its_bearer_blocks() -> None:
+    """A resolved AP-only node carries its AP parameters and no others.
+
+    A bearer the node does not field contributes no block: emitting a HaLow
+    channel for a node with no HaLow radio would put an unfielded value into a
+    resolved document.
+    """
+    params = gc.generate(
+        str(FIXTURE_REGIONS / "profile.yml"),
+        MISSION,
+        node_ref=str(FIXTURE_NODE_AP_ONLY),
+    )
+
+    assert "halow" not in params
+    assert "lora" not in params
+    assert "ap_channel" in params["wifi"]
+    assert "mesh_channel" not in params["wifi"]
+
+
+def test_a_node_with_an_unknown_active_bearer_is_a_hard_error() -> None:
+    """An active bearer that is not a known target is surfaced, not skipped."""
+    with pytest.raises(gc.ConfigError) as excinfo:
+        gc.active_targets({"active_bearers": ["satellite"]})
+
+    message = str(excinfo.value)
+    assert "satellite" in message
+    assert "no configuration target" in message
+
+
+def test_a_node_with_no_active_bearers_is_a_hard_error() -> None:
+    with pytest.raises(gc.ConfigError) as excinfo:
+        gc.active_targets({"node": {"id": "x"}})
+
+    assert "active_bearers" in str(excinfo.value)
+
+
+def test_check_mode_with_a_node_scopes_to_its_bearers(
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """`--node` narrows even the --check report to the node's own trades."""
+    code = gc.main(
+        [
+            "--region",
+            str(US_915),
+            "--mission",
+            str(MISSION),
+            "--node",
+            NODE_V001,
+            "--check",
+        ]
+    )
+
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "TBR-RF-03" in out
+    assert "TBR-RF-02" not in out
+
+
+def test_a_missing_node_descriptor_is_named(tmp_path: Path) -> None:
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        gc.load_node(str(tmp_path / "nope.yml"))
+
+    assert "not found" in str(excinfo.value)
+
+
+def test_a_node_descriptor_that_is_not_a_mapping_is_refused(tmp_path: Path) -> None:
+    bad = tmp_path / "node.yml"
+    bad.write_text("- not\n- a\n- mapping\n", encoding="utf-8")
+
+    with pytest.raises(gc.MissingParameterError) as excinfo:
+        gc.load_node(str(bad))
+
+    assert "not a mapping" in str(excinfo.value)
 
 
 # --- exit codes ----------------------------------------------------------

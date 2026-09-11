@@ -145,7 +145,9 @@ def test_status_answers_the_thirteen_conops_questions(
     assert status.data_stale is None  # 8
     assert not status.network_degraded  # 9
     assert status.lora_available  # 10
-    assert not status.wan_available  # 11
+    # 11: nothing reports WAN reachability, so the honest answer is undetermined
+    # (None), not "no WAN". FML-ADR-076: None is never collapsed to NO-WAN.
+    assert status.wan_available is None  # 11
     assert not status.emcon_active  # 12
     assert status.fault is None  # 13
 

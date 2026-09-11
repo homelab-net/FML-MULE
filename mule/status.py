@@ -23,8 +23,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from .bearers import Bearer, inter_node_present, missing_required
-from .modes import ModeAssessment
+from .bearers import Bearer, inter_node_present, missing_required, required_not_serving
+from .modes import ModeAssessment, WanReachability
 from .power import PowerAssessment
 from .thermal import ThermalAssessment
 from .timekeeping import TimeAssessment
@@ -73,7 +73,6 @@ class Observations:
     #: deciders for one question eventually disagree, and the test that would
     #: catch it is the one asserting that two literals match.
     modes: ModeAssessment
-    wan_available: bool
     #: Whether the LoRa stack answers, or None where the platform cannot tell.
     #:
     #: Separate from `associated` deliberately. FML-ADR-026 makes LoRa a
@@ -103,7 +102,11 @@ class NodeStatus:
     data_stale: bool | None  # Is data stale?
     network_degraded: bool  # Is the network degraded?
     lora_available: bool  # Is LoRa available?
-    wan_available: bool  # Is WAN available?
+    #: Is WAN available? The mode assessment's value, carried unchanged: "NO-WAN",
+    #: "WAN-ENHANCED", or None where the node cannot tell (FML-ADR-076). None is
+    #: not reported as NO-WAN: "no uplink" and "cannot determine uplink" are
+    #: different operator facts.
+    wan_available: WanReachability | None  # Is WAN available?
     emcon_active: bool  # Is EMCON active?
     fault: str | None  # Is a fault present?
 
@@ -138,7 +141,9 @@ def _lora_available(observed: Observations) -> bool:
     return observed.lora_stack_responding is True
 
 
-def _fault(observed: Observations, missing: list[Bearer]) -> str | None:
+def _fault(
+    observed: Observations, missing: list[Bearer], not_serving: list[Bearer]
+) -> str | None:
     """Describe the most serious thing wrong, or None if nothing is.
 
     Ordered worst first, and it stops at the first one found. An operator
@@ -149,6 +154,16 @@ def _fault(observed: Observations, missing: list[Bearer]) -> str | None:
         return observed.config_error or "node did not boot"
     if missing:
         return f"RADIO_ABSENT: required bearer(s) {', '.join(missing)}"
+    # A required bearer whose hardware is present but which has not formed a
+    # link is a node that cannot serve users, the same operator outcome as an
+    # absent one and the same thing admission.py fails closed on. FML-ADR-074.
+    # Ordered after RADIO_ABSENT because a missing bearer is also not serving,
+    # and the absent radio is the one to name.
+    if not_serving:
+        return (
+            f"RADIO_NOT_SERVING: required bearer(s) {', '.join(not_serving)} "
+            "present but not serving"
+        )
     if observed.time.degraded:
         return f"TIME_DEGRADED: {observed.time.reason}"
     if observed.thermal.outside_envelope:
@@ -161,14 +176,19 @@ def _fault(observed: Observations, missing: list[Bearer]) -> str | None:
 
 
 def _state(
-    observed: Observations, missing: list[Bearer], fault: str | None
+    observed: Observations,
+    missing: list[Bearer],
+    not_serving: list[Bearer],
+    fault: str | None,
 ) -> OperatorState:
     """Reduce everything to the one word shown on the status view.
 
     Precedence, decided here because SAD section 22 names the states but not
     their ordering:
 
-    1. A node that cannot serve users is `FAULT`, whatever else is true.
+    1. A node that cannot serve users is `FAULT`, whatever else is true. That
+       is a required bearer absent (`missing`) or present-but-not-serving
+       (`not_serving`); both mean no user-facing node. FML-ADR-074.
     2. Any other fault is `DEGRADED`.
     3. `EMCON` is a deliberate posture, so it outranks a mere degradation, but
        it never hides a fault: a silent node is a choice, a broken one is not.
@@ -179,7 +199,7 @@ def _state(
        This is reported even when the thermal state is UNKNOWN, because the
        hardware states it rather than the node inferring it.
     """
-    if not observed.booted or missing:
+    if not observed.booted or missing or not_serving:
         return "FAULT"
     if fault is not None:
         return "DEGRADED"
@@ -211,11 +231,15 @@ def _network_degraded(observed: Observations) -> bool:
 def derive(observed: Observations) -> NodeStatus:
     """Answer the thirteen CONOPS section 67 questions from what was observed."""
     missing = missing_required(observed.enumerated)
-    fault = _fault(observed, missing)
+    not_serving = required_not_serving(observed.associated)
+    fault = _fault(observed, missing, not_serving)
+    state = _state(observed, missing, not_serving, fault)
     hosting = observed.hosting_shared_services
 
     return NodeStatus(
-        operational=observed.booted,
+        # A node that cannot serve users is FAULT, and a node in FAULT is not
+        # operational, whatever else is true. FML-ADR-074, and the rule 1 above.
+        operational=observed.booted and state != "FAULT",
         # None where no pack is fitted: the question does not apply, which is
         # not the same as a pack in poor health.
         battery_healthy=observed.battery_healthy if observed.battery_present else None,
@@ -231,9 +255,11 @@ def derive(observed: Observations) -> NodeStatus:
         data_stale=None,
         network_degraded=_network_degraded(observed),
         lora_available=_lora_available(observed),
-        wan_available=observed.wan_available,
+        # The mode assessment's WAN value, carried unchanged: None stays None,
+        # not collapsed to NO-WAN. One source for the fact. FML-ADR-076.
+        wan_available=observed.modes.wan,
         emcon_active=observed.modes.emission == "EMCON-SILENT",
         fault=fault,
         authority_reason=None if hosting else "NO_SAFE_AUTHORITY",
-        state=_state(observed, missing, fault),
+        state=state,
     )

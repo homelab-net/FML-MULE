@@ -52,6 +52,9 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
 | `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-HA-01 |
 | `FML-ADR-073` | The local tile store is per-mission MBTiles served as z/x/y behind ingress | TBR-MAP-01 |
+| `FML-ADR-074` | A node that cannot serve users is reported FAULT and not operational | none |
+| `FML-ADR-075` | A node's active bearer set is declared node data and scopes which configuration targets must resolve | TBR-RF-01, TBR-RF-02, TBR-RF-03 |
+| `FML-ADR-076` | The operator WAN answer is the undetermined-capable mode value, not a boolean | none |
 
 ### SELECTED PRINCIPLE
 

@@ -61,6 +61,7 @@ from mule.mission import (  # noqa: E402
 )
 
 REGIONS_DIR = REPO_ROOT / "regions"
+NODES_DIR = REPO_ROOT / "nodes"
 
 #: Marker for a value the program has not determined. Never a default.
 TBD = "TBD"
@@ -180,6 +181,58 @@ def load_mission(path: str | Path) -> dict[str, Any]:
         raise MissingParameterError(str(exc)) from exc
 
 
+def load_node(node: str) -> dict[str, Any]:
+    """Load a node descriptor by identifier or path.
+
+    Mirrors load_region: a bare identifier resolves under ``nodes/``; a path is
+    used as given so a synthetic fixture outside ``nodes/`` can be loaded for
+    testing without appearing to be a deployable node.
+    """
+    candidate = Path(node)
+    if candidate.suffix in {".yml", ".yaml"}:
+        path = candidate
+    else:
+        path = NODES_DIR / node / "node.yml"
+    if not path.is_file():
+        message = f"node descriptor not found: {path}"
+        raise MissingParameterError(message)
+    with path.open(encoding="utf-8") as handle:
+        loaded = yaml.safe_load(handle)
+    if not isinstance(loaded, dict):
+        message = f"node descriptor is not a mapping: {path}"
+        raise MissingParameterError(message)
+    return loaded
+
+
+def active_targets(node: dict[str, Any]) -> list[str]:
+    """Return the configuration targets a node fields, from its active bearer set.
+
+    FML-ADR-075. The active bearer set scopes which targets gen-config resolves,
+    validates and emits. An active bearer that is not a known target is a hard
+    error, not a silent skip: a node asking for configuration of a bearer this
+    tool does not understand is a mistake to surface, not to drop.
+
+    Distinct from mule/bearers.py REQUIRED_BEARERS (what the node cannot work
+    without). This is what it fields.
+    """
+    bearers = node.get("active_bearers")
+    if not isinstance(bearers, list) or not bearers:
+        message = (
+            "node descriptor declares no active_bearers. A node must field at "
+            "least one bearer for configuration to be generated."
+        )
+        raise ConfigError(message)
+    unknown = [b for b in bearers if b not in REQUIRED]
+    if unknown:
+        message = (
+            f"node declares active bearer(s) with no configuration target: "
+            f"{', '.join(str(b) for b in unknown)}. "
+            f"Known targets: {', '.join(sorted(REQUIRED))}."
+        )
+        raise ConfigError(message)
+    return list(bearers)
+
+
 def unresolved(
     region: dict[str, Any],
     targets: list[str] | None = None,
@@ -204,12 +257,24 @@ def unresolved(
     return gaps
 
 
-def resolve(region: dict[str, Any], mission: dict[str, Any]) -> dict[str, Any]:
+def resolve(
+    region: dict[str, Any],
+    mission: dict[str, Any],
+    active: list[str] | None = None,
+) -> dict[str, Any]:
     """Resolve the parameter set, refusing if any required value is TBD.
 
     Raises UnresolvedValueError naming every gap and its trade, rather than
     substituting a default for any of them.
+
+    ``active`` is the node's active bearer set (FML-ADR-075): resolution
+    requires, validates and emits only those targets. ``None`` means every
+    target, the whole-catalogue behaviour used when no node scopes the call.
+    A TBD on a bearer outside the active set is not a gap, and its parameter
+    block is not emitted.
     """
+    selected = list(REQUIRED) if active is None else active
+
     for dotted in REGION_IDENTITY:
         value = _get(region, dotted)
         if _is_tbd(value):
@@ -220,7 +285,7 @@ def resolve(region: dict[str, Any], mission: dict[str, Any]) -> dict[str, Any]:
             )
             raise UnresolvedValueError(message)
 
-    gaps = unresolved(region)
+    gaps = unresolved(region, selected)
     if gaps:
         lines = [f"  {dotted}  (supplied by {trade})" for dotted, trade in gaps]
         message = (
@@ -232,7 +297,7 @@ def resolve(region: dict[str, Any], mission: dict[str, Any]) -> dict[str, Any]:
         )
         raise UnresolvedValueError(message)
 
-    return {
+    resolved: dict[str, Any] = {
         "region": {
             "id": _get(region, "region.id"),
             "regulator": _get(region, "region.regulator"),
@@ -256,30 +321,42 @@ def resolve(region: dict[str, Any], mission: dict[str, Any]) -> dict[str, Any]:
             "local_domain": mission.get("network", {}).get("local_domain"),
             "ap_ssid": mission.get("network", {}).get("ap_ssid"),
         },
-        "halow": {
-            "channel": _get(region, "halow.default_channel"),
-            "max_eirp_dbm": _get(region, "halow.max_eirp_dbm"),
-            "band_low_hz": _get(region, "halow.band_low_hz"),
-            "band_high_hz": _get(region, "halow.band_high_hz"),
-            "duty_cycle_percent": region.get("halow", {}).get("duty_cycle_percent"),
-        },
-        "lora": {
-            "channel": _get(region, "lora.default_channel"),
-            "max_eirp_dbm": _get(region, "lora.max_eirp_dbm"),
-            "band_low_hz": _get(region, "lora.band_low_hz"),
-            "band_high_hz": _get(region, "lora.band_high_hz"),
-        },
-        "wifi": {
-            "mesh_channel": _get(region, "wifi.mesh_channel"),
-            "ap_channel": _get(region, "wifi.ap_channel"),
-            "max_eirp_dbm": _get(region, "wifi.max_eirp_dbm"),
-        },
         "amateur": {
             # Amateur integration is disabled by default in every region.
             # A profile that enables it is rejected by validate().
             "enabled": region.get("amateur", {}).get("enabled", False),
         },
     }
+
+    # Only the active bearers' parameter blocks are emitted. A bearer the node
+    # does not field contributes no block: its values are legitimately TBD and
+    # emitting them would put a TBD into a resolved document. FML-ADR-075.
+    if "halow" in selected:
+        resolved["halow"] = {
+            "channel": _get(region, "halow.default_channel"),
+            "max_eirp_dbm": _get(region, "halow.max_eirp_dbm"),
+            "band_low_hz": _get(region, "halow.band_low_hz"),
+            "band_high_hz": _get(region, "halow.band_high_hz"),
+            "duty_cycle_percent": region.get("halow", {}).get("duty_cycle_percent"),
+        }
+    if "lora" in selected:
+        resolved["lora"] = {
+            "channel": _get(region, "lora.default_channel"),
+            "max_eirp_dbm": _get(region, "lora.max_eirp_dbm"),
+            "band_low_hz": _get(region, "lora.band_low_hz"),
+            "band_high_hz": _get(region, "lora.band_high_hz"),
+        }
+    wifi: dict[str, Any] = {}
+    if "wifi_mesh" in selected:
+        wifi["mesh_channel"] = _get(region, "wifi.mesh_channel")
+    if "wifi_ap" in selected:
+        wifi["ap_channel"] = _get(region, "wifi.ap_channel")
+    if "wifi_mesh" in selected or "wifi_ap" in selected:
+        wifi["max_eirp_dbm"] = _get(region, "wifi.max_eirp_dbm")
+    if wifi:
+        resolved["wifi"] = wifi
+
+    return resolved
 
 
 def validate(resolved_params: dict[str, Any], region: dict[str, Any]) -> list[str]:
@@ -291,6 +368,11 @@ def validate(resolved_params: dict[str, Any], region: dict[str, Any]) -> list[st
     errors: list[str] = []
 
     for bearer in ("halow", "lora"):
+        # Only bearers the node fields were resolved and emitted (FML-ADR-075).
+        # A bearer not in the resolved document is one this node does not field,
+        # so there is no channel to check against the band.
+        if bearer not in resolved_params:
+            continue
         permitted = region.get(bearer, {}).get("permitted")
         if permitted is not True:
             errors.append(
@@ -344,11 +426,17 @@ def generate(
     region_ref: str,
     mission_path: str | Path,
     out_dir: Path | None = None,
+    node_ref: str | None = None,
 ) -> dict[str, Any]:
-    """Resolve, validate and optionally write the parameter document."""
+    """Resolve, validate and optionally write the parameter document.
+
+    ``node_ref`` scopes generation to the node's active bearer set
+    (FML-ADR-075); ``None`` resolves every target, the whole-catalogue behaviour.
+    """
     region = load_region(region_ref)
     mission = load_mission(mission_path)
-    resolved_params = resolve(region, mission)
+    active = active_targets(load_node(node_ref)) if node_ref is not None else None
+    resolved_params = resolve(region, mission, active)
 
     violations = validate(resolved_params, region)
     if violations:
@@ -386,6 +474,14 @@ def main(argv: list[str]) -> int:
         help="directory to write parameters.json into",
     )
     parser.add_argument(
+        "--node",
+        default=None,
+        help=(
+            "node id under nodes/, or a path to a node descriptor. Scopes "
+            "resolution to the node's active bearers. Omit to resolve every target."
+        ),
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="report unresolved parameters and exit; do not treat TBD as an error",
@@ -396,10 +492,13 @@ def main(argv: list[str]) -> int:
         try:
             load_mission(args.mission)
             region = load_region(args.region)
+            active = (
+                active_targets(load_node(args.node)) if args.node is not None else None
+            )
         except ConfigError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 2
-        gaps = unresolved(region)
+        gaps = unresolved(region, active)
         if not gaps:
             print(f"{args.region}: all required parameters are resolved.")
             return 0
@@ -410,7 +509,7 @@ def main(argv: list[str]) -> int:
         return 0
 
     try:
-        params = generate(args.region, args.mission, args.out)
+        params = generate(args.region, args.mission, args.out, args.node)
     except UnresolvedValueError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 3

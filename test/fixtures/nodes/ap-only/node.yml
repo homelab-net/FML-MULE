@@ -1,0 +1,7 @@
+---
+# Synthetic fixture: an access-point-only node. Test use only.
+node:
+  id: xx-ap-only-fixture
+
+active_bearers:
+  - wifi_ap
