@@ -13,10 +13,11 @@ hardware behavior.
 
 ## Evaluation progress
 
-As of 2026-09-10, six of the 28 registered candidates have reached
+As of 2026-09-10, nine of the 28 registered candidates have reached
 `EVALUATED`: Project N.O.M.A.D., OpenMANET firmware, `openmanetd`, Reticulum,
-NomadNet and Martin. The first five are retained as pattern-only prior art.
-Martin records the narrow tile-server adoption already selected and measured by
-`TBR-MAP-01`; this intake does not widen its role. The remaining 22 records are
-`BASELINED`, so OSS-01 remains `BASELINED` in the execution register and has no
-closure packet.
+NomadNet, Martin, OpenTAKServer, PyTAK and Meshtastic firmware. The first five
+are retained as pattern-only prior art. Martin, PyTAK and Meshtastic firmware
+record already selected narrow uses. OpenTAKServer remains preferred but not
+owner-approved after exact-release simulation exposed its three-process
+deployment and hardening gates. The remaining 19 records are `BASELINED`, so
+OSS-01 remains `BASELINED` in the execution register and has no closure packet.

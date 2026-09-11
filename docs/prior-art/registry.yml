@@ -785,18 +785,463 @@ candidates:
   - id: opentakserver
     project: OpenTAKServer
     canonical_upstreams: [https://github.com/brian7704/OpenTAKServer]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/opentakserver.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/brian7704/OpenTAKServer
+        version: 1.7.13
+        immutable_id: 67903c26d95552738d85be4bc3c3ff3321378dbe
+        verified_on: "2026-09-10"
+    license:
+      declared: GPL-3.0-or-later
+      source: https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/LICENSE
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: >-
+        Source use is possible under GPL-3.0-or-later, but redistribution of an
+        FML-built image requires review of the locked and wildcard dependencies.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-02-26 through 2026-08-13.
+      latest_release_date: "2026-08-13"
+      last_commit_date: "2026-09-02"
+      issue_backlog: 96
+      bus_factor: >-
+        GitHub contributor totals are heavily concentrated in one maintainer;
+        the next-highest account is Dependabot.
+      sources:
+        - https://github.com/brian7704/OpenTAKServer/releases
+        - https://api.github.com/repos/brian7704/OpenTAKServer/contributors
+        - https://github.com/brian7704/OpenTAKServer/issues
+    platform:
+      hardware:
+        - General-purpose host; no MULE hardware support claim is made
+      operating_systems:
+        - Linux deployment and container host
+      architectures:
+        - Source is Python; native dependency and image support remain host dependent
+      sources:
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/README.md
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/pyproject.toml
+    resources:
+      status: measured
+      measurements:
+        - metric: Idle resident memory for all three OpenTAKServer processes
+          value: 536
+          unit: MB
+          environment: Debian x86-64 rootful Podman flat-sat, warmed approximately two days, no load
+          source: docs/evidence/TBR-COMP-01/2026-09-06-service-plane-steady-state-footprint.md
+    runtime:
+      ports:
+        - TCP 8081 web and API listener by default
+        - TCP 8080 Marti HTTP by default
+        - TCP 8443 Marti HTTPS by default
+        - UDP 8087 CoT input by default
+        - TCP 8088 unencrypted CoT streaming by default
+        - TCP 8089 TLS CoT streaming by default
+      privileges:
+        - Upstream containers create and run as an unprivileged ots user
+        - Database, broker and certificate access are required by the three processes
+      capabilities:
+        - TAK-compatible web, Marti, CoT, data-sync and certificate services
+        - Three separately started console entry points plus external PostgreSQL and RabbitMQ
+      mounts:
+        - OpenTAKServer data tree for configuration, CA material, uploads, logs and icons
+        - External PostgreSQL and RabbitMQ persistence are deployment responsibilities
+      secrets:
+        - Administrator and user credentials
+        - CA, server and client private keys and certificate passwords
+        - Database and RabbitMQ credentials
+        - Meshtastic channel key when that integration is enabled
+      authentication: >-
+        Flask-Security user authentication, roles, client certificates and
+        optional LDAP are present, but upstream defaults create an administrator
+        with a known password and use a known CA password. Those defaults block
+        FML profile approval until they are replaced.
+      update_behavior: >-
+        Upstream publishes Python releases but no official complete OCI image.
+        The repository Dockerfile installs branch head and starts only the web
+        process. An approvable FML artifact therefore includes all three entry
+        points under immutable promotion.
+      sources:
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/pyproject.toml
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/Dockerfile
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/opentakserver/defaultconfig.py
+        - https://github.com/brian7704/OpenTAKServer/blob/67903c26d95552738d85be4bc3c3ff3321378dbe/opentakserver/app.py
+    data:
+      formats:
+        - PostgreSQL relational state
+        - YAML configuration
+        - X.509 CA, key, certificate and revocation-list files
+        - Uploaded mission packages, logs and icon metadata
+      persistence: >-
+        FML-ADR-071 defines the mission-critical durable boundary as the SQL
+        backend plus exactly config.yml, the ca/ tree and uploads/.
+      backup: >-
+        Coordinated backup covers SQL plus config.yml, ca/ and uploads/ under
+        FML-ADR-071; copying only the database is incomplete. Logs and seeded
+        icon data are observed formats, not members of that approved boundary.
+      migration: >-
+        Alembic migrates the relational schema; release and out-of-SQL migration
+        still require an FML restore and promotion procedure.
+      sources:
+        - docs/evidence/TBR-TAK-01/2026-08-30-opentakserver-state-inventory.md
+        - docs/evidence/TBR-TAK-01/2026-08-31-different-node-restore.md
+        - https://github.com/brian7704/OpenTAKServer/tree/67903c26d95552738d85be4bc3c3ff3321378dbe/opentakserver/migrations
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/brian7704/OpenTAKServer/security/advisories
+      known_advisories: []
+      audit_status: No independent audit was identified in the pinned repository artifact.
+      sbom_status: >-
+        No repository SBOM was identified; poetry.lock pins most dependencies,
+        but wildcard dependencies and the full service image still require scans.
+    mappings:
+      requirements: [FML-REQ-003, FML-REQ-008, FML-REQ-009, FML-REQ-018, FML-REQ-024]
+      findings: [OSS-01]
+    reuse:
+      mode: undecided
+      rationale: >-
+        FML-ADR-032 makes OpenTAKServer preferred, not selected. Exact-release
+        simulation establishes fit and exposes deployment hardening work, but
+        owner approval and the remaining TAK, compute and HA gates are required.
+      approval_ref: null
+    prototype:
+      status: passed
+      commands:
+        - python -m pip install OpenTAKServer==1.7.13
+        - opentakserver
+        - eud_handler
+        - cot_parser
+      evidence:
+        - docs/prior-art/opentakserver.md
+        - docs/evidence/TBR-TAK-01/2026-08-31-opentakserver-actually-run.md
+        - docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md
+        - docs/evidence/TBR-COMP-01/2026-09-06-service-plane-steady-state-footprint.md
+      gaps:
+        - No official complete OCI image exists to promote by digest
+        - Upstream defaults and service composition require an FML hardening profile
+        - Complete dependency, image, license and SBOM review remains pending
+        - Target CM4, real EUD and failover evidence remain open
+    exit_strategy: >-
+      Preserve standard TAK protocols and the FML service identity so another
+      TAK-compatible server can replace OpenTAKServer without ordinary EUD changes.
+    decision_questions:
+      - Does the owner approve OpenTAKServer after the hardening and target-resource gates?
+      - What immutable three-process deployment artifact enters the service catalog?
   - id: pytak
     project: PyTAK
     canonical_upstreams: [https://github.com/snstac/pytak]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/pytak.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/snstac/pytak
+        version: v7.6.1
+        immutable_id: 8ee576b0c5bf691addee425633e7dacdfee7c1f7
+        verified_on: "2026-09-10"
+    license:
+      declared: Apache-2.0
+      source: https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/LICENSE
+      compatibility: compatible
+      bundled_dependencies: partial
+      notes: >-
+        The repository is Apache-2.0 and the bundled asyncio_dgram module is MIT;
+        optional transport and cryptography dependencies still require review.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-08-10 through 2026-08-23.
+      latest_release_date: "2026-08-23"
+      last_commit_date: "2026-08-23"
+      issue_backlog: 20
+      bus_factor: GitHub contributor totals are heavily concentrated in one maintainer.
+      sources:
+        - https://github.com/snstac/pytak/releases
+        - https://api.github.com/repos/snstac/pytak/contributors
+        - https://github.com/snstac/pytak/issues
+    platform:
+      hardware:
+        - General-purpose Python host; no MULE hardware support claim is made
+      operating_systems:
+        - POSIX systems
+        - macOS
+        - Windows
+      architectures:
+        - Pure-Python core; optional native dependencies remain host dependent
+      sources:
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/README.md
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/setup.cfg
+    resources:
+      status: not-measured
+      measurements: []
+    runtime:
+      ports:
+        - Endpoint selected by COT_URL for TCP, TLS, UDP, WebSocket, Marti or MQTT
+        - No inbound listener is required for the normal client and gateway role
+      privileges:
+        - Ordinary user process with access only to configured endpoints and files
+      capabilities:
+        - Send and receive XML or optional protobuf Cursor on Target
+        - TCP, TLS, UDP, file, console, WebSocket, Marti REST and optional MQTT transports
+        - Certificate enrollment and TAK data-package generation
+      mounts:
+        - Optional configuration and TAK data-package inputs
+        - Certificate cache under the invoking user's .pytak directory
+      secrets:
+        - Enrollment username and token
+        - Client private key, PKCS12 bundle and passphrase
+        - MQTT credentials when that optional transport is used
+      authentication: >-
+        Transport-dependent TLS client certificates, enrollment credentials or
+        MQTT credentials; unencrypted TCP and UDP modes provide no authentication.
+      update_behavior: >-
+        Install a pinned Python release and restart the embedding process.
+        Deployment-time resolution of an unpinned package is outside the
+        approved FML profile.
+      sources:
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/README.md
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/src/pytak/classes.py
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/src/pytak/client_functions.py
+    data:
+      formats:
+        - XML and optional protobuf Cursor on Target
+        - INI-style configuration
+        - PEM and PKCS12 certificate material
+        - TAK ZIP data packages
+      persistence: >-
+        PyTAK is normally a transport library; enrollment caches certificate
+        material and passphrases beneath the invoking user's .pytak directory.
+      backup: >-
+        Back up no transient transport state; provision mission configuration and
+        credentials through the owning service's defined secret boundary.
+      migration: >-
+        Changing the pinned library reopens CoT and TAK package compatibility
+        evidence; no application database migration is involved.
+      sources:
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/src/pytak/client_functions.py
+        - https://github.com/snstac/pytak/blob/8ee576b0c5bf691addee425633e7dacdfee7c1f7/src/pytak/classes.py
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/snstac/pytak/security/advisories
+      known_advisories: []
+      audit_status: >-
+        No independent audit was identified. Pinned Marti, WebSocket and MQTTS
+        source disables server-certificate verification when no client
+        certificate is configured; CA material alone does not prevent the
+        fallback. Those paths block FML profile approval until explicit client
+        and server trust material is configured.
+      sbom_status: >-
+        No repository SBOM was identified; declared optional dependencies are
+        not an SBOM.
+    mappings:
+      requirements: [FML-REQ-018, FML-REQ-029]
+      findings: [OSS-01]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-033 selects PyTAK as the preferred custom CoT transport and
+        gateway library where an existing upstream integration is insufficient.
+      approval_ref: docs/adr/FML-ADR-033-pytak-cot-gateway-library.md
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/snstac/pytak.git
+        - git checkout 8ee576b0c5bf691addee425633e7dacdfee7c1f7
+        - python -m pytest
+      evidence:
+        - docs/prior-art/pytak.md
+        - docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md
+      gaps:
+        - Exact 7.6.1 source was not run in this intake
+        - Existing FML PyTAK evidence did not record the client version
+        - Complete optional-dependency, license and SBOM review remains pending
+        - The declared Python minimum is inconsistent between metadata fields
+        - >-
+          Marti, WebSocket and MQTTS paths disable server verification without
+          a configured client certificate; CA material alone is insufficient
+    exit_strategy: >-
+      Keep PyTAK behind protocol-level CoT and transport contracts so a direct
+      standards-compatible implementation can replace it if required.
+    decision_questions:
+      - Which exact PyTAK release is pinned by each approved FML gateway artifact?
+      - Which optional transports and dependencies enter the production profile?
   - id: meshtastic
-    project: Meshtastic
+    project: Meshtastic firmware
     canonical_upstreams: [https://github.com/meshtastic/firmware]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/meshtastic-firmware.md
+    evaluation_date: "2026-09-10"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/meshtastic/firmware
+        version: v2.7.26.54e0d8d
+        immutable_id: 54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb
+        verified_on: "2026-09-10"
+    license:
+      declared: GPL-3.0
+      source: https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/LICENSE
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: >-
+        Firmware source is GPL-3.0; board builds combine PlatformIO libraries,
+        bootloaders and vendor components that require a complete image review.
+    maintenance:
+      release_cadence: >-
+        The latest non-prerelease release was published 2026-06-24; newer 2.8.0
+        prereleases and default-branch commits continued through September 2026.
+      latest_release_date: "2026-06-24"
+      last_commit_date: "2026-09-11"
+      issue_backlog: 216
+      bus_factor: >-
+        GitHub contributor totals show several high-volume maintainers and a
+        broad contributor base.
+      sources:
+        - https://github.com/meshtastic/firmware/releases
+        - https://api.github.com/repos/meshtastic/firmware/contributors
+        - https://github.com/meshtastic/firmware/issues
+    platform:
+      hardware:
+        - Board profiles based on ESP32
+        - Board profiles based on nRF52
+        - Board profiles based on RP2040 and RP2350
+        - Linux-native devices
+      operating_systems:
+        - Bare-metal and RTOS board firmware by profile
+        - Linux-native meshtasticd
+      architectures:
+        - Board-profile dependent ARM, Xtensa and Linux host architectures
+      sources:
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/README.md
+        - https://github.com/meshtastic/firmware/tree/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/variants
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/platformio.ini
+    resources:
+      status: not-measured
+      measurements: []
+    runtime:
+      ports:
+        - TCP 4403 Meshtastic client API when an IP interface is enabled
+        - MQTT broker endpoint only when configured
+        - USB serial, UART and Bluetooth interfaces are platform dependent
+      privileges:
+        - Full control of the target MCU, attached radio and board peripherals
+        - Linux-native device and TLS file access depends on its service profile
+      capabilities:
+        - LoRa mesh text, position and telemetry transport
+        - Meshtastic client API over serial, Bluetooth or IP by platform
+        - Optional MQTT uplink and downlink
+      mounts:
+        - MCU flash filesystem or Linux-native configuration and state paths
+      secrets:
+        - Channel pre-shared keys and device private keys
+        - MQTT credentials when enabled
+        - Linux-native TLS private key and certificate
+      authentication: >-
+        Configured channel encryption and optional public-key cryptography can
+        protect mesh traffic. Stock nodes share a published compiled-in default
+        channel key, so that profile provides no meaningful confidentiality and
+        blocks FML approval. An owner-approved separation and confidentiality
+        control remains to be selected. Client API and MQTT trust also depend on
+        the selected device profile.
+      update_behavior: >-
+        Firmware is flashed through board-specific serial, web, OTA or DFU flows.
+        Promotion therefore requires an exact board artifact and rollback method.
+      sources:
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/api/ethServerAPI.cpp
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/Channels.h
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/Channels.cpp
+        - https://github.com/meshtastic/firmware/tree/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/api
+        - https://github.com/meshtastic/firmware/tree/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mqtt
+    data:
+      formats:
+        - Meshtastic protobuf configuration and packets
+        - Board flash preferences, node database and message store
+        - Linux-native configuration, keys and certificates
+      persistence: >-
+        Board profiles persist configuration, keys, node state and optional
+        messages in flash; exact paths and capacity are platform dependent.
+      backup: >-
+        Export and reprovision the approved channel and device configuration;
+        no universal whole-device backup contract was identified.
+      migration: >-
+        Firmware and stored-state compatibility are release and board dependent;
+        the selected board profile requires a tested upgrade and rollback path.
+      sources:
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/NodeDB.cpp
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/MessageStore.cpp
+        - https://github.com/meshtastic/firmware/blob/54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb/src/mesh/api/ServerAPI.cpp
+    security:
+      reviewed_on: "2026-09-10"
+      advisory_sources:
+        - https://github.com/meshtastic/firmware/security/advisories
+      known_advisories:
+        - >-
+          GHSA-7ph5-2mjv-69h8 is high severity, affects versions through
+          2.7.22.96dd647 and declares no patched version; evaluated 2.7.26 is
+          outside the stated affected range.
+        - >-
+          GHSA-mjx5-98jq-q736 is critical and concerns arbitrary code execution
+          in a pull_request_target workflow; no affected or patched range is declared.
+        - >-
+          GHSA-95pq-gj5v-4fg2, GHSA-33hw-xhfh-944r, GHSA-vqcq-wjwx-7252 and
+          GHSA-3x3r-vw9f-pxq5 are high or critical runtime advisories with
+          declared patched releases earlier than the evaluated release.
+        - >-
+          GHSA-gq7v-jr8c-mfr7, GHSA-6mwm-v2vv-pp96, GHSA-377p-prwp-4hwf,
+          GHSA-c967-qc39-3hf5, GHSA-xfmq-5j3j-vgv8, GHSA-h8mh-p4r3-4jv7,
+          GHSA-4hjx-54gf-2jh7 and GHSA-4q84-546j-3mf5 declare patched releases
+          earlier than 2.7.26; one concerns the build workflow rather than
+          firmware runtime.
+        - >-
+          GHSA-45vg-3f35-7ch2 is high severity, affects versions before 2.6.2
+          and declares no patched version; evaluated 2.7.26 is outside the range.
+        - >-
+          GHSA-h79j-c836-5j74 is low severity and declares all Linux-native
+          versions affected because generated TLS key material is world-readable;
+          it has no declared patched version and remains relevant to meshtasticd.
+      audit_status: No independent audit was identified in the pinned repository artifact.
+      sbom_status: >-
+        No repository SBOM was identified; PlatformIO dependency declarations
+        and locks do not replace a board-specific firmware SBOM.
+    mappings:
+      requirements: [FML-REQ-013, FML-REQ-014, FML-REQ-030]
+      findings: [OSS-01]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-026 selects Meshtastic as the separate non-IP degraded bearer;
+        FML-ADR-048 and FML-ADR-070 constrain integration to upstream semantics.
+      approval_ref: docs/adr/FML-ADR-026-lora-meshtastic-separate-non-ip-plane.md
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/meshtastic/firmware.git
+        - git checkout 54e0d8d0ab2ff56b3a9ce967e53f79e49af560fb
+        - platformio run -e selected-board-profile
+      evidence:
+        - docs/prior-art/meshtastic-firmware.md
+        - docs/evidence/TBR-NET-02/2026-09-06-geochat-to-survives-the-meshtastic-bearer.md
+      gaps:
+        - Exact release source was not built for a selected board in this intake
+        - Existing meshtasticd evidence is SIMULATED and establishes no RF behavior
+        - Board selection, RF, power, thermal and update rollback remain open
+        - >-
+          The published default key is not confidential and blocks profile
+          approval; the replacement control remains unselected
+        - Complete dependency, firmware-image, license and SBOM review remains pending
+        - Linux-native TLS key permissions remain affected by GHSA-h79j-c836-5j74
+    exit_strategy: >-
+      Keep TAK-to-Meshtastic integration at upstream protocol boundaries so the
+      approved degraded bearer can change without a custom EUD or TAK protocol.
+    decision_questions:
+      - Which exact board and immutable firmware artifact enter the compatibility set?
+      - >-
+        Which owner-approved separation and confidentiality control replaces
+        the stock public default?
+      - Does the selected hardware reproduce the simulated recipient semantics over RF?
+      - Is Linux-native meshtasticd permitted before its TLS key permissions are remediated?
   - id: haproxy
     project: HAProxy
     canonical_upstreams: [https://github.com/haproxy/haproxy]
