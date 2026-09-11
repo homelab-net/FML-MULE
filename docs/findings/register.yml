@@ -79,9 +79,11 @@ findings:
     title: "Make configuration resolution target-aware"
     dependencies: [BASE-01]
     owner: Claude
-    state: IMPLEMENTED
+    reviewer: gap0406_verifier
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-04/implementation.md"
+      - "docs/evidence/findings/GAP-04/closure.md"
     user_gate: "Approve capability and target model"
 
   - <<: *open_independent
@@ -95,9 +97,11 @@ findings:
     title: "Define consistent operator-status semantics"
     dependencies: [BASE-01]
     owner: Claude
-    state: IMPLEMENTED
+    reviewer: gap0406_verifier
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-06/implementation.md"
+      - "docs/evidence/findings/GAP-06/closure.md"
     user_gate: "Approve status semantics and controlling ADR"
 
   - <<: *open_independent

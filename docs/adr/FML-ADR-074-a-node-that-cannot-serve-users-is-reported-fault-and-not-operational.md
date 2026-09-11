@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-074
 title: A node that cannot serve users is reported FAULT and not operational
-status: PROPOSED
+status: SELECTED
 date: 2026-09-11
 supersedes: none
 superseded-by: none
@@ -54,7 +54,7 @@ ADR does not change that.
 
 ## Status
 
-PROPOSED.
+SELECTED.
 
 ## Consequences
 

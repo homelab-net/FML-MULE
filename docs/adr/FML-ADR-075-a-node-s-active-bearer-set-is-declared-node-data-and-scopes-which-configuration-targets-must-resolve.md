@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-075
 title: A node's active bearer set is declared node data and scopes which configuration targets must resolve
-status: PROPOSED
+status: SELECTED
 date: 2026-09-11
 supersedes: none
 superseded-by: none
@@ -55,7 +55,7 @@ The v0.0.1 node's active set is `{wifi_ap}`.
 
 ## Status
 
-PROPOSED. This makes RF configuration target-aware. It does **not** model ingress,
+SELECTED. This makes RF configuration target-aware. It does **not** model ingress,
 DNS or service configuration, which the v0.0.1 milestone also needs and
 `gen-config.REQUIRED` does not carry; that is a separate finding, not folded in here.
 

@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-076
 title: The operator WAN answer is the undetermined-capable mode value, not a boolean
-status: PROPOSED
+status: SELECTED
 date: 2026-09-11
 supersedes: none
 superseded-by: none
@@ -42,7 +42,7 @@ fact.
 
 ## Status
 
-PROPOSED.
+SELECTED.
 
 ## Consequences
 
