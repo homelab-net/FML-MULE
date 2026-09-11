@@ -125,8 +125,8 @@ mutations:
   - id: M15
     file: test/flatsat/node.py
     describe: radios come up even with no lawful configuration
-    find: "enumerated = [str(b) for b in self._enumerated()] if resolved else []"
-    replace: "enumerated = [str(b) for b in self._enumerated()]"
+    find: "        if not resolved:\n            enumerated = []"
+    replace: "        if False:\n            enumerated = []"
 
   - id: M26
     file: mule/services.py
@@ -313,8 +313,15 @@ mutations:
   - id: M23
     file: mule/status.py
     describe: a required bearer present but not serving is not faulted
-    find: "    if not observed.booted or missing or not_serving:"
-    replace: "    if not observed.booted or missing:"
+    find: "    if not observed.booted or observed.enumerated is None or missing or not_serving:"
+    replace: "    if not observed.booted or observed.enumerated is None or missing:"
+
+  # FML-ADR-077: a node that cannot enumerate its radios fails closed to FAULT.
+  - id: M102
+    file: mule/status.py
+    describe: a node that cannot enumerate its radios is not faulted
+    find: "    if not observed.booted or observed.enumerated is None or missing or not_serving:"
+    replace: "    if not observed.booted or missing or not_serving:"
 
   # The fault message distinguishes an absent bearer (RADIO_ABSENT) from a
   # present-but-not-serving one; _fault checks missing before not_serving.

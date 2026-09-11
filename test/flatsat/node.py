@@ -89,7 +89,9 @@ class BootResult:
     time_reason: str | None
     config_resolved: bool
     config_error: str | None
-    radios_enumerated: list[str]
+    #: None where the platform could not enumerate radios (GAP-05); distinct
+    #: from the empty list used when configuration did not resolve.
+    radios_enumerated: list[str] | None
 
 
 #: The flat-sat reports admission using the decision type itself, so a scenario
@@ -176,13 +178,21 @@ class FlatSatNode:
         """
         return assess(self._clock, self._time_policy)
 
-    def _enumerated(self) -> list[Bearer]:
-        """Bearers the platform found."""
-        return list(self._radio.enumerated())
+    def _enumerated(self) -> list[Bearer] | None:
+        """Bearers the platform found, or None where it could not enumerate.
+
+        None is propagated rather than turned into an empty list: an unknown
+        enumeration is not "nothing present" (GAP-05, FML-ADR-077).
+        """
+        found = self._radio.enumerated()
+        return list(found) if found is not None else None
 
     def _associated(self) -> list[Bearer]:
-        """Bearers that have formed their link."""
-        return [b for b in self._enumerated() if self._radio.associated(b)]
+        """Bearers that have formed their link; empty when enumeration failed."""
+        found = self._enumerated()
+        if found is None:
+            return []
+        return [b for b in found if self._radio.associated(b)]
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -215,7 +225,15 @@ class FlatSatNode:
         # resolve a lawful channel does not transmit: os/config/README.md makes
         # a generated channel outside the permitted set a regulatory problem,
         # not a bug, and the same logic applies to having no channel at all.
-        enumerated = [str(b) for b in self._enumerated()] if resolved else []
+        #
+        # None where the platform could not enumerate at all: distinct from the
+        # empty list used when configuration did not resolve (GAP-05).
+        enumerated: list[str] | None
+        if not resolved:
+            enumerated = []
+        else:
+            found = self._enumerated()
+            enumerated = [str(b) for b in found] if found is not None else None
 
         self._booted = resolved
         if resolved and self._params is not None:
@@ -277,7 +295,10 @@ class FlatSatNode:
         return modes.assess(
             ModeInputs(
                 environment=self._environment,
-                enumerated=tuple(self._enumerated()),
+                # None (could not enumerate) reads as empty for the mode axes:
+                # the status plane is what fails closed on it (FML-ADR-077),
+                # while the capability ladder is undetermined either way.
+                enumerated=tuple(self._enumerated() or []),
                 associated=tuple(self._associated()),
                 hosting_shared_services=bool(self._shared_services),
                 wan_reachable=self._wan,

@@ -23,7 +23,9 @@
 #  17. Every reading declares a source kind; command sources name a package.
 #  18. A blocked service README names the mule/ modules that act on its ADR.
 #  19. No evidence artifact is a near-duplicate of its directory README.
-#  20. Every remediation finding and closure packet satisfies its declared schema.
+#  20. Every prior-art candidate and evaluation record satisfies its schema.
+#  21. Every remediation finding and closure packet satisfies its declared schema.
+#  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
@@ -922,6 +924,25 @@ printf 'Remediation findings\n'
 if ! python3 tools/validate-findings.py "$ROOT"; then
   fail "the remediation findings register or a closure packet is invalid"
 fi
+
+# --- 22: a probe workflow triggers on the toolchain pins it sources ---------
+# A workflow that sources tools/toolchain-versions.sh reads a pinned image or
+# version from it, so a pin change alters what that workflow actually runs. If
+# the pin file is not in the workflow's trigger paths, a bump ships without the
+# probe re-running against the new build (GAP-07). Fires on the pairing: sources
+# the pins, omits them from paths.
+probe_pin_checked=0
+for wf in .github/workflows/*.yml; do
+  [ -e "$wf" ] || continue
+  if grep -qF '. tools/toolchain-versions.sh' "$wf" ||
+    grep -qF 'source tools/toolchain-versions.sh' "$wf"; then
+    if ! grep -Eq '^[[:space:]]*-[[:space:]]*"?tools/toolchain-versions\.sh"?[[:space:]]*$' "$wf"; then
+      fail "$wf sources tools/toolchain-versions.sh but does not list it in its trigger paths (GAP-07): a pin change will not re-run it."
+    fi
+    probe_pin_checked=$((probe_pin_checked + 1))
+  fi
+done
+info "$probe_pin_checked workflow(s) sourcing toolchain pins checked for a matching trigger path"
 
 # --- result -----------------------------------------------------------------
 printf '\n'

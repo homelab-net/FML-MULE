@@ -316,6 +316,30 @@ def test_a_required_bearer_present_but_not_serving_is_faulted_not_green(
     assert not node.admit(EUD).admitted
 
 
+def test_a_node_that_cannot_enumerate_its_radios_fails_closed(
+    build_node: NodeFactory,
+) -> None:
+    """GAP-05, FML-ADR-077: an unknown enumeration is distinct and fails closed.
+
+    A platform that cannot enumerate at all (iw dev fails, modelled by
+    enumerable=False) must not crash, must not be read as "no radios present"
+    (RADIO_ABSENT), and must fail closed to FAULT because it cannot confirm it
+    can serve. The old code evaluated list(None) and raised TypeError, so this
+    test raised rather than asserting against it.
+    """
+    radio = FakeRadio(present=["wifi_ap"], linked=["wifi_ap"], enumerable=False)
+    node = build_node(radio=radio)
+    node.power_on()
+    status = node.status()
+
+    assert status.state == "FAULT"
+    assert status.operational is False
+    assert status.fault is not None
+    assert status.fault.startswith("RADIO_ENUMERATION_FAILED")
+    # Unknown is not "confirmed absent".
+    assert "RADIO_ABSENT" not in status.fault
+
+
 def test_admission_refused_when_a_required_bearer_is_not_serving(
     build_node: NodeFactory,
 ) -> None:

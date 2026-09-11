@@ -72,6 +72,12 @@ findings:
     id: GAP-03
     title: "Preserve and validate `address_prefix`"
     dependencies: [BASE-01]
+    owner: Claude
+    reviewer: gap030507_verifier
+    state: CLOSED
+    evidence:
+      - "docs/evidence/findings/GAP-03/implementation.md"
+      - "docs/evidence/findings/GAP-03/closure.md"
     user_gate: "Approve any unspecified address semantics"
 
   - <<: *open_independent
@@ -90,6 +96,12 @@ findings:
     id: GAP-05
     title: "Handle unknown radio enumeration safely"
     dependencies: [BASE-01]
+    owner: Claude
+    reviewer: gap030507_verifier
+    state: CLOSED
+    evidence:
+      - "docs/evidence/findings/GAP-05/implementation.md"
+      - "docs/evidence/findings/GAP-05/closure.md"
     user_gate: "Approve unknown and failure semantics"
 
   - <<: *open_independent
@@ -109,6 +121,12 @@ findings:
     title: "Correct integration-probe workflow triggers"
     severity: P1
     dependencies: [BASE-01, BASE-02]
+    owner: Claude
+    reviewer: gap030507_verifier
+    state: CLOSED
+    evidence:
+      - "docs/evidence/findings/GAP-07/implementation.md"
+      - "docs/evidence/findings/GAP-07/closure.md"
     user_gate: null
 
   - <<: *open_independent
