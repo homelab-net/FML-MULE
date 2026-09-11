@@ -1,7 +1,7 @@
 ---
 schema_version: "1.0"
 source_plan: REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md
-verification_date: "2026-09-10"
+verification_date: "2026-09-11"
 supporting_documents: []
 candidates:
   - id: project-nomad
@@ -1244,66 +1244,1117 @@ candidates:
       - Is Linux-native meshtasticd permitted before its TLS key permissions are remediated?
   - id: haproxy
     project: HAProxy
-    canonical_upstreams: [https://github.com/haproxy/haproxy]
-    state: BASELINED
-    evaluation_document: null
+    canonical_upstreams:
+      - https://git.haproxy.org/git/haproxy-3.4.git
+      - https://github.com/haproxy/haproxy
+    state: EVALUATED
+    evaluation_document: docs/prior-art/platform-runtime.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.haproxy.org/git/haproxy-3.4.git
+        version: v3.4.4
+        immutable_id: 7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0-or-later and LGPL-2.1-or-later with OpenSSL exception
+      source: https://git.haproxy.org/?p=haproxy-3.4.git;a=blob;f=LICENSE;hb=7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: Optional build libraries and the distribution package remain separate reviews.
+    maintenance:
+      release_cadence: Five 3.4 maintenance releases span 2026-06-03 through 2026-08-27.
+      latest_release_date: "2026-08-27"
+      last_commit_date: "2026-09-11"
+      issue_backlog: 392
+      bus_factor: GitHub contributor totals show several long-running high-volume maintainers.
+      sources:
+        - https://www.haproxy.org/bugs/bugs-3.4.0.html
+        - https://api.github.com/repos/haproxy/haproxy/contributors
+        - https://github.com/haproxy/haproxy/issues
+    platform:
+      hardware: [General-purpose host; no MULE resource measurements]
+      operating_systems: [Linux, BSD and other POSIX systems]
+      architectures: [Build-toolchain dependent]
+      sources:
+        - https://git.haproxy.org/?p=haproxy-3.4.git;a=blob;f=README;hb=7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Configured TCP and HTTP listeners; no fixed MULE port]
+      privileges: [Dedicated unprivileged identity after any privileged bind or setup]
+      capabilities: [TCP and HTTP proxying, health checks and runtime administration]
+      mounts: [Configuration and optional certificates or runtime-state files]
+      secrets: [TLS private keys only when configured for termination]
+      authentication: Administrative and data-plane authentication are configuration dependent.
+      update_behavior: >-
+        Restart or controlled reload is required to promote a pinned build and configuration.
+      sources:
+        - https://git.haproxy.org/?p=haproxy-3.4.git;a=blob;f=doc/configuration.txt;hb=7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+    data:
+      formats: [Text configuration, optional server-state and certificate files]
+      persistence: >-
+        No application data store; deliberately retained configuration and keys are durable.
+      backup: Back up generated configuration and any selected key or state files.
+      migration: Validate configuration against the promoted binary before reload.
+      sources:
+        - https://git.haproxy.org/?p=haproxy-3.4.git;a=blob;f=doc/management.txt;hb=7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://www.haproxy.org/bugs/]
+      known_advisories: []
+      audit_status: No independent audit was identified in the pinned source artifact.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-008, FML-REQ-018]
+      findings: [OSS-01, GAP-02, GAP-09]
+    reuse:
+      mode: adopt
+      rationale: FML-ADR-031 selects HAProxy as the preferred initial stable ingress implementation.
+      approval_ref: FML-ADR-031
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.haproxy.org/git/haproxy-3.4.git
+        - git checkout 7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
+        - make help
+      evidence: [docs/prior-art/platform-runtime.md]
+      gaps: [No exact-build flat-sat run, No package SBOM, No measured ingress failover]
+    exit_strategy: >-
+      Preserve stable DNS and TCP ingress so another standards-compatible proxy can replace it.
+    decision_questions:
+      - Which package build, listeners and backend-discovery contract enter the compatibility set?
   - id: podman-quadlet
     project: Podman and Quadlet
     canonical_upstreams: [https://github.com/containers/podman]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/platform-runtime.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/containers/podman
+        version: v6.1.1
+        immutable_id: 8303f2e25b675ea7f82099d615c60969aec15870
+        verified_on: "2026-09-11"
+    license:
+      declared: Apache-2.0
+      source: https://github.com/containers/podman/blob/8303f2e25b675ea7f82099d615c60969aec15870/LICENSE
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: >-
+        The binary dependency closure and every selected container image require separate
+        review.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-07-22 through 2026-09-02.
+      latest_release_date: "2026-09-02"
+      last_commit_date: "2026-09-11"
+      issue_backlog: 902
+      bus_factor: >-
+        Contributor totals show several high-volume human maintainers plus automation accounts.
+      sources:
+        - https://github.com/containers/podman/releases
+        - https://api.github.com/repos/containers/podman/contributors
+        - https://github.com/containers/podman/issues
+    platform:
+      hardware: [General-purpose host; no MULE resource measurements]
+      operating_systems: [Linux host, macOS and Windows remote clients]
+      architectures: [Distribution and image dependent]
+      sources:
+        - https://github.com/containers/podman/blob/8303f2e25b675ea7f82099d615c60969aec15870/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No fixed port; containers and the optional API socket define exposure]
+      privileges: [Rootless user namespaces by default for MULE services]
+      capabilities: [OCI container lifecycle, networks, volumes, secrets and systemd generation]
+      mounts: [Per-user container storage, Quadlet definitions and explicitly declared bind mounts]
+      secrets: [Registry credentials, container secrets and workload-specific keys]
+      authentication: >-
+        Local Unix permissions govern rootless control; remote API authentication is deployment
+        dependent.
+      update_behavior: >-
+        Images and binaries change only through separately pinned compatibility-set promotion.
+      sources:
+        - https://github.com/containers/podman/blob/8303f2e25b675ea7f82099d615c60969aec15870/docs/source/markdown/podman-systemd.unit.5.md
+    data:
+      formats: [OCI image and container storage, Quadlet unit files, named volumes]
+      persistence: Per-user storage and declared volumes persist until explicitly removed.
+      backup: >-
+        Workload backup contracts must name volumes and bind mounts; container storage is not
+        the application backup.
+      migration: >-
+        Promote immutable images and run each workload's declared data migration and rollback
+        procedure.
+      sources:
+        - https://github.com/containers/podman/blob/8303f2e25b675ea7f82099d615c60969aec15870/docs/tutorials/rootless_tutorial.md
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/containers/podman/security/advisories]
+      known_advisories:
+        - GHSA-fx76-2j3w-2mx6; v6 range declares fixed at v6.0.0
+        - GHSA-4hq8-gpf5-8p68; v6 range declares fixed at v6.0.0
+        - GHSA-q6r4-3wmg-fwcq; fixed before v6.1.1
+        - GHSA-hc8w-h2mf-hp59; fixed before v6.1.1
+        - GHSA-wp3j-xq48-xpjw; fixed before v6.1.1
+        - GHSA-65gg-3w2w-hr4h; fixed before v6.1.1
+        - GHSA-34xh-hvp7-r2j7; workflow advisory has no version range
+        - GHSA-874v-pj72-92f3; fixed before v6.1.1
+        - GHSA-qvf8-p83w-v58j; fixed before v6.1.1
+      audit_status: >-
+        Advisory ranges were compared to v6.1.1; workload and image review remains separate.
+      sbom_status: >-
+        Upstream dependency manifests exist; no MULE binary or image SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-001, FML-REQ-019, FML-REQ-027, FML-REQ-032]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: adopt
+      rationale: FML-ADR-029 selects rootless Podman and Quadlet as the default service runtime.
+      approval_ref: FML-ADR-029
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/containers/podman.git
+        - git checkout 8303f2e25b675ea7f82099d615c60969aec15870
+        - make podman
+      evidence: [docs/prior-art/platform-runtime.md]
+      gaps:
+        - No exact-build flat-sat run
+        - No selected image SBOM
+        - No measured MULE resource footprint
+    exit_strategy: >-
+      Keep service definitions declarative and data in named mounts so another OCI runtime can
+      be evaluated.
+    decision_questions:
+      - Which distribution build and rootless storage layout enter the compatibility set?
   - id: batman-adv
     project: batman-adv and batctl
     canonical_upstreams:
       - https://git.open-mesh.org/batman-adv.git
       - https://git.open-mesh.org/batctl.git
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/mesh-network-stack.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.open-mesh.org/batman-adv.git
+        version: v2026.3
+        immutable_id: f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+        verified_on: "2026-09-11"
+      - kind: git
+        source: https://git.open-mesh.org/batctl.git
+        version: v2026.3
+        immutable_id: 9e098cb2bcd40e367f91f1a3c5379ea4d4e0f9da
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0 with file-specific Linux-syscall-note and MIT exceptions
+      source: https://git.open-mesh.org/batman-adv.git/tree/LICENSES?id=f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: Kernel, libnl and distribution packaging remain part of the compatibility-set review.
+    maintenance:
+      release_cadence: Paired v2026.0 through v2026.3 releases continued through 2026-08-31.
+      latest_release_date: "2026-08-31"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: >-
+        Canonical Git and mailing-list workflow does not expose a comparable contributor count
+        in this intake.
+      sources:
+        - https://git.open-mesh.org/batman-adv.git/refs/
+        - https://git.open-mesh.org/batctl.git/refs/
+    platform:
+      hardware: [Linux network interfaces supported by the selected kernel and drivers]
+      operating_systems: [Linux]
+      architectures: [Kernel and distribution dependent]
+      sources:
+        - https://git.open-mesh.org/batman-adv.git/tree/README.rst?id=f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No application TCP or UDP port]
+      privileges: [Kernel module authority and root or CAP_NET_ADMIN for mesh changes]
+      capabilities: [Layer-2 mesh forwarding, generic-netlink control and diagnostics]
+      mounts: [Kernel module tree and generated boot-time configuration]
+      secrets: []
+      authentication: The routing layer does not authenticate peers; bearer security is separate.
+      update_behavior: Module, kernel and batctl move together as one tested compatibility set.
+      sources:
+        - https://git.open-mesh.org/batman-adv.git/tree/README.external.rst?id=f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+        - https://git.open-mesh.org/batctl.git/tree/README.rst?id=9e098cb2bcd40e367f91f1a3c5379ea4d4e0f9da
+    data:
+      formats: [Kernel routing and neighbor state, generated configuration]
+      persistence: >-
+        Operational topology is ephemeral; configuration is regenerated from approved inputs.
+      backup: Back up the mission and compatibility-set inputs, not live routing tables.
+      migration: Rebuild and retest the paired module and tool against each candidate kernel.
+      sources:
+        - https://git.open-mesh.org/batman-adv.git/tree/CHANGELOG.rst?id=f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: ["https://nvd.nist.gov/vuln/search/results?query=batman-adv"]
+      known_advisories:
+        - >-
+          CVE-2026-43382; fix named in the v2026.0 changelog
+        - >-
+          CVE-2026-31657, CVE-2026-31659 and CVE-2026-31683; fixes named in
+          the v2026.1 changelog
+        - >-
+          CVE-2026-46198, CVE-2026-46206, CVE-2026-46208,
+          CVE-2026-46212, CVE-2026-46231, CVE-2026-46233,
+          CVE-2026-46238, CVE-2026-52913, CVE-2026-52914,
+          CVE-2026-52916, CVE-2026-52919, CVE-2026-52922,
+          CVE-2026-52926, CVE-2026-52931, CVE-2026-52934,
+          CVE-2026-63834, CVE-2026-63835, CVE-2026-63836,
+          CVE-2026-64088, CVE-2026-64089, CVE-2026-64090,
+          CVE-2026-64091, CVE-2026-64092, CVE-2026-64093,
+          CVE-2026-64094, CVE-2026-64095, CVE-2026-64096 and
+          CVE-2026-64218; fixes named in the v2026.2 changelog
+        - >-
+          CVE-2026-72226, CVE-2026-72227, CVE-2026-72228,
+          CVE-2026-72229, CVE-2026-72230, CVE-2026-72231,
+          CVE-2026-72232, CVE-2026-72233, CVE-2026-72234,
+          CVE-2026-72235, CVE-2026-80599, CVE-2026-80600,
+          CVE-2026-80601 and CVE-2026-80839; fixes named in the
+          v2026.3 changelog
+        - >-
+          CVE-2026-74310 affects vhost/net; batman-adv is a triggering
+          example rather than the vulnerable component
+      audit_status: >-
+        The NVD 2026 keyword inventory was mapped to the exact out-of-tree
+        changelog; a future distribution kernel needs its own backport review.
+      sbom_status: No MULE kernel or userspace SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-011, FML-REQ-012, FML-REQ-015, FML-REQ-032]
+      findings: [OSS-01, GAP-09, HW-01]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-053 selects batman-adv with BATMAN-IV; FML-ADR-059 selects its ownership seam.
+      approval_ref: FML-ADR-053 and FML-ADR-059
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.open-mesh.org/batman-adv.git
+        - git checkout f38d7c3263ab0ba6c08b232eed55f63a6b8a6775
+        - make
+      evidence: [docs/prior-art/mesh-network-stack.md]
+      gaps:
+        - Exact pair not run
+        - Kernel compatibility and distribution security backports not selected
+        - No radio or device evidence
+    exit_strategy: >-
+      Preserve standard Linux Ethernet and netlink seams so another mesh implementation can be
+      evaluated.
+    decision_questions:
+      - Which kernel, module and batctl builds form the promoted compatibility set?
   - id: hostapd
     project: hostapd
     canonical_upstreams: [https://w1.fi/hostapd/]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/mesh-network-stack.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.w1.fi/hostap.git
+        version: hostap_2_12
+        immutable_id: 831364bf02710ad09c2f27d3efa92abeeb5634c0
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD-3-Clause
+      source: https://w1.fi/cgit/hostap/tree/COPYING?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: TLS library, driver and distribution package dependencies remain separate reviews.
+    maintenance:
+      release_cadence: Releases 2.8 through 2.12 span 2019 through 2026; 2.12 is dated 2026-08-07.
+      latest_release_date: "2026-08-07"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: Canonical development uses a maintainer-led mailing list and Git repository.
+      sources: [https://w1.fi/hostapd/]
+    platform:
+      hardware: [Wireless interfaces supported by nl80211 or another compiled driver backend]
+      operating_systems: [Linux and supported hostap driver platforms]
+      architectures: [Toolchain and distribution dependent]
+      sources:
+        - https://w1.fi/cgit/hostap/tree/hostapd/README?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Local control socket; RADIUS and management listeners only when configured]
+      privileges: [Root or network capabilities required for radio and link control]
+      capabilities: [Access-point association, WPA and EAP processing, integrated EAP server]
+      mounts: [Configuration, control socket and selected certificate or key paths]
+      secrets: [PSK or SAE credentials, RADIUS secrets, EAP private keys]
+      authentication: Controlled by the selected WPA, SAE, EAP and RADIUS profile.
+      update_behavior: >-
+        Binary and configuration promote with the kernel and wireless-driver compatibility set.
+      sources:
+        - https://w1.fi/cgit/hostap/tree/hostapd/hostapd.conf?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    data:
+      formats: [Text configuration, optional EAP user database, runtime control state]
+      persistence: Configuration and credential material are durable; station state is ephemeral.
+      backup: Protect the approved mission profile and its referenced key material.
+      migration: >-
+        Validate configuration and admission behavior against the promoted binary and driver.
+      sources:
+        - https://w1.fi/cgit/hostap/tree/hostapd/README?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://w1.fi/security/]
+      known_advisories:
+        - Hostap 2026-1; hostapd pre-2.12 issue fixed in the evaluated release
+        - Hostap 2026-2; wpa_supplicant only
+        - Hostap 2026-3; wpa_supplicant only
+        - Hostap 2026-4; wpa_supplicant only
+        - Hostap 2026-5; evaluated hostapd 2.12 is vulnerable when RADIUS is enabled
+      audit_status: >-
+        The exact artifact cannot promote with RADIUS enabled; use a fixed
+        upstream artifact and verify malformed-message rejection.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-002, FML-REQ-003, FML-REQ-015, FML-REQ-019]
+      findings: [OSS-01, GAP-09, GAP-10, HW-01]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-059 assigns AP association to hostapd; FML-ADR-038 prefers its integrated EAP
+        server.
+      approval_ref: FML-ADR-038 and FML-ADR-059
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.w1.fi/hostap.git
+        - git checkout 831364bf02710ad09c2f27d3efa92abeeb5634c0
+        - make -C hostapd
+      evidence: [docs/prior-art/mesh-network-stack.md]
+      gaps:
+        - Exact release not run
+        - EAP-TLS path not exercised
+        - Selected radio driver not tested
+        - Hostap 2026-5 remains in the evaluated artifact when RADIUS is enabled
+    exit_strategy: >-
+      Retain standard 802.11 and RADIUS/EAP interfaces so another AP implementation can be
+      qualified.
+    decision_questions:
+      - Which driver, EAP profile and control-socket permissions enter the image?
+      - Which fixed post-2.12 hostapd artifact enters the compatibility set?
   - id: wpa-supplicant
     project: wpa_supplicant
     canonical_upstreams: [https://w1.fi/wpa_supplicant/]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/mesh-network-stack.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.w1.fi/hostap.git
+        version: hostap_2_12
+        immutable_id: 831364bf02710ad09c2f27d3efa92abeeb5634c0
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD-3-Clause
+      source: https://w1.fi/cgit/hostap/tree/COPYING?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: TLS library, driver and distribution package dependencies remain separate reviews.
+    maintenance:
+      release_cadence: Releases 2.8 through 2.12 span 2019 through 2026; 2.12 is dated 2026-08-07.
+      latest_release_date: "2026-08-07"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: Canonical development uses a maintainer-led mailing list and Git repository.
+      sources: [https://w1.fi/wpa_supplicant/]
+    platform:
+      hardware: [Wireless interfaces supported by nl80211 or another compiled driver backend]
+      operating_systems: [Linux and supported hostap driver platforms]
+      architectures: [Toolchain and distribution dependent]
+      sources:
+        - https://w1.fi/cgit/hostap/tree/wpa_supplicant/README?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Local control socket; no fixed application network port]
+      privileges: [Root or network capabilities required for radio and link control]
+      capabilities: [Station and 802.11s association, WPA, SAE and EAP processing]
+      mounts: [Configuration, control socket and selected certificate or key paths]
+      secrets: [PSK or SAE credentials, EAP identities and private keys]
+      authentication: Controlled by the selected mesh, WPA, SAE or EAP profile.
+      update_behavior: >-
+        Binary and configuration promote with the kernel and wireless-driver compatibility set.
+      sources:
+        - https://w1.fi/cgit/hostap/tree/wpa_supplicant/wpa_supplicant.conf?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    data:
+      formats: [Text configuration, optional saved networks, runtime control state]
+      persistence: >-
+        Configuration and credential material are durable; association state is ephemeral.
+      backup: Protect the approved mission profile and its referenced key material.
+      migration: >-
+        Validate configuration and association behavior against the promoted binary and driver.
+      sources:
+        - https://w1.fi/cgit/hostap/tree/wpa_supplicant/README?id=831364bf02710ad09c2f27d3efa92abeeb5634c0
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://w1.fi/security/]
+      known_advisories:
+        - Hostap 2026-1; fixed in the evaluated 2.12 release
+        - Hostap 2026-2; fixed in the evaluated 2.12 release
+        - Hostap 2026-3; fixed in the evaluated 2.12 release
+        - Hostap 2026-4; fixed in the evaluated 2.12 release
+        - Hostap 2026-5; hostapd only
+      audit_status: >-
+        Official 2026 notices were reviewed; no independent audit was
+        identified for this exact artifact.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-011, FML-REQ-012, FML-REQ-015, FML-REQ-019]
+      findings: [OSS-01, GAP-09, GAP-10, HW-01]
+    reuse:
+      mode: adopt
+      rationale: FML-ADR-059 assigns station and 802.11s association to wpa_supplicant.
+      approval_ref: FML-ADR-059
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.w1.fi/hostap.git
+        - git checkout 831364bf02710ad09c2f27d3efa92abeeb5634c0
+        - make -C wpa_supplicant
+      evidence: [docs/prior-art/mesh-network-stack.md]
+      gaps:
+        - Exact release not run
+        - Selected mesh-security profile not tested
+        - HaLow driver behavior not tested
+    exit_strategy: >-
+      Retain standard nl80211 and 802.11 security configuration so another supplicant can be
+      qualified.
+    decision_questions:
+      - Which driver and mesh-security profile enter the compatibility set?
   - id: dnsmasq
     project: dnsmasq
     canonical_upstreams: [https://thekelleys.org.uk/git/dnsmasq.git]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/mesh-network-stack.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://thekelleys.org.uk/git/dnsmasq.git
+        version: v2.93
+        immutable_id: 3ff66da573a77c8783deca10ec8c6bba07cd85e6
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0 or GPL-3.0
+      source: https://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=blob;f=COPYING;hb=3ff66da573a77c8783deca10ec8c6bba07cd85e6
+      compatibility: compatible
+      bundled_dependencies: partial
+      notes: Embedded nettle and optional libraries require distribution-package review.
+    maintenance:
+      release_cadence: Stable releases 2.89 through 2.93 span 2023 through 2026.
+      latest_release_date: "2026-06-04"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: Canonical development is maintainer-led through Git and mailing lists.
+      sources:
+        - https://thekelleys.org.uk/dnsmasq/CHANGELOG
+        - https://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=summary
+    platform:
+      hardware: [General-purpose host; no MULE resource measurements]
+      operating_systems: [Linux, BSD and other supported Unix-like systems]
+      architectures: [Toolchain and distribution dependent]
+      sources: [https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [TCP and UDP 53 for DNS, UDP 67 and 68 for DHCPv4, Optional DHCPv6 and TFTP listeners]
+      privileges:
+        - Privileged bind and network configuration followed by a configured service identity
+      capabilities: [DNS cache and forwarding, DHCP and optional TFTP or router advertisement]
+      mounts: [Configuration, lease file and optional hosts or trust-anchor files]
+      secrets: [Optional DNSSEC, DHCP authentication or upstream credentials]
+      authentication: DNS and DHCP trust depend on the generated network and mission profile.
+      update_behavior: >-
+        Promote a pinned package and validated configuration with lease-compatible rollback.
+      sources: [https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html]
+    data:
+      formats: [Text configuration, host records and DHCP lease database]
+      persistence: >-
+        Lease state may persist; configuration and identity data come from generated inputs.
+      backup: Preserve approved configuration inputs; lease retention policy must be explicit.
+      migration: Validate configuration and lease-file compatibility before promotion.
+      sources: [https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html]
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://thekelleys.org.uk/dnsmasq/CVE/]
+      known_advisories:
+        - CVE-2026-2291; fixed before v2.93
+        - CVE-2026-4890; fixed before v2.93
+        - CVE-2026-4891; fixed before v2.93
+        - CVE-2026-4892; fixed before v2.93
+        - CVE-2026-4893; fixed before v2.93
+        - CVE-2026-5172; fixed before v2.93
+      audit_status: >-
+        Official 2026 CVE patches were reviewed; the future distribution build remains separate.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-002, FML-REQ-008, FML-REQ-019]
+      findings: [OSS-01, GAP-02, GAP-09]
+    reuse:
+      mode: undecided
+      rationale: >-
+        Stable local DNS is selected, but dnsmasq versus an equivalent implementation is still
+        open.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://thekelleys.org.uk/git/dnsmasq.git
+        - git checkout 3ff66da573a77c8783deca10ec8c6bba07cd85e6
+        - make
+      evidence: [docs/prior-art/mesh-network-stack.md]
+      gaps: [Exact release not run, DNS and DHCP catalog contract open, No package SBOM]
+    exit_strategy: >-
+      Generate standards-based DNS and DHCP configuration so an approved equivalent can replace
+      dnsmasq.
+    decision_questions:
+      - Does the approved service and network catalog select dnsmasq or an equivalent?
   - id: systemd-networkd
     project: systemd-networkd
     canonical_upstreams: [https://github.com/systemd/systemd]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/platform-runtime.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/systemd/systemd
+        version: v261.3
+        immutable_id: 3255daee1572366b74fe92f002a3d60ecbb27103
+        verified_on: "2026-09-11"
+    license:
+      declared: LGPL-2.1-or-later and GPL-2.0-or-later with file-specific exceptions
+      source: https://github.com/systemd/systemd/tree/3255daee1572366b74fe92f002a3d60ecbb27103/LICENSES
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: >-
+        File-specific SPDX identifiers and the distribution dependency closure require package
+        review.
+    maintenance:
+      release_cadence: v261.1 through v261.3 span 2026-06-26 through 2026-09-10.
+      latest_release_date: "2026-09-10"
+      last_commit_date: "2026-09-11"
+      issue_backlog: 2862
+      bus_factor: Contributor totals show several long-running high-volume maintainers.
+      sources:
+        - https://github.com/systemd/systemd/tags
+        - https://api.github.com/repos/systemd/systemd/contributors
+        - https://github.com/systemd/systemd/issues
+    platform:
+      hardware: [Linux kernel interfaces supported by the selected userland]
+      operating_systems: [Linux]
+      architectures: [Distribution and toolchain dependent]
+      sources:
+        - https://github.com/systemd/systemd/blob/3255daee1572366b74fe92f002a3d60ecbb27103/README
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [DHCP and related protocol sockets only when configured; no fixed management port]
+      privileges: [System service with network and link configuration authority]
+      capabilities: [Declarative link creation, addressing, routes, DHCP and batman-adv attachment]
+      mounts: [System network configuration, runtime state and lease directories]
+      secrets: [Optional DHCP, MACsec or network credentials referenced by configuration]
+      authentication: Link and network trust depend on the selected bearer and mission profile.
+      update_behavior: >-
+        systemd and network configuration promote with the userland compatibility set.
+      sources:
+        - https://github.com/systemd/systemd/blob/3255daee1572366b74fe92f002a3d60ecbb27103/man/systemd-networkd.service.xml
+    data:
+      formats: [network and netdev configuration, runtime leases and operational state]
+      persistence: Generated configuration is durable; acquired operational state is recreated.
+      backup: Preserve approved configuration inputs rather than runtime link state.
+      migration: Validate every generated key against the promoted systemd manuals and parser.
+      sources:
+        - https://github.com/systemd/systemd/tree/3255daee1572366b74fe92f002a3d60ecbb27103/man
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/systemd/systemd/security/advisories]
+      known_advisories:
+        - GHSA-jm29-p7hh-vjhv; fixed in v261.2
+        - GHSA-qwv4-3gwc-w5g8; fixed in v261.2
+        - GHSA-652q-wxr6-h5j6; fixed in v261
+        - GHSA-3jgj-3phh-hx5j; fixed in v261
+        - GHSA-2p9f-rcmv-x36h; fixed in v261
+        - GHSA-5rm9-cc37-35gq; fixed in v261
+        - GHSA-m8q3-73v4-wvg7; fixed in v261
+        - GHSA-848h-497j-8vjq; fixed in v261
+        - GHSA-9mj4-rrc3-gjcx; fixed before v261.3
+        - GHSA-vpfq-8p5f-jcqx; fixed before v261.3
+        - GHSA-4h6x-r8vx-3862; fixed before v261.3
+        - GHSA-6pwp-j5vg-5j6m; fixed before v261.3
+        - GHSA-gx6q-6f99-m764; fixed before v261.3
+        - GHSA-x4h8-rrrg-q78f; fixed before v261.3
+        - GHSA-6m6p-rjcq-334c; fixed before v261.3
+      audit_status: Published fixed ranges place v261.3 after all repository advisories reviewed.
+      sbom_status: No MULE package or userland SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-001, FML-REQ-011, FML-REQ-012, FML-REQ-032]
+      findings: [OSS-01, GAP-04, GAP-09]
+    reuse:
+      mode: adopt
+      rationale: FML-ADR-059 selects systemd-networkd as the sole link-configuration owner.
+      approval_ref: FML-ADR-059
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/systemd/systemd.git
+        - git checkout 3255daee1572366b74fe92f002a3d60ecbb27103
+        - meson setup build
+      evidence: [docs/prior-art/platform-runtime.md]
+      gaps:
+        - Exact release not run
+        - Userland set not selected
+        - Driver integration not hardware-tested
+    exit_strategy: >-
+      Keep generated network intent separate from networkd files so another link owner can be
+      evaluated by ADR.
+    decision_questions:
+      - Which distribution build and supported networkd keys enter the compatibility set?
   - id: nftables
     project: nftables
     canonical_upstreams: [https://git.netfilter.org/nftables]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/mesh-network-stack.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.netfilter.org/nftables
+        version: v1.1.7
+        immutable_id: 8c2f60661c9e8e85869f82db25961b45a8d07554
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0
+      source: https://git.netfilter.org/nftables/tree/COPYING?id=8c2f60661c9e8e85869f82db25961b45a8d07554
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: libnftnl, libmnl and the kernel remain separate compatibility-set dependencies.
+    maintenance:
+      release_cadence: v1.1.3 through v1.1.7 span 2025 through 2026.
+      latest_release_date: "2026-09-01"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: Canonical development uses the Netfilter Git and mailing-list workflow.
+      sources:
+        - https://git.netfilter.org/nftables/refs/
+        - https://netfilter.org/projects/nftables/downloads.html
+    platform:
+      hardware: [General-purpose Linux host]
+      operating_systems: [Linux]
+      architectures: [Kernel and distribution dependent]
+      sources: [https://netfilter.org/projects/nftables/]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No application TCP or UDP port]
+      privileges: [Root or CAP_NET_ADMIN to load and change rules]
+      capabilities: [Packet filtering, NAT, counters, sets and policy through netlink]
+      mounts: [Generated ruleset and optional include files]
+      secrets: []
+      authentication: >-
+        Kernel authorization protects rule changes; packet trust is expressed by policy.
+      update_behavior: Userspace, kernel and generated rules promote as a tested compatibility set.
+      sources:
+        - "https://git.netfilter.org/nftables/tree/doc?id=8c2f60661c9e8e85869f82db25961b45a8d07554"
+    data:
+      formats: [Text ruleset, netlink rule objects, runtime counters]
+      persistence: Generated configuration is durable; loaded rules and counters are runtime state.
+      backup: Preserve approved policy inputs and the exact generated ruleset.
+      migration: Parse and fault-test the ruleset against the promoted userspace and kernel.
+      sources:
+        - "https://git.netfilter.org/nftables/tree/doc/nft.txt?id=8c2f60661c9e8e85869f82db25961b45a8d07554"
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: ["https://nvd.nist.gov/vuln/search/results?query=nftables"]
+      known_advisories: []
+      audit_status: >-
+        No complete artifact-specific audit was identified; kernel and libraries require
+        separate review.
+      sbom_status: No MULE kernel or package SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-017, FML-REQ-019, FML-REQ-025, FML-REQ-032]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-030 selects nftables for shared-kernel isolation and FML-ADR-068 selects WAN
+        forwarding policy.
+      approval_ref: FML-ADR-030 and FML-ADR-068
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.netfilter.org/nftables
+        - git checkout 8c2f60661c9e8e85869f82db25961b45a8d07554
+        - ./autogen.sh
+      evidence: [docs/prior-art/mesh-network-stack.md]
+      gaps:
+        - Exact release not run
+        - Kernel pair not selected
+        - Complete segmentation policy not approved
+    exit_strategy: >-
+      Retain a generated policy model so another Linux packet-policy implementation can be
+      evaluated.
+    decision_questions:
+      - Which kernel, userspace build and approved forwarding matrix enter the image?
   - id: chrony
     project: chrony
     canonical_upstreams: [https://gitlab.com/chrony/chrony]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/trust-and-state.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://gitlab.com/chrony/chrony
+        version: "4.9"
+        immutable_id: 8df4f1263e206585e6c4e61352d042c2dd12916a
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0
+      source: https://gitlab.com/chrony/chrony/-/blob/8df4f1263e206585e6c4e61352d042c2dd12916a/COPYING
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: Cryptographic, resolver and distribution dependencies require package review.
+    maintenance:
+      release_cadence: Stable releases 4.5 through 4.9 span 2023 through 2026.
+      latest_release_date: "2026-08-27"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: >-
+        GitLab history shows ongoing maintainer-led development; concentration was not
+        quantified.
+      sources:
+        - https://gitlab.com/chrony/chrony/-/tags
+        - https://chrony-project.org/news.html
+    platform:
+      hardware: [Optional RTC, PHC or GNSS source; no MULE source selected]
+      operating_systems: [Linux, BSD and supported Unix-like systems]
+      architectures: [Toolchain and distribution dependent]
+      sources: [https://chrony-project.org/doc/4.9/installation.html]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [UDP 123 for NTP, Optional UDP 323 or local socket for commands]
+      privileges: [System clock authority with configured privilege drop]
+      capabilities: [Clock discipline, NTP client or server, RTC and drift tracking]
+      mounts: [Configuration, drift file, RTC tracking file and optional key file]
+      secrets: [Optional NTP authentication keys]
+      authentication: Source authentication and command access are configuration dependent.
+      update_behavior: >-
+        Promote a pinned package and validated time-source configuration with reboot tests.
+      sources: [https://chrony-project.org/doc/4.9/chrony.conf.html]
+    data:
+      formats: [Text configuration, drift data, RTC tracking data and optional keys]
+      persistence: Drift and RTC records may persist; live synchronization state is recreated.
+      backup: >-
+        Preserve approved configuration and protected key material; drift is replaceable
+        operational state.
+      migration: Validate configuration and startup behavior against the promoted package.
+      sources: [https://chrony-project.org/doc/4.9/chrony.conf.html]
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://chrony-project.org/news.html]
+      known_advisories: []
+      audit_status: >-
+        Official security notices were reviewed; no independent audit was identified for this
+        release.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-006, FML-REQ-025, FML-REQ-032]
+      findings: [OSS-01, GAP-06, GAP-09, HW-01]
+    reuse:
+      mode: adopt
+      rationale: FML-ADR-042 selects chrony after the retained local RTC in the time-source order.
+      approval_ref: FML-ADR-042
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://gitlab.com/chrony/chrony.git
+        - git checkout 8df4f1263e206585e6c4e61352d042c2dd12916a
+        - ./configure
+      evidence: [docs/prior-art/trust-and-state.md]
+      gaps:
+        - Exact release not run
+        - RTC source not selected
+        - Reboot and loss-of-source behavior not measured
+    exit_strategy: >-
+      Keep time credibility behind the reading interface so another daemon or source can be
+      qualified.
+    decision_questions:
+      - Which package, RTC source and NTP serving policy enter the compatibility set?
   - id: openssh-server
     project: OpenSSH server
     canonical_upstreams: [https://github.com/openssh/openssh-portable]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/trust-and-state.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/openssh/openssh-portable
+        version: V_10_5_P1
+        immutable_id: b3f7344209832eea8ece447d871ea748767c444b
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD, ISC and other permissive notices collected in LICENCE
+      source: https://github.com/openssh/openssh-portable/blob/b3f7344209832eea8ece447d871ea748767c444b/LICENCE
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: Cryptographic, PAM and distribution dependencies require package review.
+    maintenance:
+      release_cadence: Releases 10.1p1 through 10.5p1 span 2025 through 2026.
+      latest_release_date: "2026-08-11"
+      last_commit_date: "2026-09-03"
+      issue_backlog: null
+      bus_factor: >-
+        GitHub contributor totals show two dominant maintainers and additional long-running
+        contributors.
+      sources:
+        - https://github.com/openssh/openssh-portable/tags
+        - https://api.github.com/repos/openssh/openssh-portable/contributors
+        - https://github.com/openssh/openssh-portable/issues
+    platform:
+      hardware: [General-purpose host; no MULE resource measurements]
+      operating_systems: [Portable Unix-like systems including Linux]
+      architectures: [Toolchain and distribution dependent]
+      sources:
+        - https://github.com/openssh/openssh-portable/blob/b3f7344209832eea8ece447d871ea748767c444b/README
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Configured TCP listener; TCP 22 is the conventional default]
+      privileges: [Privileged monitor and separated unprivileged session processes]
+      capabilities: [Remote shell, command execution, forwarding and configured subsystems]
+      mounts: [Server configuration, host keys, authorized keys and revocation material]
+      secrets: [Host private keys and optional user or CA private material]
+      authentication: >-
+        Key-only access is required by owner direction; detailed policy remains to be approved.
+      update_behavior: >-
+        Promote a pinned package and configuration with active-session and rollback tests.
+      sources:
+        - https://github.com/openssh/openssh-portable/blob/b3f7344209832eea8ece447d871ea748767c444b/sshd_config.5
+    data:
+      formats: [Text configuration, host keys, authorized keys, known hosts and revocation lists]
+      persistence: Host identity and access policy are durable; sessions are ephemeral.
+      backup: >-
+        Protect host identity and approved recovery/access material under the mission trust
+        policy.
+      migration: Validate configuration with the promoted sshd and preserve a tested recovery path.
+      sources:
+        - https://github.com/openssh/openssh-portable/blob/b3f7344209832eea8ece447d871ea748767c444b/sshd.8
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://www.openssh.com/security.html]
+      known_advisories: []
+      audit_status: >-
+        Official security notices were reviewed; distribution patches remain package-specific.
+      sbom_status: No MULE package or dependency SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-019, FML-REQ-025, FML-REQ-026, FML-REQ-032]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: adopt
+      rationale: >-
+        Program Owner direction dated 2026-08-31 requires an SSH server in the future image.
+      approval_ref: >-
+        Program Owner direction recorded in os/image/manifest/packages.list on 2026-08-31
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/openssh/openssh-portable.git
+        - git checkout b3f7344209832eea8ece447d871ea748767c444b
+        - ./configure
+      evidence: [docs/prior-art/trust-and-state.md]
+      gaps:
+        - Exact release not run
+        - Management listener and user policy not approved
+        - EMCON behavior not tested
+    exit_strategy: >-
+      Use standard SSH keys and management interfaces so another conforming SSH server can be
+      qualified.
+    decision_questions:
+      - Which listener, allowed-user, forwarding and EMCON policy enters the image?
   - id: step-ca
     project: Smallstep step-ca
     canonical_upstreams: [https://github.com/smallstep/certificates]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/trust-and-state.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/smallstep/certificates
+        version: v0.30.2
+        immutable_id: 6e8ec61405239cf3f37b2bbf260a587b7d2e4e31
+        verified_on: "2026-09-11"
+    license:
+      declared: Apache-2.0
+      source: https://github.com/smallstep/certificates/blob/6e8ec61405239cf3f37b2bbf260a587b7d2e4e31/LICENSE
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: Go dependency and any container-image license closure require separate review.
+    maintenance:
+      release_cadence: Five most recent releases span 2026-03-17 through 2026-03-23.
+      latest_release_date: "2026-03-23"
+      last_commit_date: "2026-09-08"
+      issue_backlog: 244
+      bus_factor: >-
+        Contributor totals show one dominant maintainer and several substantial contributors.
+      sources:
+        - https://github.com/smallstep/certificates/releases
+        - https://api.github.com/repos/smallstep/certificates/contributors
+        - https://github.com/smallstep/certificates/issues
+    platform:
+      hardware: [General-purpose host or configured KMS; no MULE profile selected]
+      operating_systems: [Linux, macOS and Windows builds]
+      architectures: [Published build and toolchain dependent]
+      sources:
+        - https://github.com/smallstep/certificates/blob/6e8ec61405239cf3f37b2bbf260a587b7d2e4e31/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Configured HTTPS API; upstream examples commonly use TCP 9000]
+      privileges: [Dedicated service identity with access to selected key storage]
+      capabilities: [X.509 and SSH certificate issuance, provisioners, renewal and revocation]
+      mounts: [Configuration, database, certificates, keys and optional KMS configuration]
+      secrets: [Intermediate private key, provisioner credentials and database or KMS credentials]
+      authentication: Provisioner and certificate policy are configuration dependent.
+      update_behavior: >-
+        Binary, database schema and trust configuration require coordinated backup and rollback.
+      sources:
+        - https://smallstep.com/docs/step-ca/
+    data:
+      formats: [JSON configuration, CA database, certificates, private keys and revocation state]
+      persistence: CA identity, issuance and revocation state are durable security data.
+      backup: >-
+        A restore must preserve the complete CA database and key hierarchy without copying an
+        online root unnecessarily.
+      migration: >-
+        Exercise database migration, restore and rollback on a different host before promotion.
+      sources:
+        - https://github.com/smallstep/certificates/tree/6e8ec61405239cf3f37b2bbf260a587b7d2e4e31/db
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/smallstep/certificates/security/advisories]
+      known_advisories:
+        - GHSA-9qq8-cgcv-qmc9; fixed in v0.30.0
+        - GHSA-q4r8-xm5f-56gw; fixed in v0.30.0
+        - GHSA-h8cp-697h-8c8p; fixed in v0.29.0
+        - GHSA-j7c9-79x7-8hpr; fixed in v0.29.0
+      audit_status: Published ranges place v0.30.2 after all four repository advisories reviewed.
+      sbom_status: Upstream Go manifests exist; no MULE binary or image SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-003, FML-REQ-005, FML-REQ-006, FML-REQ-026]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: undecided
+      rationale: FML-ADR-036 records step-ca as preferred, not finally selected.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/smallstep/certificates.git
+        - git checkout 6e8ec61405239cf3f37b2bbf260a587b7d2e4e31
+        - make build
+      evidence: [docs/prior-art/trust-and-state.md]
+      gaps:
+        - Exact release not run
+        - PKI implementation not selected
+        - Backup and revocation behavior not demonstrated
+    exit_strategy: >-
+      Keep clients on standard X.509 and SSH certificate protocols and export complete trust
+      state.
+    decision_questions:
+      - Does the owner select step-ca, and what offline-root and revocation model governs it?
   - id: postgresql
     project: PostgreSQL
     canonical_upstreams: [https://git.postgresql.org/git/postgresql.git]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/trust-and-state.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://git.postgresql.org/git/postgresql.git
+        version: REL_18_6
+        immutable_id: 724edf9bde9d356724ad384a2e196edc3c9f80f7
+        verified_on: "2026-09-11"
+    license:
+      declared: PostgreSQL License
+      source: https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=COPYRIGHT;hb=724edf9bde9d356724ad384a2e196edc3c9f80f7
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: >-
+        Extensions, client libraries, distribution packaging and backup tooling require separate
+        review.
+    maintenance:
+      release_cadence: >-
+        Supported major lines receive coordinated quarterly and security maintenance releases.
+      latest_release_date: "2026-08-13"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: >-
+        The PostgreSQL Global Development Group publishes broad contributor and committers
+        lists.
+      sources:
+        - https://www.postgresql.org/docs/release/18.6/
+        - https://www.postgresql.org/community/contributors/
+    platform:
+      hardware: [General-purpose host and durable storage; no MULE resource measurements]
+      operating_systems: [Linux, BSD, macOS, Windows and other supported systems]
+      architectures: [Build and distribution dependent]
+      sources: [https://www.postgresql.org/docs/18/installation-platform-notes.html]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Local Unix socket and configured TCP listener; TCP 5432 is conventional]
+      privileges: [Dedicated database service identity; administrative roles inside the database]
+      capabilities: [Transactional relational state, WAL, roles, backup and replication primitives]
+      mounts: [Data directory, WAL and generated configuration or TLS paths]
+      secrets: [Database role credentials, TLS private keys and replication credentials]
+      authentication: pg_hba.conf, role policy and TLS or GSS settings control access.
+      update_behavior: >-
+        Minor updates and major upgrades require the documented backup, validation and rollback
+        path.
+      sources: [https://www.postgresql.org/docs/18/runtime-config-connection.html]
+    data:
+      formats: [PostgreSQL data directory, WAL, logical dumps and physical base backups]
+      persistence: >-
+        Database cluster and WAL are durable; runtime sockets and process state are ephemeral.
+      backup: >-
+        Physical or logical backup covers SQL state but not OpenTAKServer config.yml, ca or
+        uploads.
+      migration: >-
+        Minor 18.x updates do not require dump and restore; major changes require a supported
+        upgrade path.
+      sources:
+        - https://www.postgresql.org/docs/18/backup.html
+        - https://www.postgresql.org/docs/release/18.6/
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://www.postgresql.org/support/security/18/]
+      known_advisories:
+        - >-
+            PostgreSQL 18.6 fixes 28 disclosed vulnerabilities; some require configuration or
+            data cleanup
+      audit_status: >-
+        The official security release was reviewed; deployment configuration and extensions
+        remain separate.
+      sbom_status: No MULE package, extension or container SBOM has been generated.
+    mappings:
+      requirements: [FML-REQ-008, FML-REQ-009, FML-REQ-010, FML-REQ-024, FML-REQ-027]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: adopt
+      rationale: >-
+        FML-ADR-071 satisfies FML-ADR-034's relational-state condition while retaining the
+        out-of-SQL boundary.
+      approval_ref: FML-ADR-034 and FML-ADR-071
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://git.postgresql.org/git/postgresql.git
+        - git checkout 724edf9bde9d356724ad384a2e196edc3c9f80f7
+        - ./configure
+      evidence: [docs/prior-art/trust-and-state.md]
+      gaps:
+        - Exact release not run
+        - No selected replication mechanism
+        - No 18.6 different-host restore
+    exit_strategy: >-
+      Keep TAK on its supported database interface and retain portable logical export plus the
+      full durable-set contract.
+    decision_questions:
+      - Which PostgreSQL package and HA mechanism protect SQL plus the FML-ADR-071 out-of-SQL set?
   - id: kiwix
     project: Kiwix
     canonical_upstreams: [https://github.com/kiwix/kiwix-tools]

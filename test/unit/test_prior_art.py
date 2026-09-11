@@ -211,7 +211,7 @@ def test_incomplete_evaluation_is_rejected(
 ) -> None:
     """Changing only the state word cannot create an evaluated intake."""
     document = _registry(repository)
-    _candidate(document, "haproxy")["state"] = "EVALUATED"
+    _candidate(document, "kiwix")["state"] = "EVALUATED"
     _write_registry(repository, document)
 
     assert any(
