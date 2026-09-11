@@ -1,6 +1,6 @@
 # FML-MULE Remediation and Verifiable Closure Plan
 
-**Plan date:** 2026-09-08 **Revision:** 10 — OSS-01 execution card baselined
+**Plan date:** 2026-09-08 **Revision:** 11 — OSS-01 progress recorded through 21 of 28 candidates
 **Basis:** `CODEBASE-REPORT-2026-09-08.md` **Source commit:**
 `d849ed40ff5bdbeef2def3eb6f982762768764c1` (verified against GitHub `main` on 2026-09-08) **Scope:**
 Every code, integration, documentation, deployment, security, and workspace issue identified during
@@ -239,7 +239,7 @@ session; “independent agent” means a separate review session that did not im
 | ------- | -------: | ------------- | ----------- | ----------------------------------------- | -------------------------------------------------------------- |
 | BASE-01 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | Schema approved by project owner on 2026-09-09                 |
 | BASE-02 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | None; verification did not change product behavior             |
-| OSS-01  |       P0 | BASELINED     | Codex       | Independent agent pending                 | Registry structure approved by project owner on 2026-09-09     |
+| OSS-01  |       P0 | BASELINED     | Codex       | `/root/gap01_verifier` passed 21/28       | Registry structure approved by project owner on 2026-09-09     |
 | GAP-01  |       P0 | VERIFIED      | Codex       | gap01_verifier passed                     | Decide size and nesting limits before closure                  |
 | GAP-02  |       P0 | OPEN          | Agent       | Independent agent                         | Approve catalog contract or service selection                  |
 | GAP-03  |       P0 | OPEN          | Agent       | Independent agent                         | Approve any unspecified address semantics                      |
@@ -379,6 +379,13 @@ data.
 proposal cites evaluated alternatives; no upstream code is merged before its license and
 architectural gates are approved; adopted components have pins, provenance, an exit strategy, and
 regression coverage.
+
+**Execution note, 2026-09-11:** 21 of 28 candidates have independently reviewed intake records.
+Seven candidates remain `BASELINED`: Kiwix, Kolibri, ProtoMaps, PMTiles, Tailscale, the Morse Micro
+driver, and the Morse Micro firmware. The evaluated hostap 2.12 artifact cannot be promoted with
+runtime RADIUS configuration enabled until the upstream 2026-5 fix is present and its malformed
+message regression test passes. Dnsmasq and step-ca remain `UNDECIDED` because the controlling
+records select the required capability but do not select those implementations.
 
 ## Phase 1: Configuration and runtime correctness
 
