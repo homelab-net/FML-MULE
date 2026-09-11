@@ -238,6 +238,31 @@ def test_lora_availability_tracks_the_plane_not_the_association(
     assert node.status().lora_available is expected
 
 
+@pytest.mark.parametrize(
+    ("wan", "expected"),
+    [
+        (None, None),
+        (True, "WAN-ENHANCED"),
+        (False, "NO-WAN"),
+    ],
+)
+def test_wan_answer_reports_unknown_distinctly_from_no_wan(
+    build_node: NodeFactory, wan: bool | None, expected: str | None
+) -> None:
+    """CONOPS section 67 question 11, "Is WAN available?".
+
+    The honest answer distinguishes "no uplink" from "cannot tell there is an
+    uplink". FML-ADR-076: the status answer is the mode value carried unchanged,
+    so an unknown WAN is None, not NO-WAN. The old code stored a bool and
+    collapsed None to False (bool(None) is False), reporting an undetermined WAN
+    as no WAN -- which is what asserting the literal here fails against.
+    """
+    node = build_node(wan=wan)
+    node.power_on()
+
+    assert node.status().wan_available == expected
+
+
 def test_a_node_with_no_access_point_is_faulted_not_green(
     build_node: NodeFactory,
 ) -> None:
@@ -254,8 +279,41 @@ def test_a_node_with_no_access_point_is_faulted_not_green(
     assert not set(REQUIRED_BEARERS) & set(radio.present)
 
     assert status.state == "FAULT"
+    # A FAULT node is not operational, whatever else is true. FML-ADR-074. The
+    # old code set operational=booted, so this node reported operational=True
+    # while in FAULT -- the contradiction this asserts against.
+    assert status.operational is False
     assert status.fault is not None
     assert status.fault.startswith("RADIO_ABSENT")
+
+
+def test_a_required_bearer_present_but_not_serving_is_faulted_not_green(
+    build_node: NodeFactory,
+) -> None:
+    """A fitted access point that has not come up cannot serve users.
+
+    That is the same operator outcome as an absent one (CONOPS section 82) and
+    the same thing admission.py fails closed on, so status reports FAULT and not
+    operational rather than GREEN. FML-ADR-074. The old code keyed only off
+    enumerated hardware, so this node -- wifi_ap present but not linked --
+    reported GREEN/operational=True while admission turned every device away.
+    """
+    radio = FakeRadio(present=["wifi_ap", "halow"], linked=["halow"])
+    node = build_node(radio=radio)
+    node.power_on()
+    status = node.status()
+
+    # Present but not serving: enumerated, not associated.
+    assert "wifi_ap" in radio.present
+    assert "wifi_ap" not in radio.linked
+
+    assert status.state == "FAULT"
+    assert status.operational is False
+    assert status.fault is not None
+    assert status.fault.startswith("RADIO_NOT_SERVING")
+    # Status now agrees with admission on this axis: both refuse to call the
+    # node usable.
+    assert not node.admit(EUD).admitted
 
 
 def test_admission_refused_when_a_required_bearer_is_not_serving(

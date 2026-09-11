@@ -1,0 +1,12 @@
+---
+# The ROADMAP v0.0.1 node: a conventional Wi-Fi access point only. No sub-GHz,
+# no mesh, no LoRa (ROADMAP.md). Its active bearer set is therefore {wifi_ap},
+# so gen-config resolves only the AP's RF parameters and does not refuse on the
+# HaLow, LoRa and mesh values that are legitimately TBD for a node that does
+# not field them. FML-ADR-075.
+
+node:
+  id: mule-v001
+
+active_bearers:
+  - wifi_ap
