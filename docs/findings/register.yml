@@ -35,10 +35,10 @@ findings:
     severity: P0
     parent: null
     owner: Codex
-    reviewer: Independent agent pending
+    reviewer: /root/oss01_final_verifier
     verification: independent
     dependencies: [BASE-01]
-    state: BASELINED
+    state: IMPLEMENTED
     evidence:
       - docs/evidence/findings/OSS-01/execution-card.md
     user_gate: "Approve any adoption affecting architecture or licensing"
