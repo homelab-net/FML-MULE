@@ -35,12 +35,14 @@ findings:
     severity: P0
     parent: null
     owner: Codex
-    reviewer: /root/oss01_final_verifier
+    reviewer: /root/oss_gap02_closure_verifier
     verification: independent
     dependencies: [BASE-01]
-    state: IMPLEMENTED
+    state: CLOSED
     evidence:
       - docs/evidence/findings/OSS-01/execution-card.md
+      - docs/evidence/findings/OSS-01/closure.md
+      - docs/evidence/findings/OSS-01/2026-09-12-verification.json
     user_gate: "Approve any adoption affecting architecture or licensing"
 
   - id: GAP-01

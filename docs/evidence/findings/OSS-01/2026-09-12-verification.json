@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "OSS-01",
+  "date": "2026-09-12",
+  "classification": "SIMULATED",
+  "implementation_commit": "414d10543e4664206443e2b5626ae92012f0c598",
+  "implementation_tree": "f115fad1a931f4d31aecde74334ebf7858dd5a09",
+  "reviewer": "/root/oss_gap02_closure_verifier",
+  "checkout": {
+    "path": "/tmp/fml-oss01-414d105.lxE7jF/repo",
+    "user": "cameron",
+    "status_before": "clean",
+    "status_after": "clean"
+  },
+  "environment": {
+    "os": "Ubuntu 24.04.4 LTS under WSL2 on x86_64; development host, not target",
+    "kernel": "6.6.87.2",
+    "git": "2.43.0",
+    "python": "3.12.3",
+    "node": "22.23.2",
+    "tools": [
+      "pytest 9.1.1",
+      "coverage 7.16.0",
+      "PyYAML 6.0.3",
+      "jsonschema 4.26.0",
+      "ruff 0.16.5",
+      "yamllint 1.38.0",
+      "ansible-lint 26.8.0",
+      "ansible-core 2.21.3",
+      "Bats 1.10.0",
+      "markdownlint-cli2 0.23.2",
+      "ShellCheck 0.9.0",
+      "shfmt 3.10.0",
+      "gitleaks 8.30.1"
+    ]
+  },
+  "checks": [
+    {
+      "name": "Independent toolchain preflight",
+      "command": "tools/install-deps.sh --check",
+      "exit_code": 0,
+      "result": "All 10 tool groups present; nothing missing."
+    },
+    {
+      "name": "Independent complete repository gate from a fresh checkout",
+      "command": "script -q -e -c \"tools/lint.sh\" /tmp/fml-oss01-414d105.lxE7jF/full-gate-noskip.typescript",
+      "exit_code": 0,
+      "result": "28 prior-art candidates and 47 findings had 0 defects; 103/103 mutations were caught; 543/543 mule statements had 100% coverage; 38 Bats tests passed with 0 failures and 0 skips; every configured lint, schema, generated-output and secret check passed.",
+      "transcript_sha256": "e4effd664339d1485d01140a4033355e1f38d3b666b062ee74a931df9084f45e"
+    },
+    {
+      "name": "Independent prior-art validator",
+      "command": ".venv/bin/python tools/validate-prior-art.py",
+      "exit_code": 0,
+      "result": "28 candidates, 0 defects."
+    },
+    {
+      "name": "Independent prior-art unit tests",
+      "command": ".venv/bin/python -m pytest -q test/unit/test_prior_art.py",
+      "exit_code": 0,
+      "result": "14 passed in 4.96 seconds."
+    }
+  ],
+  "reference_resolution": {
+    "git_artifacts_checked": 30,
+    "git_artifacts_resolved": 30,
+    "advertised_references": 27,
+    "exact_sha_fetches": [
+      "ProtoMaps 4b5f6f",
+      "PMTiles 182d5b"
+    ],
+    "narrow_tag_resolution": "nftables v1.1.7 peeled to 8c2f60661c9e8e85869f82db25961b45a8d07554",
+    "initial_resolution_transcript_sha256": "01502e510faae81dccb3f097164eb66fbbf6efab9a2ebc6d34eb28a04a0f2d7d"
+  },
+  "red_team": {
+    "invalid_classes_exercised": 11,
+    "mutations": "M80-M96 all killed",
+    "controls": "Missing candidates, floating references, missing documents, incompatible reuse, adoption without approval, missing evidence sources, unresolved mappings and blank narrative fields all failed closed."
+  },
+  "residual_risks": [
+    "The final seven exact artifacts were not built or run and their resource behavior remains unmeasured.",
+    "Morse firmware remains proprietary, review-required and hardware-bound.",
+    "Kiwix, Kolibri, Tailscale and both Morse artifacts remain undecided; ProtoMaps and PMTiles remain references only.",
+    "hostapd 2.12 remains blocked from RADIUS promotion by upstream advisory 2026-5; dnsmasq and step-ca remain undecided.",
+    "This repository evidence establishes no target-hardware behavior."
+  ],
+  "redaction_statement": "This artifact contains no credentials, private keys, tokens, real identities, deployment locations or sensitive traffic."
+}
