@@ -360,6 +360,13 @@ mutations:
     find: "    if \"halow\" in selected:"
     replace: "    if True:"
 
+  # FML-ADR-078: a mission enabling a service with no catalog entry is refused.
+  - id: M103
+    file: tools/gen-config.py
+    describe: a mission enabling an uncatalogued service is accepted
+    find: "    unknown = [name for name in enabled if name not in _catalog_names()]"
+    replace: "    unknown = []"
+
   - id: M31
     file: mule/thermal.py
     describe: a node with no limits claims to be inside an envelope anyway

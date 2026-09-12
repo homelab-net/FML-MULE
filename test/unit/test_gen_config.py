@@ -219,7 +219,7 @@ def test_the_mission_package_supplies_the_service_list() -> None:
     full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
     minimal = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION)
 
-    assert full["mission"]["services"] == ["example-service-a", "example-service-b"]
+    assert full["mission"]["services"] == ["opentakserver", "martin"]
     assert full["network"]["local_domain"] == "example.invalid"
 
     # The minimal package enables nothing and names no domain. Both are valid.
@@ -318,6 +318,36 @@ def test_a_profile_that_cannot_name_its_regulator_is_refused(
         gc.generate(str(anonymous), MISSION)
 
     assert "regulator" in str(excinfo.value)
+
+
+# --- service catalog enforcement (FML-ADR-078) ----------------------------
+
+
+def test_a_mission_enabling_an_uncatalogued_service_is_refused(tmp_path: Path) -> None:
+    """FML-ADR-078: a node runs only services the catalog approves.
+
+    The mission JSON schema requires every service to have a catalog entry but
+    cannot check it; resolution does. A package that enables an unknown service
+    is refused with a message naming it. Against the old code (no enforcement)
+    generation proceeded, so this raised nothing.
+    """
+    package = json.loads(MISSION.read_text(encoding="utf-8"))
+    package["services"] = ["not-a-catalogued-service"]
+    bad = tmp_path / "mission.json"
+    bad.write_text(json.dumps(package), encoding="utf-8")
+
+    with pytest.raises(gc.ConfigError) as excinfo:
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), str(bad))
+
+    message = str(excinfo.value)
+    assert "no catalog entry" in message
+    assert "not-a-catalogued-service" in message
+
+
+def test_the_catalogued_services_resolve() -> None:
+    """A package that enables only catalogued services resolves (FML-ADR-078)."""
+    full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+    assert full["mission"]["services"] == ["opentakserver", "martin"]
 
 
 # --- target-aware resolution (FML-ADR-075) --------------------------------
