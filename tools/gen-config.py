@@ -45,6 +45,7 @@ from typing import Any
 # it is packaged by every Debian-family release the userland targets
 # (python3-yaml) and is declared in pyproject.toml.
 import yaml
+from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -63,17 +64,108 @@ from mule.mission import (  # noqa: E402
 REGIONS_DIR = REPO_ROOT / "regions"
 NODES_DIR = REPO_ROOT / "nodes"
 CATALOG_PATH = REPO_ROOT / "services" / "catalog" / "catalog.yml"
+CATALOG_SCHEMA_PATH = REPO_ROOT / "services" / "catalog" / "catalog.schema.json"
 
 
-def _catalog_names() -> set[str]:
-    """Return the set of service names approved in the catalog (FML-ADR-078).
+def _catalog_references() -> dict[str, dict[str, Any]]:
+    """Return each unique canonical name and alias (FML-ADR-078, GAP-02).
 
-    A mission may only enable a service that has a catalog entry; this is the
-    enforcement the mission JSON schema names but cannot perform itself.
+    This is runtime enforcement, not only a CI assumption: a duplicate name or
+    alias is ambiguous, an enabled entry needs its named loadable Quadlet, and
+    malformed catalog data fails closed before configuration is generated.
     """
     with CATALOG_PATH.open(encoding="utf-8") as handle:
         catalog = yaml.safe_load(handle)
-    return {entry["name"] for entry in catalog.get("services", [])}
+    with CATALOG_SCHEMA_PATH.open(encoding="utf-8") as handle:
+        catalog_schema = json.load(handle)
+    violations = sorted(
+        Draft202012Validator(catalog_schema).iter_errors(catalog),
+        key=lambda error: list(error.absolute_path),
+    )
+    if violations:
+        violation = violations[0]
+        location = ".".join(str(part) for part in violation.absolute_path) or "<root>"
+        raise ConfigError(
+            f"service catalog schema violation at {location}: {violation.message}"
+        )
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("services"), list):
+        raise ConfigError("service catalog is not a mapping with a services list")
+
+    references: dict[str, dict[str, Any]] = {}
+    quadlets = CATALOG_PATH.parent.parent / "quadlets"
+    entries: list[dict[str, Any]] = []
+    for entry in catalog["services"]:
+        if not isinstance(entry, dict):
+            raise ConfigError("service catalog contains a malformed record")
+        name = entry.get("name")
+        aliases = entry.get("aliases")
+        enabled = entry.get("enabled")
+        unit = entry.get("unit")
+        if (
+            not isinstance(name, str)
+            or not isinstance(aliases, list)
+            or not all(isinstance(alias, str) for alias in aliases)
+            or not isinstance(enabled, bool)
+            or not isinstance(unit, str)
+        ):
+            raise ConfigError(f"catalog record {name!r} is malformed")
+
+        for reference in [name, *aliases]:
+            if reference in references:
+                raise ConfigError(
+                    f"duplicate service reference {reference!r} in catalog"
+                )
+            references[reference] = entry
+        entries.append(entry)
+
+    for entry in entries:
+        name = entry["name"]
+        enabled = entry["enabled"]
+        unit = entry["unit"]
+        if enabled:
+            expected = f"{name}.container"
+            if unit != expected:
+                raise ConfigError(
+                    f"enabled catalog service {name!r} must name deployment unit "
+                    f"{expected!r}"
+                )
+            if not (quadlets / unit).is_file():
+                raise ConfigError(
+                    f"enabled catalog service {name!r} deployment unit is absent: "
+                    f"services/quadlets/{unit}"
+                )
+        elif unit != "TBD":
+            raise ConfigError(
+                f"disabled catalog service {name!r} names loadable unit {unit!r}"
+            )
+    return references
+
+
+def _resolve_services(enabled: list[Any]) -> list[str]:
+    """Resolve mission references to unique, enabled canonical service names."""
+    references = _catalog_references()
+    unknown = [name for name in enabled if name not in references]
+    if unknown:
+        message = (
+            f"mission enables service(s) with no catalog entry: "
+            f"{', '.join(str(name) for name in unknown)}. Every enabled service "
+            "must have an entry in services/catalog/catalog.yml (FML-ADR-078)."
+        )
+        raise ConfigError(message)
+
+    disabled = [name for name in enabled if not references[name]["enabled"]]
+    if disabled:
+        raise ConfigError(
+            "mission enables disabled catalog service(s): "
+            + ", ".join(str(name) for name in disabled)
+        )
+
+    canonical = [references[name]["name"] for name in enabled]
+    if len(canonical) != len(set(canonical)):
+        raise ConfigError(
+            "mission enables one catalog service through multiple references"
+        )
+    return canonical
 
 
 #: Marker for a value the program has not determined. Never a default.
@@ -292,15 +384,7 @@ def resolve(
     # schema requires this but cannot check it, so resolution refuses a package
     # that enables a service with no catalog entry rather than generating config
     # for one.
-    enabled = list(mission.get("services", []))
-    unknown = [name for name in enabled if name not in _catalog_names()]
-    if unknown:
-        message = (
-            f"mission enables service(s) with no catalog entry: "
-            f"{', '.join(str(name) for name in unknown)}. Every enabled service "
-            "must have an entry in services/catalog/catalog.yml (FML-ADR-078)."
-        )
-        raise ConfigError(message)
+    enabled = _resolve_services(list(mission.get("services", [])))
 
     for dotted in REGION_IDENTITY:
         value = _get(region, dotted)
@@ -338,7 +422,7 @@ def resolve(
             # package, never a list compiled into the node. A package that
             # enables none is a valid package: it describes a node with no
             # mission services, not a node with default ones.
-            "services": list(mission.get("services", [])),
+            "services": enabled,
         },
         "network": {
             "mesh_id": _get(mission, "network.mesh_id"),
@@ -522,7 +606,8 @@ def main(argv: list[str]) -> int:
 
     if args.check:
         try:
-            load_mission(args.mission)
+            mission = load_mission(args.mission)
+            _resolve_services(list(mission.get("services", [])))
             region = load_region(args.region)
             active = (
                 active_targets(load_node(args.node)) if args.node is not None else None

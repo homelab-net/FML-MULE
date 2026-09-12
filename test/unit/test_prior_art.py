@@ -209,9 +209,9 @@ def test_missing_and_duplicate_candidates_are_rejected(
 def test_incomplete_evaluation_is_rejected(
     repository: Path, validator: ModuleType
 ) -> None:
-    """Changing only the state word cannot create an evaluated intake."""
+    """An evaluated intake cannot omit its immutable artifacts."""
     document = _registry(repository)
-    _candidate(document, "kiwix")["state"] = "EVALUATED"
+    del _candidate(document, "kiwix")["evaluated_artifacts"]
     _write_registry(repository, document)
 
     assert any(

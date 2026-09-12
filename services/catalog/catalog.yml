@@ -9,10 +9,16 @@
 # Trade-blocked fields carry the string "TBD" and name the trade that will
 # supply the value, the same discipline region profiles use. A TBD here is an
 # honest "not measured or not selected yet", never a placeholder number. An
-# entry is approved as a *catalog contract* -- this node may run this service --
-# not as a claim that its image digest or resource envelope is settled.
+# entry records an approved *catalog contract*. Only an entry with enabled=true
+# and an existing loadable unit may be selected by a mission; the current
+# contracts remain disabled while their deployment trades are open.
 services:
   - name: opentakserver
+    enabled: false
+    aliases: []
+    # No loadable unit exists. GAP-09F/G and the open image/resource trades
+    # must close before this contract can be enabled.
+    unit: TBD
     purpose: "The TAK server a phone connects to for situational awareness."
     # No complete official OCI image is published upstream; a digest-pinned
     # build must be defined before deployment. TBR-TAK-01, and see
@@ -30,8 +36,17 @@ services:
     # OTS holds mission-critical TAK state that must survive node loss. The
     # durable set is decided: TBR-TAK-01 closed under FML-ADR-071.
     durable_state: true
+    # Automatic recovery policy remains TBR-HA-01.
+    recovery: TBD
+    region_dependency: false
+    adr: FML-ADR-078
 
   - name: martin
+    enabled: false
+    aliases: []
+    # No loadable unit exists. GAP-09F/G and the open image/resource trades
+    # must close before this contract can be enabled.
+    unit: TBD
     purpose: "Serves the local map tiles to an EUD as z/x/y (FML-ADR-073)."
     # A digest-pinned Martin image was exercised on the 2026-09-06 bench, but the
     # release digest to field is not finalised. TBR-MAP-01.
@@ -47,3 +62,7 @@ services:
     exposed_to: [eud_ap]
     # Map/tile/cache state is not TAK-server state and need not survive node loss.
     durable_state: false
+    # Automatic recovery policy remains TBR-HA-01.
+    recovery: TBD
+    region_dependency: false
+    adr: FML-ADR-078

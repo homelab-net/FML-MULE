@@ -2358,35 +2358,551 @@ candidates:
   - id: kiwix
     project: Kiwix
     canonical_upstreams: [https://github.com/kiwix/kiwix-tools]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/offline-content-and-maps.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/kiwix/kiwix-tools
+        version: 3.8.2
+        immutable_id: f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-3.0-or-later
+      source: >-
+        https://github.com/kiwix/kiwix-tools/blob/f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d/COPYING
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: libkiwix, libzim and any OCI image contents require separate review.
+    maintenance:
+      release_cadence: Releases 3.8.0 through 3.8.2 span 2025-10-31 through 2026-03-02.
+      latest_release_date: "2026-03-02"
+      last_commit_date: "2026-09-01"
+      issue_backlog: 46
+      bus_factor: Contributor totals show two principal maintainers and smaller contributors.
+      sources:
+        - https://github.com/kiwix/kiwix-tools/releases
+        - https://api.github.com/repos/kiwix/kiwix-tools/contributors
+        - https://github.com/kiwix/kiwix-tools/issues
+    platform:
+      hardware: [General-purpose host; no MULE measurement]
+      operating_systems: [POSIX systems including Debian and Ubuntu]
+      architectures: [Build dependent; upstream containers are multi-architecture]
+      sources:
+        - https://github.com/kiwix/kiwix-tools/blob/f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [TCP 80 on all addresses by default; select a non-privileged MULE port]
+      privileges: [Ordinary service identity when bound above the privileged port range]
+      capabilities: [Serve one or more ZIM archives and an optional library catalog]
+      mounts: [ZIM files and optional library XML mounted read-only]
+      secrets: [None identified in the narrow read-only server profile]
+      authentication: No application authentication option is documented; use FML ingress.
+      update_behavior: Replace the pinned executable and provisioned ZIM artifacts separately.
+      sources:
+        - https://github.com/kiwix/kiwix-tools/blob/f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d/docs/kiwix-serve.rst
+    data:
+      formats: [ZIM archives, Kiwix library XML]
+      persistence: Provisioned content persists; the narrow server owns no separate database.
+      backup: Replace or copy the provisioned content outside the service.
+      migration: ZIM compatibility and library changes remain content-provisioning concerns.
+      sources:
+        - https://github.com/kiwix/kiwix-tools/blob/f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d/docs/kiwix-serve.rst
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/kiwix/kiwix-tools/security/advisories]
+      known_advisories: []
+      audit_status: No independent audit was identified.
+      sbom_status: No MULE SBOM; required libraries and any image remain unscanned.
+    mappings:
+      requirements: [FML-REQ-016, FML-REQ-018]
+      findings: [OSS-01, GAP-02, GAP-10]
+    reuse:
+      mode: undecided
+      rationale: General reference content is not an approved catalog service.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/kiwix/kiwix-tools.git
+        - git checkout f76e38bdc06b86b73ba8e84a5de234a0d6c3fa3d
+        - meson setup build
+      evidence: [docs/prior-art/offline-content-and-maps.md]
+      gaps: [Exact source not run, No dependency scan, No target resource measurement]
+    exit_strategy: Keep ZIM content portable and expose any selected server only through ingress.
+    decision_questions:
+      - Is general offline reference content an approved MULE service?
   - id: kolibri
     project: Kolibri
     canonical_upstreams: [https://github.com/learningequality/kolibri]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/offline-content-and-maps.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/learningequality/kolibri
+        version: v0.19.5
+        immutable_id: f7cafd40f5c339b0ffadc36aa8de10ea79a9175b
+        verified_on: "2026-09-11"
+    license:
+      declared: MIT
+      source: >-
+        https://github.com/learningequality/kolibri/blob/f7cafd40f5c339b0ffadc36aa8de10ea79a9175b/LICENSE
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: Python, JavaScript and provisioned content licenses remain separate.
+    maintenance:
+      release_cadence: Stable releases 0.19.4 and 0.19.5 span 2026-05-26 through 2026-07-13.
+      latest_release_date: "2026-07-13"
+      last_commit_date: "2026-09-10"
+      issue_backlog: 471
+      bus_factor: Contributor totals show a broad multi-maintainer base.
+      sources:
+        - https://github.com/learningequality/kolibri/releases
+        - https://api.github.com/repos/learningequality/kolibri/contributors
+        - https://github.com/learningequality/kolibri/issues
+    platform:
+      hardware: [General-purpose host; upstream guidance is not a MULE measurement]
+      operating_systems: [Debian and Ubuntu, Windows, macOS, Android]
+      architectures: [Package and platform dependent, including Raspberry Pi]
+      sources: [https://kolibri.readthedocs.io/en/latest/install/]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [TCP 8080 by default, plus an optional distinct content port]
+      privileges: [Ordinary service identity with writable application state]
+      capabilities: [Users and facilities, learning content, progress and peer synchronization]
+      mounts: [Writable Kolibri state and content storage]
+      secrets: [Administrator and user credentials, optional cloud registration token]
+      authentication: Kolibri supplies facility users and administrative roles.
+      update_behavior: Upgrades create a database backup and may migrate durable state.
+      sources:
+        - https://kolibri.readthedocs.io/en/latest/manage/options_ini.html
+        - https://kolibri.readthedocs.io/en/latest/manage/command_line.html
+    data:
+      formats: [SQLite application database, content databases, resource files, logs, backups]
+      persistence: The writable .kolibri tree carries identity, progress, content and config.
+      backup: dbbackup restores one device; it is not a cross-device replication mechanism.
+      migration: Version upgrades may migrate state and create an automatic database backup.
+      sources:
+        - https://kolibri.readthedocs.io/en/latest/manage/provision.html
+        - https://kolibri.readthedocs.io/en/latest/manage/command_line.html
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/learningequality/kolibri/security/advisories]
+      known_advisories:
+        - CVE-2026-48053 affects through 0.19.3 and declares 0.19.4 patched
+        - GHSA-h5f9-gr6x-gr84 affected a repository GitHub Actions workflow
+      audit_status: Evaluated 0.19.5 is outside the SSRF range; deployment is not audited.
+      sbom_status: No MULE package or deployment SBOM was generated.
+    mappings:
+      requirements: [FML-REQ-016, FML-REQ-018, FML-REQ-024, FML-REQ-027]
+      findings: [OSS-01, GAP-02, GAP-10]
+    reuse:
+      mode: undecided
+      rationale: Learning-platform scope, identity and durable state are not approved.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/learningequality/kolibri.git
+        - git checkout f7cafd40f5c339b0ffadc36aa8de10ea79a9175b
+        - python -m pip install --no-deps .
+      evidence: [docs/prior-art/offline-content-and-maps.md]
+      gaps: [Exact release not run, No dependency scan, No state or resource measurement]
+    exit_strategy: Export content and facility data before replacing or removing the service.
+    decision_questions:
+      - Is a learning platform within approved MULE mission-service scope?
   - id: protomaps
     project: ProtoMaps
     canonical_upstreams: [https://github.com/protomaps/basemaps]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/offline-content-and-maps.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/protomaps/basemaps
+        version: main snapshot 2026-09-10
+        immutable_id: 4b5f6f806e4a5b2349632012e93fbf908f3a101e
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD-3-Clause code, CC0 map design, ODbL tilesets
+      source: >-
+        https://github.com/protomaps/basemaps/blob/4b5f6f806e4a5b2349632012e93fbf908f3a101e/LICENSE.md
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: Dataset, icon and produced-tile attribution must travel with each artifact.
+    maintenance:
+      release_cadence: No current GitHub release; the newest tag is the 2023-era 2.1.0.
+      latest_release_date: null
+      last_commit_date: "2026-09-10"
+      issue_backlog: 27
+      bus_factor: Contributor totals are concentrated in one principal account.
+      sources:
+        - https://github.com/protomaps/basemaps/commits/main
+        - https://api.github.com/repos/protomaps/basemaps/contributors
+        - https://github.com/protomaps/basemaps/issues
+    platform:
+      hardware: [External map-build host; not a selected MULE runtime]
+      operating_systems: [Build-tool dependent]
+      architectures: [Java and Node runtime dependent]
+      sources:
+        - https://github.com/protomaps/basemaps/blob/4b5f6f806e4a5b2349632012e93fbf908f3a101e/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No MULE runtime port; development examples use a local web server]
+      privileges: [Ordinary external build user]
+      capabilities: [Build OpenStreetMap-oriented basemap archives and browser styles]
+      mounts: [Source datasets, build cache and generated artifacts]
+      secrets: [Source-provider credentials when a selected dataset requires them]
+      authentication: Build-source authentication is provider-specific.
+      update_behavior: Source data, build code and style revisions change the output artifact.
+      sources:
+        - https://github.com/protomaps/basemaps/blob/4b5f6f806e4a5b2349632012e93fbf908f3a101e/README.md
+    data:
+      formats: [PMTiles, map styles, source datasets]
+      persistence: Inputs, build cache and outputs belong to external provisioning.
+      backup: Preserve permitted source inputs, recipes, licenses and immutable outputs.
+      migration: Rebuild or deterministically convert into the selected MULE MBTiles format.
+      sources:
+        - https://github.com/protomaps/basemaps/blob/4b5f6f806e4a5b2349632012e93fbf908f3a101e/LICENSE_DATA.md
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/protomaps/basemaps/security/advisories]
+      known_advisories: []
+      audit_status: No independent build-pipeline or dataset audit was identified.
+      sbom_status: Package locks exist; no complete build and content SBOM was generated.
+    mappings:
+      requirements: [FML-REQ-016, FML-REQ-018]
+      findings: [OSS-01, GAP-10]
+    reuse:
+      mode: pattern-only
+      rationale: FML consumes maps but does not produce them; MBTiles is selected on-node.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/protomaps/basemaps.git
+        - git checkout 4b5f6f806e4a5b2349632012e93fbf908f3a101e
+        - mvn -f tiles/pom.xml package
+      evidence: [docs/prior-art/offline-content-and-maps.md]
+      gaps: [Exact snapshot not built, No dataset review, No deterministic MBTiles conversion]
+    exit_strategy: Retain only documented provisioning and attribution patterns.
+    decision_questions:
+      - Which external toolchain and permitted source produce mission MBTiles?
   - id: pmtiles
     project: PMTiles
     canonical_upstreams: [https://github.com/protomaps/PMTiles]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/offline-content-and-maps.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/protomaps/PMTiles
+        version: main snapshot 2026-08-19
+        immutable_id: 182d5b3cfdc2f5a6adbc54630c612da2f6086bdd
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD-3-Clause implementations, CC0-1.0 specification, mixed samples
+      source: >-
+        https://github.com/protomaps/PMTiles/blob/182d5b3cfdc2f5a6adbc54630c612da2f6086bdd/REUSE.toml
+      compatibility: review-required
+      bundled_dependencies: pending
+      notes: Reference implementations and each sample or real tileset have separate terms.
+    maintenance:
+      release_cadence: No Git tags or GitHub releases; pin immutable repository snapshots.
+      latest_release_date: null
+      last_commit_date: "2026-08-19"
+      issue_backlog: 9
+      bus_factor: Contributor totals are concentrated in one principal account.
+      sources:
+        - https://github.com/protomaps/PMTiles/commits/main
+        - https://api.github.com/repos/protomaps/PMTiles/contributors
+        - https://github.com/protomaps/PMTiles/issues
+    platform:
+      hardware: [Format only; implementation and storage host determine requirements]
+      operating_systems: [Implementation dependent]
+      architectures: [Implementation dependent]
+      sources:
+        - https://github.com/protomaps/PMTiles/blob/182d5b3cfdc2f5a6adbc54630c612da2f6086bdd/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [None for the format; a selected reader or object store supplies networking]
+      privileges: [Implementation dependent]
+      capabilities: [Single-file range-readable tile archive and reference readers]
+      mounts: [A PMTiles archive for local-file implementations]
+      secrets: [Implementation and storage-provider dependent]
+      authentication: The format defines none; the serving layer supplies access control.
+      update_behavior: Replace archives or use an implementation-specific publication process.
+      sources:
+        - https://github.com/protomaps/PMTiles/blob/182d5b3cfdc2f5a6adbc54630c612da2f6086bdd/spec/v3/spec.md
+    data:
+      formats: [PMTiles version 3 archive, TileJSON-compatible metadata]
+      persistence: The archive is the durable content artifact; caches are reader-specific.
+      backup: Copy and integrity-check the archive plus its license and attribution record.
+      migration: Convert externally if a future archive version or selected store changes.
+      sources:
+        - https://github.com/protomaps/PMTiles/blob/182d5b3cfdc2f5a6adbc54630c612da2f6086bdd/spec/v3/spec.md
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/protomaps/PMTiles/security/advisories]
+      known_advisories: []
+      audit_status: No independent multi-implementation audit was identified.
+      sbom_status: Each language implementation needs its own dependency and SBOM review.
+    mappings:
+      requirements: [FML-REQ-016, FML-REQ-018]
+      findings: [OSS-01]
+    reuse:
+      mode: pattern-only
+      rationale: FML-ADR-073 selects MBTiles; PMTiles remains format prior art.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/protomaps/PMTiles.git
+        - git checkout 182d5b3cfdc2f5a6adbc54630c612da2f6086bdd
+        - cd python/pmtiles
+        - python -m unittest test/test_*
+      evidence: [docs/prior-art/offline-content-and-maps.md]
+      gaps: [No implementation run, No dependency scan, No conversion evidence]
+    exit_strategy: Keep the selected z/x/y service contract independent of archive format.
+    decision_questions:
+      - Is any PMTiles use justified outside the selected MBTiles runtime store?
   - id: tailscale-client
     project: Tailscale client
     canonical_upstreams: [https://github.com/tailscale/tailscale]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/wan-and-halow-dependencies.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/tailscale/tailscale
+        version: v1.102.4
+        immutable_id: bbcd7d1fc2054b9189ebc1531acf74bd880ca0c8
+        verified_on: "2026-09-11"
+    license:
+      declared: BSD-3-Clause
+      source: >-
+        https://github.com/tailscale/tailscale/blob/bbcd7d1fc2054b9189ebc1531acf74bd880ca0c8/LICENSE
+      compatibility: compatible
+      bundled_dependencies: pending
+      notes: Hosted coordination, account terms and selected packages remain separate.
+    maintenance:
+      release_cadence: Stable 1.102.1 through 1.102.4 span 2026-08-03 through 2026-09-10.
+      latest_release_date: "2026-09-10"
+      last_commit_date: "2026-09-11"
+      issue_backlog: 4059
+      bus_factor: Contributor totals show an active multi-maintainer base.
+      sources:
+        - https://github.com/tailscale/tailscale/releases
+        - https://api.github.com/repos/tailscale/tailscale/contributors
+        - https://github.com/tailscale/tailscale/issues
+    platform:
+      hardware: [General-purpose network host; no MULE measurement]
+      operating_systems: [Linux, Windows, macOS, mobile and other supported systems]
+      architectures: [Package and build dependent, including Linux arm64]
+      sources: [https://tailscale.com/docs/install/linux]
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [Peer UDP and outbound coordination or relay traffic; policy dependent]
+      privileges: [Root with a tunnel interface in normal Linux mode]
+      capabilities: [Overlay endpoint, routed subnets, deny-by-default grants]
+      mounts: [Tunnel device, service socket, writable daemon state directory]
+      secrets: [Node keys and state, optional bootstrap authentication key]
+      authentication: Tailnet identity and grants do not replace mission authorization.
+      update_behavior: Replace the client package while retaining protected node state.
+      sources:
+        - https://github.com/tailscale/tailscale/blob/bbcd7d1fc2054b9189ebc1531acf74bd880ca0c8/cmd/tailscaled/tailscaled.go
+    data:
+      formats: [Daemon state file, TLS and node identity material]
+      persistence: Node identity and policy state are durable credentials, not cache.
+      backup: Follow the selected revocation and re-enrollment model; do not clone identity.
+      migration: Preserve compatible state or revoke and enroll a replacement node.
+      sources:
+        - https://github.com/tailscale/tailscale/blob/bbcd7d1fc2054b9189ebc1531acf74bd880ca0c8/cmd/tailscaled/tailscaled.go
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://tailscale.com/security-bulletins]
+      known_advisories:
+        - Evaluated 1.102.4 is beyond client fix thresholds through TS-2026-011
+        - TS-2026-003 affected the hosted control plane, not this source artifact
+        - TS-2026-001 affected the macOS sentinel, not the Debian target
+      audit_status: Version thresholds reviewed; selected features and grants are not audited.
+      sbom_status: Go dependencies are pinned; no MULE package SBOM was generated.
+    mappings:
+      requirements: [FML-REQ-016, FML-REQ-017, FML-REQ-018, FML-REQ-019]
+      findings: [OSS-01, GAP-09, GAP-10]
+    reuse:
+      mode: undecided
+      rationale: FML-ADR-039 permits Tailscale or an equivalent overlay.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/tailscale/tailscale.git
+        - git checkout bbcd7d1fc2054b9189ebc1531acf74bd880ca0c8
+        - go test ./...
+      evidence: [docs/prior-art/wan-and-halow-dependencies.md]
+      gaps: [Exact release not run, Package not pinned, Grants and route isolation untested]
+    exit_strategy: Preserve the routed MULE boundary so an equivalent overlay can replace it.
+    decision_questions:
+      - Does the owner select Tailscale and which coordination and enrollment model applies?
   - id: morse-micro-driver
     project: Morse Micro Linux driver
     canonical_upstreams: [https://github.com/MorseMicro/morse_driver]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/wan-and-halow-dependencies.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/MorseMicro/morse_driver
+        version: mm6108-2.1.1
+        immutable_id: d457021af4c5ba9556b3d059ccce3e15001adad7
+        verified_on: "2026-09-11"
+      - kind: git
+        source: https://github.com/MorseMicro/morse_driver
+        version: mm8108-2.1.0
+        immutable_id: 4ce0a0272f8ac8e2fa58eea8ff08116e493399de
+        verified_on: "2026-09-11"
+    license:
+      declared: GPL-2.0-or-later
+      source: >-
+        https://github.com/MorseMicro/morse_driver/blob/4ce0a0272f8ac8e2fa58eea8ff08116e493399de/mac.c
+      compatibility: compatible
+      bundled_dependencies: not-applicable
+      notes: Binary firmware and vendor BCF licenses are evaluated separately.
+    maintenance:
+      release_cadence: Current MM6108 and MM8108 releases were published on 2026-09-11.
+      latest_release_date: "2026-09-11"
+      last_commit_date: "2026-09-10"
+      issue_backlog: 8
+      bus_factor: GitHub exposed no usable public contributor summary for this repository.
+      sources:
+        - https://github.com/MorseMicro/morse_driver/releases
+        - https://github.com/MorseMicro/morse_driver/issues
+    platform:
+      hardware: [Morse Micro MM6108 or MM8108 family and a matching board]
+      operating_systems: [Linux kernel build matched to the out-of-tree module]
+      architectures: [Kernel and selected board dependent]
+      sources:
+        - https://github.com/MorseMicro/morse_driver/blob/4ce0a0272f8ac8e2fa58eea8ff08116e493399de/README
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No network service port; presents a kernel-managed radio interface]
+      privileges: [Kernel module installation and loading require system privilege]
+      capabilities: [mac80211 and cfg80211 radio interface including mesh-point behavior]
+      mounts: [Matching kernel build tree at build time, firmware tree at runtime]
+      secrets: [Mesh credentials belong to userspace configuration, not the driver]
+      authentication: Userspace SAE and mission policy remain outside the driver.
+      update_behavior: Rebuild and promote only with the full compatibility set.
+      sources:
+        - https://github.com/MorseMicro/morse_driver/blob/4ce0a0272f8ac8e2fa58eea8ff08116e493399de/mac.c
+        - https://github.com/MorseMicro/morse_driver/blob/4ce0a0272f8ac8e2fa58eea8ff08116e493399de/mm8108.c
+    data:
+      formats: [Kernel module, module parameters and diagnostics]
+      persistence: The module owns no mission data; package and compatibility pins persist.
+      backup: Preserve source, build recipe and matching compatibility-set manifest.
+      migration: A new kernel or chip release creates a new compatibility-set candidate.
+      sources: [docs/prior-art/wan-and-halow-dependencies.md]
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/MorseMicro/morse_driver/security/advisories]
+      known_advisories: []
+      audit_status: No independent source audit was identified.
+      sbom_status: No module SBOM was identified or generated.
+    mappings:
+      requirements: [FML-REQ-001, FML-REQ-011, FML-REQ-012, FML-REQ-032]
+      findings: [OSS-01, GAP-09, HW-01]
+    reuse:
+      mode: undecided
+      rationale: FML-ADR-062 selects an interface property, not a HaLow vendor.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/MorseMicro/morse_driver.git
+        - git checkout 4ce0a0272f8ac8e2fa58eea8ff08116e493399de
+        - >-
+          make MORSE_TRACE_PATH=. KERNEL_SRC=/path/to/pinned-kernel
+          CONFIG_WLAN_VENDOR_MORSE=m CONFIG_MORSE_SDIO=y CONFIG_MORSE_USER_ACCESS=y
+      evidence: [docs/prior-art/wan-and-halow-dependencies.md]
+      gaps: [Exact releases not built, No DKMS manifest, No hardware or compatibility test]
+    exit_strategy: Preserve the standard mac80211 interface and replace the whole set if needed.
+    decision_questions:
+      - Which HaLow module, chip family and kernel compatibility set does the owner select?
   - id: morse-micro-firmware
     project: Morse Micro firmware
     canonical_upstreams: [https://github.com/MorseMicro/morse-firmware]
-    state: BASELINED
-    evaluation_document: null
+    state: EVALUATED
+    evaluation_document: docs/prior-art/wan-and-halow-dependencies.md
+    evaluation_date: "2026-09-11"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/MorseMicro/morse-firmware
+        version: 2.1 branch snapshot
+        immutable_id: ce39cefb5fd01ad689a0c0b043557d9c2a3167d8
+        verified_on: "2026-09-11"
+    license:
+      declared: Morse Micro Binary Distribution License Agreement
+      source: >-
+        https://github.com/MorseMicro/morse-firmware/blob/ce39cefb5fd01ad689a0c0b043557d9c2a3167d8/firmware/LICENSE
+      compatibility: review-required
+      bundled_dependencies: partial
+      notes: Use and unchanged redistribution are limited to Morse hardware; BCF terms vary.
+    maintenance:
+      release_cadence: Version branches track driver families; no 2.1 tag or release exists.
+      latest_release_date: null
+      last_commit_date: "2026-09-11"
+      issue_backlog: 0
+      bus_factor: The small public history exposes two contributor accounts.
+      sources:
+        - https://github.com/MorseMicro/morse-firmware/branches
+        - https://api.github.com/repos/MorseMicro/morse-firmware/contributors
+        - https://github.com/MorseMicro/morse-firmware/issues
+    platform:
+      hardware: [Morse Micro chip and a matching licensed board configuration]
+      operating_systems: [Loaded by the matching Linux driver]
+      architectures: [Chip and board revision dependent]
+      sources:
+        - https://github.com/MorseMicro/morse-firmware/blob/ce39cefb5fd01ad689a0c0b043557d9c2a3167d8/README.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No service port; binary executes on the radio]
+      privileges: [Installation below /lib/firmware requires system privilege]
+      capabilities: [Chip firmware and board configuration for the matching radio]
+      mounts: [Firmware and BCF files below /lib/firmware/morse]
+      secrets: [None identified; selected BCF content remains vendor-specific]
+      authentication: Firmware does not replace userspace mesh authentication.
+      update_behavior: Change only with driver, kernel, userspace and board as one set.
+      sources:
+        - https://github.com/MorseMicro/morse-firmware/blob/ce39cefb5fd01ad689a0c0b043557d9c2a3167d8/README.md
+    data:
+      formats: [Proprietary chip binaries, vendor board configuration files]
+      persistence: Installed firmware and BCF files are immutable release inputs.
+      backup: Preserve the exact licensed binaries, BCF, agreement and set manifest.
+      migration: Replace only through a requalified compatibility-set promotion.
+      sources:
+        - https://github.com/MorseMicro/morse-firmware/blob/ce39cefb5fd01ad689a0c0b043557d9c2a3167d8/firmware/LICENSE
+    security:
+      reviewed_on: "2026-09-11"
+      advisory_sources: [https://github.com/MorseMicro/morse-firmware/security/advisories]
+      known_advisories: []
+      audit_status: Binary firmware cannot be source-audited from this repository.
+      sbom_status: No firmware SBOM was identified.
+    mappings:
+      requirements: [FML-REQ-001, FML-REQ-011, FML-REQ-012, FML-REQ-032]
+      findings: [OSS-01, GAP-09, HW-01]
+    reuse:
+      mode: undecided
+      rationale: Vendor and hardware are unselected; license review is mandatory.
+      approval_ref: null
+    prototype:
+      status: not-run
+      commands:
+        - git clone https://github.com/MorseMicro/morse-firmware.git
+        - git checkout ce39cefb5fd01ad689a0c0b043557d9c2a3167d8
+        - make TARGET_DIR=/tmp/morse-firmware-stage install
+      evidence: [docs/prior-art/wan-and-halow-dependencies.md]
+      gaps: [No binary load, No selected BCF review, No hardware compatibility evidence]
+    exit_strategy: Replace the complete compatibility set behind the standard radio interface.
+    decision_questions:
+      - Does the selected module satisfy the binary and BCF license restrictions?

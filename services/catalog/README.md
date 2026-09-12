@@ -3,9 +3,10 @@
 The set of services approved to run on a MULE node, and what each one is for.
 
 **Two entries: `opentakserver` and `martin`** (`catalog.yml`, `FML-ADR-078`).
-Each is approved as a *catalog contract* -- this node may run this service -- not
-as a deployable build: their image digests and measured resource envelopes carry
-`TBD` until `TBR-COMP-01`, `TBR-MAP-01` and the OpenTAKServer build close.
+Each is approved as a *catalog contract*, but both are disabled and neither is a
+deployable build: no loadable unit exists, and their image digests and measured
+resource envelopes carry `TBD` until `TBR-COMP-01`, `TBR-MAP-01` and the
+OpenTAKServer build close. A mission cannot enable either record in this state.
 
 ## Why a catalog exists
 
@@ -24,6 +25,9 @@ appearing in `quadlets/`.
 | Field | Notes |
 | --- | --- |
 | Name | Stable identifier used by the Quadlet unit and the ingress configuration. |
+| Enabled | True only when the deployment unit exists and a mission may select it. |
+| Aliases | Optional alternate mission references; every alias resolves uniquely. |
+| Unit | The exact `<name>.container` Quadlet, or `TBD` while the record is disabled. |
 | Purpose | One line. Why a node runs this. |
 | Image | OCI reference **by immutable digest**, never by tag. |
 | Upstream | Project, licence, and where its source lives. |
@@ -43,6 +47,10 @@ entry with an estimated envelope has not been evaluated.
 - **Digest, never tag.** Anywhere in this repository. See `services/README.md`.
 - **No service is added without a catalog entry.** A Quadlet unit with no entry
   is a defect.
+- **No disabled service is enabled by a mission.** A contract with a `TBD` unit
+  is retained for planning but cannot become generated configuration.
+- **Aliases and units resolve exactly once.** Duplicate names, ambiguous aliases,
+  absent units and loadable units with no enabled catalog entry fail CI.
 - **No service is added without a resource measurement**, once `TBR-COMP-01`
   has established how the budget is measured.
 - **Durable state is declared**, not discovered. `TBR-TAK-01` classifies
@@ -51,13 +59,13 @@ entry with an estimated envelope has not been evaluated.
 
 ## Expected entries
 
-Named so a reader knows what the plane is intended to hold, not as a
+OpenTAKServer and Martin are selected catalog contracts but are not enabled for
+deployment. Other entries below name what the plane may eventually hold, not a
 commitment:
 
-- A TAK-compatible situational-awareness service. See `services/tak/`.
-- Browser-based field services.
+- Browser-based field services beyond the selected map service.
 - An identity and mission trust layer. See `services/identity/`.
 - An operator status surface, fed by the status aggregator, which is a
   placeholder and must not be implemented yet.
 
-None of these has been selected, sized, or approved.
+None of those additional entries has been selected, sized, or approved.

@@ -20,19 +20,42 @@
       "additionalProperties": false,
       "required": [
         "name",
+        "enabled",
+        "aliases",
+        "unit",
         "purpose",
         "image",
         "upstream",
         "rootless",
         "resource_envelope",
         "exposed_to",
-        "durable_state"
+        "durable_state",
+        "recovery",
+        "region_dependency",
+        "adr"
       ],
       "properties": {
         "name": {
           "type": "string",
           "description": "Stable identifier used by the Quadlet unit and ingress.",
           "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "True only when the referenced deployment unit exists and may be enabled by a mission."
+        },
+        "aliases": {
+          "type": "array",
+          "description": "Optional mission-package names that resolve uniquely to the canonical name.",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "unit": {
+          "description": "Loadable Quadlet filename, or TBD while this is a disabled catalog contract.",
+          "oneOf": [
+            { "$ref": "#/$defs/tbd" },
+            { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.container$" }
+          ]
         },
         "purpose": { "type": "string", "minLength": 1 },
         "image": {
@@ -80,6 +103,20 @@
         "durable_state": {
           "description": "true if state must survive node loss (TBR-TAK-01), false if not, TBD if undecided.",
           "oneOf": [{ "type": "boolean" }, { "$ref": "#/$defs/tbd" }]
+        },
+        "recovery": {
+          "description": "Approved recovery behavior, or TBD while TBR-HA-01 is open.",
+          "type": "string",
+          "minLength": 1
+        },
+        "region_dependency": {
+          "description": "Whether the service implementation or configuration varies by regulatory region.",
+          "oneOf": [{ "type": "boolean" }, { "$ref": "#/$defs/tbd" }]
+        },
+        "adr": {
+          "description": "Decision record approving the catalog contract.",
+          "type": "string",
+          "pattern": "^FML-ADR-[0-9]{3}$"
         }
       }
     }

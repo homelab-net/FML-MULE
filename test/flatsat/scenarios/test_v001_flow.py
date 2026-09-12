@@ -23,13 +23,13 @@ from ..conftest import EUD, FIXTURE_REGIONS, MISSION_MINIMAL, NodeFactory
 from ..fakes import FakeRadio
 from ..node import REPO_ROOT
 
-#: The services `mission/examples/valid-full.json` enables, under the local
-#: domain that same package names. Written here as the expected *result* of
+#: The services `test/flatsat/mission-with-services.json` enables, under the
+#: local domain that same package names. Written here as the expected *result* of
 #: reading the package, not as configuration: if the package changes, this
 #: assertion is meant to fail.
 EXPECTED_SERVICES = {
-    "opentakserver.example.invalid",
-    "martin.example.invalid",
+    "stand-in-alpha.example.invalid",
+    "stand-in-beta.example.invalid",
 }
 
 

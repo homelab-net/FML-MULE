@@ -19,6 +19,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
@@ -128,6 +129,29 @@ def test_check_mode_rejects_an_invalid_mission(
     assert "transmit_power_dbm" in error
 
 
+def test_check_mode_rejects_a_disabled_catalog_service(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    """Operator preflight applies the same service gates as generation."""
+    package = json.loads(MISSION.read_text(encoding="utf-8"))
+    package["services"] = ["martin"]
+    mission = tmp_path / "mission.json"
+    mission.write_text(json.dumps(package), encoding="utf-8")
+
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(mission),
+            "--check",
+        ]
+    )
+
+    assert code == 2
+    assert "disabled catalog service" in capsys.readouterr().err
+
+
 # --- the success path ----------------------------------------------------
 
 
@@ -219,7 +243,7 @@ def test_the_mission_package_supplies_the_service_list() -> None:
     full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
     minimal = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION)
 
-    assert full["mission"]["services"] == ["opentakserver", "martin"]
+    assert full["mission"]["services"] == []
     assert full["network"]["local_domain"] == "example.invalid"
 
     # The minimal package enables nothing and names no domain. Both are valid.
@@ -347,7 +371,123 @@ def test_a_mission_enabling_an_uncatalogued_service_is_refused(tmp_path: Path) -
 def test_the_catalogued_services_resolve() -> None:
     """A package that enables only catalogued services resolves (FML-ADR-078)."""
     full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
-    assert full["mission"]["services"] == ["opentakserver", "martin"]
+    assert full["mission"]["services"] == []
+
+
+def _use_catalog(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    services: list[dict[str, object]],
+) -> None:
+    """Point generation at a disposable service catalog and Quadlet directory."""
+    path = tmp_path / "services" / "catalog" / "catalog.yml"
+    path.parent.mkdir(parents=True)
+    path.write_text(yaml.safe_dump({"services": services}), encoding="utf-8")
+    (tmp_path / "services" / "quadlets").mkdir(parents=True)
+    monkeypatch.setattr(gc, "CATALOG_PATH", path)
+
+
+def _service(
+    name: str,
+    *,
+    enabled: bool = True,
+    aliases: list[str] | None = None,
+    unit: str | None = None,
+) -> dict[str, object]:
+    """Build the catalog fields configuration generation consumes."""
+    return {
+        "name": name,
+        "enabled": enabled,
+        "aliases": aliases or [],
+        "unit": unit or f"{name}.container",
+        "purpose": "Synthetic unit-test service.",
+        "image": "TBD",
+        "upstream": {
+            "project": "Synthetic test fixture",
+            "url": "https://example.invalid/source",
+            "license": "test-only",
+        },
+        "rootless": "TBD",
+        "resource_envelope": "TBD",
+        "exposed_to": ["node"],
+        "durable_state": "TBD",
+        "recovery": "TBD",
+        "region_dependency": False,
+        "adr": "FML-ADR-078",
+    }
+
+
+def test_duplicate_catalog_names_are_refused_before_generation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Two records with one canonical name cannot become one accidental set entry."""
+    services = [_service("opentakserver"), _service("opentakserver")]
+    services[1]["purpose"] = "A distinct record reusing the same identity."
+    _use_catalog(monkeypatch, tmp_path, services)
+
+    with pytest.raises(gc.ConfigError, match="duplicate service reference"):
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+
+
+def test_disabled_catalog_service_is_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A catalog contract with no deployable unit cannot be enabled by a mission."""
+    services = [
+        _service("opentakserver", enabled=False, unit="TBD"),
+        _service("martin", enabled=False, unit="TBD"),
+    ]
+    _use_catalog(monkeypatch, tmp_path, services)
+    package = json.loads(MISSION_FULL.read_text(encoding="utf-8"))
+    package["services"] = ["opentakserver"]
+
+    with pytest.raises(gc.ConfigError, match="disabled catalog service"):
+        gc.resolve(gc.load_region(str(FIXTURE_REGIONS / "profile.yml")), package)
+
+
+def test_catalog_alias_resolves_to_one_canonical_enabled_service(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """An unambiguous alias is normalized before downstream configuration sees it."""
+    services = [
+        _service("opentakserver", aliases=["tak"]),
+        _service("martin"),
+    ]
+    _use_catalog(monkeypatch, tmp_path, services)
+    quadlets = tmp_path / "services" / "quadlets"
+    (quadlets / "opentakserver.container").touch()
+    (quadlets / "martin.container").touch()
+    package = json.loads(MISSION_FULL.read_text(encoding="utf-8"))
+    package["services"] = ["tak", "martin"]
+
+    resolved = gc.resolve(gc.load_region(str(FIXTURE_REGIONS / "profile.yml")), package)
+
+    assert resolved["mission"]["services"] == ["opentakserver", "martin"]
+
+
+def test_enabled_service_without_its_quadlet_is_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A catalog record is not deployable until its named unit actually exists."""
+    services = [_service("opentakserver"), _service("martin")]
+    _use_catalog(monkeypatch, tmp_path, services)
+
+    with pytest.raises(gc.ConfigError, match="deployment unit is absent"):
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+
+
+@pytest.mark.parametrize(
+    "name", ["Martin", "m/artin", "m\N{CYRILLIC SMALL LETTER A}rtin"]
+)
+def test_malformed_catalog_identifiers_are_refused_before_generation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, name: str
+) -> None:
+    """Case, path and Unicode lookalikes fail the catalog schema at runtime."""
+    services = [_service(name)]
+    _use_catalog(monkeypatch, tmp_path, services)
+
+    with pytest.raises(gc.ConfigError, match="service catalog schema violation"):
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
 
 
 # --- target-aware resolution (FML-ADR-075) --------------------------------

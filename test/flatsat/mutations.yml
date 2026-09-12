@@ -364,8 +364,32 @@ mutations:
   - id: M103
     file: tools/gen-config.py
     describe: a mission enabling an uncatalogued service is accepted
-    find: "    unknown = [name for name in enabled if name not in _catalog_names()]"
+    find: "    unknown = [name for name in enabled if name not in references]"
     replace: "    unknown = []"
+
+  - id: M104
+    file: tools/gen-config.py
+    describe: a disabled catalog contract is treated as deployable
+    find: '    disabled = [name for name in enabled if not references[name]["enabled"]]'
+    replace: "    disabled = []"
+
+  - id: M105
+    file: tools/gen-config.py
+    describe: an enabled service with no deployment unit is accepted
+    find: "            if not (quadlets / unit).is_file():"
+    replace: "            if False:"
+
+  - id: M106
+    file: tools/gen-config.py
+    describe: duplicate catalog names or aliases are silently overwritten
+    find: "            if reference in references:"
+    replace: "            if False:"
+
+  - id: M107
+    file: tools/gen-config.py
+    describe: operator check mode bypasses service catalog enforcement
+    find: '            _resolve_services(list(mission.get("services", [])))'
+    replace: "            pass"
 
   - id: M31
     file: mule/thermal.py

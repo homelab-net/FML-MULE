@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "GAP-02",
+  "date": "2026-09-12",
+  "classification": "SIMULATED",
+  "implementation_commit": "b8b69cc8e94b4ea611eaae3153c521573bc5e6f5",
+  "implementation_tree": "d9338943a6898181649c6edc1e6839d17fbbb6e8",
+  "reviewer": "/root/oss_gap02_closure_verifier",
+  "checkout": {
+    "path": "/tmp/fml-gap02-b8b69cc.Hz9qFa/repo",
+    "user": "cameron",
+    "status_before": "clean",
+    "status_after": "clean"
+  },
+  "environment": {
+    "os": "Ubuntu 24.04.4 LTS under WSL2 on x86_64; development host, not target",
+    "kernel": "6.6.87.2",
+    "python": "3.12.3",
+    "node": "22.22.2",
+    "tools": [
+      "pytest 9.1.1",
+      "coverage 7.16.0",
+      "ruff 0.16.5",
+      "yamllint 1.38.0",
+      "ansible-lint 26.8.0",
+      "Bats 1.10.0",
+      "ShellCheck 0.9.0",
+      "shfmt 3.10.0",
+      "gitleaks 8.30.1"
+    ]
+  },
+  "checks": [
+    {
+      "name": "Independent focused GAP-02 and flat-sat suite",
+      "command": ".venv/bin/python -m pytest -q test/unit/test_gen_config.py test/unit/test_service_catalog.py test/flatsat",
+      "exit_code": 0,
+      "result": "251 passed in 0.84 seconds.",
+      "transcript_sha256": "c4da1249cbaaad090bb6e04fe9cdeaee5b605c17e48f60a60f81d41ccb78586c"
+    },
+    {
+      "name": "Independent service-catalog validator",
+      "command": ".venv/bin/python tools/validate-catalog.py",
+      "exit_code": 0,
+      "result": "2 services, 0 defects.",
+      "transcript_sha256": "891cb6854bb7f5a25d52d1b4390f50d021823b409ffeb44fccc9c07115eb210d"
+    },
+    {
+      "name": "Independent focused mutation checks",
+      "command": ".venv/bin/python tools/mutation-check.py --only M103,M104,M105,M106,M107",
+      "exit_code": 0,
+      "result": "5/5 mutations killed.",
+      "transcript_sha256": "cd915c7464188b5634efcf683734a568c6ab5d782d60a690ec663325320704d3"
+    },
+    {
+      "name": "Independent complete repository gate",
+      "command": "env PATH=/home/cameron/.local/bin:/usr/local/bin:/usr/bin:/bin tools/lint.sh",
+      "exit_code": 0,
+      "result": "107/107 mutations were caught; 543/543 mule statements had 100% coverage; 38 Bats tests passed with 0 failures and 0 skips; all lint, documentation, schema, generated-output and secret checks passed.",
+      "transcript_sha256": "8baad74c09ea6a7ff2cbc2ee2e78bda02da9b4313a082e0930190a1895ea89fb"
+    }
+  ],
+  "red_team": [
+    {
+      "attempt": "Duplicate the martin catalog record and run gen-config --check.",
+      "exit_code": 2,
+      "result": "ERROR: duplicate service reference 'martin' in catalog"
+    },
+    {
+      "attempt": "Select the disabled martin contract in a mission and run gen-config --check.",
+      "exit_code": 2,
+      "result": "ERROR: mission enables disabled catalog service(s): martin"
+    }
+  ],
+  "red_team_transcript_sha256": "0ba7ab1315b2c20d609d830c9fc7a34114ed53fcc805ee69720c95dbab72ab32",
+  "residual_risks": [
+    "No production service or Quadlet is enabled or deployed.",
+    "Image, resource-envelope and recovery decisions remain open.",
+    "Future catalog enablement requires GAP-09F/G decisions and real deployment units.",
+    "This evidence establishes repository behavior only and says nothing about target hardware."
+  ],
+  "redaction_statement": "This artifact contains no credentials, private keys, tokens, real identities, deployment locations or sensitive traffic."
+}

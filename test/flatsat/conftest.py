@@ -23,9 +23,10 @@ from .node import REPO_ROOT, FlatSatNode
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
 GOOD_PROFILE = FIXTURE_REGIONS / "profile.yml"
 MISSION_EXAMPLES = REPO_ROOT / "mission" / "examples"
+FLATSAT_CATALOG = REPO_ROOT / "test" / "flatsat" / "catalog" / "catalog.yml"
 
-#: A package that enables two services and names a local domain.
-MISSION_WITH_SERVICES = MISSION_EXAMPLES / "valid-full.json"
+#: A synthetic package that enables two stand-in services and names a domain.
+MISSION_WITH_SERVICES = REPO_ROOT / "test" / "flatsat" / "mission-with-services.json"
 #: The smallest package the schema accepts. It enables no services and names no
 #: domain, which is a valid deployment and a useful negative case.
 MISSION_MINIMAL = MISSION_EXAMPLES / "valid-minimal.json"
@@ -107,6 +108,7 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         return FlatSatNode(
             region_profile=profile,
             mission_package=mission,
+            catalog_path=FLATSAT_CATALOG,
             radio=radio if radio is not None else FakeRadio(),
             power=power if power is not None else FakePower(),
             thermal=thermal if thermal is not None else FakeThermal(),
