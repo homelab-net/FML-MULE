@@ -36,7 +36,7 @@ def test_public_loader_does_not_accept_a_schema_override() -> None:
 def test_schema_errors_include_stable_object_and_array_paths() -> None:
     mission = json.loads(VALID_MISSION.read_text(encoding="utf-8"))
     mission["network"]["unknown"] = True
-    mission["services"][0] = 7
+    mission["services"].append(7)
 
     issues = validate_document(mission, load_schema())
 

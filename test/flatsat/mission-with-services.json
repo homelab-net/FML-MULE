@@ -1,0 +1,27 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. This flat-sat package contains no real mission, location, group, credential, or deployment data.",
+  "_purpose": "Synthetic flat-sat input enabling only test stand-ins; never a deployable mission package.",
+  "_note": "The address is illustrative test data and not a real or proposed allocation.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-flatsat",
+    "name": "Synthetic flat-sat exercise",
+    "example": true,
+    "region": "us-915"
+  },
+  "network": {
+    "mesh_id": "example-flatsat-mesh",
+    "local_domain": "example.invalid",
+    "address_prefix": "10.83.0.0/16",
+    "ap_ssid": "example-flatsat-ap"
+  },
+  "profile": "exercise",
+  "services": [
+    "stand-in-alpha",
+    "stand-in-beta"
+  ],
+  "trust": {
+    "trust_anchor_ref": "example-flatsat-reference-not-material"
+  },
+  "notes": "Synthetic flat-sat package. It is test input, not a field configuration."
+}

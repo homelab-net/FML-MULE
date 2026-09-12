@@ -3,9 +3,10 @@
 Podman Quadlet and systemd unit definitions for the mission-service plane.
 
 **Empty of loadable units.** The catalogued services (`services/catalog/`,
-`FML-ADR-078`) are approved as contracts but not yet deployable: their image
-digests are still `TBD`. `example.container.disabled` is a commented reference
-showing the conventions, and is deliberately not a loadable unit.
+`FML-ADR-078`) are approved as disabled contracts but not yet deployable: their
+unit references, image digests and resource envelopes are still `TBD`.
+`example.container.disabled` is a commented reference showing the conventions,
+and is deliberately not a loadable unit.
 
 ## What a Quadlet is
 

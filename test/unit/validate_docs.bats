@@ -169,6 +169,29 @@ PATCH
   digest="sha256:0000000000000000000000000000000000000000000000000000000000000000"
   printf 'Image=quay.io/planted/service@%s\n' "$digest" \
     > "$SANDBOX/services/quadlets/planted-test.container"
+  # GAP-02 requires every loadable unit to have exactly one enabled catalog
+  # owner. Keep this positive fixture valid for that independent rule so it
+  # isolates the immutable-image check it was written to exercise.
+  cat >> "$SANDBOX/services/catalog/catalog.yml" <<'YAML'
+
+  - name: planted-test
+    enabled: true
+    aliases: []
+    unit: planted-test.container
+    purpose: Synthetic digest-validation fixture.
+    image: quay.io/planted/service@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    upstream:
+      project: Synthetic test fixture
+      url: https://example.invalid/source
+      license: test-only
+    rootless: TBD
+    resource_envelope: TBD
+    exposed_to: [node]
+    durable_state: TBD
+    recovery: TBD
+    region_dependency: false
+    adr: FML-ADR-078
+YAML
 
   run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
   [ "$status" -eq 0 ]

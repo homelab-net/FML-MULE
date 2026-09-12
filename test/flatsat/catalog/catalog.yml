@@ -1,0 +1,38 @@
+---
+# Test-only catalog for the flat-sat service-plane stand-in. FML-ADR-078.
+# It names no real service, image, credential, identity, or deployment.
+services:
+  - name: stand-in-alpha
+    enabled: true
+    aliases: []
+    unit: stand-in-alpha.container
+    purpose: Synthetic flat-sat service-plane stand-in.
+    image: TBD
+    upstream:
+      project: Synthetic test fixture
+      url: https://example.invalid/source
+      license: test-only
+    rootless: TBD
+    resource_envelope: TBD
+    exposed_to: [node]
+    durable_state: TBD
+    recovery: TBD
+    region_dependency: false
+    adr: FML-ADR-078
+  - name: stand-in-beta
+    enabled: true
+    aliases: []
+    unit: stand-in-beta.container
+    purpose: Synthetic flat-sat service-plane stand-in.
+    image: TBD
+    upstream:
+      project: Synthetic test fixture
+      url: https://example.invalid/source
+      license: test-only
+    rootless: TBD
+    resource_envelope: TBD
+    exposed_to: [node]
+    durable_state: TBD
+    recovery: TBD
+    region_dependency: false
+    adr: FML-ADR-078

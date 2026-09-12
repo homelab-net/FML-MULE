@@ -16,10 +16,7 @@
     "ap_ssid": "example-node-ap"
   },
   "profile": "exercise",
-  "services": [
-    "opentakserver",
-    "martin"
-  ],
+  "services": [],
   "trust": {
     "trust_anchor_ref": "example-trust-anchor-reference-not-material"
   },

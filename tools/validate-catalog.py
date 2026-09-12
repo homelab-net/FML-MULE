@@ -12,8 +12,10 @@ Two layers, kept apart the way tools/validate-mission.py keeps them:
 
 2. **Enforcement.** The mission JSON schema requires every enabled service name
    to have a catalog entry but cannot check it. This tool does: every service
-   named in a ``mission/examples/*.json`` package must resolve to a catalog
-   entry. That is the check the schema defers to (FML-ADR-078).
+   named in a ``mission/examples/*.json`` package must resolve uniquely to an
+   enabled catalog entry whose loadable Quadlet exists. It also rejects a
+   loadable Quadlet with no enabled catalog record. These are the checks the
+   schema defers to (FML-ADR-078).
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO_ROOT / "services" / "catalog" / "catalog.yml"
 CATALOG_SCHEMA_PATH = REPO_ROOT / "services" / "catalog" / "catalog.schema.json"
 MISSION_EXAMPLES = REPO_ROOT / "mission" / "examples"
+QUADLETS_PATH = REPO_ROOT / "services" / "quadlets"
 
 
 def _load_yaml(path: Path) -> Any:  # noqa: ANN401
@@ -56,9 +59,62 @@ def validate_repository(root: Path) -> list[str]:
     if errors:
         return errors
 
-    names = {entry["name"] for entry in catalog.get("services", [])}
+    services = catalog.get("services", [])
+    names: dict[str, list[dict[str, Any]]] = {}
+    references: dict[str, list[dict[str, Any]]] = {}
+    units: dict[str, list[dict[str, Any]]] = {}
+    quadlets_path = root / "services" / "quadlets"
 
-    # Enforcement: no mission example may enable a service with no catalog entry.
+    # ``uniqueItems`` distinguishes whole objects, not their identity fields.
+    # Build the actual lookup tables and require every canonical name, alias and
+    # deployment unit to resolve exactly once. FML-ADR-078, GAP-02.
+    for entry in services:
+        name = entry["name"]
+        names.setdefault(name, []).append(entry)
+        for reference in [name, *entry["aliases"]]:
+            references.setdefault(reference, []).append(entry)
+        if entry["unit"] != "TBD":
+            units.setdefault(entry["unit"], []).append(entry)
+
+    for name, owners in sorted(names.items()):
+        if len(owners) != 1:
+            errors.append(f"duplicate catalog service name {name!r}")
+    for reference, owners in sorted(references.items()):
+        if len(owners) != 1:
+            errors.append(f"service reference {reference!r} is ambiguous")
+
+    for entry in services:
+        name = entry["name"]
+        unit = entry["unit"]
+        if entry["enabled"]:
+            expected = f"{name}.container"
+            if unit == "TBD":
+                errors.append(
+                    f"enabled service {name!r} has no deployment unit reference"
+                )
+            elif unit != expected:
+                errors.append(
+                    f"enabled service {name!r} unit must be {expected!r}, got {unit!r}"
+                )
+            elif not (quadlets_path / unit).is_file():
+                errors.append(
+                    f"enabled service {name!r} deployment unit is absent: "
+                    f"services/quadlets/{unit}"
+                )
+        elif unit != "TBD":
+            errors.append(
+                f"disabled service {name!r} names loadable deployment unit {unit!r}"
+            )
+
+    for path in sorted(quadlets_path.glob("*.container")):
+        owners = units.get(path.name, [])
+        if len(owners) != 1 or not owners[0]["enabled"]:
+            errors.append(
+                f"loadable Quadlet {path.name!r} has no enabled catalog record"
+            )
+
+    # Enforcement: every accepted reference resolves to exactly one enabled
+    # record. Invalid mission examples are expected to fail at another layer.
     for package in sorted((root / "mission" / "examples").glob("*.json")):
         try:
             document = json.loads(package.read_text(encoding="utf-8"))
@@ -69,7 +125,7 @@ def validate_repository(root: Path) -> list[str]:
         enabled = document.get("services", [])
         if not isinstance(enabled, list):
             continue
-        unknown = [s for s in enabled if s not in names]
+        unknown = [s for s in enabled if s not in references]
         # invalid-* packages are expected to be rejected somewhere; an unknown
         # service in one is not a catalog defect.
         if unknown and package.name.startswith("valid-"):
@@ -78,6 +134,14 @@ def validate_repository(root: Path) -> list[str]:
                 f"entry: {', '.join(unknown)}. Add an entry to services/catalog/ "
                 "or correct the package."
             )
+        if package.name.startswith("valid-"):
+            for reference in enabled:
+                owners = references.get(reference, [])
+                if len(owners) == 1 and not owners[0]["enabled"]:
+                    errors.append(
+                        f"{package.relative_to(root)} enables disabled service "
+                        f"{owners[0]['name']!r} through reference {reference!r}"
+                    )
 
     return errors
 

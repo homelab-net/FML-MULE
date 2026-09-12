@@ -149,8 +149,11 @@ make the conclusion untestable; it can make the node state something untrue.
 A fake replaces hardware. A **stand-in** occupies the place of software not yet
 written, and there is one:
 
-- **The service plane.** `FlatSatNode` resolves the service names a mission
-  package enables to a local stand-in. `services/status-aggregator/`,
+- **The service plane.** `FlatSatNode` resolves the two synthetic names in
+  `mission-with-services.json` through `catalog/catalog.yml` and the test-only
+  `quadlets/stand-in-alpha.container` and `stand-in-beta.container` existence
+  markers to a local stand-in. No production catalog entry or unit is implied.
+  `services/status-aggregator/`,
   `services/mission-trust/`, `services/service-controller/` and
   `services/gateways/` are approved but blocked on trades that have not closed,
   and `AGENTS.md` forbids implementing them to make a scenario pass.

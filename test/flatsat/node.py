@@ -113,6 +113,7 @@ class FlatSatNode:
         self,
         region_profile: Path,
         mission_package: Path,
+        catalog_path: Path,
         radio: RadioState,
         power: PowerReadings,
         thermal: ThermalReadings,
@@ -133,6 +134,7 @@ class FlatSatNode:
         """Compose a node from a region profile, a mission package and fakes."""
         self._region_profile = region_profile
         self._mission_package = mission_package
+        self._catalog_path = catalog_path
         self._radio = radio
         self._power = power
         self._thermal = thermal
@@ -211,7 +213,12 @@ class FlatSatNode:
         self._shared_services = {}
         self._admitted = set()
 
+        original_catalog = gen_config.CATALOG_PATH
         try:
+            # The flat-sat's service plane is a named stand-in. Point the real
+            # generator at its test-only catalog for this call, then restore the
+            # production catalog even when configuration is refused.
+            gen_config.CATALOG_PATH = self._catalog_path
             self._params = gen_config.generate(
                 str(self._region_profile), self._mission_package, None
             )
@@ -220,6 +227,8 @@ class FlatSatNode:
             self._params = None
             self._config_error = str(exc)
             resolved = False
+        finally:
+            gen_config.CATALOG_PATH = original_catalog
 
         # Configuration resolution gates radio bring-up. A node that cannot
         # resolve a lawful channel does not transmit: os/config/README.md makes
