@@ -141,9 +141,10 @@ findings:
     dependencies: [BASE-01]
     owner: Claude
     reviewer: gap08_verifier
-    state: IMPLEMENTED
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-08/implementation.md"
+      - "docs/evidence/findings/GAP-08/closure.md"
     user_gate: "Resolve any conflict between controlling records"
 
   - <<: *open_independent

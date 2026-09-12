@@ -73,6 +73,12 @@ prefixes, for the reason `FML-ADR-060` gave: two interfaces in one subnet cannot
 be routed between. **That condition does not affect the keyed-mesh decision**,
 which is independent of addressing.
 
+**Update 2026-09-11:** `TBR-NET-01` has closed (`FML-ADR-063` selects a
+per-deployment, generated IPv4 prefix), so the liaison's addressing precondition
+is now met. This is recorded, not acted on: MULE v1 still ships no liaison, and
+scheduling one is separate work. The keyed-mesh decision and this ADR's
+`SELECTED` status are unchanged.
+
 ## Consequences
 
 Two deployments that both hold one credential merge automatically when they meet.
