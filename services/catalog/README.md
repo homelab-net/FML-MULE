@@ -2,7 +2,10 @@
 
 The set of services approved to run on a MULE node, and what each one is for.
 
-**Empty. No service has been approved, because no service has been selected.**
+**Two entries: `opentakserver` and `martin`** (`catalog.yml`, `FML-ADR-078`).
+Each is approved as a *catalog contract* -- this node may run this service -- not
+as a deployable build: their image digests and measured resource envelopes carry
+`TBD` until `TBR-COMP-01`, `TBR-MAP-01` and the OpenTAKServer build close.
 
 ## Why a catalog exists
 

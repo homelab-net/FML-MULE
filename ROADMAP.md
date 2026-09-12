@@ -28,8 +28,10 @@ must not include it.
 A milestone that requires two nodes requires two of everything, and doubles the
 hardware needed before anyone sees anything work. A milestone that includes the
 mesh depends on `TBR-LINUX-01`, which needs hardware nobody has, which is why it
-has not started. A milestone that includes the mission-service plane depends on
-`TBR-TAK-01`, which is open.
+has not started. A milestone that includes the mission-service plane needs more than v0.0.1
+carries: the durable TAK-state boundary it rests on is now decided
+(`TBR-TAK-01`, closed under `FML-ADR-071`), but the deployable service path is
+not yet built.
 
 `v0.0.1` is scoped to what can be finished, so that it is finished.
 

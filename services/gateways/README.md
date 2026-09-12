@@ -93,10 +93,10 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
 
   It performs **no translation**, which is what this component is for. It does
   not read a payload, address a recipient, map a callsign to a member, or move
-  anything between planes. The addressing those would need is `TBR-NET-02`,
-  which is open;
-  `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` specifies it
-  and deliberately implements none of it.
+  anything between planes. The addressing those would need is specified by
+  `TBR-NET-02` (now closed);
+  `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` specifies it,
+  and this component deliberately implements none of it.
 
   The interface it reads through, `LoRaPlane`, is in `test/flatsat/` rather
   than `mule/`, because condition 4 keeps an interface whose shape an open

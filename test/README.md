@@ -141,6 +141,7 @@ about physical behaviour.
 | Ansible playbook syntax | `ansible-playbook --check` |
 | Secrets | `gitleaks` |
 
-There is no application code to test, because none has been written. See
-`AGENTS.md`: build system before application code, and the four placeholder
-services must not be implemented.
+The node's decision logic lives in `mule/` and is exercised by the flat-sat
+here. There is no *service* application code: per `AGENTS.md`, build system
+before application code, and the four placeholder services must not be
+implemented until their blocking trades close.
