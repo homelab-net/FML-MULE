@@ -1,0 +1,49 @@
+---
+# The set of services approved to run on a MULE node. FML-ADR-078.
+#
+# This is the machine-readable form of the catalog described in README.md. A
+# mission package may only enable a service that has an entry here; a separate
+# validator (tools/validate-catalog.py) enforces that, which the mission JSON
+# schema cannot.
+#
+# Trade-blocked fields carry the string "TBD" and name the trade that will
+# supply the value, the same discipline region profiles use. A TBD here is an
+# honest "not measured or not selected yet", never a placeholder number. An
+# entry is approved as a *catalog contract* -- this node may run this service --
+# not as a claim that its image digest or resource envelope is settled.
+services:
+  - name: opentakserver
+    purpose: "The TAK server a phone connects to for situational awareness."
+    # No complete official OCI image is published upstream; a digest-pinned
+    # build must be defined before deployment. TBR-TAK-01, and see
+    # docs/prior-art/opentakserver.md.
+    image: TBD
+    upstream:
+      project: OpenTAKServer
+      url: "https://github.com/brian7704/OpenTAKServer"
+      license: "GPL-3.0-or-later"
+    # Target is rootless under Podman (FML-ADR-029); the hardening review is open.
+    rootless: TBD
+    # Measured memory and CPU under representative load. TBR-COMP-01.
+    resource_envelope: TBD
+    exposed_to: [eud_ap, mesh]
+    # OTS holds mission-critical TAK state that must survive node loss. The
+    # durable set is decided: TBR-TAK-01 closed under FML-ADR-071.
+    durable_state: true
+
+  - name: martin
+    purpose: "Serves the local map tiles to an EUD as z/x/y (FML-ADR-073)."
+    # A digest-pinned Martin image was exercised on the 2026-09-06 bench, but the
+    # release digest to field is not finalised. TBR-MAP-01.
+    image: TBD
+    upstream:
+      project: Martin
+      url: "https://github.com/maplibre/martin"
+      license: "MIT OR Apache-2.0"
+    rootless: true
+    # SIMULATED bench measured ~8.5 MB idle / 27-30 MB peak RSS on x86-64, which
+    # is not a target-hardware figure. TBR-COMP-01.
+    resource_envelope: TBD
+    exposed_to: [eud_ap]
+    # Map/tile/cache state is not TAK-server state and need not survive node loss.
+    durable_state: false

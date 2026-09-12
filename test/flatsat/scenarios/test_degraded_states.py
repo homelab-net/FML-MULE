@@ -37,7 +37,7 @@ UNRESOLVABLE_REGION = REPO_ROOT / "regions" / "us-915" / "profile.yml"
 
 #: One of the services mission/examples/valid-full.json enables, under the
 #: local domain that package names.
-SERVICE = "example-service-a.example.invalid"
+SERVICE = "opentakserver.example.invalid"
 
 
 # --- thermal -------------------------------------------------------------

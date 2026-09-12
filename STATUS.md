@@ -56,6 +56,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-075` | A node's active bearer set is declared node data and scopes which configuration targets must resolve | TBR-RF-01, TBR-RF-02, TBR-RF-03 |
 | `FML-ADR-076` | The operator WAN answer is the undetermined-capable mode value, not a boolean | none |
 | `FML-ADR-077` | An unknown radio enumeration is a distinct fault and the node fails closed | none |
+| `FML-ADR-078` | A node runs only services the catalog approves, and the catalog is machine-checked | TBR-COMP-01, TBR-MAP-01 |
 
 ### SELECTED PRINCIPLE
 

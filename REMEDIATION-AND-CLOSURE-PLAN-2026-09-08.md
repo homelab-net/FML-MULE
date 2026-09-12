@@ -241,7 +241,7 @@ session; “independent agent” means a separate review session that did not im
 | BASE-02 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | None; verification did not change product behavior             |
 | OSS-01  |       P0 | BASELINED     | Codex       | `/root/gap01_verifier` passed 21/28       | Registry structure approved by project owner on 2026-09-09     |
 | GAP-01  |       P0 | VERIFIED      | Codex       | gap01_verifier passed                     | Decide size and nesting limits before closure                  |
-| GAP-02  |       P0 | OPEN          | Agent       | Independent agent                         | Approve catalog contract or service selection                  |
+| GAP-02  |       P0 | IMPLEMENTED   | Claude      | gap02_verifier                            | Approve catalog contract or service selection                  |
 | GAP-03  |       P0 | CLOSED        | Claude      | gap030507_verifier                        | Approve any unspecified address semantics                      |
 | GAP-04  |       P0 | CLOSED        | Claude      | gap0406_verifier                          | Approve capability/target model                                |
 | GAP-05  |       P0 | CLOSED        | Claude      | gap030507_verifier                        | Approve unknown/failure semantics                              |

@@ -28,8 +28,8 @@ from ..node import REPO_ROOT
 #: reading the package, not as configuration: if the package changes, this
 #: assertion is meant to fail.
 EXPECTED_SERVICES = {
-    "example-service-a.example.invalid",
-    "example-service-b.example.invalid",
+    "opentakserver.example.invalid",
+    "martin.example.invalid",
 }
 
 

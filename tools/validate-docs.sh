@@ -26,6 +26,7 @@
 #  20. Every prior-art candidate and evaluation record satisfies its schema.
 #  21. Every remediation finding and closure packet satisfies its declared schema.
 #  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
+#  23. The service catalog is valid and every enabled service resolves to it.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
@@ -943,6 +944,12 @@ for wf in .github/workflows/*.yml; do
   fi
 done
 info "$probe_pin_checked workflow(s) sourcing toolchain pins checked for a matching trigger path"
+
+# --- 23: the service catalog is valid and enforced --------------------------
+printf 'Service catalog\n'
+if ! python3 tools/validate-catalog.py "$ROOT"; then
+  fail "the service catalog or a mission example violates it"
+fi
 
 # --- result -----------------------------------------------------------------
 printf '\n'

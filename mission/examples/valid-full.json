@@ -17,8 +17,8 @@
   },
   "profile": "exercise",
   "services": [
-    "example-service-a",
-    "example-service-b"
+    "opentakserver",
+    "martin"
   ],
   "trust": {
     "trust_anchor_ref": "example-trust-anchor-reference-not-material"

@@ -62,6 +62,19 @@ from mule.mission import (  # noqa: E402
 
 REGIONS_DIR = REPO_ROOT / "regions"
 NODES_DIR = REPO_ROOT / "nodes"
+CATALOG_PATH = REPO_ROOT / "services" / "catalog" / "catalog.yml"
+
+
+def _catalog_names() -> set[str]:
+    """Return the set of service names approved in the catalog (FML-ADR-078).
+
+    A mission may only enable a service that has a catalog entry; this is the
+    enforcement the mission JSON schema names but cannot perform itself.
+    """
+    with CATALOG_PATH.open(encoding="utf-8") as handle:
+        catalog = yaml.safe_load(handle)
+    return {entry["name"] for entry in catalog.get("services", [])}
+
 
 #: Marker for a value the program has not determined. Never a default.
 TBD = "TBD"
@@ -274,6 +287,20 @@ def resolve(
     block is not emitted.
     """
     selected = list(REQUIRED) if active is None else active
+
+    # A node runs only services the catalog approves. FML-ADR-078: the mission
+    # schema requires this but cannot check it, so resolution refuses a package
+    # that enables a service with no catalog entry rather than generating config
+    # for one.
+    enabled = list(mission.get("services", []))
+    unknown = [name for name in enabled if name not in _catalog_names()]
+    if unknown:
+        message = (
+            f"mission enables service(s) with no catalog entry: "
+            f"{', '.join(str(name) for name in unknown)}. Every enabled service "
+            "must have an entry in services/catalog/catalog.yml (FML-ADR-078)."
+        )
+        raise ConfigError(message)
 
     for dotted in REGION_IDENTITY:
         value = _get(region, dotted)

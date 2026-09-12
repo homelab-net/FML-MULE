@@ -20,7 +20,7 @@ from ..conftest import EUD, NodeFactory
 from ..fakes import FakeClock
 
 #: One of the services mission/examples/valid-full.json enables.
-SERVICE = "example-service-a.example.invalid"
+SERVICE = "opentakserver.example.invalid"
 
 DEGRADING_CLOCKS = [
     FakeClock.restored_from_shutdown,

@@ -55,18 +55,23 @@ findings:
     evidence: []
     user_gate: "Decide size and nesting limits before closure"
 
-  - &open_independent
-    id: GAP-02
-    title: "Enforce the service catalog"
-    severity: P0
-    parent: null
-    owner: Agent
-    reviewer: Independent agent
-    verification: independent
-    dependencies: [BASE-01, OSS-01]
-    state: OPEN
-    evidence: []
-    user_gate: "Approve catalog contract or service selection"
+  - <<: &open_independent
+      id: GAP-02
+      title: "Enforce the service catalog"
+      severity: P0
+      parent: null
+      owner: Agent
+      reviewer: Independent agent
+      verification: independent
+      dependencies: [BASE-01, OSS-01]
+      state: OPEN
+      evidence: []
+      user_gate: "Approve catalog contract or service selection"
+    owner: Claude
+    reviewer: gap02_verifier
+    state: IMPLEMENTED
+    evidence:
+      - "docs/evidence/findings/GAP-02/implementation.md"
 
   - <<: *open_independent
     id: GAP-03
