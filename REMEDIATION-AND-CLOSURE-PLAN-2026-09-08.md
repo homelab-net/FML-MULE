@@ -247,7 +247,7 @@ session; “independent agent” means a separate review session that did not im
 | GAP-05  |       P0 | CLOSED        | Claude      | gap030507_verifier                        | Approve unknown/failure semantics                              |
 | GAP-06  |       P0 | CLOSED        | Claude      | gap0406_verifier                          | Approve status semantics and controlling ADR                   |
 | GAP-07  |       P1 | CLOSED        | Claude      | gap030507_verifier                        | None unless required-check policy changes                      |
-| GAP-08  |       P1 | IMPLEMENTED   | Claude      | gap08_verifier                            | Resolve any conflict between controlling records               |
+| GAP-08  |       P1 | CLOSED        | Claude      | gap08_verifier                            | Resolve any conflict between controlling records               |
 | ENV-01  |       P0 | OPEN          | Agent       | Independent agent                         | Authorize remote ownership/destructive cleanup separately      |
 | ENV-02  |       P3 | OPEN          | Agent       | Independent agent                         | Decide supported checkout platforms                            |
 | GAP-09  |       P1 | OPEN          | Agent       | Independent agent plus milestone operator | Approve every component/architecture selection                 |
