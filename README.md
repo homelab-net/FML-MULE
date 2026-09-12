@@ -40,8 +40,9 @@ Concretely, as of now:
 - **No hardware has been selected.** Not the compute module, not the enclosure,
   not the battery, not the antennas. No bill of material exists.
 - **No image has ever been built.** No node has ever been assembled or booted.
-- **Nothing has been tested.** Every status claim in this repository reads
-  `UNVERIFIED`, because it is.
+- **Nothing has met hardware.** No status claim reads `HARDWARE-VERIFIED`.
+  Claims are `UNVERIFIED`, or `SIMULATED` where they were exercised end to end
+  against fakes on the flat-sat; simulation says nothing about physical behaviour.
 - **No number in this repository is a measurement.** No endurance figure, no
   range, no throughput, no power budget, no temperature. Where a value is
   unknown it reads `TBD` and cites the trade that will decide it. Any figure you
@@ -88,8 +89,9 @@ Read in this order. Each part assumes the one before it.
 4. **[`docs/adr/`](docs/adr/)** — the **30 controlling decisions**, each with a
    permanent `FML-ADR-###` identifier, a status, its consequences, and its
    accepted cost.
-5. **[`docs/trades/`](docs/trades/)** — the **16 open trades**, each with a
-   function owner, a priority and a closure gate.
+5. **[`docs/trades/`](docs/trades/)** — the **open trades**, each with a
+   function owner, a priority and a closure gate. `STATUS.md` carries the current
+   count and criticality; this list does not hardcode a number that would rot.
 6. **[`docs/NON-GOALS.md`](docs/NON-GOALS.md)** — what the program deliberately
    does not do, from CONOPS section 81. Read it before proposing anything.
 7. **[`STATUS.md`](STATUS.md)** — the generated current view. Never hand-edited.
@@ -100,7 +102,8 @@ summary of every rule here.
 
 ## The open critical trades
 
-**Sixteen trades are open. Every one of them is unowned.**
+**Most trades are still open pre-PDR.** `STATUS.md` carries the current open
+count, the critical path, and the one trade still unowned.
 
 Four are marked `CRITICAL` in the SAD, and the SAD's priority ordering puts the
 power, compute and thermal characterization first, because those three bound the
@@ -129,7 +132,7 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 
 | Path | Contents |
 | --- | --- |
-| `docs/` | The design record: CONOPS v1.01, SAD v0.31, 30 decisions, 16 trades, verification, evidence, fork ledger, change requests. |
+| `docs/` | The design record: CONOPS v1.01, SAD v0.31, the decision and trade registers, verification, evidence, fork ledger, change requests. |
 | `regions/` | Regulatory profiles. Region is an input to configuration, never a constant. |
 | `hardware/` | Qualified hardware blocks, lifecycle register, prototype and test BOM. Nothing selected. |
 | `mule/` | What the node decides while running: the clock, admission, services, status. One small module per question. `FML-ADR-051`. |

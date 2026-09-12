@@ -1,9 +1,8 @@
 # Python project configuration for the FERAL MULE repository.
 #
-# There is no Python package to build here yet. This file exists to pin the
-# minimum interpreter version and to configure ruff, so that the first Python
-# code to land arrives into working tooling rather than into a promise that
-# tooling will be added.
+# This file does not build a distributable package. It pins the minimum
+# interpreter version and configures ruff for the Python that the node runs
+# (mule/) and the repository tooling (tools/, test/).
 
 [project]
 name = "fml-mule-tools"

@@ -611,3 +611,18 @@ REQ
   [[ "$output" == *"does not list it in its trigger paths"* ]]
   [[ "$output" == *"lora-probe.yml"* ]]
 }
+
+@test "validate-docs catches the trades page stating a closed trade as open" {
+  make_sandbox
+  # GAP-08: docs/trades/README.md is hand-maintained, so its status table drifts
+  # from the authoritative trade records when a trade closes. Flip a CLOSED
+  # trade's table cell back to OPEN and the check must fire.
+  target="$SANDBOX/docs/trades/README.md"
+  grep -q '`TBR-TAK-01`' "$target"
+  sed -i "/\`TBR-TAK-01\`/ s/\`CLOSED\`/\`OPEN\`/" "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"contradicts a trade record"* || "$output" == *"but its record is"* ]]
+  [[ "$output" == *"TBR-TAK-01"* ]]
+}

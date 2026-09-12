@@ -139,6 +139,11 @@ findings:
     title: "Eliminate documentation decision drift"
     severity: P1
     dependencies: [BASE-01]
+    owner: Claude
+    reviewer: gap08_verifier
+    state: IMPLEMENTED
+    evidence:
+      - "docs/evidence/findings/GAP-08/implementation.md"
     user_gate: "Resolve any conflict between controlling records"
 
   - <<: *open_independent

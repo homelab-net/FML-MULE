@@ -119,13 +119,13 @@ Ordered by SAD section 30.2 priority. `STATUS.md` carries the generated view.
 | 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `TBD-SRR` | partly | no |
 | 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `TBD-SRR` | yes | no |
 | 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `TBD-SRR` | yes | no |
-| 9 | `TBR-TAK-01` | Mission-critical state boundary | `OPEN` | TAK + SRE | `TBD-SRR` | no | **yes** |
+| 9 | `TBR-TAK-01` | Mission-critical state boundary | `CLOSED` | TAK + SRE | Cameron Zobrist | no | **yes** |
 | 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `TBD-SRR` | yes | no |
 | 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `TBD-SRR` | yes | no |
 | 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `TBD-SRR` | partly | no |
 | 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `TBD-SRR` | yes | no |
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no | no |
-| 15 | `TBR-NET-01` | Field address prefix | `OPEN` | Network | `TBD-SRR` | no | no |
+| 15 | `TBR-NET-01` | Field address prefix | `CLOSED` | Network | Cameron Zobrist | no | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes | no |
 
 ### Raised after the SAD register
@@ -138,27 +138,24 @@ register drifts from the directory it describes.
 
 | ID | Question | Status | Function owner | Named owner | HW | Feeds |
 | --- | --- | --- | --- | --- | --- | --- |
-| `TBR-NET-02` | How does a node address the EUDs behind it | `OPEN` | Network | Cameron Zobrist | no | `TBR-ID-01` |
-| `TBR-NET-03` | How do two deployments converge on one mesh | `OPEN` | Network | Cameron Zobrist | no | `TBR-NET-01` |
+| `TBR-NET-02` | How does a node address the EUDs behind it | `CLOSED` | Network | Cameron Zobrist | no | `TBR-ID-01` |
+| `TBR-NET-03` | How do two deployments converge on one mesh | `CLOSED` | Network | Cameron Zobrist | no | `TBR-NET-01` |
 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or a framework | `OPEN` | Network | Cameron Zobrist | partly | `CCR-03` |
 
 ## What can be worked without hardware
 
-Four trades need no hardware, and one of them is `CRITICAL`:
+Three of the design-and-analysis trades that needed no hardware are now
+**closed**, with evidence under their `docs/evidence/` directories:
 
-- **`TBR-TAK-01`, mission-critical state boundary.** Priority 9 and marked
-  `CRITICAL`. A design and analysis trade, resolvable against documentation,
-  protocol behaviour and reasoning about partition, running against fakes on an
-  ordinary laptop. `TBR-HA-01` and `FML-ADR-034` both wait on it. **This is the
-  highest-value work available to a contributor who owns no node.**
-- **`TBR-NET-01`, field address prefix.** Whether to retain `10.41.0.0/16`. The
-  collision case can be exercised with virtual interfaces, and has been:
-  `docs/evidence/TBR-NET-01/`.
-- **`TBR-NET-03`, how two deployments converge on one mesh.** Analysis, plus an
-  exercise on virtual interfaces. **Read this before `TBR-NET-01`.** `mesh_id`
-  separates deployments by construction, so converging is the event that makes
-  the address collision reachable at all; assessing the prefix first assesses a
-  consequence before establishing that its cause can occur.
+- **`TBR-TAK-01`, mission-critical state boundary.** Closed under `FML-ADR-071`:
+  the boundary is the SQL backend plus the out-of-SQL durable set.
+- **`TBR-NET-01`, field address prefix.** Closed; the prefix is per-deployment
+  (`FML-ADR-063`), the collision case exercised on virtual interfaces.
+- **`TBR-NET-03`, how two deployments converge on one mesh.** Closed; `mesh_id`
+  separates deployments by construction.
+
+One no-hardware trade remains open:
+
 - **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
   offline login against fakes.
 

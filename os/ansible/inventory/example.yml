@@ -8,9 +8,9 @@
 #
 # Copy this file to a path under mission/local/ (git-ignored) for real use.
 #
-# Addressing is not decided. TBR-NET-01 is open: address family, prefix source,
-# and host allocation are all TBD. The addresses below are documentation-range
-# placeholders, not a proposed scheme.
+# Addressing is per-deployment: TBR-NET-01 closed under FML-ADR-063 -- the prefix
+# is a per-deployment IPv4 CIDR, generated, not a program-wide constant. The
+# addresses below are documentation-range placeholders, not a proposed scheme.
 
 mule_nodes:
   hosts:

@@ -27,6 +27,7 @@
 #  21. Every remediation finding and closure packet satisfies its declared schema.
 #  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
 #  23. The service catalog is valid and every enabled service resolves to it.
+#  24. The trades page states each trade the way its record does (GAP-08).
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
@@ -949,6 +950,12 @@ info "$probe_pin_checked workflow(s) sourcing toolchain pins checked for a match
 printf 'Service catalog\n'
 if ! python3 tools/validate-catalog.py "$ROOT"; then
   fail "the service catalog or a mission example violates it"
+fi
+
+# --- 24: the trades page states each trade the way its record does ----------
+printf 'Trade states\n'
+if ! python3 tools/validate-trade-states.py "$ROOT"; then
+  fail "docs/trades/README.md contradicts a trade record's status (GAP-08)"
 fi
 
 # --- result -----------------------------------------------------------------
