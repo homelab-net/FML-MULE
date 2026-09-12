@@ -1,6 +1,6 @@
 # FML-MULE Remediation and Verifiable Closure Plan
 
-**Plan date:** 2026-09-08 **Revision:** 13 — OSS-01 independently closed
+**Plan date:** 2026-09-08 **Revision:** 14 — OSS-01 and GAP-02 independently closed
 **Basis:** `CODEBASE-REPORT-2026-09-08.md` **Source commit:**
 `d849ed40ff5bdbeef2def3eb6f982762768764c1` (verified against GitHub `main` on 2026-09-08) **Scope:**
 Every code, integration, documentation, deployment, security, and workspace issue identified during
@@ -241,7 +241,7 @@ session; “independent agent” means a separate review session that did not im
 | BASE-02 |       P0 | CLOSED        | Codex       | `/root/gap01_verifier` passed             | None; verification did not change product behavior             |
 | OSS-01  |       P0 | CLOSED        | Codex       | `/root/oss_gap02_closure_verifier` passed | Registry structure approved by project owner on 2026-09-09     |
 | GAP-01  |       P0 | VERIFIED      | Codex       | gap01_verifier passed                     | Decide size and nesting limits before closure                  |
-| GAP-02  |       P0 | IMPLEMENTED   | Claude      | gap02_verifier                            | Approve catalog contract or service selection                  |
+| GAP-02  |       P0 | CLOSED        | Codex       | `/root/oss_gap02_closure_verifier` passed | No production service enabled; future selection remains gated  |
 | GAP-03  |       P0 | CLOSED        | Claude      | gap030507_verifier                        | Approve any unspecified address semantics                      |
 | GAP-04  |       P0 | CLOSED        | Claude      | gap0406_verifier                          | Approve capability/target model                                |
 | GAP-05  |       P0 | CLOSED        | Claude      | gap030507_verifier                        | Approve unknown/failure semantics                              |
@@ -445,6 +445,14 @@ Quadlet; multiple records with the same name.
 **Closure gates:** 100% of accepted service references resolve uniquely; all adversarial entries
 fail closed; removing catalog enforcement is caught by tests or mutation testing; catalog-to-unit
 referential integrity is checked in CI.
+
+**Execution note, 2026-09-12:** the catalog schema and runtime now enforce enabled state, unique
+canonical names and aliases, exact existing Quadlet references, and ownership of every loadable
+production unit. Operator `--check` applies the same rules. OpenTAKServer and Martin remain disabled
+contracts with no unit, and the flat-sat uses explicit synthetic stand-ins. Independent verification
+reproduced 251 focused tests, 5/5 focused mutations, 107/107 full mutations, 100% `mule/` coverage,
+and both duplicate-record and disabled-service CLI failures. GAP-02 is `CLOSED`; service selection
+and deployment remain GAP-09F/G work.
 
 ### GAP-03 — Preserve and validate `address_prefix`
 

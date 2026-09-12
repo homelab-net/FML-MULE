@@ -44,14 +44,14 @@ environment:
     - ansible-lint 26.8.0
     - ansible-core 2.21.3
     - Bats 1.10.0
-    - Node.js 22.23.2
+    - Node.js 22.22.2
     - markdownlint-cli2 0.23.2
     - ShellCheck 0.9.0
     - shfmt 3.10.0
     - gitleaks 8.30.1
 artifacts:
   - path: docs/evidence/findings/OSS-01/2026-09-12-verification.json
-    sha256: 6ee765bd21d94b7e13d546179ede4b99f958534cc8833dc108784942e01cfd60
+    sha256: 1ef2f27da8bd6faba9ead0139db7633ddee89720dfddb218be900231bf985b7b
 date: "2026-09-12"
 operator: Codex
 reviewer: /root/oss_gap02_closure_verifier

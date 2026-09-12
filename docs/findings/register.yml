@@ -69,11 +69,13 @@ findings:
       state: OPEN
       evidence: []
       user_gate: "Approve catalog contract or service selection"
-    owner: Claude
-    reviewer: gap02_verifier
-    state: IMPLEMENTED
+    owner: Codex
+    reviewer: /root/oss_gap02_closure_verifier
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-02/implementation.md"
+      - "docs/evidence/findings/GAP-02/closure.md"
+      - "docs/evidence/findings/GAP-02/2026-09-12-verification.json"
 
   - <<: *open_independent
     id: GAP-03
