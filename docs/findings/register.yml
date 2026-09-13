@@ -178,10 +178,12 @@ findings:
     parent: GAP-09
     dependencies: [BASE-01, OSS-01]
     owner: Codex
-    state: IMPLEMENTED
+    reviewer: /root/oss_gap02_closure_verifier
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-09A/execution-card.md"
       - "docs/evidence/findings/GAP-09A/2026-09-12-development-article.md"
+      - "docs/evidence/findings/GAP-09A/closure.md"
     user_gate: >-
       Intel N150 lab device approved as development-only article by the
       Program Owner in the Codex thread on 2026-09-12
