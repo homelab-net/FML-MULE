@@ -177,7 +177,16 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [BASE-01, OSS-01]
-    user_gate: "Approve the development compute article"
+    owner: Codex
+    reviewer: /root/oss_gap02_closure_verifier
+    state: CLOSED
+    evidence:
+      - "docs/evidence/findings/GAP-09A/execution-card.md"
+      - "docs/evidence/findings/GAP-09A/2026-09-12-development-article.md"
+      - "docs/evidence/findings/GAP-09A/closure.md"
+    user_gate: >-
+      Intel N150 lab device approved as development-only article by the
+      Program Owner in the Codex thread on 2026-09-12
 
   - <<: *open_independent
     id: GAP-09B
@@ -185,7 +194,17 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-09A, OSS-01]
-    user_gate: "Approve the base-image mechanism"
+    owner: Codex
+    reviewer: /root/gap09b_final_verifier
+    state: CLOSED
+    evidence:
+      - "docs/evidence/findings/GAP-09B/decision-packet.md"
+      - "docs/evidence/findings/GAP-09B/execution-card.md"
+      - "docs/evidence/findings/GAP-09B/2026-09-13-implementation.md"
+      - "docs/evidence/findings/GAP-09B/closure.md"
+    user_gate: >-
+      Debian 13 and Debian mkosi 25.3-7 approved by the Program Owner in the
+      Codex thread on 2026-09-12
 
   - <<: *open_independent
     id: GAP-09C

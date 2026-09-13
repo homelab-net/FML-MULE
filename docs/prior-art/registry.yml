@@ -1,7 +1,7 @@
 ---
 schema_version: "1.0"
 source_plan: REMEDIATION-AND-CLOSURE-PLAN-2026-09-08.md
-verification_date: "2026-09-11"
+verification_date: "2026-09-13"
 supporting_documents: []
 candidates:
   - id: project-nomad
@@ -2906,3 +2906,117 @@ candidates:
     exit_strategy: Replace the complete compatibility set behind the standard radio interface.
     decision_questions:
       - Does the selected module satisfy the binary and BCF license restrictions?
+  - id: mkosi
+    project: mkosi
+    canonical_upstreams:
+      - https://github.com/systemd/mkosi
+      - https://packages.debian.org/trixie/mkosi
+    state: APPROVED
+    evaluation_document: docs/prior-art/mkosi.md
+    evaluation_date: "2026-09-13"
+    evaluated_artifacts:
+      - kind: git
+        source: https://github.com/systemd/mkosi
+        version: v25.3
+        immutable_id: 54c625c380ef5500f17460981a3c67b109b6a847
+        verified_on: "2026-09-12"
+      - kind: package
+        source: https://packages.debian.org/trixie/mkosi
+        version: 25.3-7
+        immutable_id: 25.3-7
+        verified_on: "2026-09-12"
+    license:
+      declared: LGPL-2.1-or-later with identified GPL-2.0-only, PSF-2.0, and OFL-1.1 files
+      source: >-
+        https://github.com/systemd/mkosi/blob/54c625c380ef5500f17460981a3c67b109b6a847/REUSE.toml
+      compatibility: compatible
+      bundled_dependencies: partial
+      notes: >-
+        The packaged build tool is not linked into the MULE image; every image
+        package still requires GAP-09C license and SBOM review.
+    maintenance:
+      release_cadence: >-
+        Upstream v25.3, v26, and v27 releases span 2025-02-01 through
+        2026-08-27; Debian 13 retains the v25.3 line with distribution patches.
+      latest_release_date: "2026-08-27"
+      last_commit_date: null
+      issue_backlog: null
+      bus_factor: >-
+        The systemd-maintained project has multiple contributors; no numeric
+        bus-factor claim was established for the selected Debian patch set.
+      sources:
+        - https://github.com/systemd/mkosi/releases
+        - https://github.com/systemd/mkosi/graphs/contributors
+        - https://tracker.debian.org/pkg/mkosi
+    platform:
+      hardware: [Root-capable Linux image build host; no MULE hardware requirement]
+      operating_systems: [Debian 13 target, supported Linux build hosts]
+      architectures: [x86-64 selected for GAP-09B, arm64 supported but not selected]
+      sources:
+        - https://packages.debian.org/trixie/mkosi
+        - >-
+          https://github.com/systemd/mkosi/blob/54c625c380ef5500f17460981a3c67b109b6a847/mkosi/resources/man/mkosi.1.md
+    resources: {status: not-measured, measurements: []}
+    runtime:
+      ports: [No listening service port]
+      privileges: [Root-capable image and loop-device operations for disk builds]
+      capabilities: [APT orchestration, GPT disk creation, systemd boot integration]
+      mounts: [Source tree, package cache, image output directory]
+      secrets: [Optional credential inputs exist upstream but are not used by MULE]
+      authentication: Build-time tool only; it supplies no node authentication boundary.
+      update_behavior: >-
+        Change the exact Debian package pin and rebuild as a new candidate; no
+        branch head, mutable tag, or automatic builder update is accepted.
+      sources:
+        - >-
+          https://github.com/systemd/mkosi/blob/54c625c380ef5500f17460981a3c67b109b6a847/mkosi/resources/man/mkosi.1.md
+        - >-
+          https://github.com/systemd/mkosi/blob/54c625c380ef5500f17460981a3c67b109b6a847/mkosi/distributions/debian.py
+    data:
+      formats: [Raw GPT disk image, JSON package manifest, SHA-256 file, package cache]
+      persistence: >-
+        Source-controlled configuration and pins are durable; cache and output
+        artifacts remain outside Git and are retained by the release process.
+      backup: >-
+        Preserve the package closure and produced artifacts with their hashes;
+        the source tree alone cannot recreate an unavailable package payload.
+      migration: >-
+        A builder or snapshot change creates a new candidate image and cannot
+        overwrite the identity of an earlier artifact.
+      sources:
+        - >-
+          https://github.com/systemd/mkosi/blob/54c625c380ef5500f17460981a3c67b109b6a847/mkosi/resources/man/mkosi.1.md
+    security:
+      reviewed_on: "2026-09-12"
+      advisory_sources: [https://github.com/systemd/mkosi/security/advisories]
+      known_advisories: []
+      audit_status: No independent security audit was identified for the selected release.
+      sbom_status: >-
+        Upstream source licensing is machine-declared; the Debian package and
+        produced image SBOM remain GAP-09C work.
+    mappings:
+      requirements: [FML-REQ-001]
+      findings: [OSS-01, GAP-09, GAP-09B]
+    reuse:
+      mode: adopt
+      rationale: >-
+        The selected tool directly supplies the source-controlled Debian raw
+        disk and cache-only build mechanism required by FML-ADR-079.
+      approval_ref: >-
+        Program Owner approval in the Codex thread on 2026-09-12: retain
+        Debian 13 and use Debian mkosi 25.3-7 for the development image.
+    prototype:
+      status: not-run
+      commands:
+        - tools/build-image.sh --check
+        - sudo tools/build-image.sh --populate-cache
+        - sudo tools/build-image.sh --offline
+      evidence: [docs/prior-art/mkosi.md]
+      gaps:
+        - GAP-09C package manifest is empty
+        - No raw image has been built or booted
+        - Offline and bit-identity claims have not been demonstrated
+    exit_strategy: >-
+      Preserve the Debian snapshot and package manifest contract and replace
+      mkosi through a superseding ADR, with debos as the first fallback.
+    decision_questions: []

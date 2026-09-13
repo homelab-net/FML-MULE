@@ -1,7 +1,8 @@
 # Pinned package manifest for the MULE image.
 #
-# STATUS: EMPTY. No package set has been selected, because no userland release
-# and no kernel have been selected. See TBR-LINUX-01 and FML-ADR-022.
+# STATUS: EMPTY. FML-ADR-079 selects Debian 13 and mkosi for the x86-64
+# development image, but GAP-09C has not selected the exact package set or
+# kernel package. Production compatibility remains TBR-LINUX-01.
 #
 # THE PINNING RULE
 #
@@ -39,8 +40,8 @@
 
 # WHAT IS ALREADY KNOWN TO BE REQUIRED
 #
-# No package can be pinned yet, because no kernel or userland release is
-# selected. These are recorded so that whoever pins them does not have to
+# No package is pinned yet because GAP-09C requires a separate owner-approved
+# package set. These are recorded so that whoever pins them does not have to
 # rediscover them, and because one of them was found the hard way.
 #
 #   batman-adv (KERNEL MODULE, not a package of its own)

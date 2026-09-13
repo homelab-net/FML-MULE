@@ -44,6 +44,7 @@ REQUIRED_CANDIDATES = (
     "kolibri",
     "martin",
     "meshtastic",
+    "mkosi",
     "morse-micro-driver",
     "morse-micro-firmware",
     "nftables",

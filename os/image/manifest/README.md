@@ -11,8 +11,9 @@ The human-readable summary of the compatibility set lives in
 a defect. The split is deliberate: `PINS.md` is what a person reads to
 understand a set, and the files here are what a build consumes.
 
-**Nothing is pinned.** No userland release, no kernel, and no package set has
-been selected. See `TBR-LINUX-01` and `FML-ADR-022`.
+**No packages are pinned.** `FML-ADR-079` selects Debian 13 and mkosi for the
+x86-64 development image, but GAP-09C has not selected the package set or
+kernel package. Production compatibility remains `TBR-LINUX-01`.
 
 ## The pinning rule
 
