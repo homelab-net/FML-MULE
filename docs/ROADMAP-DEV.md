@@ -645,8 +645,10 @@ firewall rules match the EUD prefix to the general uplink, never the overlay.
 
 ## Track 2 — hardware
 
-**State:** unchanged. No hardware selected, no image built, nothing in this
-repository has met a radio.
+**State:** an Intel N150 system is selected as a development-only article under
+GAP-09A, and GAP-09B now defines the Debian mkosi image mechanism. No production
+hardware is selected, no image is built, and nothing in this repository has met
+a radio.
 
 **What the purchase should be made against.** `docs/readings.md` carries the
 selection criteria that come from software rather than from the SAD, and they

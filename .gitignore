@@ -34,6 +34,9 @@ out/
 *.squashfs
 *.deb
 *.rpm
+os/image/mkosi.cache/
+os/image/mkosi.pkgcache/
+os/image/mkosi.output/
 
 # Kernel and driver build residue.
 *.ko

@@ -921,13 +921,19 @@ if ! python3 tools/validate-prior-art.py "$ROOT"; then
   fail "the prior-art registry or an evaluation record is invalid"
 fi
 
-# --- 21: remediation findings and closure packets ---------------------------
+# --- 21: development-image inputs -------------------------------------------
+printf 'Image build inputs\n'
+if ! python3 tools/validate-image.py "$ROOT"; then
+  fail "the development-image build inputs are invalid"
+fi
+
+# --- 22: remediation findings and closure packets ---------------------------
 printf 'Remediation findings\n'
 if ! python3 tools/validate-findings.py "$ROOT"; then
   fail "the remediation findings register or a closure packet is invalid"
 fi
 
-# --- 22: a probe workflow triggers on the toolchain pins it sources ---------
+# --- 23: a probe workflow triggers on the toolchain pins it sources ---------
 # A workflow that sources tools/toolchain-versions.sh reads a pinned image or
 # version from it, so a pin change alters what that workflow actually runs. If
 # the pin file is not in the workflow's trigger paths, a bump ships without the
@@ -946,13 +952,13 @@ for wf in .github/workflows/*.yml; do
 done
 info "$probe_pin_checked workflow(s) sourcing toolchain pins checked for a matching trigger path"
 
-# --- 23: the service catalog is valid and enforced --------------------------
+# --- 24: the service catalog is valid and enforced --------------------------
 printf 'Service catalog\n'
 if ! python3 tools/validate-catalog.py "$ROOT"; then
   fail "the service catalog or a mission example violates it"
 fi
 
-# --- 24: the trades page states each trade the way its record does ----------
+# --- 25: the trades page states each trade the way its record does ----------
 printf 'Trade states\n'
 if ! python3 tools/validate-trade-states.py "$ROOT"; then
   fail "docs/trades/README.md contradicts a trade record's status (GAP-08)"

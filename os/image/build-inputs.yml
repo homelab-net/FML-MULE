@@ -1,0 +1,32 @@
+---
+schema_version: "1.0"
+governing_decision: FML-ADR-079
+builder:
+  package: mkosi
+  version: 25.3-7
+  package_source: https://packages.debian.org/trixie/mkosi
+  package_sha256: ef56c81324fd47d65490e944ec4697bb3f6fb21326d0d071bfc2fb5ba5383252
+  upstream_version: v25.3
+  upstream_commit: 54c625c380ef5500f17460981a3c67b109b6a847
+  upstream_tag_object: a31ed1fc8c6901ae3ee40d458761e261adca835e
+distribution:
+  name: debian
+  release: trixie
+  architecture: x86-64
+  snapshot: "20260912T000000Z"
+  mirror: https://snapshot.debian.org/archive/debian/20260912T000000Z
+  source_date_epoch: 1789171200
+tools_tree:
+  mode: default
+  distribution: debian
+  release: trixie
+  mirror: https://snapshot.debian.org/archive/debian/20260912T000000Z
+output:
+  format: disk
+  compress_output: false
+  image_id: mule-development
+  manifest_format: json
+  seed_name: https://feral-mule.invalid/FML-ADR-079/development-image
+  seed: 0cb850a0-e8dd-5310-91f3-f9db6a8a94f9
+  bootable: true
+  bootloader: systemd-boot

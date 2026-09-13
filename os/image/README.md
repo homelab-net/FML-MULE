@@ -4,9 +4,15 @@ The image build produces the deployable artifact: a bootable root filesystem
 containing the compatibility set defined in `os/kernel/PINS.md` and
 `manifest/`.
 
-**Nothing here builds yet.** There is no build definition, because the kernel
-question in `TBR-LINUX-01` decides how the kernel enters the image, and that
-decision changes the pipeline's shape rather than one of its steps.
+`FML-ADR-079` selects Debian mkosi `25.3-7` for the Debian 13 x86-64
+development image. `build-inputs.yml` governs the builder and snapshot pins,
+`mkosi.conf` describes the raw GPT output, and `tools/build-image.sh --check`
+validates them without root.
+
+The GAP-09C package manifest is still empty, so the wrapper deliberately
+refuses `--populate-cache` and `--offline` builds. No image has been built or
+booted. The production kernel and board-support path remain open under
+`TBR-LINUX-01` and `TBR-HW-01`.
 
 ## Intended pipeline
 
@@ -15,9 +21,11 @@ is specific to this program rather than general good practice.
 
 ### Reproducible build from pinned manifests
 
-The same inputs produce the same output. Package versions come from
+The intended contract is that the same retained inputs produce the same output.
+The builder and repository snapshot are now pinned. Package versions come from
 `manifest/`, kernel and driver versions from `os/kernel/PINS.md`, and nothing
-is resolved at build time.
+may resolve from a live source at build time. GAP-09C must populate and exercise
+that remaining package closure before the claim is earned.
 
 *Why:* because a node in the field is diagnosed by its set version. If two
 builds of the same set version differ, that identifier means nothing, and the
@@ -59,8 +67,9 @@ the equipment exists. See `os/README.md`.
 ## `manifest/`
 
 Pinned package manifests. `packages.list` is present, commented, and
-deliberately **empty of packages**: there is no package set, because there is
-no selected userland release and no selected kernel.
+deliberately **empty of packages**: Debian 13 is selected for the development
+image, but the package set and kernel package remain the GAP-09C owner gate and
+`TBR-LINUX-01` production trade.
 
 The pinning rule is in the file's header comment and is repeated here because
 it is the rule most likely to be broken by someone in a hurry:
@@ -88,4 +97,18 @@ the reason belongs in the role.
 - An SBOM. See `os/release/SBOM.md`.
 - A build log, retained.
 
-None of this exists yet.
+The source-controlled mechanism and requested-output contract now exist. No
+artifact, complete package manifest, SBOM, retained build log, signature, or
+boot evidence exists yet.
+
+## Commands
+
+```sh
+tools/build-image.sh --check
+sudo tools/build-image.sh --populate-cache
+sudo tools/build-image.sh --offline
+```
+
+The first command is safe on a contributor machine. The build commands remain
+intentionally unavailable until GAP-09C places exact package versions in
+`manifest/packages.list`.

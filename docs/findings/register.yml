@@ -194,7 +194,16 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-09A, OSS-01]
-    user_gate: "Approve the base-image mechanism"
+    owner: Codex
+    reviewer: Independent agent
+    state: IMPLEMENTED
+    evidence:
+      - "docs/evidence/findings/GAP-09B/decision-packet.md"
+      - "docs/evidence/findings/GAP-09B/execution-card.md"
+      - "docs/evidence/findings/GAP-09B/2026-09-13-implementation.md"
+    user_gate: >-
+      Debian 13 and Debian mkosi 25.3-7 approved by the Program Owner in the
+      Codex thread on 2026-09-12
 
   - <<: *open_independent
     id: GAP-09C

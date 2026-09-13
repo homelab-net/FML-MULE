@@ -12,7 +12,8 @@ Equipment.
 
 **Stage: pre-PDR.** The operational concept is baselined, the architecture is
 drafted, and almost nothing is built or measured. Nothing in this repository
-has been tested. No hardware has been selected. No image has been built.
+has been hardware-verified. No production hardware has been selected. No image
+has been built.
 
 ## Decisions
 
@@ -85,6 +86,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | --- | --- | --- |
 | `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
 | `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
+| `FML-ADR-079` | mkosi builds the Debian development image | TBR-LINUX-01, TBR-HW-01 |
 
 ### PREFERRED
 

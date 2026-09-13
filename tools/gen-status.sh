@@ -82,7 +82,8 @@ Equipment.
 
 **Stage: pre-PDR.** The operational concept is baselined, the architecture is
 drafted, and almost nothing is built or measured. Nothing in this repository
-has been tested. No hardware has been selected. No image has been built.
+has been hardware-verified. No production hardware has been selected. No image
+has been built.
 
 HEADER
 

@@ -176,6 +176,11 @@ def test_prior_art_validator_exists() -> None:
     assert VALIDATOR_PATH.is_file()
 
 
+def test_selected_mkosi_builder_is_required(validator: ModuleType) -> None:
+    """A selected image builder cannot disappear from the governed corpus."""
+    assert "mkosi" in validator.REQUIRED_CANDIDATES
+
+
 def test_repository_registry_is_valid(validator: ModuleType) -> None:
     """The committed candidate corpus shall be schema-valid and complete."""
     assert validator.validate_repository(REPO_ROOT) == []
