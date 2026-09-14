@@ -68,6 +68,21 @@ configuration. Evidence gathered here is also one of the two things
 4. **No dedicated high-rate inter-node bearer**, permitted by CONOPS section 81
    if the sub-GHz bearer plus the access point meet the operational need.
 
+## Progress
+
+Two `SIMULATED` bench results (2026-09-14) advance the analysis half; neither
+closes the trade (`requires-hardware: yes`).
+
+- Multi-hop latency over `batman-adv`/hwsim: the second hop adds a small, stable
+  stack delay on a perfect wire (transport shape, not RF).
+  `docs/evidence/TBR-RF-01/2026-09-14-mesh-multihop-latency-hwsim.md`.
+- Voice-versus-data contention on one bearer: over an imposed bottleneck, a
+  voice-profile flow starves in one FIFO with bulk (latency 0.15 ms -> ~161 ms)
+  and is preserved by an illustrative protected class -- the CONOPS section 40
+  traffic-preference behaviour, shown addressable in principle. The QoS mechanism
+  remains this trade's to choose.
+  `docs/evidence/TBR-RF-01/2026-09-14-voice-data-contention-hwsim.md`.
+
 ## Closure evidence
 
 SAD section 30.2: multi-node mobility and load; recovery; multicast and bulk
