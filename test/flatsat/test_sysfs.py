@@ -22,6 +22,8 @@ from mule.sysfs import (
     SysfsThermalReadings,
     SysfsTimeReadings,
     ZoneMap,
+    chronyc_synchronized_probe,
+    parse_chronyc_tracking,
 )
 from mule.thermal import Sensor, assess
 
@@ -356,3 +358,53 @@ def test_a_synchronisation_probe_is_believed(tmp_path: Path) -> None:
     readings = SysfsTimeReadings(root=_rtc(tmp_path), synchronized_probe=lambda: True)
 
     assert readings.synchronized()
+
+
+# Captured `chronyc tracking` output, disciplined and undisciplined. The parser
+# is asserted against these rather than a literal it also contains, so the test
+# proves it reads real output, not that two copies of one string match.
+_CHRONYC_SYNCED = """\
+Reference ID    : C0248F82 (time.example.net)
+Stratum         : 3
+Ref time (UTC)  : Sun Sep 14 10:00:00 2026
+System time     : 0.000012345 seconds slow of NTP time
+Frequency       : 12.345 ppm slow
+Leap status     : Normal
+"""
+_CHRONYC_UNSYNCED = """\
+Reference ID    : 00000000 ()
+Stratum         : 0
+Ref time (UTC)  : Thu Jan 01 00:00:00 1970
+System time     : 0.000000000 seconds slow of NTP time
+Leap status     : Not synchronised
+"""
+
+
+def test_chronyc_output_reporting_normal_is_synchronised() -> None:
+    """A disciplined clock reports 'Leap status : Normal'."""
+    assert parse_chronyc_tracking(_CHRONYC_SYNCED)
+
+
+def test_chronyc_output_reporting_not_synchronised_is_not() -> None:
+    """Report not-synchronised for chrony's 'Not synchronised' status."""
+    assert not parse_chronyc_tracking(_CHRONYC_UNSYNCED)
+
+
+@pytest.mark.parametrize("text", ["", "garbage with no leap line", "Leap status"])
+def test_unparseable_chronyc_output_fails_closed(text: str) -> None:
+    """No leap-status value means not synchronised, never a guess."""
+    assert not parse_chronyc_tracking(text)
+
+
+def test_the_chronyc_probe_runs_and_parses() -> None:
+    """The factory composes an injected runner with the parser."""
+    probe = chronyc_synchronized_probe(lambda: _CHRONYC_SYNCED)
+
+    assert probe()
+
+
+def test_the_chronyc_probe_fails_closed_when_the_command_cannot_run() -> None:
+    """A runner that returns None (command failed) reports not synchronised."""
+    probe = chronyc_synchronized_probe(lambda: None)
+
+    assert not probe()

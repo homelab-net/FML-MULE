@@ -1117,6 +1117,34 @@ and Quadlet exist for it with the image pinned by digest, and an EUD renders a
 map from the node with no external network. No hardware to start the selection;
 the field demo needs a device.
 
+### 4.5 Time credibility without GPS or NTP
+
+**CONOPS basis:** sections 26, 27 (mission-critical state continuity). A
+WAN-independent node still issues TAK timestamps and validates certificate
+windows; both rest on the clock being trustworthy, and `FML-ADR-042` decides
+that credential validity never fails open on a doubtful clock.
+
+**State:** the per-node half is built and the merge half is analysed; the values
+are the open trade. `mule/timekeeping.py:assess` decides credibility fail-closed
+(`FML-ADR-042`), with two consumers already refusing on `TIME_DEGRADED`
+(`mule/admission.py`, `mule/status.py`). The readings exist in `mule/sysfs.py`,
+and the `synchronized` reader (`parse_chronyc_tracking` + an injectable
+`chronyc` probe) was added 2026-09-14, closing the last `NO READER` cell in the
+`docs/readings.md` Time table. The partition/rejoin reconciliation rule -- what
+happens to two clocks when `FML-ADR-061` merges two deployments -- is analysed in
+`docs/evidence/TBR-TIME-01/2026-09-14-partition-rejoin-time-reconciliation.md`,
+which leans v1 toward adopting no peer time (the credential to authenticate a
+time source is the `TBR-SEC-01` gap). What remains needs hardware or an owner:
+the drift, holdover and skew-window **values** (`TBR-TIME-01`, needs a candidate
+RTC over a temperature interval -- Track 2 day-one), the RTC battery-low flag as
+a board selection criterion (`TBR-HW-01`, `docs/readings.md` records it may have
+no signal at all), and, only if the trade chooses authenticated peer time, the
+credential from `TBR-SEC-01`.
+
+**Done when:** `TBR-TIME-01` sets the skew and holdover values on measured RTC
+drift, its named owner accepts them, and the partition rule is selected (peer
+time adopted, or not) and entered in the register.
+
 ## Before the BOM: what to bank on current hardware
 
 **The goal, stated by the Program Owner 2026-09-05:** get the program to a full
@@ -1376,10 +1404,12 @@ carries which part of the CONOPS**.
 
 **Known coverage gaps, stated rather than hidden:**
 
-- **Time, storage-at-rest, and recovery** (`TBR-TIME-01`, `TBR-SEC-01`,
-  `TBR-REC-01`) have decisions and `mule/` readers but no dedicated roadmap
-  track; they surface only where another item touches them. They belong to Track
-  2 and Track 4 work not yet written up as items.
+- **Time** (`TBR-TIME-01`) now has a dedicated item, `4.5`: the readers and the
+  per-node decision are built and the partition rule is analysed; the values are
+  the open trade. **Storage-at-rest and recovery** (`TBR-SEC-01`, `TBR-REC-01`)
+  still have decisions and `mule/` readers but no dedicated roadmap track; they
+  surface only where another item touches them, and belong to Track 2 and Track 4
+  work not yet written up as items.
 - **Identity** (`TBR-ID-01`, `FML-ADR-036`/`037`/`038`) is on the critical path
   for the service plane and appears only inside `4.1`'s findings and the
   `X-Ssl-Cert` work in `services/ingress/`. It needs its own item under Track 4.

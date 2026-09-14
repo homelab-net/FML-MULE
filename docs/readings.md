@@ -173,7 +173,8 @@ not available, which is the fail-closed direction on the bearer CONOPS section
 
 ## Time
 
-`mule/timekeeping.py`. No reader exists.
+`mule/timekeeping.py` decides; `mule/sysfs.py` reads. The raw readings below
+exist; the policy values `assess` judges them against are `TBR-TIME-01`.
 
 | Reading | Kind | Real source | Units | Status |
 | --- | --- | --- | --- | --- |
@@ -181,7 +182,7 @@ not available, which is the fail-closed direction on the bearer CONOPS section
 | `rtc_backup_cell_ok` | `none` | **No standard interface.** The RTC class ABI defines no battery-low node. Some drivers expose a voltage-low flag; most do not. | flag | `NO SOURCE`. See the finding below. |
 | `rtc_time` | `kernel` | `/sys/class/rtc/rtc0/since_epoch`, one read rather than parsing `date` and `time` separately: no locale, and no midnight race between two files. Package `util-linux` provides `hwclock -r`, which is **not** needed. | seconds since epoch | `READER`. `mule/sysfs.py`. |
 | `system_time` | `kernel` | The running clock, through the standard library | timestamp | `READER`. `mule/sysfs.py`. |
-| `synchronized` | `command` | `chronyc tracking`, package `chrony`. `FML-ADR-042` names chrony as the daemon, so the package is required regardless and the dependency costs nothing extra. Package `systemd` would provide `timedatectl show -p NTPSynchronized` as an alternative. | flag | `NO READER` |
+| `synchronized` | `command` | `chronyc tracking`, package `chrony`. `FML-ADR-042` names chrony as the daemon, so the package is required regardless and the dependency costs nothing extra. Package `systemd` would provide `timedatectl show -p NTPSynchronized` as an alternative. | flag | `READER`. `mule/sysfs.py` `parse_chronyc_tracking` (pure, tested against captured output) and `chronyc_synchronized_probe`. The `chronyc` invocation is injected, not shelled out from `mule/`, the same way the throttling and backup-cell probes are; absent or unparseable is `False` (fail-closed). |
 
 ### Finding: the flagship fail-closed case may have no signal
 
