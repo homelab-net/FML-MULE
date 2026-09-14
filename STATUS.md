@@ -151,8 +151,9 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
 | 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
+| 99 | `TBR-VOICE-02` | How is voice-group authorization expressed and how does it behave across a mesh merge | `OPEN` | Network | `Cameron Zobrist` | no |
 
-17 open trades. 1 have no named owner.
+18 open trades. 1 have no named owner.
 
 ## Critical path
 

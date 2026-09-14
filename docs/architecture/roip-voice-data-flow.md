@@ -224,11 +224,18 @@ Recorded so they become work items rather than surprises, and none needs the
 BOM to begin:
 
 - **Multi-hop mouth-to-ear latency**: voice across several MULE hops and mixed
-  bearers, with the Opus jitter buffer, and whether it stays usable.
-- **Voice and data QoS contention** on one bearer under load.
+  bearers, with the Opus jitter buffer, and whether it stays usable. The
+  *transport* half is now measured (`SIMULATED`) in
+  `docs/evidence/TBR-RF-01/2026-09-14-mesh-multihop-latency-hwsim.md`; the audio
+  pipeline that makes it mouth-to-ear is unbuilt (`TBR-VOICE-01`).
+- **Voice and data QoS contention** on one bearer under load. Now shown on the
+  bench (`SIMULATED`):
+  `docs/evidence/TBR-RF-01/2026-09-14-voice-data-contention-hwsim.md` -- voice
+  starves behind bulk in one FIFO and is preserved by a protected class; the QoS
+  mechanism remains `TBR-RF-01`'s.
 - **Voice groups across a mesh merge**: when two deployments converge
   (`FML-ADR-061`, `TBR-NET-03`), voice-group membership must not merge just
-  because the networks did.
+  because the networks did. Now tracked as `TBR-VOICE-02`.
 
 ## Where this sits in the records
 

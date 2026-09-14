@@ -141,6 +141,7 @@ register drifts from the directory it describes.
 | `TBR-NET-02` | How does a node address the EUDs behind it | `CLOSED` | Network | Cameron Zobrist | no | `TBR-ID-01` |
 | `TBR-NET-03` | How do two deployments converge on one mesh | `CLOSED` | Network | Cameron Zobrist | no | `TBR-NET-01` |
 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or a framework | `OPEN` | Network | Cameron Zobrist | partly | `CCR-03` |
+| `TBR-VOICE-02` | How voice-group authorization behaves across a mesh merge | `OPEN` | Network | Cameron Zobrist | no | `TBR-SEC-01` |
 
 ## What can be worked without hardware
 
