@@ -104,6 +104,137 @@ matrix applies to requirements: a point with no allocation is a defect.
 Track 1 is the default. If you are picking up this repository with no hardware
 and no special context, work Track 1 from the top.
 
+## Development phases toward the prototype and v1.0
+
+The three tracks above say *what* to build and *who* can build it. This section
+says how that work composes into the arc the program is actually on: from
+software that runs on the bench, to a hardware architecture evidenced well
+enough to order a BOM and build prototype units, to a `v1.0` a team can carry
+into a field test.
+
+**These are dependency phases, not a schedule, and not milestones.**
+`ROADMAP.md` holds the one committed milestone (`v0.0.1`) and deliberately
+schedules nothing after it; this section adds neither milestones nor dates, it
+records the order the dependency structure forces. It **duplicates no `State:`
+line** -- each phase is composed by reference to the tracks, banks and items
+whose own `State:` lines remain the single source of their status. A phase
+"exits" when the items it names have, by their own lines, reached the gate
+described; nothing here is done until those are. Read the phases as gates and
+work the tracks: the phases only tell you which gate the work in front of you is
+aimed at.
+
+### Phase P1 -- prototype-ready software
+
+**The outcome.** Every plane that does not need a radio to exist is built and
+exercised end to end on the bench -- against the flat-sat fakes and the one real
+EUD -- so that when hardware arrives the first build is integration, not
+discovery.
+
+**What composes it, by reference.**
+
+- `v0.0.1` (`ROADMAP.md`): one node, one service, reachable from a phone,
+  cold-start-drill clean. The first real exercise of `os/image/` and the access
+  point data path (`1.3`).
+- Track 1, items `1.1`-`1.8`: the LoRa/Meshtastic waveform (`1.1`), bring-up
+  sequencing (`1.2`), addressing (`1.4`, `1.5`, `1.5a`), `RadioState` (`1.6`),
+  and the `batman-adv`/802.11s template (`1.7`, `1.8`) -- each worked to the
+  software half its `State:` line allows without radios.
+- Bank A, the software-only closures: the TAK service as three Quadlet units
+  (`4.1`), on the `TBR-TAK-01` acceptance already recorded (`FML-ADR-071`).
+- Bank B, the software halves that make a later trade a measurement rather than a
+  design: `TBR-COMP-01` size (banked), `TBR-MAP-01` (`4.4`), bring-up and
+  `RadioState`, and the mesh template.
+- The coverage-map gaps that are pure software and still unwritten as items:
+  identity (`TBR-ID-01`, today only inside `4.1` and `services/ingress/`) and the
+  storage-at-rest and recovery readers (`TBR-SEC-01`, `TBR-REC-01`). Phase P1 is
+  where these get their own Track 4 and Track 1 items.
+
+**Exit gate.** The flat-sat exercises every non-physical plane end to end against
+fakes plus the real EUD; `v0.0.1`'s drill passes; and every remaining open trade
+on the path is, by its own `State:` line, waiting only on a hardware measurement
+or an owner's act -- not on more software design.
+
+**CONOPS basis.** 1, 4, 5 (local-first); 6 (`1.3`, `1.4`); 9, 9.2 (Track 4,
+`4.4`); 26, 27 (Track 3, `4.1`); 39-44 (Track 1); 50, 51 (`1.6`).
+
+### Phase P2 -- a hardware architecture evidenced enough to build
+
+**The outcome.** The decisions that *choose* the BOM are made on bench evidence,
+the BOM is committed, prototype units are built, and the physical trades become
+measurements with a known method rather than open designs. This is the "before
+any prototype material is ordered" goal in "Before the BOM" below, and then the
+build itself.
+
+**What composes it, by reference.**
+
+- Bank C, the BOM-choosing decisions, made before the purchase: `TBR-RF-03` (AP
+  and mesh consolidation -- the hinge the others turn on), `TBR-CARRIER-01` (the
+  M.2 slot, radio or storage), and `TBR-COMP-01`'s hardware axes (memory class,
+  storage), each informed by the Bank B software measurements.
+- `hardware/prototype/`: the open BOM cells (a committed SSD, the Wi-Fi board
+  count) resolve once Bank C is set, and the purchase is made against a de-risked
+  design.
+- Track 2, day one: the moment hardware arrives, run the existing flat-sat
+  scenarios against real interfaces to find which fakes were lying
+  (`test/flatsat/README.md` is the day-one test plan), after which bring-up
+  follows the `1.2` sequence instead of being an experiment.
+- The physical trades, now measurements on the ITEP rigs: `TBR-RF-01`,
+  `TBR-RF-02`, `TBR-RF-03`, `TBR-PWR-01`, `TBR-THERM-01`, `TBR-LINUX-01`,
+  `TBR-HW-01`, `TBR-CARRIER-01`, and `TBR-COMP-01`'s hardware half. Power and
+  thermal get the Track 2 roadmap items the coverage map notes they lack.
+
+**Exit gate.** The BOM is committed on evidence; at least one prototype unit is
+built and boots the image; bring-up runs the known sequence on real radios; and
+the physical trades have first measurements under `docs/evidence/` accepted by
+their owners. This is the smallest, cheapest first build the evidence allows.
+
+**CONOPS basis.** 78, 79, 82, 85 (qualification stages and verification -- Track
+2 and the ITEP).
+
+### Phase P3 -- `v1.0`, the multi-bearer product, into a field test
+
+**The outcome.** The features `v0.0.1` deliberately excluded come back in on real
+hardware -- the IP mesh, the sub-GHz and LoRa planes, the TAK-compatible service
+plane, identity and mission trust, and A/B update and rollback -- integrated on
+prototype units and taken into a field test against the CONOPS operational
+scenarios.
+
+**What composes it, by reference.**
+
+- The network plane on radios: the mesh (`1.7`, `1.8`), the LoRa/Meshtastic plane
+  (`1.1`), and multi-node routing, now measured rather than simulated.
+- The mission-service plane, Track 4: the TAK service (`4.1`) and the map service
+  (`4.4`) deployed from the catalog once the catalog gate opens (`TBR-HA-01` and
+  the catalog decision, both the owner's), and the placeholder services
+  (`status-aggregator`, `mission-trust`, `service-controller`, `gateways`) built
+  behind the interfaces their blocking trades then permit.
+- Identity and mission trust (`TBR-ID-01`, `FML-ADR-036`/`037`/`038`) as a
+  first-class Track 4 item, and the diagnostic tier (`FML-ADR-046`, CONOPS 52).
+- The recovery and update path (A/B, rollback), excluded from `v0.0.1` by design.
+
+**Not in `v1.0`.** The RF voice gateway / RoIP (`4.2`, `4.3`) is a CONOPS v1.1
+change gated on `CCR-03`, not a `v1.0` feature; it stays off `v1.0` scope for the
+same reason `docs/NON-GOALS.md` carried it. Naming it here keeps it from drifting
+back in.
+
+**Exit gate.** A `v1.0` build runs the CONOPS operational scenarios across more
+than one node in a field test, with evidence under `docs/evidence/` and
+`test/results/`. `v1.0` is the first version that promises anything about the
+interfaces it exercises; `v0.0.1` promised nothing, by design (`ROADMAP.md`,
+versioning).
+
+**CONOPS basis.** 1, 39-44 (the mesh product); 9, 9.2, 26, 27, 45 (services and
+external RF); 46 (`CCR-03` governance); 52 (diagnostics); 86 (change control).
+
+### What this phasing does and does not change
+
+It **reorders nothing**: the tracks and their `State:` lines are unchanged, and
+the sequencing rules under "Sequencing" below still say what to work next. It
+adds a *reading* of the same items -- which gate each is aimed at -- so an owner
+can see the arc from bench software to a fielded `v1.0` without it becoming a
+schedule. If a phase here ever contradicts a track item's `State:` line, the
+`State:` line is right and this section is stale.
+
 ## Track 1 — the network plane
 
 ### Where it stands
