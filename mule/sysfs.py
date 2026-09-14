@@ -231,3 +231,40 @@ class SysfsTimeReadings:
         if self.synchronized_probe is None:
             return False
         return self.synchronized_probe()
+
+
+def parse_chronyc_tracking(text: str) -> bool:
+    """Whether `chronyc tracking` output reports a synchronised clock.
+
+    chrony prints `Leap status : Normal` once it has a usable source and
+    disciplines the clock, and `Leap status : Not synchronised` otherwise
+    (`FML-ADR-042` names chrony as the daemon; `docs/readings.md` names this
+    reading). This is the pure half of the reader, so it is tested against
+    captured output rather than against a running daemon.
+
+    Anything else -- no leap-status line, unexpected text, an empty string --
+    is False. Being unable to confirm synchronisation is not the same as being
+    synchronised, and that is the fail-closed direction `assess` expects.
+    """
+    for line in text.splitlines():
+        key, sep, value = line.partition(":")
+        if sep and key.strip().casefold() == "leap status":
+            return value.strip().casefold() == "normal"
+    return False
+
+
+def chronyc_synchronized_probe(run: Callable[[], str | None]) -> Callable[[], bool]:
+    """Build a `synchronized_probe` from an injected `chronyc tracking` runner.
+
+    The subprocess edge stays out of this module: nothing in `mule/` shells out,
+    and the `SysfsTimeReadings` docstring and `docs/readings.md` record why a
+    command reading is injected rather than run here. `run` returns the command's
+    stdout, or `None` if it could not be run; either a failed run or unparseable
+    output yields False, the fail-closed direction.
+    """
+
+    def probe() -> bool:
+        output = run()
+        return parse_chronyc_tracking(output) if output is not None else False
+
+    return probe
