@@ -5,6 +5,7 @@
 | File | Contents |
 | --- | --- |
 | `FML-MULE-SAD-v0.31.md` | The system architecture description, transcribed verbatim. |
+| `roip-voice-data-flow.md` | Data-flow note for the proposed v1.1 RoIP voice capability (`CCR-03`, `FML-ADR-064`-`067`): the scenarios and the invariants that keep them safe. |
 
 The SAD translates the baselined CONOPS into an implementable architecture. It
 is **the source of rationale for the ADR register** in `docs/adr/`: the ADRs
