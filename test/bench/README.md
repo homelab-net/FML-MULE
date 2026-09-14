@@ -3,7 +3,8 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Seven procedures. No measurement has been taken.**
+**Eight procedures. No hardware measurement has been taken.** Two of them emit
+`SIMULATED` transport numbers (below), which by rule say nothing physical.
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -24,6 +25,19 @@ several bearers joined into one mesh is what `FML-ADR-045` describes and what
 It does not run in CI and cannot: a hosted runner's kernel has no wireless
 stack at all. Run it on a development machine, as root. See
 `docs/dev-machine.md`.
+
+`mesh-traffic.sh` reuses that line topology to answer the transport half of the
+two open questions in `docs/architecture/roip-voice-data-flow.md`. `latency`
+reads per-hop RTT from `ping -D` wire timestamps (one and two hops). `contention`
+runs a voice-profile UDP flow (`udpflow.py`, stdlib only) against a saturating
+bulk flow over an **imposed** `tc` bottleneck -- imposed because `hwsim` has no
+capacity of its own, so nothing contends without it -- and shows the voice flow's
+latency and jitter collapsing in one FIFO (`FML-ADR-021`'s "routing starves
+first") and recovering when the voice class is protected. The QoS arrangement is
+illustrative, not a decision: `TBR-RF-01` owns the mechanism. Both modes are
+`SIMULATED`, advance `TBR-RF-01`, and cannot close it; results in
+`docs/evidence/TBR-RF-01/`. It selects its radios from the `mac80211_hwsim`
+device tree under `/sys`, never by name.
 
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the
