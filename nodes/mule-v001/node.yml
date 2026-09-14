@@ -10,3 +10,14 @@ node:
 
 active_bearers:
   - wifi_ap
+
+# Logical role -> concrete device. Same schema as nodes/lab-bench/; the lab swaps
+# only this map. Device names are TBD until the prototype is assembled and its
+# interfaces named; the roles and their radios are decided.
+interfaces:
+  # WAN over Ethernet (USB-C-to-Ethernet, BOM v0.4); FML-ADR-063 requires the
+  # node to report an uplink whose range overlaps the mesh prefix.
+  wan: TBD
+  # EUD AP on the onboard integrated Wi-Fi (CYW43455); FML-ADR-045 makes the
+  # integrated radio the preferred AP.
+  eud_ap: TBD
