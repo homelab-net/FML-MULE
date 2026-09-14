@@ -14,3 +14,13 @@ node:
   id: TBD                       # Matches the directory name, e.g. mule-v001.
 
 active_bearers: []              # e.g. [wifi_ap]. At least one.
+
+# Logical role -> concrete device. Bring-up references the role, so only this map
+# changes between the lab bench and the field prototype. Use `none` for a role
+# this node does not field. See nodes/README.md.
+interfaces:
+  wan: TBD                      # e.g. Ethernet (field) or a USB client (bench).
+  eud_ap: TBD                   # e.g. the onboard integrated Wi-Fi (FML-ADR-045).
+  mesh: none                    # e.g. a mesh-capable radio; none if not fielded.
+  halow: none
+  lora: none

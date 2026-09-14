@@ -272,3 +272,48 @@ becomes unreproducible without anybody noticing.
 Anything that has to hold belongs in a script, a systemd unit, or a test
 fixture — never in your shell history. When something works, the next step is
 to prove it works from nothing.
+
+## Lab-vs-field fidelity: what the bench stands in for
+
+The bench mimics the field prototype closely enough that moving to the CM4
+prototype is a node-descriptor swap, not a code rewrite (`nodes/lab-bench/` vs
+`nodes/mule-v001/`, FML-ADR-045). Code and bring-up reference logical **roles**;
+only the `interfaces` map changes. What each role uses, and where the fidelity
+stops:
+
+| Role | Field prototype | Lab bench (`nodes/lab-bench/`) | What carries / what does not |
+| --- | --- | --- | --- |
+| `eud_ap` | onboard CYW43455 (integrated) | onboard `rtw89_8852be` (phy0, `wlp2s0`) | Role + integrated-radio-as-AP faithful (ADR-045). The **chip differs**, so chip-specific AP behaviour does not carry. |
+| `mesh` | QCA6174A on M.2 (`ath10k`) | `mac80211_hwsim` (`wlan0`) | 802.11s + BATMAN-IV + the `mac80211` code path are **real**. The **RF medium is simulated** — no airtime, contention, range, or desense. RF trades stay open. |
+| `wan` | Ethernet (USB-C-to-Ethernet) / Tailscale | RTL8812AU USB client (`wlx…`) — **stand-in** | Role faithful; the **medium differs** (Wi-Fi client vs wired). Rebinds to the Ethernet device with a one-line descriptor change. |
+| `halow`, `lora` | dedicated radios | **none** — faked on the flat-sat | Logic exercised against fakes; says nothing about the radios. |
+| service plane | rootless Quadlet units from `services/catalog/`, arm64 digests (FML-ADR-029) | `podman start` of pre-built containers (`mule-stack-up.sh`) | Service *behaviour* carries; the *deployment mechanism* (Quadlet/rootless/digest-pinning) does not. |
+| link config | `systemd-networkd` owns links (FML-ADR-059) | NetworkManager present; bring-up uses `hostapd`/`nftables`/`dnsmasq` directly | The AP/firewall/DHCP mechanisms match the field templates (`os/config/`); full networkd link ownership is not yet mirrored on this NM-managed box. |
+
+**Nothing here is `HARDWARE-VERIFIED`.** Because the RF medium is simulated and
+the chips differ, every result on this bench is `LAB` / `SIMULATED` at best.
+`HARDWARE-VERIFIED` needs the qualified article over the air.
+
+**AP + mesh are kept on separate radios.** Consolidating them onto one radio to
+free the M.2 slot (`TBR-RF-03`, `TBR-CARRIER-01`) is OPEN and unproven — the
+RTL8812AU has no mesh mode at all, and `hwsim` cannot measure the airtime
+contention the trade names. The bench must not assume consolidation.
+
+### A real coexistence limit this bench found (2026-09-14)
+
+Bringing the `eud_ap` up on the onboard radio on **2.4 GHz** while `wan` is the
+**2.4 GHz USB client** dropped the box's default route: two co-located 2.4 GHz
+radios desense each other, the client hiccupped, and NetworkManager pulled the
+route. `LAB`/`UNVERIFIED` — an artefact of the bench's stand-in WAN, not a field
+behaviour (the field WAN is Ethernet, a different medium entirely).
+
+Mitigation, validated on this box: put the AP on **5 GHz** (the onboard chip
+advertises Band 2; `nodes/lab-bench/node.yml` sets `ap_channel: 36`). With the AP
+on ch36 and the WAN client on 2.4 GHz, all three roles — `eud_ap` (onboard, 5 GHz),
+`mesh` (hwsim, batman-adv), `wan` (USB, 2.4 GHz) — run concurrently with the
+uplink intact. When the Ethernet WAN cable is available, this constraint
+disappears and the bench matches the field's wired-WAN topology directly.
+
+One clarification the experiment settled: the agent's control path does **not**
+ride the box's internet WAN — the box losing its default route does not end the
+session. So WAN experiments are recoverable in place, not session-fatal.

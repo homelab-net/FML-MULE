@@ -213,3 +213,13 @@ configuration, the ambient conditions, and who took it. See
 Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
+
+`mule-ap-up.sh` brings up the EUD access point on the bench in the field's own
+role model: it reads the `interfaces` map from `nodes/<node-id>/node.yml`
+(default `lab-bench`) and configures the `eud_ap` role's device with `hostapd`,
+`dnsmasq` and an `nftables` uplink-passthrough table -- the mechanisms the field
+`os/config/` templates use -- naming roles, never devices, so the same script
+drives the prototype after a descriptor swap (FML-ADR-045). It refuses to run if
+`eud_ap` and `wan` resolve to the same device, or if `eud_ap` is the current
+default-route device, so it cannot cannibalise the box's uplink. Unlike the
+probes above it is an operational bring-up, not a CI test.

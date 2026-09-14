@@ -1,0 +1,39 @@
+---
+# The lab bench node: an imperfect stand-in for the field prototype on the
+# development machine. Same schema as a field node (nodes/mule-v001/), so moving
+# to the prototype is a descriptor swap, not a code change (FML-ADR-045 role
+# model). Every field-vs-lab substitution is recorded in docs/dev-machine.md.
+
+node:
+  id: lab-bench
+
+# What this bench fields. AP and mesh are kept SEPARATE functions: the AP+mesh
+# consolidation (TBR-RF-03) is OPEN and unproven, so the bench must not assume it.
+active_bearers:
+  - wifi_ap
+  - wifi_mesh
+
+# Logical role -> concrete device on THIS machine. Code and bring-up reference
+# the role; only this map changes between lab and field. Radios are identified by
+# driver, never by a fuzzy name match.
+interfaces:
+  # WAN: stand-in only. Field is Ethernet (USB-C-to-Ethernet, BOM v0.4). Here it
+  # is the RTL8812AU USB client, because it is the box's only uplink until a
+  # wired link is available. Rebinding to the Ethernet device is a one-line
+  # change here, no code rework.
+  wan: wlx00c0caa741fe
+  # EUD AP on the onboard integrated Wi-Fi (rtw89_8852be, phy0) -- the field's
+  # onboard-integrated-radio-as-AP role (FML-ADR-045).
+  eud_ap: wlp2s0
+  # High-rate mesh on mac80211_hwsim -- a mesh-capable mac80211 radio, standing
+  # in for the QCA6174A on M.2. The RF medium is simulated (hwsim).
+  mesh: wlan0
+  # No HaLow or LoRa radio on this box; those bearers are faked on the flat-sat.
+  halow: none
+  lora: none
+
+# EUD AP channel for the bench. In the field this is regulatory data from
+# gen-config + the region profile, not a node property; here it is a bench value
+# on 5 GHz so the onboard AP does not desense the 2.4 GHz USB WAN client -- the
+# co-located-2.4 GHz coexistence limit recorded in docs/dev-machine.md.
+ap_channel: 36
