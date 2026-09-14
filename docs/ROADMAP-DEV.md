@@ -1050,7 +1050,16 @@ surprises. Each needs work before 4.2 can be planned in detail.
 - **Voice-group authorization distinct from reachability** (`FML-ADR-061`,
   CONOPS 43, 44): being on the mesh must not be being in the voice group. Same
   shape as the keyed-mesh admission finding, and it needs the credential
-  distribution that `TBR-SEC-01` records as absent.
+  distribution that `TBR-SEC-01` records as absent. Now tracked as
+  **`TBR-VOICE-02`** (depends on `TBR-SEC-01` and `TBR-VOICE-01`), so it is a
+  trade rather than a loose unknown.
+
+The transport half of two of these -- the latency of multiple mesh hops, and
+voice-versus-data contention on one bearer -- is now measured on the bench,
+`SIMULATED`, in `docs/evidence/TBR-RF-01/2026-09-14-mesh-multihop-latency-hwsim.md`
+and `docs/evidence/TBR-RF-01/2026-09-14-voice-data-contention-hwsim.md`. What
+those cannot reach is the mouth-to-ear half: the audio pipeline (DigiRig, radio,
+Opus) is unbuilt, so it waits on `TBR-VOICE-01`.
 
 ### 4.4 A local map service
 

@@ -206,14 +206,15 @@ throughout, per section 1.1.
 `TBR-NET-02` (no SAD register position; see its frontmatter notes),
 `TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`),
 `TBR-NET-04` (no SAD register position; routing-logic half, feeds `FML-ADR-069`),
-`TBR-VOICE-01` and `TBR-MAP-01` (no SAD register position; analysis halves)
+`TBR-VOICE-01`, `TBR-VOICE-02` and `TBR-MAP-01` (no SAD register position;
+analysis halves)
 
 **Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
 `TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`, `TBR-NET-04/`,
-`TBR-VOICE-01/`, `TBR-MAP-01/`.
+`TBR-VOICE-01/`, `TBR-VOICE-02/`, `TBR-MAP-01/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -269,6 +270,13 @@ programme.
    representative area and zoom, on Debian ARM64. The offline-render acceptance
    needs a device and is not part of this campaign. CONOPS section 9.2 makes the
    local map source an S1 service with no current coverage.
+10. **`TBR-VOICE-02` voice-group authorization across a mesh merge, analysis
+    half.** How voice-group membership is expressed distinct from mesh
+    reachability, and how it must behave when `FML-ADR-061` merges two
+    deployments, against virtual peers. The enforcing gateway and the membership
+    credential are `TBR-VOICE-01` and `TBR-SEC-01`; this produces the
+    specification they build to, and the `FML-ADR-067` single-egress invariant is
+    the comparison. **Gated on `CCR-03` approval**, a proposed CONOPS v1.1 change.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The remaining five produce written
