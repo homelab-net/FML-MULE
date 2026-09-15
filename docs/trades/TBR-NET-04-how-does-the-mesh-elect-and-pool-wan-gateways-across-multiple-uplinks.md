@@ -81,6 +81,16 @@ asserts no overlay interface is in the shared path. The trade stays `OPEN`, no
 `TBD`, until the decision, the hardware evidence, and named-owner acceptance
 exist.
 
+The single-active-versus-pooled comparison the closure gate asks the owner to
+make is now written up:
+`docs/evidence/TBR-NET-04/2026-09-15-single-active-versus-pooled-analysis.md`.
+Re-running the bench 2026-09-15 with an added assertion confirmed the native
+behaviour is single-active -- with two gateways advertised the client installs
+exactly one default route -- and records the finding that multi-active pooling is
+not a `gw_mode` feature and needs a mechanism above `batman-adv`. This advances
+the no-hardware half of the comparison; throughput and real-radio selection
+remain hardware, so the gate stays open.
+
 ## Closure evidence
 
 A multi-node exercise -- on `mac80211_hwsim` for the routing logic, and on real
