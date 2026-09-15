@@ -20,6 +20,39 @@ rather than edited.
 | How a thing gets qualified, and on what rig | `docs/verification/` |
 | What to build next and how to not get it wrong | this file |
 
+## Phase intent: evidence over architecture
+
+The program has enough architecture to build against. The dominant uncertainty
+is now physical -- the Linux/radio boundary and RF coexistence -- and no design
+reduces it. So the governing objective for this phase is to **reduce the number
+of important assumptions not yet confronted with real hardware**, not to make the
+architecture more complete. `AGENTS.md` ("The current objective") carries the
+per-task rule; this section carries the demonstration ladder it serves.
+
+Every phase ends with a **demonstration, not a document.** Each gate is a
+physical result:
+
+| Gate | Success |
+| --- | --- |
+| **M0** Reproducible platform | A clean supported machine produces the node image from pinned inputs. (The `GAP-09` register work, largely Codex's.) |
+| **M1** Physical single node | One physical node cold-boots, creates its EUD AP, reports health, and serves one real local service to a phone. **This is `v0.0.1`.** |
+| **M2** Two-node IP | Two physical nodes form the selected IP mesh and exchange traffic with no manual repair. |
+| **M3** Fault and reconvergence | A bearer interruption, node restart, and topology change produce bounded failure and automatic recovery. |
+| **M4** Useful mission function | Two EUDs on different nodes exchange mission data with WAN down. TAK belongs here. |
+| **M5** Multi-bearer | HaLow, conventional Wi-Fi, and the degraded bearer run concurrently with characterized interference. |
+| **M6** Power and thermal | The representative workload meets measured runtime and thermal limits on the candidate power architecture. |
+| **M7** Integrated field article | The intended mechanical configuration repeats the earlier qualification without unacceptable regression. |
+
+This ladder **refines, and does not reorder,** the phases under "Development
+phases toward the prototype and v1.0" below and the `v0.0.1` milestone in
+`ROADMAP.md`: M0-M1 are Phase P1 (`v0.0.1`), M2-M5 are the network and service
+planes on real radios, M6-M7 are Phase P2's hardware article. RoIP and other
+increments insert where operationally justified; they do not disrupt this
+sequence. The pacing item ahead of M1 is **procurement** (the `HW-01` trades),
+which is the Program Owner's decision -- so the near-term software contribution
+is the tooling that makes the eventual demonstrations legible: instrumentation,
+the deployment path, and automated evidence collection, not more architecture.
+
 ## Before you touch anything
 
 Do these three things in order. They take about fifteen minutes and they are
