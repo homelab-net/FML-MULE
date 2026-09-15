@@ -143,6 +143,18 @@ interface is gone on a current kernel.
 | `global_translation_entries` | `command` | `batctl meshif bat0 transglobal`, package `batctl`. Each row names a client and the originator announcing it. | pairs | `NO READER` |
 | `own_addresses` | `kernel` | `/sys/class/net/*/address` for the node's own interfaces. Plain link attributes, so no `batctl`. **Every** address, not just the bridge: a loop on the bench announced the mesh hard interface first and the bridge second. | MACs | `NO READER` |
 
+## Addressing
+
+`mule/addressing.py`, the `AddressReadings` Protocol. `FML-ADR-063` requires a
+node to report an uplink whose address range overlaps its mesh prefix. The mesh
+prefix is configuration -- the mission package `network.address_prefix`, passed
+to the check, not read from the platform -- so the only reading here is the
+uplink's own ranges.
+
+| Reading | Kind | Real source | Units | Status |
+| --- | --- | --- | --- | --- |
+| `uplink_ranges` | `command` | `ip addr show <uplink>`, package `iproute2`. The kernel interface is rtnetlink; `ip` is the tool that speaks it, and there is no `sysfs` listing of an interface's addresses as CIDRs. `mule/addressing.py:parse_ip_addr` parses the `inet`/`inet6` lines; the `ip` invocation is injected, not shelled out from `mule/`. `None` if `ip` cannot run. | CIDRs | `NO READER`. The parser (`parse_ip_addr`) exists and is tested; no Protocol reader wires the command to it yet. |
+
 ## LoRa plane
 
 `test/flatsat/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather
