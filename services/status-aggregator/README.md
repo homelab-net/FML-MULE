@@ -1,7 +1,8 @@
 # Status aggregator
 
-**APPROVED. Its hard dependency has closed; the operator status roll-up is now
-buildable as a bench increment, the fielded component is not. This directory
+**APPROVED. The fielded component is still `NOT YET IMPLEMENTABLE` -- it is gated
+on `TBR-HA-01` and `TBR-COMP-01` -- but its hard dependency has closed and the
+operator status roll-up is now buildable as a bench increment. This directory
 contains this `README.md` and nothing else.**
 
 `TBR-TAK-01` -- the hard dependency below -- closed 2026-09-06 on `FML-ADR-071`,
