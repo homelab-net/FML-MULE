@@ -68,13 +68,18 @@ A selection with the measured basis above, accepted by the named owner, and an
 ADR entered for the chosen implementation. The gate is a comparison against the
 selection criteria in `CCR-03` section 11, not a single threshold.
 
-Not accepted while `CCR-03` is unapproved: the whole voice capability is a
-proposed CONOPS v1.1 change, and selecting an implementation for an unadopted
-capability decides a consequence before its cause.
+`CCR-03` is now approved (2026-09-15), so that precondition is met: the
+capability exists as a CONOPS v1.1 increment. The gate still requires the
+measured basis above (the hardware half, GATE VOICE-01), a comparison against the
+`CCR-03` section 11 criteria, and the named owner's acceptance before a selection
+is entered. The analysis half is produced:
+`docs/evidence/TBR-VOICE-01/2026-09-15-gateway-candidates-analysis.md` narrows
+the field on the no-hardware criteria; it selects nothing.
 
 ## Dependencies
 
-- **Depends on:** `CCR-03` approval for the capability to exist.
+- **Depends on:** `CCR-03` (approved 2026-09-15); the hardware half
+  (`TBR-COMP-01`, GATE VOICE-01) for the measured basis.
 - **Feeds:** the voice gateway entry in `services/catalog/` and its Quadlet.
 - **Related decisions:** `FML-ADR-065`, `FML-ADR-066`, `FML-ADR-067`, and
   `TBR-COMP-01` for the compute budget.

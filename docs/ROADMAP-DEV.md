@@ -1010,7 +1010,12 @@ pending baselining step (section 86 stakeholder re-approval); nothing here is
 built yet, and it remains a v1.1 capability, out of v1.0. The decisions: DM-32UV
 as the radio (`FML-ADR-064`), audio/PTT over IP not native DMR (`FML-ADR-065`), a
 dedicated integrated gateway radio (`FML-ADR-066`), and the single-audio-egress
-invariant (`FML-ADR-067`).
+invariant (`FML-ADR-067`). With `CCR-03` approved, the `TBR-VOICE-01` gateway
+analysis half is now produced
+(`docs/evidence/TBR-VOICE-01/2026-09-15-gateway-candidates-analysis.md`): it
+narrows the candidates on the no-hardware `CCR-03` section 11 criteria and the
+`FML-ADR-067` enforceability question, and selects nothing -- the measured
+RAM/CPU/latency and the owner's acceptance are the hardware half (GATE VOICE-01).
 
 **The baseline requirement to carry through implementation:** an operator's
 headset receives a linked voice session through **exactly one path**
