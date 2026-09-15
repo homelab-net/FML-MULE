@@ -144,10 +144,10 @@ discovery.
 - Bank B, the software halves that make a later trade a measurement rather than a
   design: `TBR-COMP-01` size (banked), `TBR-MAP-01` (`4.4`), bring-up and
   `RadioState`, and the mesh template.
-- The coverage-map gaps that are pure software and still unwritten as items:
-  identity (`TBR-ID-01`, today only inside `4.1` and `services/ingress/`) and the
-  storage-at-rest and recovery readers (`TBR-SEC-01`, `TBR-REC-01`). Phase P1 is
-  where these get their own Track 4 and Track 1 items.
+- The former coverage-map gaps that are pure software: time (now item `4.5`) and
+  identity and admission (now item `4.6`) have dedicated items; the storage-at-rest
+  and recovery readers (`TBR-SEC-01`, `TBR-REC-01`) still await theirs. Phase P1
+  is where these get their own Track 4 and Track 1 items.
 
 **Exit gate.** The flat-sat exercises every non-physical plane end to end against
 fakes plus the real EUD; `v0.0.1`'s drill passes; and every remaining open trade
@@ -1154,6 +1154,36 @@ credential from `TBR-SEC-01`.
 drift, its named owner accepts them, and the partition rule is selected (peer
 time adopted, or not) and entered in the register.
 
+### 4.6 Browser-service identity and admission
+
+**CONOPS basis:** section 9 (the mission-service plane and its access control),
+and the browser-service authorization that `4.1` (the TAK service) and
+`services/ingress/`'s `X-Ssl-Cert` work depend on. This is the coverage-map gap
+that read "identity needs its own item under Track 4."
+
+**State:** hardware-free design work, ready now. `TBR-ID-01`
+(`requires-hardware: no`) asks whether the browser services need a common
+identity provider; its workflow analysis -- count authentication events with and
+without one -- is already scoped in ITEP-C01 and needs no node. The decisions are
+`FML-ADR-037` (application-native RBAC first, OPA only when cross-application
+policy justifies it) and `FML-ADR-036` (step-ca as the preferred PKI). The
+admission decision logic exists in `mule/admission.py` but today gates only on
+time (`TIME_DEGRADED`); it does **not** yet check an identity, which is the visible
+gap. `TBR-ID-01` `depends-on TBR-TIME-01` because a certificate window is only
+meaningful against a trustworthy clock -- and that dependency is on the time
+*credibility* logic (`4.5`, built), not the hardware *values*, so it does not
+hold identity design back.
+
+What is in this item: the identity-provider decision (`TBR-ID-01`), the RBAC
+model (`FML-ADR-037`), and extending the admission decision function to reason
+about identity, not only time -- a pure `mule/` function under `FML-ADR-052`.
+What is **not**: building the blocked `services/mission-trust/`, and the
+credential *at rest*, which is `TBR-SEC-01`'s hardware half.
+
+**Done when:** `TBR-ID-01`'s workflow analysis decides whether a common identity
+provider is warranted, its named owner accepts it, and the admission model
+incorporates identity alongside time, with the decision entered in the register.
+
 ## Before the BOM: what to bank on current hardware
 
 **The goal, stated by the Program Owner 2026-09-05:** get the program to a full
@@ -1420,8 +1450,9 @@ carries which part of the CONOPS**.
   surface only where another item touches them, and belong to Track 2 and Track 4
   work not yet written up as items.
 - **Identity** (`TBR-ID-01`, `FML-ADR-036`/`037`/`038`) is on the critical path
-  for the service plane and appears only inside `4.1`'s findings and the
-  `X-Ssl-Cert` work in `services/ingress/`. It needs its own item under Track 4.
+  for the service plane. It now has a dedicated item, `4.6`: the provider
+  decision, the RBAC model and identity-aware admission are hardware-free P1 work;
+  the credential at rest is `TBR-SEC-01`'s hardware half.
 - **Power and thermal** (`TBR-PWR-01`, `TBR-THERM-01`) are Track 2 trades with
   no roadmap item beyond the purchase note, because nothing in software advances
   them.
