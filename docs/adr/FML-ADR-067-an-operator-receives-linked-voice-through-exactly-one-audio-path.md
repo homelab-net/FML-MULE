@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-067
 title: An operator receives linked voice through exactly one audio path
-status: PROPOSED
+status: SELECTED
 date: 2026-08-31
 supersedes: none
 superseded-by: none
@@ -18,8 +18,8 @@ principle.
 
 ## Context
 
-`PROPOSED`. Deconflicted from the handoff's `FML-ADR-054`, which is assigned to
-bridge loop avoidance.
+`SELECTED` under `CCR-03` (approved 2026-09-15). Deconflicted from the handoff's
+`FML-ADR-054`, which is assigned to bridge loop avoidance.
 
 An operator wears one headset on their **personal** DM-32UV and hears voice over
 local RF, the way they always have. The MULE extends *remote* voice to them, and
@@ -62,7 +62,7 @@ is the acceptance.
 
 ## Status
 
-`PROPOSED`. Depends on `CCR-03` and CONOPS v1.1 approval. Within the voice
+`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1. Within the voice
 capability, the invariant is **non-optional**: a voice baseline that can deliver
 two copies to an ear is not acceptable, so if the capability is adopted this ADR
 is adopted with it.

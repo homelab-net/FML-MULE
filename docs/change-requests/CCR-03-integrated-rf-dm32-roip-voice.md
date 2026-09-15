@@ -1,15 +1,21 @@
 # CCR-03 Integrated RF: the DM-32UV and audio/PTT Radio-over-IP become baseline voice
 
 **Type:** CONOPS change request
-**Status:** `OPEN`
+**Status:** `APPROVED`
+**Approved:** 2026-09-15 by Cameron Zobrist (Program Owner). This record adopts
+the increment: the four voice ADRs move to `SELECTED` and the section 81 scope
+exclusion is lifted (see `docs/NON-GOALS.md`). The CONOPS **v1.1 text reissue**
+integrating the sections below -- with the stakeholder re-approval section 86
+requires -- is the pending baselining step and is **not** done in this record.
 **Target version:** CONOPS **v1.1** (minor increment, stakeholder re-approval)
 **Sections affected:** 1, 3, 5, 8, 9, 39, 40, 41, 42, 43, 44, 45 (primary), 46,
 50, 53, 54, 78, 79, 81, 83, 85
 **Raised by:** received architecture-change handoff, 2026-08-31
 **Source:** `CCR-03-source-dm32-roip-handoff.txt`, committed verbatim
 **Blocks:** any `VOICE` trade area, any voice ADR, and a voice gateway service
-**Does not block:** the rest of the program; committing this record adopts
-nothing, exactly as `CCR-01` and `CCR-02` are `OPEN` and unadopted
+**Does not block:** the rest of the program. Unlike `CCR-01` and `CCR-02`, which
+remain `OPEN` and unadopted, this record is now `APPROVED`; approval adopts the
+increment but does not itself reissue the CONOPS text (see the approval note)
 
 ## Statement
 

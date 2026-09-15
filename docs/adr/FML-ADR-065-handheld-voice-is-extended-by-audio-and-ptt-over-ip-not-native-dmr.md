@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-065
 title: Handheld voice is extended by audio and PTT over IP not native DMR
-status: PROPOSED
+status: SELECTED
 date: 2026-08-31
 supersedes: none
 superseded-by: none
@@ -16,7 +16,8 @@ CONOPS section 45.2, RF gateway, and section 45.3, IP-enabled radio.
 
 ## Context
 
-`PROPOSED`. Deconflicted from the handoff's `FML-ADR-052`, which is assigned.
+`SELECTED` under `CCR-03` (approved 2026-09-15). Deconflicted from the handoff's
+`FML-ADR-052`, which is assigned.
 
 When a MULE extends handheld voice over IP, it can either tunnel the native DMR
 protocol (MMDVM-class) or carry decoded audio plus PTT state. The choice sets
@@ -34,7 +35,7 @@ between them.
 
 ## Status
 
-`PROPOSED`. Depends on `CCR-03` and CONOPS v1.1 approval.
+`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1.
 
 ## Consequences
 

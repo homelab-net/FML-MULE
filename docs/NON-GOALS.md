@@ -102,11 +102,14 @@ requirement. Vendor-specific CAT control and broad automation remain downstream
 or stretch capabilities. Each integration is a permanent maintenance commitment
 against a product line the program does not control.
 
-### No automatic remote PTT or audio bridging
+### No automatic remote PTT or audio bridging in v1
 
-*Reason:* CONOPS section 45 places remote PTT and audio bridging outside v1. The
-prototype BOM records team PTT and VoIP as a deferred feature with no BOM
-addition, needing software, QoS and test work rather than hardware.
+*Reason:* CONOPS section 45 places remote PTT and audio bridging outside v1. This
+is a v1 boundary, not a permanent refusal: `CCR-03` (approved 2026-09-15) moves
+audio/PTT Radio-over-IP into the CONOPS v1.1 baseline (`FML-ADR-064` through
+`FML-ADR-067`), with the CONOPS v1.1 text reissue as the pending baselining step.
+It remains outside v1, needs the software, QoS and test work the prototype BOM
+records as a deferred feature, and does not replace voice (see below).
 
 ### No custom PCB unless prototype results justify it
 

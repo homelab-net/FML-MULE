@@ -1002,14 +1002,15 @@ replacement. Gated on `TBR-TAK-01` acceptance and a catalog decision.
 **CONOPS basis:** section 45 (external VHF/UHF/HF integration), section 5
 (familiar-interface and local-first principles), section 40 (traffic
 preference), section 41 (WAN independence). Decision: `FML-ADR-064` through
-`FML-ADR-067`, all `PROPOSED`.
+`FML-ADR-067`, all `SELECTED` under `CCR-03`.
 
-**State:** proposed, not approved. The whole capability is a CONOPS v1.1 change,
-`CCR-03`, and nothing here is built or should be until that is approved. The
-decisions are allocated so the identifiers are fixed: DM-32UV as the radio
-(`FML-ADR-064`), audio/PTT over IP not native DMR (`FML-ADR-065`), a dedicated
-integrated gateway radio (`FML-ADR-066`), and the single-audio-egress invariant
-(`FML-ADR-067`).
+**State:** `CCR-03` is approved (2026-09-15) and the four voice ADRs are
+`SELECTED`. The capability is a CONOPS v1.1 increment whose text reissue is the
+pending baselining step (section 86 stakeholder re-approval); nothing here is
+built yet, and it remains a v1.1 capability, out of v1.0. The decisions: DM-32UV
+as the radio (`FML-ADR-064`), audio/PTT over IP not native DMR (`FML-ADR-065`), a
+dedicated integrated gateway radio (`FML-ADR-066`), and the single-audio-egress
+invariant (`FML-ADR-067`).
 
 **The baseline requirement to carry through implementation:** an operator's
 headset receives a linked voice session through **exactly one path**
