@@ -3,9 +3,10 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Nine procedures. No hardware measurement has been taken.** Two of them emit
-`SIMULATED` transport numbers (below), which by rule say nothing physical, and
-one serves the operator status view from the node's real readings.
+**Ten procedures. No hardware measurement has been taken.** Two of them emit
+`SIMULATED` transport numbers (below), which by rule say nothing physical, one
+serves the operator status view from the node's real readings, and one induces a
+bridging loop and detects it live.
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -228,6 +229,16 @@ configuration, the ambient conditions, and who took it. See
 Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
+
+`loop-detect.sh` builds the bridging loop `FML-ADR-056` forbids -- two nodes,
+802.11s plus a `veth` shared segment, `bat0` and the veth in one bridge on both,
+`bridge_loop_avoidance` off (its being off is the point) -- and then runs
+`mule/loops.py:loop_signatures` **live** over `mule/mesh.py` inside a node
+namespace, asserting a signature fires. It is the "detector runs" half of the
+`FML-ADR-056` verification whose "loop appears" half is
+`docs/evidence/TBR-NET-01/2026-08-30-loop-detected-on-the-bench.md`; the live run
+is `docs/evidence/TBR-NET-01/2026-09-15-loop-detector-runs-live.md`. It selects
+its radios from the `mac80211_hwsim` device tree, never by name.
 
 `operator-view.sh` demonstrates the operator status view (`FML-ADR-046`, CONOPS
 section 67) over a live hwsim mesh: it runs `operator-view.py` inside a node
