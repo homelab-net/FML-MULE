@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-066
 title: The RF voice gateway is an integrated dedicated radio per RoIP-capable node
-status: PROPOSED
+status: SELECTED
 date: 2026-08-31
 supersedes: none
 superseded-by: none
@@ -16,8 +16,8 @@ CONOPS section 45.2, RF gateway.
 
 ## Context
 
-`PROPOSED`. Deconflicted from the handoff's `FML-ADR-053`, which is assigned to
-BATMAN-IV routing.
+`SELECTED` under `CCR-03` (approved 2026-09-15). Deconflicted from the handoff's
+`FML-ADR-053`, which is assigned to BATMAN-IV routing.
 
 A RoIP-capable MULE needs a radio it can key and listen on. That gateway radio
 is distinct from an operator's personal handheld, so that using the gateway does
@@ -40,7 +40,7 @@ field-replaceable per CONOPS.
 
 ## Status
 
-`PROPOSED`. Depends on `CCR-03` and CONOPS v1.1 approval.
+`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1.
 
 ## Consequences
 

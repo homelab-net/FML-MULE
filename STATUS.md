@@ -49,6 +49,10 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-059` | Link configuration is owned by systemd-networkd and nothing else reconfigures a link | TBR-LINUX-01, TBR-RF-01 |
 | `FML-ADR-061` | The mesh is keyed and MULEs of one deployment merge automatically | TBR-SEC-01 |
 | `FML-ADR-063` | The field prefix is per-deployment and an overlapping uplink is never silent | none |
+| `FML-ADR-064` | DM-32UV is the group-standard external voice radio | TBR-VOICE-01 |
+| `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
+| `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
+| `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
 | `FML-ADR-068` | An EUD on the access point is forwarded to the WAN uplink | none |
 | `FML-ADR-070` | EUD identity on the LoRa bearer uses upstream callsign and GeoChat recipient | none |
 | `FML-ADR-071` | The mission-critical TAK state boundary is the SQL backend plus the out-of-SQL durable set | TBR-HA-01 |
@@ -100,15 +104,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
-
-### PROPOSED
-
-| ID | Decision | Open trades it depends on |
-| --- | --- | --- |
-| `FML-ADR-064` | DM-32UV is the group-standard external voice radio | TBR-VOICE-01 |
-| `FML-ADR-065` | Handheld voice is extended by audio and PTT over IP not native DMR | TBR-VOICE-01, TBR-RF-01 |
-| `FML-ADR-066` | The RF voice gateway is an integrated dedicated radio per RoIP-capable node | TBR-VOICE-01, TBR-COMP-01, TBR-RF-02 |
-| `FML-ADR-067` | An operator receives linked voice through exactly one audio path | TBR-VOICE-01 |
 
 ### SUPERSEDED
 

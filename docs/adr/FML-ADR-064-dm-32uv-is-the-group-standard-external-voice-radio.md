@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-064
 title: DM-32UV is the group-standard external voice radio
-status: PROPOSED
+status: SELECTED
 date: 2026-08-31
 supersedes: none
 superseded-by: none
@@ -16,11 +16,11 @@ and its received handoffs. CONOPS section 45, external VHF/UHF/HF integration.
 
 ## Context
 
-`PROPOSED`, not decided. This ADR reserves the identifier and records the
-decision `CCR-03` proposes, so that the number is fixed and consistent while the
-CONOPS v1.1 change is under review. It carries no weight until `CCR-03` is
-approved. The handoff originally numbered this `FML-ADR-051`, which is already
-assigned; the deconflicted number is `FML-ADR-064`.
+`SELECTED` under `CCR-03` (approved 2026-09-15). This ADR records the decision,
+which now carries weight; the capability targets CONOPS v1.1, whose text reissue
+is the pending baselining step. The handoff originally numbered this
+`FML-ADR-051`, which is already assigned; the deconflicted number is
+`FML-ADR-064`.
 
 CONOPS section 45 reserves an integration boundary for external radios and does
 not name a radio. The user group has standardised on the Baofeng DM-32UV, and
@@ -39,7 +39,7 @@ contract, not the radio, is what this program depends on.
 
 ## Status
 
-`PROPOSED`. Depends on `CCR-03` and CONOPS v1.1 approval.
+`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1.
 
 ## Consequences
 
