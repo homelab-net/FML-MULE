@@ -16,6 +16,7 @@ SAD v0.31 section 33.3 is explicit about what this artifact is for:
 | --- | --- |
 | `prototype-bom-revA.csv` | 42 line items, transcribed from the source workbook. |
 | `BOM-v0.4-DM32-RoIP-handoff.txt` | A received draft change package adding the DM-32UV voice radio and an audio/PTT RoIP gateway. **Received input, not an accepted baseline** -- see its `.README.md` for what it proposes and the blocking issues found on receipt, including a hard ADR-number collision. |
+| `procurement-decision-brief.md` | Owner decision support: consolidates the no-hardware evidence and this BOM's acquisition gates to show a lab article can be ordered now, decoupled from the open field decisions (`TBR-RF-03`, `TBR-CARRIER-01`, `TBR-COMP-01`). Feeds Codex's `HW-01A/B/C/D` findings; decides nothing. |
 
 ## Source and provenance
 
