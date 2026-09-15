@@ -3,10 +3,11 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Ten procedures. No hardware measurement has been taken.** Two of them emit
+**Eleven procedures. No hardware measurement has been taken.** Two of them emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
-serves the operator status view from the node's real readings, and one induces a
-bridging loop and detects it live.
+serves the operator status view from the node's real readings, one induces a
+bridging loop and detects it live, and one captures a state snapshot for the
+evidence pipeline.
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -229,6 +230,19 @@ configuration, the ambient conditions, and who took it. See
 Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
+
+`capture-telemetry.py` is the instrumentation harness for the evidence-led phase
+(`AGENTS.md`, "The current objective"). It snapshots node state as one
+machine-readable JSON document -- radio enumeration, interface/routing/BATMAN
+tables, per-interface station signal, the `dmesg` tail, CPU/memory, thermal zones
+and power-supply readings -- so a later hardware test can be reconstructed rather
+than recounted. It is honest about absence: a missing command or `sysfs` node is
+recorded as absent with a reason, not omitted (on this box `rfkill` and
+`/sys/class/power_supply` are). Its `manifest` block is the `docs/evidence/`
+recording metadata (captured-at, node, kernel, image build). **A capture contains
+the node's real MAC and IP addresses and its kernel log; scrub it and record what
+was scrubbed before filing it as evidence (`SECURITY.md`).** It records state, not
+throughput or latency -- those are a test's own outputs and sit beside it.
 
 `loop-detect.sh` builds the bridging loop `FML-ADR-056` forbids -- two nodes,
 802.11s plus a `veth` shared segment, `bat0` and the veth in one bridge on both,
