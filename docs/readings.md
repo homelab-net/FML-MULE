@@ -140,8 +140,8 @@ interface is gone on a current kernel.
 
 | Reading | Kind | Real source | Units | Status |
 | --- | --- | --- | --- | --- |
-| `global_translation_entries` | `command` | `batctl meshif bat0 transglobal`, package `batctl`. Each row names a client and the originator announcing it. | pairs | `NO READER` |
-| `own_addresses` | `kernel` | `/sys/class/net/*/address` for the node's own interfaces. Plain link attributes, so no `batctl`. **Every** address, not just the bridge: a loop on the bench announced the mesh hard interface first and the bridge second. | MACs | `NO READER` |
+| `global_translation_entries` | `command` | `batctl meshif bat0 transglobal`, package `batctl`. Each row names a client and the originator announcing it. | pairs | `READER`. `mule/mesh.py` `MeshTranslationReadings` with `parse_transglobal`; the `batctl` invocation is injected, not shelled out from `mule/`. |
+| `own_addresses` | `kernel` | `/sys/class/net/*/address` for the node's own interfaces. Plain link attributes, so no `batctl`. **Every** address, not just the bridge: a loop on the bench announced the mesh hard interface first and the bridge second. | MACs | `READER`. `mule/mesh.py` `MeshTranslationReadings.own_addresses`. |
 
 ## Addressing
 
