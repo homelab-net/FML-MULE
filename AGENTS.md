@@ -134,6 +134,37 @@ load, or driver behaviour.
 Trades close on evidence under `docs/evidence/<TRADE-ID>/` accepted by a named
 owner, never on rewriting the trade document to sound more confident.
 
+## The current objective: evidence over architecture
+
+The program is architecture-rich and hardware-poor. Nothing here is
+`HARDWARE-VERIFIED`; the dominant uncertainty is the Linux/radio boundary and RF
+coexistence, and no design reduces it. So for this phase the objective is **not**
+to make the architecture more complete. It is to **reduce the number of
+important assumptions not yet confronted with real hardware.**
+`docs/ROADMAP-DEV.md` holds the demonstration ladder (`M0`-`M7`) this serves.
+
+**Before starting any implementation task, answer: what uncertainty does this
+reduce?** If the answer is documentation completeness, future extensibility,
+architectural elegance, speculative hardening, or an anticipated feature, defer
+it. Producing another well-reasoned artifact is cheap, and it can make the
+repository look like it is advancing while the uncertainty that dominates the
+program is unchanged -- a trap an AI-heavy development model is especially prone
+to, because the asymmetry between generating design and building hardware is
+extreme.
+
+**A new ADR, service, bearer concept, or feature increment must meet one of
+three tests, or wait:** it is necessary for the next hardware demonstration; it
+resolves a defect found during one; or it closes a trade blocking procurement or
+implementation. Prefer instead: executable code for the next demonstration,
+instrumentation, a test procedure, automated evidence collection, removal of an
+integration blocker, or a near-term procurement analysis.
+
+**Hardware evidence is the pacing item.** `SIMULATED` is "ready for test", not
+"integrated" (running on the selected hardware) and not `HARDWARE-VERIFIED`. Do
+not let ready-for-test accumulate: when capabilities are waiting on hardware,
+work the integration backlog rather than adding more capabilities. Every phase
+ends with a demonstration, not a document.
+
 ## Where things go
 
 Decided by **when the code runs**, not by what it is about.
