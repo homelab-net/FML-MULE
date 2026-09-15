@@ -1184,6 +1184,33 @@ credential *at rest*, which is `TBR-SEC-01`'s hardware half.
 provider is warranted, its named owner accepts it, and the admission model
 incorporates identity alongside time, with the decision entered in the register.
 
+### 4.7 The operator status view
+
+**CONOPS basis:** section 67 (the simplified operator view -- "is the MULE
+working?", without making an operator read BATMAN tables) and section 65 (the
+EMCON confirmation path). The component is `FML-ADR-046` (approved thin original
+software), with the Service Authority Registry folded in by `FML-ADR-049`.
+
+**State:** the hard dependency closed, so the roll-up is a buildable P1 bench
+increment. `services/status-aggregator/README.md` named `TBR-TAK-01` its hard
+dependency; that closed 2026-09-06 (`FML-ADR-071`), defining the mission-state
+data model, so the "inventing a state taxonomy" hazard is retired for the
+reasoning spine (`mule/status.py:derive`, `mule/modes.py`, already exercised, a
+pure function under `FML-ADR-052`). A bench increment -- assemble `Observations`
+from the existing readers, serve `NodeStatus` as JSON over loopback, show the
+live mesh link -- is demonstrated in
+`docs/evidence/status-view/2026-09-15-operator-view-over-mesh-hwsim.md`
+(`test/bench/operator-view.py`, `operator-view.sh`), verified against the README's
+gate by an independent agent 2026-09-14. What stays out: the Service Authority
+Registry and the `shared_data_authoritative`/`data_stale` fields (`TBR-HA-01`), a
+fielded daemon's resource envelope (`TBR-COMP-01`), a **production** mesh-links
+reader (parked on `TBR-RF-01`/`TBR-RF-03`/`TBR-LINUX-01`, so live mesh links are a
+bench readout only), and the I2C display (hardware).
+
+**Done when:** `TBR-HA-01` closes so the authority fields can be answered,
+`TBR-COMP-01` sizes the daemon, and the aggregator runs as a catalog service
+meeting `FML-ADR-046`/`FML-ADR-049` with the operator states of SAD section 22.
+
 ## Before the BOM: what to bank on current hardware
 
 **The goal, stated by the Program Owner 2026-09-05:** get the program to a full

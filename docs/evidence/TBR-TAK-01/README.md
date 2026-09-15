@@ -5,9 +5,10 @@
 **Trade file:** `docs/trades/TBR-TAK-01-mission-critical-state-boundary.md`
 
 **Priority:** 9 of 16 (SAD v0.31 section 30.2). **Function owner:** TAK + SRE.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
-**Current contents:** the analysis half only. This trade remains `OPEN`.
+**Current contents:** fifteen artifacts. This trade is **`CLOSED`** (2026-09-06)
+on `FML-ADR-071`, the named owner's acceptance recorded.
 
 - `2026-08-27-state-classification-analysis.md` -- method, the ten SAD 14.1
   categories classified, and the partition and rejoin behaviour of the durable
@@ -179,5 +180,6 @@ only when its listed evidence exists, **the named owner accepts the evidence**,
 and the resulting architecture decision is entered into the persistent ADR
 register.
 
-Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+This trade is now `CLOSED` (`FML-ADR-071`, 2026-09-06): its listed evidence
+exists, the named owner (Cameron Zobrist) accepted it, and the decision is in the
+persistent ADR register.
