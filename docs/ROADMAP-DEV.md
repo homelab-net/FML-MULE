@@ -758,8 +758,12 @@ runs `batman-adv` gateway mode on `mac80211_hwsim` and a WAN-less node selects a
 peer's gateway, reaches its uplink, fails over to the surviving uplink, and loses
 only WAN on partition (`docs/evidence/TBR-NET-04/`, `SIMULATED`). The decision
 that stays open -- single-active versus pooled multi-active, load-share versus
-failover -- is `TBR-NET-04`, and the throughput and real-radio selection it also
-needs are hardware.
+failover -- is `TBR-NET-04`. Its no-hardware half is now analysed
+(`docs/evidence/TBR-NET-04/2026-09-15-single-active-versus-pooled-analysis.md`):
+the bench, re-run with an added assertion, confirms `batman-adv` `gw_mode` is
+single-active with failover, and records that multi-active pooling is not a
+`gw_mode` feature and needs a mechanism above `batman-adv`. The throughput and
+real-radio selection it also needs are hardware.
 
 **CONOPS basis:** section 42 (any MULE may hold the local WAN-gateway role),
 section 43 and section 744 (the MULE is the overlay boundary and EUD traffic must

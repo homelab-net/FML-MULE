@@ -317,6 +317,14 @@ lease=$(client_dhcp)
 sel=$(selected_gateway)
 [ -n "$sel" ] || fail "client has no default route after DHCP."
 info "batman selected gateway $sel; client lease: $lease"
+# Single-active, not pooled: with two gateways available, batman gw_mode installs
+# exactly ONE default route to ONE selected gateway. Load-sharing across both is
+# not a gw_mode feature -- that is TBR-NET-04's pooling option and needs a layer
+# above batman. This asserts the native behaviour the analysis compares against.
+routes=$(ip netns exec fmlgw1 ip route show default 2>/dev/null | grep -c '^default' || true)
+[ "$routes" -eq 1 ] ||
+  fail "client has $routes default routes, expected exactly 1 (batman gw_mode is single-active)."
+info "single-active: exactly one default route via $sel, though two gateways are available"
 
 step "2. A WAN-less node reaches the selected peer's uplink"
 wan=$(wan_behind "$sel")
