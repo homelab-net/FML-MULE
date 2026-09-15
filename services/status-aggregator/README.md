@@ -1,7 +1,20 @@
 # Status aggregator
 
-**APPROVED, NOT YET IMPLEMENTABLE. This directory contains this `README.md` and
-nothing else.**
+**APPROVED. The fielded component is still `NOT YET IMPLEMENTABLE` -- it is gated
+on `TBR-HA-01` and `TBR-COMP-01` -- but its hard dependency has closed and the
+operator status roll-up is now buildable as a bench increment. This directory
+contains this `README.md` and nothing else.**
+
+`TBR-TAK-01` -- the hard dependency below -- closed 2026-09-06 on `FML-ADR-071`,
+which classified all mission state and so defines the data model this component
+aggregates. With that retired, the host/RF/network/time/thermal/power operator
+roll-up can be built as a **bench increment** that reuses `mule/status.py` (the
+"what can be done now" section says how), verified 2026-09-14 by an independent
+agent. What is still gated: the Service Authority Registry (`TBR-HA-01`), the
+resource envelope for a fielded daemon (`TBR-COMP-01`), a **production**
+mesh-links reader (parked in `test/` on `TBR-RF-01`/`TBR-RF-03`/`TBR-LINUX-01`,
+so live mesh links are a bench demonstration only), and the I2C display
+(hardware).
 
 Part of the reasoning this component would do already exists as a pure
 function in `mule/`, under `FML-ADR-052`. See "what already exists in
@@ -92,13 +105,18 @@ that cost.
 
 | Question | Trade | Priority |
 | --- | --- | ---: |
-| What mission state exists, and which of it is durable | `TBR-TAK-01` | 9, `CRITICAL` |
-| What "failed" and "given up" mean for a service | `TBR-HA-01` | 12 |
-| The resource envelope this component may occupy | `TBR-COMP-01` | 2, `CRITICAL` |
+| What mission state exists, and which of it is durable | `TBR-TAK-01` | 9, `CRITICAL` -- **CLOSED 2026-09-06 (`FML-ADR-071`)** |
+| What "failed" and "given up" mean for a service | `TBR-HA-01` | 12 -- OPEN |
+| The resource envelope this component may occupy | `TBR-COMP-01` | 2, `CRITICAL` -- OPEN |
 
-`TBR-TAK-01` is the hard dependency. The status surface reports on mission
-state, and until the state inventory exists and is classified into the CONOPS
-section 26 classes, the data model this component would aggregate is undefined.
+`TBR-TAK-01` was the hard dependency, and it has closed: the state inventory
+exists and is classified into the CONOPS section 26 classes (`FML-ADR-071`), so
+the data model this component aggregates is now defined. The operator status
+roll-up is therefore buildable as a bench increment. The remaining two gates are
+narrower than the whole component: `TBR-HA-01` governs the Service Authority
+Registry (peer authority, the `shared_data_authoritative`/`data_stale` fields,
+which stay `None` until it closes), and `TBR-COMP-01` sizes a fielded daemon, not
+a bench increment.
 
 ## Why not build it anyway
 
@@ -106,15 +124,32 @@ It is tempting: a status page looks shallow, useful immediately, and unlikely to
 constrain anything.
 
 It is not shallow. It **defines the node's observable data model**, and every
-other part of the system ends up conforming to whatever it decided. An
-aggregator written before `TBR-TAK-01` closes will have invented a state
-taxonomy, and that taxonomy will be the one the program uses, because it works
-and rewriting it is expensive.
+other part of the system ends up conforming to whatever it decided. That was the
+reason to wait for `TBR-TAK-01`, and with it closed (`FML-ADR-071`) the state
+taxonomy is defined rather than invented -- so a bench increment that only reuses
+`mule/status.py`/`mule/modes.py` and adds collection plus a local transport
+invents no taxonomy.
+
+The hazard now re-enters at **the served schema**, and the trade that owns it is
+`TBR-HA-01`, not `TBR-TAK-01`: if the schema grows authority, freshness or
+Service-Authority-Registry vocabulary with wire semantics no closed document
+fixes, it invents the taxonomy `TBR-HA-01` will later own. Keep the served schema
+to exactly the fields `NodeStatus` already carries, emit
+`shared_data_authoritative` and `data_stale` as explicit `null`, and name
+`TBR-HA-01` in the schema comment.
 
 ## What can be done now
 
-- **Close `TBR-TAK-01`.** It needs no hardware and is `CRITICAL`. The single
-  most useful thing anyone can do for this component.
+- **Build the operator status roll-up as a bench increment.** `TBR-TAK-01` is
+  closed, so this is now the most useful thing anyone can do here. Assemble
+  `Observations` from the existing readers (`mule/sysfs.py` thermal, the
+  `mule/timekeeping.py` assessment, bearer and mesh liveness via the `test/`
+  `CommandRadio` over `iw`/`batctl`, honest `None` for power), call
+  `mule/status.py:derive`, and serve `NodeStatus` as JSON over loopback or a
+  Unix socket with a freshness timestamp and no remote configuration surface --
+  keeping the schema to the fields `NodeStatus` already carries. Exercise it on
+  the `mac80211_hwsim` mesh bench; do not promote a production mesh-links reader
+  (still parked on the RF/LINUX trades) or a fielded daemon (`TBR-COMP-01`).
 - **Capture fixtures.** Recorded `batctl`, `iw`, Morse Micro driver, nftables,
   hostapd, systemd, power and thermal output, stored in `test/fixtures/` with
   the node, date and image build. Only someone with hardware can produce them,

@@ -3,8 +3,9 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eight procedures. No hardware measurement has been taken.** Two of them emit
-`SIMULATED` transport numbers (below), which by rule say nothing physical.
+**Nine procedures. No hardware measurement has been taken.** Two of them emit
+`SIMULATED` transport numbers (below), which by rule say nothing physical, and
+one serves the operator status view from the node's real readings.
 
 `80211s-mesh.sh` exercises 802.11s association and batman-adv over it using
 `mac80211_hwsim`, with no radio. It is a procedure rather than a measurement:
@@ -227,6 +228,18 @@ configuration, the ambient conditions, and who took it. See
 Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
+
+`operator-view.sh` demonstrates the operator status view (`FML-ADR-046`, CONOPS
+section 67) over a live hwsim mesh: it runs `operator-view.py` inside a node
+namespace, which assembles `Observations` from the node's real readings (sysfs
+thermal and clock, the `mule/timekeeping.py` assessment, bearer and mesh liveness
+over `iw`/`batctl`, honest `None` for power), calls `mule/status.py:derive`, and
+serves `NodeStatus` as JSON over loopback plus a minimal render showing the live
+mesh link. It is the buildable Phase-1 slice of the Status Aggregator, unblocked
+when `TBR-TAK-01` closed; it is a bench increment, not a fielded daemon, serves
+exactly the `NodeStatus` schema (`shared_data_authoritative`/`data_stale` explicit
+`null` until `TBR-HA-01`), and promotes no production mesh-links reader. Evidence:
+`docs/evidence/status-view/`.
 
 `mule-ap-up.sh` brings up the EUD access point on the bench in the field's own
 role model: it reads the `interfaces` map from `nodes/<node-id>/node.yml`
