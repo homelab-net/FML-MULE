@@ -1223,6 +1223,85 @@ about identity, not only time -- a pure `mule/` function under `FML-ADR-052`.
 What is **not**: building the blocked `services/mission-trust/`, and the
 credential *at rest*, which is `TBR-SEC-01`'s hardware half.
 
+**The wider admission and enrollment picture (recorded, not yet decided):** this
+item is the service-identity half of a larger network-admission layer that has
+no roadmap home of its own, recorded here in the style of `4.3` so it does not
+drift. The settled anchors, with their real status:
+
+- The network-admission target is EAP-TLS (`FML-ADR-038`, `SELECTED TARGET`): a
+  per-device, revocable, time-bounded credential, with a MAC address or a shared
+  WLAN password explicitly **not** sufficient. It is a *target* -- not
+  demonstrated on the selected hardware -- and per-device PPSK is a sanctioned
+  prototype path, so "a certificate to join, no password" describes the goal,
+  not today's bench.
+- The PKI shape is `FML-ADR-036` (`PREFERRED`): an offline root that stays
+  offline and is never required on a MULE, mission intermediates delegated to
+  field nodes, and **short-lived credentials as the primary revocation
+  mechanism** -- the ADR names no lifetime value and no renewal mechanism.
+- Trust is distributed per MULE and admission works **offline**, but revocation
+  **lags and is partition-blind** (`FML-ADR-047`); admission depends on credible
+  time and fails closed (`FML-ADR-042`).
+- Identity is separate from authorization (`FML-ADR-037`): the certificate
+  proves identity, while role and organizational scope are carried in signed
+  mission policy and should **not** be baked into a long-lived device
+  certificate.
+
+**Proposed directions (they feed `TBR-ID-01`, some exceed its scope, and none is
+decided):**
+
+- A **single deployment identity**, so one enrollment reaches every service by
+  name through ingress (`FML-ADR-031`). This needs a **common deployment CA**,
+  which cuts against the shipped OpenTAKServer default of a CA regenerated per
+  node (`FML-ADR-071`); and ingress already records that a TLS certificate a
+  browser accepts, offline, is genuinely unsolved.
+- A **constrained onboarding SSID** as the primary path to issue and reissue a
+  certificate -- the piece that resolves the bootstrap deadlock a cert-to-join
+  network creates (a device with no valid certificate cannot reach enrollment),
+  which `FML-ADR-038` does not address. It would be firewalled to the enrollment
+  endpoint only, and evil-twin-defended by shipping the CA pin in the per-user
+  profile so a rogue look-alike onboarding access point cannot harvest
+  credentials.
+- A **short certificate lifetime (on the order of a week) with silent
+  auto-renewal on connectivity, and revocation by non-renewal**. No ADR sets a
+  lifetime or a renewal mechanism today, and the direction fights the shipped
+  OpenTAKServer default of ten-year certificates. The lifetime is the tunable
+  knob: it is both the revocation window and the longest partition a legitimate
+  node can survive before it expires, and a short lifetime deepens the dependence
+  on credible time (`FML-ADR-042`).
+- Package and QR onboarding: a cross-platform data package imported into ATAK
+  for the service identity, an iOS configuration profile for the EAP-TLS Wi-Fi
+  certificate (Android has no equally clean single-file path), and one-time
+  per-user enrollment tokens in preference to reusable passwords.
+
+**Residual risks and open sub-decisions (documented, not solved):**
+
+- **Physical capture is an expected condition and yields keys.** `THREAT_MODEL.md`
+  records no secure element and no tamper response, and that a node captured
+  while running is captured unlocked; zeroize is a cryptographic erase only and
+  data survives it physically (`FML-ADR-044`); LUKS protects a powered-off node
+  only (`FML-ADR-043`). So an issuing key in the field cannot be protected by
+  secrecy -- only by scoping it to one deployment, keeping it short-lived, and
+  revoking it, with the organizational root kept offline (`FML-ADR-036`).
+- **The mesh credential is coarse and un-rotatable.** Mesh membership is one
+  shared SAE credential, a captured node yields it, rekeying has no mechanism,
+  and the result is `SIMULATED` only (`FML-ADR-061`). This is a different, lower
+  layer than per-device EUD admission and is not fixed by it.
+- **Revocation is weak in the shipped stack.** OpenTAKServer certificates default
+  to ten years and its Marti API certificate path checks the chain but not
+  private-key possession and consults no revocation (`THREAT_MODEL.md`);
+  `FML-ADR-047` cannot bound the lag. Short-lived, renewal-gated credentials are
+  the mitigation, but they are a direction, not a built control.
+- **Single-identity reach is a single blast radius.** One credential reaching
+  every service argues for least-privilege RBAC (`FML-ADR-037`) and for hardening
+  any configuration-capable identity separately from an ordinary read-only one.
+- Open sub-decisions, named so they do not surprise later (no identifiers minted
+  here): where renewal and issuance are served (a central authority versus every
+  MULE -- the partition-resilience against issuing-key-exposure trade); whether
+  the onboarding SSID is adopted at all, and its scope and bootstrap rules; and a
+  mesh-key rotation mechanism to close the gap `FML-ADR-061` leaves open. The
+  nearest existing home is `TBR-ID-01`; the network-admission pieces exceed its
+  current workflow-analysis scope.
+
 **Done when:** `TBR-ID-01`'s workflow analysis decides whether a common identity
 provider is warranted, its named owner accepts it, and the admission model
 incorporates identity alongside time, with the decision entered in the register.
