@@ -248,7 +248,10 @@ scenarios.
 **Not in `v1.0`.** The RF voice gateway / RoIP (`4.2`, `4.3`) is a CONOPS v1.1
 change gated on `CCR-03`, not a `v1.0` feature; it stays off `v1.0` scope for the
 same reason `docs/NON-GOALS.md` carried it. Naming it here keeps it from drifting
-back in.
+back in. EUD-native voice and video (`4.8`) -- softphone and in-app video for a
+user carrying no radio -- is a *later* increment still: `FML-ADR-067` places
+direct-to-headset and non-radio audio outside the v1 baseline, so it sits beyond
+even the v1.1 RoIP work and must not be conflated with it.
 
 **Exit gate.** A `v1.0` build runs the CONOPS operational scenarios across more
 than one node in a field test, with evidence under `docs/evidence/` and
@@ -811,6 +814,40 @@ peer's uplink; the RF and real-uplink behaviour need hardware and `TBR-RF-01`.
 section 43 and section 744 keep the MULE the routing and security boundary; the
 firewall rules match the EUD prefix to the general uplink, never the overlay.
 
+### 1.9 Mesh capability probing
+
+**CONOPS basis:** section 67 (the operator view answering what a link can carry,
+not raw routing tables) and section 40 (traffic preference). The probe is a
+network-plane function under `FML-ADR-028`; the mission-service plane, including
+the operator view (`4.7`), displays its result but does not run it.
+
+**State:** forward policy, recorded so it is designed once rather than improvised.
+The operator view wants a per-peer capability -- can this link carry video, voice,
+or only text -- but `FML-ADR-053`'s BATMAN-IV metric is transmit-quality
+(loss-derived), not throughput, so capability cannot be read from the routing
+metric alone. Passive signals are the always-on floor: TQ, the `iw` station
+PHY-rate ceiling, the bearer and the hop count reliably rule a tier *out* and emit
+nothing; a light, paced, tier-sized active probe is what confirms a tier *in*.
+
+**The policy to hold:** the active probe **shall** send briefly at the target tier
+rate rather than saturate the link (a `batctl tp` throughput test strains the
+shared channel and flaps routes), **shall** be paced with jitter, a per-node phase
+offset and a round-robin stagger, and **shall** skip or yield when the channel is
+busy, so a fleet does not all probe on the minute. It **should** size to the tier
+and step up, never video-probing a link that failed voice, and **shall** be
+suppressed under EMCON.
+
+**Read first:** `test/bench/mesh-traffic.sh`, which already measures the transport
+half -- multi-hop latency and a voice-profile flow's jitter and loss under a bulk
+flow -- `SIMULATED` on `mac80211_hwsim`, with its QoS qdisc illustrative and not a
+decision (`TBR-RF-01` owns the mechanism).
+
+**Done when:** `TBR-RF-01` sets the QoS and rate mechanism and the probe's real
+airtime cost is measured on hardware -- whether a roughly one-minute cadence is
+affordable is a measurement, not a paper call -- and the probe runs as a
+network-plane function feeding the operator view's capability field, with the
+decision entered in the register. Out of `v1.0` scope until that evidence exists.
+
 ## Track 2 — hardware
 
 **State:** an Intel N150 system is selected as a development-only article under
@@ -1332,6 +1369,48 @@ bench readout only), and the I2C display (hardware).
 **Done when:** `TBR-HA-01` closes so the authority fields can be answered,
 `TBR-COMP-01` sizes the daemon, and the aggregator runs as a catalog service
 meeting `FML-ADR-046`/`FML-ADR-049` with the operator states of SAD section 22.
+
+### 4.8 EUD-native voice and video
+
+**CONOPS basis:** section 9.2 (peer-to-peer ATAK as a local mission service that
+survives when external hosts are gone) and the non-radio user it implies -- a
+civilian response unit on an everyday phone with no DM-32. It extends the RoIP
+flow of `4.2`/`4.3` and feeds the capability display of `4.7`.
+
+**State:** post-v1, nothing built, recorded so it does not drift or get conflated
+with the approved RoIP work. RoIP (`4.2`, `CCR-03` approved, `FML-ADR-064` through
+`FML-ADR-067`) is external-radio voice -- it bridges a DM-32 handheld onto the IP
+bus. This item is the other half: voice and video for an EUD user who carries no
+radio, which `FML-ADR-067` explicitly places outside the v1 baseline
+(direct-to-headset and non-radio audio, and dual-comm, are out). So it is a later
+increment than the v1.1 RoIP, not a deferral of it.
+
+**The shape (recorded, not decided):**
+
+- Voice rides the IP mesh, EUD-agnostic, through a MULE-served web application and
+  WebRTC -- the browser supplies the microphone, the Opus codec, the jitter buffer
+  and the mix, and a flat layer-2 subnet removes the usual NAT traversal. The
+  baseline groups are small (a squad net, direct calls, a team-leads net, a TOC
+  net) and ride full-mesh with no server-side mixer; a federated selective-
+  forwarding unit is a growth rung for a large single net, gated on measured need.
+  The media service uses the IP plane and, per `FML-ADR-028`, never owns network
+  or RF state.
+- Video is a separate plane and is not this item's to build: it rides the TAK
+  video path (OpenTAKServer plus a media server, endpoint-encoded, served as
+  RTSP/HLS/WebRTC) on the high-rate bearer (`FML-ADR-025`) with QoS, not the voice
+  path. That media server is not yet a catalog entry, so adding it is future
+  `FML-ADR-078` catalog work.
+
+**Read first:** `docs/architecture/roip-voice-data-flow.md` (the RoIP flow this
+extends), items `4.2` and `4.3`, and `test/bench/mesh-traffic.sh` for the
+transport-viability measurement.
+
+**Done when:** the transport is shown to carry voice-grade multi-hop traffic under
+contention on real hardware (`TBR-RF-01`, advanced by `test/bench/mesh-traffic.sh`
+today), `TBR-VOICE-02` selects the voice-group authorization model and its merge
+behaviour, `TBR-COMP-01` sizes any node-side media component, and a scope decision
+brings EUD-native voice into a version -- with the decision entered in the
+register. It stays out of `v1.0`, and later than the v1.1 RoIP, until then.
 
 ## Before the BOM: what to bank on current hardware
 
