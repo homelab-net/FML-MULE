@@ -1366,9 +1366,44 @@ fielded daemon's resource envelope (`TBR-COMP-01`), a **production** mesh-links
 reader (parked on `TBR-RF-01`/`TBR-RF-03`/`TBR-LINUX-01`, so live mesh links are a
 bench readout only), and the I2C display (hardware).
 
+**The operator-facing view (recorded design; a `SIMULATED` mock, nothing
+fielded):** the State above is the roll-up's data spine; this is what an operator
+sees on top of it. One standard dashboard serves every organization -- there is
+no per-deployment "operational profile" to configure, because the roster supplies
+the labels, the vitals are the universal union, and a field that does not apply to
+an org is ignored after a brief rather than switched off. The view is
+capability-first: it answers what a link can carry -- video, voice, or text --
+rather than a raw or fabricated rate, and that tier comes from the passive floor
+and the paced probe of item `1.9`, never from a number the mesh cannot
+substantiate. It is glanceable -- complete node-and-network status in about five
+seconds, without scrolling, on a phone, in both portrait and landscape (many EUDs
+are vehicle-mounted) -- minimalist and low-light, in plain operator language
+(emission, runtime, direct or via a relay, IP or LoRa), and it distinguishes the
+IP plane from the LoRa (Meshtastic) plane (`FML-ADR-026`). It is served over HTTPS
+because call signs are OPSEC-sensitive, read-only for most, with configuration
+(EMCON, bearer power, EUD boot) gated to authenticated roles on the same identity
+model as `4.6`.
+
+**The three behaviours the fielded view must add:**
+
+- A node reporting `OPERATIONAL` while a peer is unreachable **shall not** read as
+  all-clear: the view **shall** carry the reachable count and mark the loss, and
+  **shall** alarm a *recent* loss rather than dim it, dimming only a long-stale
+  peer.
+- The state word **shall** demote from `OPERATIONAL` to `DEGRADED` on a defined
+  trigger -- loss of the WAN reach-back (`FML-ADR-069`) or loss of the last path
+  to a pinned peer -- so a green header cannot mask a backhaul or reach loss, and
+  a WAN loss **shall** alarm with parity to a down node rather than change one
+  quiet field.
+- A daylight, high-contrast variant **shall** exist: the near-black low-light
+  palette that suits a vehicle cabin at night washes out on a handheld in direct
+  sun. The browser-free EMCON confirmation path remains the I2C OLED of
+  `FML-ADR-046` (section 65), not this view.
+
 **Done when:** `TBR-HA-01` closes so the authority fields can be answered,
 `TBR-COMP-01` sizes the daemon, and the aggregator runs as a catalog service
-meeting `FML-ADR-046`/`FML-ADR-049` with the operator states of SAD section 22.
+meeting `FML-ADR-046`/`FML-ADR-049` with the operator states of SAD section 22,
+and the fielded view meets the three behaviours above.
 
 ### 4.8 EUD-native voice and video
 
