@@ -102,6 +102,13 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   than `mule/`, because condition 4 keeps an interface whose shape an open
   trade governs out of the production package.
 
+- `mule/capability.py` acts on `FML-ADR-026` only to hold a LoRa link at the
+  `TEXT` tier: LoRa is the non-IP text plane, so no IP-side signal raises a LoRa
+  peer above text (`FML-ADR-080`). It is a pure function of the per-peer signals
+  handed to it and performs **no translation** -- it reads no payload, addresses
+  no recipient, and moves nothing between planes; any reading Protocol for those
+  signals stays in `test/flatsat/`, which is condition 4.
+
 ## What can be done now
 
 - **Close `TBR-TAK-01`**, which needs no hardware.
