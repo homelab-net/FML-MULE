@@ -543,6 +543,28 @@ mutations:
     find: "        if line.lstrip().startswith(\"*\")"
     replace: "        if not line.lstrip().startswith(\"#\")"
 
+  # --- radio_parse: per-peer passive signals (bitrate ceiling, TQ) --------
+  - id: M108
+    file: test/flatsat/radio_parse.py
+    describe: a failed station-dump command reports no bitrates instead of unknown
+    find: "        return None\n    result: dict[str, float] = {}"
+    replace: "        return {}\n    result: dict[str, float] = {}"
+  - id: M109
+    file: test/flatsat/radio_parse.py
+    describe: the station bitrate parser ignores the tx-bitrate line and reports no rate
+    find: "        elif line.startswith(\"tx bitrate:\") and mac is not None:"
+    replace: "        elif line.startswith(\"rx bitrate:\") and mac is not None:"
+  - id: M110
+    file: test/flatsat/radio_parse.py
+    describe: a failed originators command reports no TQ instead of unknown
+    find: "        return None\n    result: dict[str, int] = {}"
+    replace: "        return {}\n    result: dict[str, int] = {}"
+  - id: M111
+    file: test/flatsat/radio_parse.py
+    describe: the TQ parser reads the header and legend, not only originator lines
+    find: "        if not line.startswith(\"*\"):\n            continue"
+    replace: "        if line.startswith(\"~\"):\n            continue"
+
   # --- CommandRadio: the reader's None discipline and semantics -----------
   - id: M69
     file: test/flatsat/radio.py
