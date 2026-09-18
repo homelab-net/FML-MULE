@@ -117,13 +117,16 @@ hardware the reader returns `[]`/`None` until a board supplies it.
 | `interfaces` | `command` | `iw dev`, package `iw`. Kernel interface is nl80211 netlink; `iw` is the tool that speaks it, and no `sysfs` equivalent lists interface type. | name and type | `READER` (`CommandRadio.enumerated`). Map per board, empty until `TBR-HW-01`. |
 | `station_count` | `command` | `iw dev <iface> station dump`, package `iw`. Mesh peers, or AP clients. | count | `READER` (`CommandRadio.associated`). |
 | `originator_count` | `command` | `batctl meshif <if> originators`, package `batctl`. Selected next hops only. Netlink, same as the mesh-state rows above. | count | `PARSE ONLY`. No Protocol method consumes it yet; parser ready for when one does. |
+| `station_bitrates_mbps` | `command` | `iw dev <iface> station dump`, package `iw`. Per-station PHY-rate ceiling, an upper bound on the link, not a measured goodput. | Mb/s | `PARSE ONLY`. No Protocol method consumes it yet; the passive floor of roadmap item 1.9. |
+| `originator_tqs` | `command` | `batctl meshif <if> originators`, package `batctl`. The `(#/255)` TQ column; loss-derived link quality, not throughput (`FML-ADR-053`). | TQ 0-255 | `PARSE ONLY`. No Protocol method consumes it yet; the passive floor of roadmap item 1.9. |
 
 **`None` is the command not running; empty is a real zero.** `radio_parse`
 returns `None` when the command's output is `None` (absent `iw`/`batctl`, no
 such interface) and `0`/`[]` when it ran and found nothing. A node without `iw`
 and a node with `iw` and no peers are different states, and the parser keeps
 them apart at the boundary so a reader inherits it. Mutations `M67` and `M68`
-hold that line.
+hold that line, and `M108`-`M111` extend it to the per-peer bitrate and TQ
+parsers.
 
 **Both packages, `iw` and `batctl`, must be in the image**, which
 `os/kernel/PINS.md` already requires for `batctl` under `FML-ADR-040`; `iw` joins

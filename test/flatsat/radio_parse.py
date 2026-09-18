@@ -87,3 +87,56 @@ def originator_count(batctl_originators_output: str | None) -> int | None:
         for line in batctl_originators_output.splitlines()
         if line.lstrip().startswith("*")
     )
+
+
+def station_bitrates_mbps(station_dump_output: str | None) -> dict[str, float] | None:
+    """Per-station tx bitrate in Mb/s, from `iw dev <iface> station dump`.
+
+    Keyed by station MAC. The value is the PHY-rate *ceiling* -- the rate the
+    driver last transmitted at, an upper bound on what the link can carry, not a
+    measured goodput. `FML-ADR-053` makes batman-adv's own metric loss-derived TQ,
+    not throughput, so roadmap item 1.9's passive floor pairs this ceiling with
+    TQ rather than trusting either alone. `None` if the command could not run --
+    which includes there being no such interface. An empty dict is a real
+    reading: the interface exists and has no peers, so `iw` prints no `Station`
+    blocks.
+    """
+    if station_dump_output is None:
+        return None
+    result: dict[str, float] = {}
+    mac: str | None = None
+    for raw in station_dump_output.splitlines():
+        line = raw.strip()
+        if line.startswith("Station "):
+            mac = line.split()[1]
+        elif line.startswith("tx bitrate:") and mac is not None:
+            result[mac] = float(line[len("tx bitrate:") :].split()[0])
+    return result
+
+
+def originator_tqs(batctl_originators_output: str | None) -> dict[str, int] | None:
+    """Per-originator transmit quality (TQ, 0-255), from `batctl ... originators`.
+
+    Keyed by originator MAC, from the `*`-marked best-next-hop lines only -- the
+    same lines `originator_count` counts, so a node reachable through several
+    neighbours appears once. The value is the integer in the `(#/255)` column:
+    batman-adv's link-quality metric, loss-derived, **not** a throughput
+    (`FML-ADR-053`); roadmap item 1.9's passive floor reads it. `None` if `batctl`
+    could not run. An empty dict is a real reading: the mesh is up and this node
+    has no originators yet.
+
+    The header and legend lines do not start with `*` and are skipped, so the
+    legend's own `(#/255)` is never read as a TQ.
+    """
+    if batctl_originators_output is None:
+        return None
+    result: dict[str, int] = {}
+    for raw in batctl_originators_output.splitlines():
+        line = raw.lstrip()
+        if not line.startswith("*"):
+            continue
+        mac = line.split()[1]
+        start = line.index("(")
+        end = line.index(")", start)
+        result[mac] = int(line[start + 1 : end])
+    return result

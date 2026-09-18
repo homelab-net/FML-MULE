@@ -80,3 +80,53 @@ def test_originator_count_skips_the_header_line() -> None:
 
 def test_originator_count_none_when_command_could_not_run() -> None:
     assert radio_parse.originator_count(None) is None
+
+
+# --- station bitrates -------------------------------------------------------
+
+
+def test_station_bitrates_reads_mbps_by_mac() -> None:
+    parsed = radio_parse.station_bitrates_mbps(
+        _fixture("iw-station-dump-associated.txt")
+    )
+    assert parsed == {"12:50:52:59:c6:bc": 2.0}
+
+
+def test_station_bitrates_empty_is_a_real_reading_not_none() -> None:
+    # The interface exists and has no peers; `iw` prints no Station blocks.
+    empty = radio_parse.station_bitrates_mbps(_fixture("iw-station-dump-empty.txt"))
+    assert empty == {}
+
+
+def test_station_bitrates_none_when_command_could_not_run() -> None:
+    assert radio_parse.station_bitrates_mbps(None) is None
+
+
+def test_station_bitrates_distinguishes_none_from_empty() -> None:
+    # No `iw` (unknown) differs from `iw` with no peers (a real empty reading).
+    unknown = radio_parse.station_bitrates_mbps(None)
+    empty = radio_parse.station_bitrates_mbps("")
+    assert unknown != empty
+
+
+# --- originator TQ ----------------------------------------------------------
+
+
+def test_originator_tqs_reads_the_tq_column_by_mac() -> None:
+    parsed = radio_parse.originator_tqs(_fixture("batctl-originators.txt"))
+    assert parsed == {"12:50:52:59:c6:bc": 45}
+
+
+def test_originator_tqs_skips_header_and_legend() -> None:
+    # The legend line carries its own `(#/255)`; a parser that read parens on any
+    # line would mistake it for a TQ. Only `*` lines are originators.
+    header_only = (
+        "[B.A.T.M.A.N. adv 2024.2, MainIF/MAC: wlan0/de:4d:71:17:c4:6d "
+        "(bat0/de:4d:71:17:c4:6d BATMAN_IV)]\n"
+        "   Originator        last-seen (#/255) Nexthop           [outgoingIF]\n"
+    )
+    assert radio_parse.originator_tqs(header_only) == {}
+
+
+def test_originator_tqs_none_when_command_could_not_run() -> None:
+    assert radio_parse.originator_tqs(None) is None
