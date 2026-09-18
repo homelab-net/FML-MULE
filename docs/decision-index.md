@@ -82,6 +82,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-077` | SELECTED | `mule/status.py`, `test/flatsat/mutations.yml`, `test/flatsat/node.py`, `test/flatsat/scenarios/test_degraded_states.py` | `docs/evidence/findings/GAP-05/README.md`, `docs/evidence/findings/GAP-05/closure.md`, `docs/evidence/findings/GAP-05/implementation.md` |
 | `FML-ADR-078` | SELECTED | `test/flatsat/catalog/catalog.yml`, `test/flatsat/mutations.yml`, `test/unit/test_gen_config.py`, `tools/gen-config.py`, `tools/validate-catalog.py` | `docs/ROADMAP-DEV.md`, `docs/evidence/findings/GAP-02/README.md`, `docs/evidence/findings/GAP-02/closure.md`, `docs/evidence/findings/GAP-02/implementation.md`, `docs/evidence/findings/GAP-08/implementation.md`, `services/catalog/README.md`, `services/catalog/catalog.yml`, `services/quadlets/README.md`, `test/flatsat/catalog/README.md` |
 | `FML-ADR-079` | SELECTED PLANNING BASELINE | `os/image/build-inputs.yml`, `tools/build-image.sh`, `tools/validate-image.py` | `docs/evidence/findings/GAP-09B/2026-09-13-implementation.md`, `docs/evidence/findings/GAP-09B/closure.md`, `docs/evidence/findings/GAP-09B/execution-card.md`, `docs/prior-art/mkosi.md`, `docs/prior-art/registry.yml`, `os/image/README.md`, `os/image/manifest/README.md` |
+| `FML-ADR-080` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md` |
 
 ## Trades
 
