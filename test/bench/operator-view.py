@@ -20,6 +20,11 @@ independent verification):
     parked on `TBR-RF-01`/`TBR-RF-03`/`TBR-LINUX-01`). The mesh-link counts here
     are a bench readout over `iw`/`batctl`, shown alongside the status, not part
     of the status contract.
+  * The per-peer capability tier (`FML-ADR-080`) is the same kind of bench
+    readout: derived from the passive signals (the `iw` PHY-rate ceiling and
+    batman-adv TQ) by `mule.capability`, shown alongside the status, not part of
+    it. Its thresholds are the illustrative `BENCH_POLICY`, not `TBR-RF-01`'s, and
+    a tier is a ceiling, never an end-to-end guarantee (item 1.9's probe confirms).
   * Readings that cannot be taken report absence honestly: power has no reader on
     this bench, thermal has no zone map until `TBR-HW-01`, so both say "cannot
     tell", not a made-up value.
@@ -37,14 +42,37 @@ import json
 import subprocess
 import sys
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from mule import modes, power, status, thermal, timekeeping
 from mule.bearers import Bearer
+from mule.capability import CapabilityPolicy, capability_tier
 from mule.sysfs import SysfsThermalReadings, SysfsTimeReadings, ZoneMap
+
+# radio_parse is the flat-sat's tested iw/batctl parser (PR #146). test/ and
+# test/bench/ are not packages, and `test` shadows a stdlib package, so add the
+# flat-sat directory to the path and import the module directly rather than as
+# test.flatsat.radio_parse.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "flatsat"))
+import radio_parse
 
 # Interface-type substrings iw reports, mapped to the bearer they carry. This is
 # a bench convenience, not the per-board interface map TBR-HW-01 will supply.
 _TYPE_TO_BEARER: dict[str, Bearer] = {"mesh point": "wifi_mesh", "AP": "wifi_ap"}
+
+# Illustrative capability thresholds so the bench can name a per-peer tier. These
+# are NOT TBR-RF-01's values, which FML-ADR-080 keeps out of the code; a tier
+# derived from them is a ceiling, not a guarantee (the paced probe of item 1.9 is
+# what would confirm one end to end).
+BENCH_POLICY = CapabilityPolicy(
+    video_min_mbps=5.0,
+    voice_min_mbps=0.5,
+    video_min_tq=200,
+    voice_min_tq=120,
+    unreachable_at_or_below_tq=0,
+    video_max_hops=1,
+    voice_max_hops=4,
+)
 
 
 def _run(cmd: list[str]) -> str | None:
@@ -73,52 +101,70 @@ class _NoBattery:
         return None
 
 
-def _radios() -> tuple[list[Bearer] | None, list[Bearer], dict[str, int]]:
-    """Read bearers present, bearers with a live link, and mesh-link counts.
+def _peer_capability(
+    bearer: Bearer, dump: str | None, orig: str | None
+) -> dict[str, dict[str, object]]:
+    """Per-peer capability tier for the mesh, with the signals it came from.
 
-    Returns (enumerated, associated, mesh_counts). `enumerated` is None if `iw`
-    could not run at all -- "cannot tell what is present" is not "nothing is".
-    mesh_counts is bench telemetry (peers, originators), not part of the status.
+    Bench telemetry, `SIMULATED`, and a ceiling not a guarantee (`FML-ADR-080`):
+    the active probe of item 1.9 is what would confirm a tier end to end. The
+    signals come from the flat-sat's tested parser and the tier from
+    `mule.capability`; hops are not in `station dump`/`originators`, so `None` is
+    passed and that ceiling is skipped. The signals ride alongside the tier so an
+    operator, and this evidence, can see why the tier is what it is.
     """
-    dev = _run(["iw", "dev"])
-    if dev is None:
-        return None, [], {}
-    interfaces: list[tuple[str, str]] = []
-    name = None
-    for raw in dev.splitlines():
-        line = raw.strip()
-        if line.startswith("Interface "):
-            name = line.split(None, 1)[1]
-        elif line.startswith("type ") and name is not None:
-            interfaces.append((name, line.split(None, 1)[1]))
-            name = None
+    bitrates = radio_parse.station_bitrates_mbps(dump) or {}
+    tqs = radio_parse.originator_tqs(orig) or {}
+    peers: dict[str, dict[str, object]] = {}
+    for mac in sorted(set(bitrates) | set(tqs)):
+        mbps = bitrates.get(mac)
+        tq = tqs.get(mac)
+        peers[mac] = {
+            "tier": capability_tier(bearer, mbps, tq, None, BENCH_POLICY),
+            "mbps": mbps,
+            "tq": tq,
+        }
+    return peers
+
+
+def _radios() -> tuple[
+    list[Bearer] | None, list[Bearer], dict[str, int], dict[str, dict[str, object]]
+]:
+    """Read bearers present, live links, mesh-link counts, and per-peer tiers.
+
+    `enumerated` is None if `iw` could not run at all -- "cannot tell what is
+    present" is not "nothing is". `mesh_counts` and `peer_tiers` are bench
+    telemetry, not part of the status. Parsing is the flat-sat's tested
+    `radio_parse`, not re-inlined here.
+    """
+    interfaces = radio_parse.interfaces(_run(["iw", "dev"]))
+    if interfaces is None:
+        return None, [], {}, {}
 
     enumerated: list[Bearer] = []
     associated: list[Bearer] = []
     mesh_counts: dict[str, int] = {}
+    peer_caps: dict[str, dict[str, object]] = {}
     for iface, iftype in interfaces:
         bearer = _TYPE_TO_BEARER.get(iftype)
         if bearer is None:
             continue
         enumerated.append(bearer)
         dump = _run(["iw", "dev", iface, "station", "dump"])
-        peers = dump.count("Station ") if dump is not None else 0
+        peers = radio_parse.station_count(dump) or 0
         if peers > 0:
             associated.append(bearer)
         if bearer == "wifi_mesh":
-            mesh_counts["peers"] = peers
             orig = _run(["batctl", "meshif", "bat0", "originators"])
-            mesh_counts["originators"] = (
-                sum(1 for line in orig.splitlines() if "*" in line)
-                if orig is not None
-                else 0
-            )
-    return enumerated, associated, mesh_counts
+            mesh_counts["peers"] = peers
+            mesh_counts["originators"] = radio_parse.originator_count(orig) or 0
+            peer_caps = _peer_capability(bearer, dump, orig)
+    return enumerated, associated, mesh_counts, peer_caps
 
 
-def observe() -> tuple[status.NodeStatus, dict[str, int]]:
+def observe() -> tuple[status.NodeStatus, dict[str, int], dict[str, dict[str, object]]]:
     """Assemble Observations from the node's real readings and derive the view."""
-    enumerated, associated, mesh_counts = _radios()
+    enumerated, associated, mesh_counts, peer_caps = _radios()
 
     # Bench time policy. These are placeholders so the roll-up runs; the real
     # values are TBR-TIME-01 and are not decided here.
@@ -160,7 +206,7 @@ def observe() -> tuple[status.NodeStatus, dict[str, int]]:
         modes=mode_assessment,
         lora_stack_responding=None,
     )
-    return status.derive(observations), mesh_counts
+    return status.derive(observations), mesh_counts, peer_caps
 
 
 def _payload() -> dict[str, object]:
@@ -169,22 +215,32 @@ def _payload() -> dict[str, object]:
     The bench mesh-link counts ride alongside under a clearly separate key so the
     status schema stays exactly NodeStatus (see the module docstring).
     """
-    node_status, mesh_counts = observe()
+    node_status, mesh_counts, peer_caps = observe()
     return {
         # Exactly mule.status.NodeStatus. shared_data_authoritative and
         # data_stale are null until TBR-HA-01 (the Service Authority Registry).
         "status": dataclasses.asdict(node_status),
         "as_of": datetime.now(tz=UTC).isoformat(),
         "_bench_mesh_links": mesh_counts,  # bench telemetry, not the contract
+        "_bench_peer_capability": peer_caps,  # bench telemetry, not the contract
     }
 
 
 def _render(payload: dict[str, object]) -> str:
-    """Render a minimal operator page: the state, then the live mesh links."""
+    """Render a minimal operator page: state, live mesh links, peer tiers."""
     s = payload["status"]
     assert isinstance(s, dict)
     mesh = payload["_bench_mesh_links"]
     assert isinstance(mesh, dict)
+    caps = payload["_bench_peer_capability"]
+    assert isinstance(caps, dict)
+    peer_caps = (
+        "; ".join(
+            f"{mac} {c['tier']} ({c['mbps']} Mb/s, TQ {c['tq']})"
+            for mac, c in caps.items()
+        )
+        or "(none)"
+    )
     lines = [
         "MULE operator view (bench, SIMULATED)",
         f"  state:        {s['state']}",
@@ -195,6 +251,7 @@ def _render(payload: dict[str, object]) -> str:
         f"  authoritative:{s['shared_data_authoritative']}  (null until TBR-HA-01)",
         f"  live mesh:    {mesh.get('peers', 0)} peer(s), "
         f"{mesh.get('originators', 0)} originator(s)",
+        f"  peer tiers:   {peer_caps}  (ceiling, not a guarantee)",
         f"  as of:        {payload['as_of']}",
     ]
     return "\n".join(lines)
