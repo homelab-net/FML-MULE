@@ -825,9 +825,11 @@ the operator view (`4.7`), displays its result but does not run it.
 The operator view wants a per-peer capability -- can this link carry video, voice,
 or only text -- but `FML-ADR-053`'s BATMAN-IV metric is transmit-quality
 (loss-derived), not throughput, so capability cannot be read from the routing
-metric alone. Passive signals are the always-on floor: TQ, the `iw` station
-PHY-rate ceiling, the bearer and the hop count reliably rule a tier *out* and emit
-nothing; a light, paced, tier-sized active probe is what confirms a tier *in*.
+metric alone. The tiers those signals map to are named by `FML-ADR-080`, the
+per-link view of the CONOPS section 50 ladder. Passive signals are the always-on
+floor: TQ, the `iw` station PHY-rate ceiling, the bearer and the hop count
+reliably rule a tier *out* and emit nothing; a light, paced, tier-sized active
+probe is what confirms a tier *in*.
 
 **The policy to hold:** the active probe **shall** send briefly at the target tier
 rate rather than saturate the link (a `batctl tp` throughput test strains the
@@ -1372,12 +1374,13 @@ sees on top of it. One standard dashboard serves every organization -- there is
 no per-deployment "operational profile" to configure, because the roster supplies
 the labels, the vitals are the universal union, and a field that does not apply to
 an org is ignored after a brief rather than switched off. The view is
-capability-first: it answers what a link can carry -- video, voice, or text --
-rather than a raw or fabricated rate, and that tier comes from the passive floor
-and the paced probe of item `1.9`, never from a number the mesh cannot
-substantiate. It is glanceable -- complete node-and-network status in about five
-seconds, without scrolling, on a phone, in both portrait and landscape (many EUDs
-are vehicle-mounted) -- minimalist and low-light, in plain operator language
+capability-first: it answers what a link can carry -- video, voice, or text
+(the tiers named by `FML-ADR-080`) -- rather than a raw or fabricated rate, and
+that tier comes from the passive floor and the paced probe of item `1.9`, never
+from a number the mesh cannot substantiate. It is glanceable -- complete
+node-and-network status in about five seconds, without scrolling, on a phone, in
+both portrait and landscape (many EUDs are vehicle-mounted) -- minimalist and
+low-light, in plain operator language
 (emission, runtime, direct or via a relay, IP or LoRa), and it distinguishes the
 IP plane from the LoRa (Meshtastic) plane (`FML-ADR-026`). It is served over HTTPS
 because call signs are OPSEC-sensitive, read-only for most, with configuration
