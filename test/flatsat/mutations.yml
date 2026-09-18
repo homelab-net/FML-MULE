@@ -577,6 +577,33 @@ mutations:
     find: "        return count > 0"
     replace: "        return count >= 0"
 
+  # --- capability: the per-peer tier ceiling (FML-ADR-080) ----------------
+  - id: M112
+    file: mule/capability.py
+    describe: a LoRa link is not held to the text tier
+    find: "    if bearer == \"lora\":\n        return \"TEXT\""
+    replace: "    if bearer == \"lora\":\n        return \"NONE\""
+  - id: M113
+    file: mule/capability.py
+    describe: a measured dead TQ reports a tier instead of no link
+    find: "        return \"NONE\""
+    replace: "        return \"TEXT\""
+  - id: M114
+    file: mule/capability.py
+    describe: the tier is the most capable signal, not the most restrictive
+    find: "    return min(ceilings, key=_ORDER.index)"
+    replace: "    return max(ceilings, key=_ORDER.index)"
+  - id: M115
+    file: mule/capability.py
+    describe: no signal reports no link instead of cannot-tell
+    find: "    if not ceilings:\n        return \"UNKNOWN\""
+    replace: "    if not ceilings:\n        return \"NONE\""
+  - id: M116
+    file: mule/capability.py
+    describe: the video bitrate floor excludes its boundary value
+    find: "    if mbps >= policy.video_min_mbps:"
+    replace: "    if mbps > policy.video_min_mbps:"
+
   # --- remediation findings closure enforcement --------------------------
   - id: M73
     file: tools/validate-findings.py
