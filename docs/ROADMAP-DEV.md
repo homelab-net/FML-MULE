@@ -1362,7 +1362,11 @@ from the existing readers, serve `NodeStatus` as JSON over loopback, show the
 live mesh link -- is demonstrated in
 `docs/evidence/status-view/2026-09-15-operator-view-over-mesh-hwsim.md`
 (`test/bench/operator-view.py`, `operator-view.sh`), verified against the README's
-gate by an independent agent 2026-09-14. What stays out: the Service Authority
+gate by an independent agent 2026-09-14. That bench now also derives a per-peer
+capability tier (`FML-ADR-080`) from the passive signals, as bench telemetry
+alongside the mesh-link counts and demonstrated in
+`docs/evidence/status-view/2026-09-18-per-peer-capability-tier-over-mesh-hwsim.md`.
+What stays out: the Service Authority
 Registry and the `shared_data_authoritative`/`data_stale` fields (`TBR-HA-01`), a
 fielded daemon's resource envelope (`TBR-COMP-01`), a **production** mesh-links
 reader (parked on `TBR-RF-01`/`TBR-RF-03`/`TBR-LINUX-01`, so live mesh links are a
