@@ -831,6 +831,13 @@ floor: TQ, the `iw` station PHY-rate ceiling, the bearer and the hop count
 reliably rule a tier *out* and emit nothing; a light, paced, tier-sized active
 probe is what confirms a tier *in*.
 
+**One floor signal is not yet readable.** `test/flatsat/radio_parse.py` extracts
+TQ and the PHY-rate ceiling, but there is no per-peer **hop-count** reading:
+`batctl originators` gives a next hop, not a path depth, so `mule/capability.py`
+receives `None` for hops today and skips that ceiling. A hop source -- batman-adv
+translation-table depth, for one -- is an open sub-item before the hop dimension
+of `FML-ADR-080` can contribute.
+
 **The policy to hold:** the active probe **shall** send briefly at the target tier
 rate rather than saturate the link (a `batctl tp` throughput test strains the
 shared channel and flaps routes), **shall** be paced with jitter, a per-node phase
@@ -1366,6 +1373,9 @@ gate by an independent agent 2026-09-14. That bench now also derives a per-peer
 capability tier (`FML-ADR-080`) from the passive signals, as bench telemetry
 alongside the mesh-link counts and demonstrated in
 `docs/evidence/status-view/2026-09-18-per-peer-capability-tier-over-mesh-hwsim.md`.
+That tier is keyed by peer MAC; making it operator-meaningful needs the
+MAC-to-callsign mapping (`FML-ADR-070`'s `Contact.callsign` and the roster) that
+item `4.6` owns -- an unwired dependency of this view, not just of admission.
 What stays out: the Service Authority
 Registry and the `shared_data_authoritative`/`data_stale` fields (`TBR-HA-01`), a
 fielded daemon's resource envelope (`TBR-COMP-01`), a **production** mesh-links
