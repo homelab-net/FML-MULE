@@ -109,6 +109,14 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   no recipient, and moves nothing between planes; any reading Protocol for those
   signals stays in `test/flatsat/`, which is condition 4.
 
+- `mule/recipients.py` acts on `TBR-NET-02` and `FML-ADR-070`: it holds the two
+  addressing rules a gateway must obey -- a composed LoRa message plus its
+  identity fields must fit the 231-byte payload, and an unresolved recipient must
+  fail closed rather than broadcast (CONOPS section 23). Both are pure functions
+  of values handed in; the roster and the `GeoChat.to` parser are passed as
+  arguments or deferred (`TBR-NET-02`/`TBR-ID-01`), so it performs **no
+  translation** and this component still implements none of it.
+
 ## What can be done now
 
 - **Close `TBR-TAK-01`**, which needs no hardware.

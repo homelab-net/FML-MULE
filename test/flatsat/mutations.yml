@@ -604,6 +604,33 @@ mutations:
     find: "    if mbps >= policy.video_min_mbps:"
     replace: "    if mbps > policy.video_min_mbps:"
 
+  # --- recipients: the LoRa payload budget and fail-closed delivery -------
+  - id: M117
+    file: mule/recipients.py
+    describe: a message exactly at the payload budget is refused instead of fitting
+    find: "    return len(body.encode()) <= usable_body_bytes("
+    replace: "    return len(body.encode()) < usable_body_bytes("
+  - id: M118
+    file: mule/recipients.py
+    describe: an unresolved recipient delivers instead of failing closed
+    find: "    if target is not None:"
+    replace: "    if target is None:"
+  - id: M119
+    file: mule/recipients.py
+    describe: an unresolved recipient with a default refuses instead of redirecting
+    find: "    if default_recipient is not None:"
+    replace: "    if default_recipient is None:"
+  - id: M120
+    file: mule/recipients.py
+    describe: framing overhead is added to the body budget instead of subtracted
+    find: "    return budget.usable_bytes - identity_bytes - budget.framing_overhead_bytes"
+    replace: "    return budget.usable_bytes - identity_bytes + budget.framing_overhead_bytes"
+  - id: M121
+    file: mule/recipients.py
+    describe: the recipient user-tag is not counted against the payload budget
+    find: "    identity_bytes = len(sender_callsign.encode()) + len(recipient_tag.encode())"
+    replace: "    identity_bytes = len(sender_callsign.encode())"
+
   # --- remediation findings closure enforcement --------------------------
   - id: M73
     file: tools/validate-findings.py

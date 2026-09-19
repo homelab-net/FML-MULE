@@ -574,6 +574,14 @@ CONOPS section 50.8 makes the lifeline.
 `TBR-NET-02` is `CLOSED`, the owner accepted the specification, and the encoding
 is `FML-ADR-070`.
 
+**Implemented so far:** the two rules that need no roster are built in
+`mule/recipients.py` (pure functions under `FML-ADR-052`): the 231-byte payload
+budget a message plus its identity fields must fit (`FML-ADR-070`), and the
+fail-closed delivery decision -- deliver, redirect to a configured default, or
+refuse, and **never** broadcast. Still deferred and passed in rather than derived:
+the participant **roster** (a mission-schema change this trade declined, later
+`TBR-ID-01`'s) and the `GeoChat.to` parser that yields a recipient key.
+
 **Traps:** the natural implementation of "cannot resolve the recipient" is to
 deliver to everyone. It looks like helpfulness and CONOPS section 23 makes it
 wrong, which is why the trade states the fail-closed rule as a gate rather than
