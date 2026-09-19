@@ -1,6 +1,7 @@
 ---
 schema_version: "1.0"
 governing_decision: FML-ADR-079
+package_decision: FML-ADR-081
 builder:
   package: mkosi
   version: 25.3-7
@@ -15,12 +16,36 @@ distribution:
   architecture: x86-64
   snapshot: "20260912T000000Z"
   mirror: https://snapshot.debian.org/archive/debian/20260912T000000Z
+  security_mirror: https://snapshot.debian.org/archive/debian-security/20260912T000000Z
+  suites: [trixie, trixie-security]
   source_date_epoch: 1789171200
 tools_tree:
   mode: default
   distribution: debian
   release: trixie
   mirror: https://snapshot.debian.org/archive/debian/20260912T000000Z
+  suites: [trixie, trixie-security, trixie-backports]
+  sbom_package: debsbom
+  sbom_package_version: 0.10.1-1~bpo13+1
+package_policy:
+  direct_intent: os/image/manifest/direct-packages.list
+  target_lock: os/image/manifest/target-lock.json
+  tools_tree_lock: os/image/manifest/tools-tree-lock.json
+  remove_after_install: [apt]
+  with_recommends: false
+  retain_copyright: true
+sbom:
+  generator: debsbom
+  format: cyclonedx-json
+  schema_version: "1.6"
+  source: built-root
+  include_declared_licenses: true
+  license_exceptions: required
+runtime_verification:
+  monitor: qemu
+  console: read-only
+  network: none
+  systemd_target: multi-user.target
 output:
   format: disk
   compress_output: false

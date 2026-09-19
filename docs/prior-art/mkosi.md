@@ -43,26 +43,24 @@ image reference.
 ## Reproducibility and offline boundary
 
 The build configuration uses the dated Debian snapshot
-`20260912T000000Z`, explicitly enables repository-key checking, and sets
-`LocalMirror` to that same snapshot so mkosi's Debian backend does not add
-separate live update feeds during the build. The normal mirror is also the
-snapshot, so the main and updates entries it writes use that source. Pinned
-mkosi v25.3 nevertheless hard-codes live Debian debug and security URLs while
-writing target apt sources. GAP-09C must remove or replace those entries and
-validate the target source set; GAP-09B claims only that build-time resolution
-uses the dated snapshot. The systemd-repart seed is a UUIDv5 derived from
-`FML-ADR-079`, and the tools-tree distribution, release, and mirror are
-explicit. `ToolsTree=default` activates that governed environment rather than
-leaving those values as unused fallback metadata; mkosi's random seed and host
-programs therefore cannot vary the image. The tools-tree package closure is
-part of GAP-09C's package and SBOM work.
+`20260912T000000Z` and explicitly enables repository-key checking.
+`FML-ADR-081` replaces the GAP-09B single-`LocalMirror` placeholder with an
+mkosi package-manager sandbox containing dated `trixie` and
+`trixie-security` sources. A separate tools-tree sandbox adds only same-time
+`trixie-backports`. This avoids mkosi v25.3's generated live debug and security
+feeds during resolution. Bootstrap `apt` and the target sources it causes
+mkosi to write are removed before installed-root validation. The
+systemd-repart seed is a UUIDv5 derived from `FML-ADR-079`, and the tools-tree
+distribution, release, mirror, package closure, and sandbox are explicit.
 
 The first controlled build may populate `os/image/mkosi.pkgcache/`. A second
 build uses mkosi's `CacheOnly=always` behavior, which its pinned manual defines
-as instructing the package manager not to contact the network. The cache is a
-local build artifact and is not committed. GAP-09C must enumerate and retain
-the exact package closure, generate the SBOM, and demonstrate two image builds
-and one network-unavailable rebuild. GAP-09B does not claim those runs occurred.
+as instructing the package manager not to contact the network. The wrapper also
+enters a network namespace with no external interface. The cache is a local
+build artifact and is not committed. GAP-09C has enumerated the candidate
+target and tools-tree closures, but it must still generate the SBOM and
+demonstrate two clean image builds plus the network-unavailable rebuild before
+those resolver outputs become accepted build evidence.
 
 The output remains uncompressed. Upstream did not advertise reproducible gzip
 output until a later release, so v25.3 is not credited with that behavior. The
@@ -78,8 +76,9 @@ identity, or mission material belongs in the base image.
 
 The pinned source declares LGPL-2.1-or-later by default in `REUSE.toml`, with
 identified GPL-2.0-only, PSF-2.0, and OFL-1.1 files. These licenses are
-compatible with using the separately packaged build tool; GAP-09C still owns
-the licenses of packages placed in the image. The GitHub security-advisory
+compatible with using the separately packaged build tool. `FML-ADR-081`
+selects `debsbom` to inventory declared package licences and records every
+unrecognized expression as an exception. The GitHub security-advisory
 endpoint listed no advisories when reviewed. No independent security audit was
 identified.
 

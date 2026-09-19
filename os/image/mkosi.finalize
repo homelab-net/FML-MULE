@@ -1,0 +1,46 @@
+#!/bin/sh
+# Generate and validate FML-ADR-081 provenance from the completed target root.
+#
+# debsbom v0.10.1 generate help: --root selects the root directory to scan and
+# --with-licenses parses and includes licence information. Generation is
+# documented to work in an air-gapped environment.
+
+set -eu
+
+: "${BUILDROOT:?mkosi did not provide BUILDROOT}"
+: "${OUTPUTDIR:?mkosi did not provide OUTPUTDIR}"
+: "${SRCDIR:?mkosi did not provide SRCDIR}"
+if [ "$BUILDROOT" = / ] || [ ! -d "$BUILDROOT/var/lib/dpkg" ]; then
+  printf '%s\n' 'Refusing to inspect an invalid build root.' >&2
+  exit 1
+fi
+
+sbom_base="$OUTPUTDIR/mule-development.sbom"
+sbom="$sbom_base.cdx.json"
+exceptions="$OUTPUTDIR/mule-development.license-exceptions.json"
+
+debsbom generate \
+  --sbom-type cdx \
+  --cdx-schema-version 1.6 \
+  --cdx-serialnumber 0cb850a0-e8dd-5310-91f3-f9db6a8a94f9 \
+  --timestamp 2026-09-12T00:00:00+00:00 \
+  --no-recommends-deps \
+  --with-licenses \
+  --root "$BUILDROOT" \
+  --out "$sbom_base"
+
+python3 "$SRCDIR/tools/validate-image-root.py" \
+  --root "$BUILDROOT" \
+  --lock "$SRCDIR/os/image/manifest/target-lock.json" \
+  --sbom "$sbom" \
+  --write-exceptions "$exceptions"
+
+# debsbom has consumed the authenticated metadata. Remove it from the deployed
+# root while preserving dpkg status and Debian copyright files.
+for directory in \
+  "$BUILDROOT/var/lib/apt/lists" \
+  "$BUILDROOT/var/cache/apt/archives"; do
+  if [ -d "$directory" ]; then
+    find "$directory" -mindepth 1 -delete
+  fi
+done

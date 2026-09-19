@@ -1,0 +1,22 @@
+# FML-ADR-081. mkosi v25.3 manual: "To add extra package manager
+# configuration files such as extra repositories, use SandboxTrees=".
+#
+# sources.list(5): Check-Valid-Until "controls if APT should try to detect
+# replay attacks". A dated snapshot is intentionally historical, so expiry is
+# disabled while signature and checksum verification remain enabled.
+
+Enabled: yes
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian/20260912T000000Z
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no
+
+Enabled: yes
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian-security/20260912T000000Z
+Suites: trixie-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no

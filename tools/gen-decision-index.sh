@@ -19,15 +19,16 @@
 # back-link is derived from the citations themselves. It cannot drift, because
 # nobody writes it.
 #
-# WHY *.template IS SCANNED
+# WHY CONFIGURATION EXTENSIONS ARE SCANNED
 #
 # os/config/*.template is where a decision stops being prose and becomes
 # configuration, and those files cite decisions heavily: nine of the ten cite at
 # least one, and FML-ADR-056 alone is cited eight times. Until 2026-08-31 the
 # scan covered .md, .py, .sh and .yml only, so every one of those citations was
 # invisible here and an ADR implemented purely as configuration read as
-# implemented by nothing. That is the exact failure this file exists to prevent,
-# in the half of the repository where most decisions currently land.
+# implemented by nothing. The same defect recurred when os/image/mkosi.conf
+# became the primary implementation of FML-ADR-079 but .conf was not scanned.
+# Those are the exact failures this file exists to prevent.
 #
 # WHAT AN EMPTY ENTRY MEANS
 #
@@ -68,7 +69,7 @@ done
 # reason: they would cite whatever this run just wrote.
 searchable() {
   find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \
-    -o -name '*.template' \) \
+    -o -name '*.conf' -o -name '*.template' \) \
     -not -path './.git/*' \
     -not -path './node_modules/*' \
     -not -path './.venv*' \

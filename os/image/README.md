@@ -5,14 +5,16 @@ containing the compatibility set defined in `os/kernel/PINS.md` and
 `manifest/`.
 
 `FML-ADR-079` selects Debian mkosi `25.3-7` for the Debian 13 x86-64
-development image. `build-inputs.yml` governs the builder and snapshot pins,
-`mkosi.conf` describes the raw GPT output, and `tools/build-image.sh --check`
-validates them without root.
+development image. `FML-ADR-081` selects its package and CycloneDX provenance
+boundary. `build-inputs.yml` governs the builder, snapshot, package, and SBOM
+policy; `mkosi.conf` describes the raw GPT output; and
+`tools/build-image.sh --check` validates them without root.
 
-The GAP-09C package manifest is still empty, so the wrapper deliberately
-refuses `--populate-cache` and `--offline` builds. No image has been built or
-booted. The production kernel and board-support path remain open under
-`TBR-LINUX-01` and `TBR-HW-01`.
+The exact resolver inputs now contain a 97-package target closure and a
+separate 414-package mkosi tools-tree closure. No image has yet been built,
+compared, or booted, so those locks remain build inputs rather than accepted
+installed-root evidence. The production kernel and board-support path remain
+open under `TBR-LINUX-01` and `TBR-HW-01`.
 
 ## Intended pipeline
 
@@ -22,10 +24,11 @@ is specific to this program rather than general good practice.
 ### Reproducible build from pinned manifests
 
 The intended contract is that the same retained inputs produce the same output.
-The builder and repository snapshot are now pinned. Package versions come from
-`manifest/`, kernel and driver versions from `os/kernel/PINS.md`, and nothing
-may resolve from a live source at build time. GAP-09C must populate and exercise
-that remaining package closure before the claim is earned.
+The builder, repositories, target closure, and tools-tree closure are pinned.
+Package versions come from `manifest/`, kernel and driver versions from
+`os/kernel/PINS.md`, and nothing may resolve from a live source at build time.
+GAP-09C must still exercise the closure and compare the artifacts before the
+claim is earned.
 
 *Why:* because a node in the field is diagnosed by its set version. If two
 builds of the same set version differ, that identifier means nothing, and the
@@ -66,10 +69,10 @@ the equipment exists. See `os/README.md`.
 
 ## `manifest/`
 
-Pinned package manifests. `packages.list` is present, commented, and
-deliberately **empty of packages**: Debian 13 is selected for the development
-image, but the package set and kernel package remain the GAP-09C owner gate and
-`TBR-LINUX-01` production trade.
+Pinned package manifests separate human-reviewed direct intent from generated
+exact target and tools-tree closures. See `manifest/README.md` for each file.
+The development kernel meta-package is selected for this x86-64 article only;
+`TBR-LINUX-01` still owns the production compatibility set.
 
 The pinning rule is in the file's header comment and is repeated here because
 it is the rule most likely to be broken by someone in a hurry:
@@ -98,8 +101,26 @@ the reason belongs in the role.
 - A build log, retained.
 
 The source-controlled mechanism and requested-output contract now exist. No
-artifact, complete package manifest, SBOM, retained build log, signature, or
-boot evidence exists yet.
+artifact, SBOM, retained build log, signature, or boot evidence exists yet.
+
+## Package-manager sandboxes and build scripts
+
+`sandbox-target/etc/apt/sources.list.d/mkosi.sources` supplies only the dated
+main and security archives. `sandbox-tools/etc/apt/sources.list.d/mkosi.sources`
+adds same-time backports for the pinned build-only `debsbom` package. These
+trees configure mkosi's package-manager sandboxes and are not copied into the
+target.
+
+`mkosi.postinst` removes bootstrap-only `apt` and every target repository file.
+`mkosi.finalize` generates CycloneDX and licence-exception outputs from the
+completed root, validates the installed set against `target-lock.json`, then
+removes the APT metadata used for that scan. Both scripts reject an invalid
+build-root path before altering it.
+
+`tools/resolve-mkosi-builder.sh` authenticates the exact Debian package archive
+and returns its package-owned executable. Both image construction and QEMU boot
+use that absolute path, so a different `mkosi` earlier on `PATH` cannot enter
+the evidence chain.
 
 ## Commands
 
@@ -107,8 +128,16 @@ boot evidence exists yet.
 tools/build-image.sh --check
 sudo tools/build-image.sh --populate-cache
 sudo tools/build-image.sh --offline
+sudo tools/verify-image-reproducibility.sh
 ```
 
-The first command is safe on a contributor machine. The build commands remain
-intentionally unavailable until GAP-09C places exact package versions in
-`manifest/packages.list`.
+The first command is safe on a contributor machine. The other modes require the
+pinned Debian builder and root-capable Linux image facilities. `--offline`
+combines mkosi cache-only mode with a new network namespace, so an unavailable
+external network is demonstrated rather than inferred from configuration.
+Set `FML_MKOSI_PACKAGE_DEB` to the retained `mkosi_25.3-7_all.deb` path when it
+is not in APT's archive cache. The reproducibility command creates two fresh
+networked output/cache pairs, then gives one authenticated populated cache to a
+fresh network-isolated output. `FML_IMAGE_OUTPUT_DIR` and
+`FML_IMAGE_PACKAGE_CACHE` are internal orchestration overrides used to keep
+those three build states separate.

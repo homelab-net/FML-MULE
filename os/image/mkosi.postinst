@@ -1,0 +1,31 @@
+#!/bin/sh
+# Remove mkosi's build-time Debian package manager from the target.
+#
+# mkosi v25.3: post-install scripts run "after all software packages and built
+# sources have been installed". Its package-manager wrappers operate on
+# BUILDROOT, so this does not modify the build host.
+
+set -eu
+
+: "${BUILDROOT:?mkosi did not provide BUILDROOT}"
+if [ "$BUILDROOT" = / ] || [ ! -d "$BUILDROOT/var/lib/dpkg" ]; then
+  printf '%s\n' 'Refusing to alter an invalid build root.' >&2
+  exit 1
+fi
+
+# FML-ADR-081. Do not autoremove dependencies that form the locked final set.
+apt-get --no-auto-remove --assume-yes purge apt
+
+# mkosi writes target sources only when apt was present during installation.
+# They are build inputs, not deployable configuration.
+if [ -d "$BUILDROOT/etc/apt/sources.list.d" ]; then
+  find "$BUILDROOT/etc/apt/sources.list.d" -type f -delete
+fi
+if [ -f "$BUILDROOT/etc/apt/sources.list" ]; then
+  rm "$BUILDROOT/etc/apt/sources.list"
+fi
+
+if [ -e "$BUILDROOT/usr/bin/apt" ] || [ -e "$BUILDROOT/usr/bin/apt-get" ]; then
+  printf '%s\n' 'APT remains in the target after the governed purge.' >&2
+  exit 1
+fi

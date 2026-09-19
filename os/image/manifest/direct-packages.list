@@ -1,0 +1,13 @@
+# FML-ADR-081 direct target package intent.
+#
+# Names only: exact versions and transitive closure belong to target-lock.json.
+# Adding a package here requires Program Owner approval at the owning gap.
+
+dbus                  # System bus required by the selected boot userspace.
+initramfs-tools       # Explicit initramfs implementation for the Debian kernel.
+linux-image-amd64     # Debian 13 x86-64 development kernel meta-package.
+systemd               # Selected service manager and boot userspace.
+systemd-boot          # systemd-boot integration used by mkosi.
+systemd-boot-efi      # UEFI binary payload for the selected bootloader.
+systemd-sysv          # Init-system compatibility links.
+udev                  # Device discovery and hotplug.

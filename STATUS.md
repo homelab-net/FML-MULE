@@ -92,6 +92,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-045` | EUD WLAN and high-throughput inter-node mesh are separate logical radio functions; power/BOM planning assumes separate radios until concurrency is proven | TBR-RF-03, TBR-RF-01, TBR-PWR-01, TBR-THERM-01, TBR-HW-01, TBR-CARRIER-01 |
 | `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
 | `FML-ADR-079` | mkosi builds the Debian development image | TBR-LINUX-01, TBR-HW-01 |
+| `FML-ADR-081` | Development image package closure and CycloneDX provenance | TBR-LINUX-01, TBR-HW-01 |
 
 ### PREFERRED
 

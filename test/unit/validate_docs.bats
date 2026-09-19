@@ -373,6 +373,16 @@ SH
   [ "$status" -eq 0 ]
 }
 
+@test "gen-decision-index includes decision citations from conf files" {
+  make_sandbox
+  generated="$SANDBOX/decision-index-conf-test.md"
+
+  run sh -c "cd '$SANDBOX' && sh tools/gen-decision-index.sh --out '$generated'"
+  [ "$status" -eq 0 ]
+  row=$(grep '| `FML-ADR-079` |' "$generated")
+  [[ "$row" == *'`os/image/mkosi.conf`'* ]]
+}
+
 @test "gen-traceability is stable across locales" {
   if ! locale -a 2>/dev/null | grep -qi '^en_US\.utf8$'; then
     skip "en_US.UTF-8 not available on this machine"

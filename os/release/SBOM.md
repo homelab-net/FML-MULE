@@ -40,13 +40,19 @@ it goes under `docs/evidence/` with the rest of the evidence.
 
 ## Format
 
-`TBD`. SPDX and CycloneDX are the obvious candidates. The choice is not
-consequential enough to be a trade, but it should be recorded as an ADR when
-made, because tooling downstream will depend on it.
+`FML-ADR-081` selects CycloneDX 1.6 JSON for the Debian development image. The
+selection does not extend to radio firmware or later OCI service images until
+their own package and release decisions identify the complete inputs.
 
 ## Generator
 
-`TBD`. Depends on how the image is built, which depends on `TBR-LINUX-01`.
+The development builder uses Debian `debsbom` version
+`0.10.1-1~bpo13+1` from same-time `trixie-backports`. It runs from mkosi's
+separately locked tools tree against the completed target root, never from the
+target itself. `tools/validate-image-root.py` compares the SBOM to the installed
+dpkg set, requires source-package components and Debian copyright files, and
+writes a machine-readable exception for every package without a normalized
+declared licence.
 
 Requirements on whatever is chosen:
 
@@ -57,6 +63,10 @@ Requirements on whatever is chosen:
 - Records the kernel and its patch set, cross-referencing `docs/forks/`.
 - Runs unattended as part of the build, because an SBOM that requires a manual
   step will be skipped on the release that most needs it.
+
+The first two requirements are implemented for the Debian package closure.
+Out-of-tree drivers and radio firmware remain outside this development image
+and must extend the SBOM when `TBR-LINUX-01` selects them.
 
 ## What an SBOM does not give
 
