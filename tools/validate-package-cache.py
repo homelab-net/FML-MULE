@@ -40,7 +40,16 @@ def validate(cache: Path, locks: list[Path]) -> list[str]:
             if not isinstance(package, dict):
                 errors.append(f"package lock contains a non-object record: {lock}")
                 continue
-            filename = Path(str(package.get("filename", ""))).name
+            name = str(package.get("name", ""))
+            version = str(package.get("version", ""))
+            architecture = str(package.get("architecture", ""))
+            # APT archive-cache names retain a Debian epoch and percent-encode
+            # its colon; pool filenames in authenticated metadata omit it.
+            filename = (
+                f"{name}_{version.replace(':', '%3a')}_{architecture}.deb"
+                if name and version and architecture
+                else ""
+            )
             checksum = str(package.get("sha256", ""))
             if not filename or not checksum:
                 errors.append(

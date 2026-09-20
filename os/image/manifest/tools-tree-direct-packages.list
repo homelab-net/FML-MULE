@@ -73,3 +73,27 @@ xfsprogs
 xz-utils
 zstd
 zypper
+
+# Additional packages retained by mkosi v25.3's actual default tools image.
+dmeventd
+libbabeltrace1
+libdebuginfod-common
+libdebuginfod1t64
+libdevmapper-event1.02.1
+liblvm2cmd2.03
+libopencsd1
+libslang2
+libtraceevent1
+linux-perf
+lvm2
+p11-kit
+p11-kit-modules
+pkcs11-provider
+python3-importlib-resources
+python3-virt-firmware
+python3-zstandard
+systemd-boot-efi-amd64-signed
+systemd-cryptsetup
+systemd-repart
+systemd-ukify
+ubuntu-keyring

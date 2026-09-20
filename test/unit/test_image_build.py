@@ -184,7 +184,7 @@ def test_package_cache_validator_detects_missing_and_corrupt_packages(
     """The retained cache shall fail on either absence or checksum drift."""
     cache = tmp_path / "cache"
     cache.mkdir()
-    package = cache / "fixture_1.0_amd64.deb"
+    package = cache / "fixture_1%3a1.0_amd64.deb"
     package.write_bytes(b"authenticated fixture")
     checksum = hashlib.sha256(package.read_bytes()).hexdigest()
     lock = tmp_path / "lock.json"
@@ -193,7 +193,10 @@ def test_package_cache_validator_detects_missing_and_corrupt_packages(
             {
                 "packages": [
                     {
-                        "filename": f"pool/main/f/fixture/{package.name}",
+                        "name": "fixture",
+                        "version": "1:1.0",
+                        "architecture": "amd64",
+                        "filename": "pool/main/f/fixture/fixture_1.0_amd64.deb",
                         "sha256": checksum,
                     }
                 ]
@@ -232,6 +235,9 @@ def test_package_cache_rejects_decoy_name_and_modified_expected_file(
             {
                 "packages": [
                     {
+                        "name": "fixture",
+                        "version": "1.0",
+                        "architecture": "amd64",
                         "filename": f"pool/main/f/fixture/{expected.name}",
                         "sha256": hashlib.sha256(authenticated).hexdigest(),
                     }
