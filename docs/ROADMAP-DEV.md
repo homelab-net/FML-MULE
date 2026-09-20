@@ -1247,6 +1247,19 @@ a board selection criterion (`TBR-HW-01`, `docs/readings.md` records it may have
 no signal at all), and, only if the trade chooses authenticated peer time, the
 credential from `TBR-SEC-01`.
 
+**GNSS is optional, and not required per node.** The network's position picture
+comes from the EUDs, not the MULE: each ATAK/iTAK client self-reports position as
+PLI CoT from its own receiver, which needs no WAN and rides the local mesh to OTS
+and the other clients (CONOPS PLI). GNSS on a MULE therefore serves only time
+discipline, and `FML-ADR-042` with SAD section 24.5.1 make it optional -- "GNSS
+is optional mission hardware, not a prerequisite for baseline boot"; baseline time
+is the battery-backed RTC and chrony, disciplined opportunistically by GNSS or WAN
+when present and failing closed otherwise. Because the partition/rejoin analysis
+leans v1 toward adopting no peer time, this does not rest on a node borrowing time
+over the mesh: a node without GNSS relies on RTC holdover (values open in
+`TBR-TIME-01`) and fails closed rather than trust a doubtful clock, and it never
+takes its security-relevant time from an admitted EUD.
+
 **Done when:** `TBR-TIME-01` sets the skew and holdover values on measured RTC
 drift, its named owner accepts them, and the partition rule is selected (peer
 time adopted, or not) and entered in the register.
@@ -1537,6 +1550,18 @@ measurement rather than a design.
   remains is the hardware half: the arm64/CM4 figure, CPU under load, and the
   **peak** under start-up, mesh reconfiguration and an association storm with the
   network plane co-resident -- which need radios.
+
+  The **prototype/test compute is the Raspberry Pi 4B (8GB)** -- a `TBR-COMP-01`
+  working article, not a trade closure. It shares the CM4's BCM2711 SoC, so the
+  arm64 CPU/RAM figures it produces transfer to the memory-class call. Its **core
+  configuration** is onboard Wi-Fi as the EUD AP, HaLow (WM1302 HAT over SPI) as
+  the long-range backbone, and LoRa over USB; the `FML-ADR-025` **high-rate 5 GHz
+  plane is deferred**, because the Pi 4B exposes no PCIe for the QCA6174 and its
+  only high-rate path is a USB3 mt76 adapter -- a stand-in, not the BOM radio.
+  This does not close `TBR-COMP-01` (which closes on the peak/under-load figures
+  above, with an owner), and the **CM4/CM5 stays the field-article candidate** for
+  the M.2/PCIe, eMMC and sealed-carrier integration a Pi 4B SBC cannot provide.
+  The BOM NODE-CORE compute row is unchanged.
 - **`TBR-MAP-01`, the tile store and server (`4.4`).** The interface, the client
   model, the EUD render and the map-server-for-the-mesh role are all
   demonstrated (see `4.4`). The store format (`FML-ADR-073`, per-mission MBTiles)
@@ -1578,6 +1603,39 @@ has bench evidence already or needs only the owner's direction.
   that plus the network-plane reserve, the OS and headroom against 4 GB, versus
   the room 8 GB gives -- a decision for the owner with the power model, not made
   here.
+- **The deployment and portability model (two tiers, one hardware-agnostic
+  stack).** The software targets the **CM4 carry node** (battery, sealed, passive
+  cooling, 4 GB core profile) as the reference article, but is designed to deploy
+  **unchanged to any capable Debian host** -- a mains/vehicle-powered COTS mini PC
+  or desktop as a **TOC node** running the media profile (SFU voice, multi-stream
+  video, RoIP, WAN hub, longer retention, and a natural home for the PKI root).
+  This consolidates decisions already made, not new architecture: one Debian host
+  (`FML-ADR-021`), node logic in an importable package outside the test tree
+  (`FML-ADR-051`), mission services that never own the RF/network (`FML-ADR-028`),
+  radio access behind narrow interfaces with fakes (the `T | None` reading
+  discipline), per-bearer capability as a named tier (`FML-ADR-080`), and
+  upstream-first gateways for new mediums (`FML-ADR-048`). The stack is therefore
+  designed to be **RF-agnostic** -- driving whatever bearers are present through
+  those interfaces (HaLow, 802.11s high-rate Wi-Fi, LoRa/Meshtastic as each is
+  integrated on hardware) and extensible to new mediums/waveforms via the same
+  interface and gateway pattern, bounded by the host's I/O and available drivers,
+  not by the core. Because the baseline is a distributed full-mesh element, the
+  **TOC is additive, not a single point of failure**: if it drops, the carry fleet
+  keeps SA, voice and the mesh and loses only the heavy convergence. The
+  prerequisites not yet built are **multi-arch images** (every OCI image for arm64
+  *and* amd64, by digest) and a carry-versus-TOC **service profile** in the
+  catalog; both extend what exists rather than redesign it. The N150 dev host
+  already runs the stack on amd64 (the Bank B ~650 MB measurement was taken there),
+  so the TOC tier is partly demonstrated; the carry tier and the multi-arch build
+  are the open work. A third, lower tier follows from the same agnosticism: a
+  **bring-your-own / expedient node** -- an existing laptop, mini PC or Pi plus USB
+  bearers (USB HaLow, USB LoRa/Meshtastic, an mt76 USB Wi-Fi, onboard Wi-Fi for the
+  AP) running the same stack at the cost of the radios alone. It is the open-source,
+  low-barrier entry path that fits the disaster-response mission; the curated Debian
+  image (`FML-ADR-040`) is what makes it turnkey rather than a per-kernel
+  HaLow-driver gamble (`TBR-LINUX-01`), and an installer for an existing Debian host
+  remains the distribution step for that path. It is an expedient node, not a sealed
+  field article, and the deployer owns regulatory compliance (`REGULATORY.md`).
 - **The prototype BOM itself (`hardware/prototype/`).** Once RF-03, CARRIER-01
   and the COMP-01 software budget are set, the BOM's open cells -- a committed
   SSD, the Wi-Fi board count -- resolve, and the purchase is made against a
