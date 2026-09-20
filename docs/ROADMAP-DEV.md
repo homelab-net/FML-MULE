@@ -868,9 +868,10 @@ decision entered in the register. Out of `v1.0` scope until that evidence exists
 ## Track 2 — hardware
 
 **State:** an Intel N150 system is selected as a development-only article under
-GAP-09A, and GAP-09B now defines the Debian mkosi image mechanism. No production
-hardware is selected, no image is built, and nothing in this repository has met
-a radio.
+GAP-09A, GAP-09B defines the Debian mkosi image mechanism, and GAP-09C now
+defines the exact package closure, retained cache, CycloneDX provenance, and
+repeatability/VM-boot gate under `FML-ADR-081`. No production hardware is
+selected, no image is built, and nothing in this repository has met a radio.
 
 **What the purchase should be made against.** `docs/readings.md` carries the
 selection criteria that come from software rather than from the SAD, and they

@@ -212,7 +212,16 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-09B]
-    user_gate: "Approve the package set"
+    owner: Codex
+    reviewer: Independent agent
+    evidence:
+      - "docs/evidence/findings/GAP-09C/decision-packet.md"
+      - "docs/evidence/findings/GAP-09C/execution-card.md"
+      - "docs/evidence/findings/GAP-09C/2026-09-14-implementation.md"
+    user_gate: >-
+      Minimum boot package set, same-time Debian main/security snapshots,
+      builder-only backports, and CycloneDX debsbom approved by the Program
+      Owner in the Codex thread on 2026-09-14
 
   - <<: *open_independent
     id: GAP-09D

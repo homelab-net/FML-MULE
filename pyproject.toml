@@ -16,6 +16,8 @@ license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
 dependencies = [
   "jsonschema==4.26.0",
+  # FML-ADR-081: validate CycloneDX licence choices against SPDX's symbol set.
+  "license-expression==30.4.1",
 ]
 
 [project.optional-dependencies]
