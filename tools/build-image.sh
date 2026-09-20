@@ -61,8 +61,12 @@ active_tools_packages=$(
 mkosi_bin=$("$ROOT/tools/resolve-mkosi-builder.sh" "$INPUTS")
 
 mkdir -p "$OUTPUT_DIR" "$PACKAGE_CACHE"
+# mkosi v25.3 manual: "If not configured explicitly, the current working
+# directory is mounted to /work/src." Mount the repository so finalize can
+# run the governed built-root validator through SRCDIR.
 set -- "$mkosi_bin" \
   --directory "$IMAGE_DIR" \
+  --build-sources "$ROOT" \
   --output-directory "$OUTPUT_DIR" \
   --output "$OUTPUT_BASENAME" \
   --package-cache-dir "$PACKAGE_CACHE" \

@@ -746,6 +746,7 @@ exec "$@"
     assert (repository / "out/image/mule-development.raw").is_file()
     arguments = (tmp_path / "mkosi-arguments.txt").read_text(encoding="utf-8")
     assert "--cache-only=always" in arguments
+    assert f"--build-sources\n{repository}\n" in arguments
     isolation = (tmp_path / "unshare-arguments.txt").read_text(encoding="utf-8")
     assert isolation.startswith(f"--net\n--\n{packaged_mkosi}\n")
     systemd = next(
