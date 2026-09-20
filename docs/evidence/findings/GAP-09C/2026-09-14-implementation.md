@@ -14,10 +14,10 @@
   separate 414-package candidate tools-tree lock. The latter pins
   `debsbom` `0.10.1-1~bpo13+1` from backports.
 - `tools/validate-image.py` parses the Deb822 inputs and requires the exact
-  signed stanza sets. It rejects direct-intent drift, live, extra, trusted, or
-  incorrectly scoped sources, incomplete lock provenance, target backports,
-  target `apt`, target `debsbom`, generator drift, and mismatch between
-  generated lists and locks.
+  signed stanza and source-file sets. It rejects direct-intent drift, live,
+  extra, trusted, or incorrectly scoped sources, legacy or sibling source
+  files, incomplete lock provenance, target backports, target `apt`, target
+  `debsbom`, generator drift, and mismatch between generated lists and locks.
 - `mkosi.postinst` removes bootstrap-only `apt` and target repository files.
   `mkosi.finalize` generates CycloneDX 1.6 from the completed root, runs the
   installed-root validator, writes licence exceptions, and removes consumed APT
@@ -25,14 +25,17 @@
 - `tools/validate-image-root.py` compares installed dpkg state with the target
   lock and rejects prohibited packages, target sources, missing copyright
   files, missing binary components, and missing source-package components. Its
-  licence-exception output accepts only SPDX expression or SPDX-ID choices;
-  name-only and malformed choices stay explicit exceptions.
-- `tools/validate-package-cache.py` authenticates every retained `.deb` against
-  the locks. The offline wrapper combines mkosi cache-only mode with a separate
-  network namespace. The three-build runner uses separate fresh output and
-  cache directories for both networked builds and replays one authenticated
-  cache into a third fresh output directory. Build and QEMU paths both use the
-  authenticated package-owned mkosi executable.
+  licence-exception output accepts only expressions composed of identifiers and
+  exceptions in the SPDX symbol set; name-only, unknown, and malformed choices
+  stay explicit exceptions.
+- `tools/validate-package-cache.py` requires the exact locked `.deb` filename to
+  SHA-256 mapping and rejects extra or duplicate packages. The offline wrapper
+  combines mkosi cache-only mode with a separate network namespace. The
+  three-build runner uses separate fresh output and cache directories for both
+  networked builds and replays one authenticated cache into a third fresh
+  output directory. Build and QEMU paths both use the package-owned mkosi
+  executable only after every installed package payload entry matches the
+  authenticated package archive.
 
 ## Fail-first and mutation results
 
@@ -44,11 +47,13 @@ three defects. The built-root and cache-validator existence tests also failed
 before those controls were added.
 
 The implemented unit suite now passes mutations for a live or extra source,
-source-level `Trusted: yes`, direct-set drift, target `apt`, a malformed package
-SHA-256, a missing tools-tree `debsbom`, installed-set drift, a target repository
-file, a missing copyright file, missing SBOM binary and source components,
-non-SPDX licence choices, a missing cached package, and a corrupt cached
-package. The offline wrapper fake records both `CacheOnly=always` and
+source-level `Trusted: yes`, a sibling live source, direct-set drift, target
+`apt`, a malformed package SHA-256, a missing tools-tree `debsbom`, installed-set
+drift, a target repository file, a missing copyright file, missing SBOM binary
+and source components, non-SPDX and unknown licence choices, a missing cached
+package, a corrupt or renamed cached package, an extra cached package, and a
+modified installed builder executable or module. The offline wrapper fake
+records both `CacheOnly=always` and
 `unshare --net`. The three-build fake proves clean cache/output separation,
 image-drift rejection, required boot-marker handling, and resistance to a
 shadow `mkosi` on `PATH`.

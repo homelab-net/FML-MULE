@@ -109,7 +109,9 @@ artifact, SBOM, retained build log, signature, or boot evidence exists yet.
 main and security archives. `sandbox-tools/etc/apt/sources.list.d/mkosi.sources`
 adds same-time backports for the pinned build-only `debsbom` package. These
 trees configure mkosi's package-manager sandboxes and are not copied into the
-target.
+target. Validation requires those to be the only files in each
+`sources.list.d`, rejects a legacy `sources.list`, and rejects source-file
+symlinks.
 
 `mkosi.postinst` removes bootstrap-only `apt` and every target repository file.
 `mkosi.finalize` generates CycloneDX and licence-exception outputs from the
@@ -117,10 +119,15 @@ completed root, validates the installed set against `target-lock.json`, then
 removes the APT metadata used for that scan. Both scripts reject an invalid
 build-root path before altering it.
 
-`tools/resolve-mkosi-builder.sh` authenticates the exact Debian package archive
-and returns its package-owned executable. Both image construction and QEMU boot
-use that absolute path, so a different `mkosi` earlier on `PATH` cannot enter
-the evidence chain.
+`tools/resolve-mkosi-builder.sh` authenticates the exact Debian package archive,
+compares every installed non-directory package payload entry byte-for-byte with
+that archive, and returns the package-owned executable's absolute path. Both
+image construction and QEMU boot use that path, so a shadow or locally modified
+mkosi launcher, module, resource, or symlink cannot enter the evidence chain.
+
+`tools/validate-package-cache.py` requires the exact locked package filenames
+and SHA-256 values before cache-only replay. Missing, extra, duplicate, renamed,
+or corrupt `.deb` files fail validation.
 
 ## Commands
 

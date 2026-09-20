@@ -259,6 +259,24 @@ def _validate_sources(root: Path, errors: list[str]) -> None:
         *target_expected,
         common | {"URIs": main, "Suites": "trixie-backports"},
     ]
+    for role, relative in (
+        ("target", TARGET_SOURCES_RELATIVE),
+        ("tools-tree", TOOLS_SOURCES_RELATIVE),
+    ):
+        governed = root / relative
+        source_parts = governed.parent
+        legacy = source_parts.parent / "sources.list"
+        if legacy.exists() or legacy.is_symlink():
+            errors.append(f"{role} sandbox shall not contain legacy sources.list")
+        try:
+            entries = {entry.name for entry in source_parts.iterdir()}
+        except OSError as exc:
+            errors.append(f"cannot inventory {role} snapshot sources: {exc}")
+            entries = set()
+        if entries != {governed.name}:
+            errors.append(f"{role} sources.list.d shall contain only {governed.name}")
+        if governed.is_symlink():
+            errors.append(f"{role} governed snapshot source shall not be a symlink")
     target = _deb822_sources(root / TARGET_SOURCES_RELATIVE, "target", errors)
     tools = _deb822_sources(root / TOOLS_SOURCES_RELATIVE, "tools-tree", errors)
     if target != target_expected:

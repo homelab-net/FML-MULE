@@ -154,12 +154,44 @@ def test_package_cache_validator_detects_missing_and_corrupt_packages(
 
     package.write_bytes(b"corrupt fixture")
     assert any(
-        "expected SHA-256" in error for error in validator.validate(cache, [lock])
+        "checksum mismatch" in error for error in validator.validate(cache, [lock])
     )
     package.unlink()
     assert any(
-        "expected SHA-256" in error for error in validator.validate(cache, [lock])
+        "missing expected package" in error
+        for error in validator.validate(cache, [lock])
     )
+
+
+def test_package_cache_rejects_decoy_name_and_modified_expected_file(
+    tmp_path: Path,
+) -> None:
+    """A valid hash under another name shall not authenticate a package filename."""
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    expected = cache / "fixture_1.0_amd64.deb"
+    decoy = cache / "decoy_1.0_amd64.deb"
+    authenticated = b"authenticated fixture"
+    expected.write_bytes(b"modified fixture")
+    decoy.write_bytes(authenticated)
+    lock = tmp_path / "lock.json"
+    lock.write_text(
+        json.dumps(
+            {
+                "packages": [
+                    {
+                        "filename": f"pool/main/f/fixture/{expected.name}",
+                        "sha256": hashlib.sha256(authenticated).hexdigest(),
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    errors = _load_cache_validator().validate(cache, [lock])
+    assert f"package cache checksum mismatch for {expected.name}" in errors
+    assert f"package cache contains unexpected package: {decoy.name}" in errors
 
 
 def _root_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
@@ -262,6 +294,8 @@ def test_built_root_validator_detects_prohibited_and_missing_content(
     [
         [{"license": {"name": "custom licence text"}}],
         [{"expression": "custom licence text"}],
+        [{"license": {"id": "NotARealLicense"}}],
+        [{"expression": "MIT AND NotARealLicense"}],
         [],
     ],
 )
@@ -467,6 +501,30 @@ Check-Valid-Until: no
     )
 
 
+def test_snapshot_sources_reject_sibling_source_file(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The sandbox source directory shall contain only the governed file."""
+    sibling = (
+        repository / TARGET_SOURCES.relative_to(REPO_ROOT).parent / "untrusted.sources"
+    )
+    sibling.write_text(
+        """Enabled: yes
+Types: deb
+URIs: https://deb.debian.org/debian
+Suites: trixie
+Components: main
+Trusted: yes
+""",
+        encoding="utf-8",
+    )
+
+    assert any(
+        "target sources.list.d shall contain only mkosi.sources" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
 def test_floating_builder_version_is_rejected(
     repository: Path, validator: ModuleType
 ) -> None:
@@ -525,6 +583,16 @@ case "$1" in
   -S) printf 'mkosi: %s\\n' "$2" ;;
   *) exit 2 ;;
 esac
+""",
+        encoding="utf-8",
+    )
+    (fake_bin / "dpkg-deb").write_text(
+        """#!/bin/sh
+set -eu
+[ "$1" = -x ]
+target="$3$FML_TEST_MKOSI_BIN"
+mkdir -p "$(dirname "$target")"
+cp "$FML_TEST_MKOSI_BIN" "$target"
 """,
         encoding="utf-8",
     )
@@ -756,3 +824,142 @@ def test_reproducibility_runner_requires_boot_target_marker(tmp_path: Path) -> N
 
     assert result.returncode != 0
     assert "QEMU did not report the selected systemd target" in result.stderr
+
+
+def _builder_resolver_fixture(
+    tmp_path: Path,
+    *,
+    installed_payload: str,
+    packaged_payload: str,
+    installed_module_payload: str = "expected module\n",
+    packaged_module_payload: str = "expected module\n",
+) -> tuple[Path, dict[str, str]]:
+    """Create a fake dpkg database and authenticated package payload."""
+    fake_bin = tmp_path / "bin"
+    installed_bin = tmp_path / "installed/usr/bin/mkosi"
+    installed_module = (
+        tmp_path / "installed/usr/lib/python3/dist-packages/mkosi/__init__.py"
+    )
+    packaged_bin = tmp_path / "packaged-mkosi"
+    packaged_module = tmp_path / "packaged-mkosi-module"
+    package_deb = tmp_path / "mkosi_25.3-7_all.deb"
+    inputs = tmp_path / "build-inputs.yml"
+    fake_bin.mkdir()
+    installed_bin.parent.mkdir(parents=True)
+    installed_bin.write_text(installed_payload, encoding="utf-8")
+    installed_bin.chmod(0o755)
+    installed_module.parent.mkdir(parents=True)
+    installed_module.write_text(installed_module_payload, encoding="utf-8")
+    packaged_bin.write_text(packaged_payload, encoding="utf-8")
+    packaged_module.write_text(packaged_module_payload, encoding="utf-8")
+    package_deb.write_text("authenticated package fixture\n", encoding="utf-8")
+    package_sha = hashlib.sha256(package_deb.read_bytes()).hexdigest()
+    inputs.write_text(
+        f"builder:\n  version: 25.3-7\n  package_sha256: {package_sha}\n",
+        encoding="utf-8",
+    )
+
+    (fake_bin / "dpkg-query").write_text(
+        """#!/bin/sh
+set -eu
+case "$1" in
+  -W) printf '%s' '25.3-7' ;;
+  -L) printf '%s\n' "$FML_TEST_INSTALLED_MKOSI" ;;
+  -S) printf 'mkosi: %s\n' "$2" ;;
+  *) exit 2 ;;
+esac
+""",
+        encoding="utf-8",
+    )
+    (fake_bin / "dpkg-deb").write_text(
+        """#!/bin/sh
+set -eu
+[ "$1" = -x ]
+destination=$3
+target="$destination$FML_TEST_INSTALLED_MKOSI"
+mkdir -p "$(dirname "$target")"
+cp "$FML_TEST_PACKAGED_MKOSI" "$target"
+module="$destination$FML_TEST_INSTALLED_MKOSI_MODULE"
+mkdir -p "$(dirname "$module")"
+cp "$FML_TEST_PACKAGED_MKOSI_MODULE" "$module"
+""",
+        encoding="utf-8",
+    )
+    for executable in fake_bin.iterdir():
+        executable.chmod(0o755)
+
+    environment = os.environ | {
+        "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+        "FML_MKOSI_PACKAGE_DEB": str(package_deb),
+        "FML_TEST_INSTALLED_MKOSI": str(installed_bin),
+        "FML_TEST_INSTALLED_MKOSI_MODULE": str(installed_module),
+        "FML_TEST_PACKAGED_MKOSI": str(packaged_bin),
+        "FML_TEST_PACKAGED_MKOSI_MODULE": str(packaged_module),
+    }
+    return inputs, environment
+
+
+def test_builder_resolver_binds_installed_executable_to_package(tmp_path: Path) -> None:
+    """The executable shall contain the bytes from the authenticated archive."""
+    inputs, environment = _builder_resolver_fixture(
+        tmp_path, installed_payload="expected\n", packaged_payload="expected\n"
+    )
+    shell = shutil.which("sh")
+    assert shell is not None
+
+    result = subprocess.run(  # noqa: S603
+        [shell, str(BUILDER_RESOLVER), str(inputs)],
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == environment["FML_TEST_INSTALLED_MKOSI"]
+
+
+def test_builder_resolver_rejects_modified_installed_executable(
+    tmp_path: Path,
+) -> None:
+    """Package ownership alone shall not admit a modified builder payload."""
+    inputs, environment = _builder_resolver_fixture(
+        tmp_path, installed_payload="modified\n", packaged_payload="expected\n"
+    )
+    shell = shutil.which("sh")
+    assert shell is not None
+
+    result = subprocess.run(  # noqa: S603
+        [shell, str(BUILDER_RESOLVER), str(inputs)],
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "differs from the authenticated package" in result.stderr
+
+
+def test_builder_resolver_rejects_modified_installed_module(tmp_path: Path) -> None:
+    """The authenticated launcher shall not load a modified package module."""
+    inputs, environment = _builder_resolver_fixture(
+        tmp_path,
+        installed_payload="expected\n",
+        packaged_payload="expected\n",
+        installed_module_payload="modified module\n",
+        packaged_module_payload="expected module\n",
+    )
+    shell = shutil.which("sh")
+    assert shell is not None
+
+    result = subprocess.run(  # noqa: S603
+        [shell, str(BUILDER_RESOLVER), str(inputs)],
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "differs from the authenticated package" in result.stderr

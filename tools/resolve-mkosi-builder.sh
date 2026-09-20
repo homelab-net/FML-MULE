@@ -19,6 +19,10 @@ command -v dpkg-query >/dev/null 2>&1 || {
   printf '%s\n' 'dpkg-query is required to authenticate the Debian builder package.' >&2
   exit 1
 }
+command -v dpkg-deb >/dev/null 2>&1 || {
+  printf '%s\n' 'dpkg-deb is required to authenticate the installed builder payload.' >&2
+  exit 1
+}
 
 expected_version=$(sed -n 's/^  version: //p' "$INPUTS")
 actual_version=$(dpkg-query -W -f='${Version}' mkosi 2>/dev/null || true)
@@ -62,5 +66,42 @@ actual_package_sha=$(sha256sum "$builder_deb" | awk '{ print $1 }')
     "$expected_package_sha" "$actual_package_sha" >&2
   exit 1
 }
+
+# Package ownership and version identify the dpkg record, but do not prove that
+# its installed Python modules and resources still contain the bytes from the
+# authenticated archive. Extract the verified archive and bind every packaged
+# non-directory payload entry to the installed tree.
+# FML-ADR-079, GAP-09C.
+payload_dir=$(mktemp -d)
+trap 'rm -rf "$payload_dir"' 0 HUP INT TERM
+dpkg-deb -x "$builder_deb" "$payload_dir"
+find "$payload_dir" ! -type d -print | while IFS= read -r packaged_path; do
+  installed_path=/${packaged_path#"$payload_dir"/}
+  if [ -L "$packaged_path" ]; then
+    if [ ! -L "$installed_path" ] ||
+      [ "$(readlink "$installed_path")" != "$(readlink "$packaged_path")" ]; then
+      printf 'Installed mkosi symlink differs from the authenticated package: %s\n' \
+        "$installed_path" >&2
+      exit 1
+    fi
+  elif [ -f "$packaged_path" ]; then
+    if [ ! -f "$installed_path" ] || [ -L "$installed_path" ]; then
+      printf 'Installed mkosi payload is absent or has the wrong type: %s\n' \
+        "$installed_path" >&2
+      exit 1
+    fi
+    installed_sha=$(sha256sum "$installed_path" | awk '{ print $1 }')
+    packaged_sha=$(sha256sum "$packaged_path" | awk '{ print $1 }')
+    [ "$installed_sha" = "$packaged_sha" ] || {
+      printf 'Installed mkosi payload differs from the authenticated package: %s\n' \
+        "$installed_path" >&2
+      exit 1
+    }
+  else
+    printf 'Authenticated mkosi package contains an unsupported payload type: %s\n' \
+      "$packaged_path" >&2
+    exit 1
+  fi
+done
 
 printf '%s\n' "$mkosi_bin"

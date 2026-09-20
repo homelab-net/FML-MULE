@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 from email.parser import Parser
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, unquote
 
-SPDX_TOKEN = re.compile(r"\s*(\(|\)|AND\b|OR\b|WITH\b|[A-Za-z0-9][A-Za-z0-9.+-]*)")
+from license_expression import ExpressionError, get_spdx_licensing
+
+SPDX_LICENSING = get_spdx_licensing()
 
 
 def _read_json(path: Path, label: str, errors: list[str]) -> dict[str, Any]:
@@ -95,67 +96,14 @@ def _sbom_components(
 
 
 def _valid_spdx_expression(value: object) -> bool:
-    """Recognize the SPDX expression grammar used by CycloneDX choices."""
+    """Recognize only expressions composed of registered SPDX symbols."""
     if not isinstance(value, str) or not value.strip():
         return False
-    tokens: list[str] = []
-    position = 0
-    while position < len(value):
-        match = SPDX_TOKEN.match(value, position)
-        if match is None:
-            return False
-        tokens.append(match.group(1))
-        position = match.end()
-
-    index = 0
-
-    def parse_primary() -> bool:
-        nonlocal index
-        if index >= len(tokens):
-            return False
-        if tokens[index] == "(":
-            index += 1
-            if not parse_or() or index >= len(tokens) or tokens[index] != ")":
-                return False
-            index += 1
-            return True
-        if tokens[index] in {"AND", "OR", "WITH", ")"}:
-            return False
-        index += 1
-        if index < len(tokens) and tokens[index] == "WITH":
-            index += 1
-            if index >= len(tokens) or tokens[index] in {
-                "AND",
-                "OR",
-                "WITH",
-                "(",
-                ")",
-            }:
-                return False
-            index += 1
-        return True
-
-    def parse_and() -> bool:
-        nonlocal index
-        if not parse_primary():
-            return False
-        while index < len(tokens) and tokens[index] == "AND":
-            index += 1
-            if not parse_primary():
-                return False
-        return True
-
-    def parse_or() -> bool:
-        nonlocal index
-        if not parse_and():
-            return False
-        while index < len(tokens) and tokens[index] == "OR":
-            index += 1
-            if not parse_and():
-                return False
-        return True
-
-    return parse_or() and index == len(tokens)
+    try:
+        SPDX_LICENSING.parse(value, validate=True, strict=True)
+    except ExpressionError:
+        return False
+    return True
 
 
 def _has_spdx_choice(licenses: object) -> bool:

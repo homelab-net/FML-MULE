@@ -11,28 +11,29 @@
 #   python3 -m venv .venv
 #   .venv/bin/pip install --upgrade pip
 #   .venv/bin/pip install ruff pytest jsonschema pyyaml coverage \
-#     yamllint ansible-lint ansible-core
+#     yamllint ansible-lint ansible-core license-expression
 #   tools/lint.sh                      # must pass, with nothing skipped
 #   .venv/bin/pip freeze --local       # capture, keeping this header
 #
 # Run lint BEFORE capturing. A set that has not been exercised is a guess with
 # version numbers on it.
 #
-# The eight packages named in that install command are the direct dependencies,
-# and they are the same eight .github/workflows/lint.yml installs. Everything
-# else below is transitive and is pinned because pinning eight of thirty-six
+# The nine packages named in that install command are the direct dependencies,
+# and they are the same nine installed through .github/workflows/lint.yml.
+# Everything else below is transitive and is pinned because pinning nine of 39
 # reproduces the drift one layer down.
 #
 # Exact versions are not hashes. See the accepted cost in FML-ADR-058: this
 # fixes the version, not the artifact, which is a weaker guarantee than the
 # digest pinning this repository requires of container images.
 #
-# Resolved on Python 3.13, Debian. CI runs Python 3.11.
+# Resolved on Python 3.13, Debian. CI runs Python 3.13.
 ansible-compat==26.8.0
 ansible-core==2.21.3
 ansible-lint==26.8.0
 attrs==26.1.0
 black==26.5.1
+boolean.py==5.0
 bracex==3.0.1
 cffi==2.1.1
 click==8.5.0
@@ -44,6 +45,7 @@ iniconfig==2.3.0
 Jinja2==3.1.6
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
+license-expression==30.4.1
 MarkupSafe==3.0.3
 mypy_extensions==1.1.0
 packaging==26.3
@@ -62,5 +64,6 @@ ruamel.yaml==0.19.1
 ruamel.yaml.clib==0.2.15
 ruff==0.16.5
 subprocess-tee==0.4.2
+typing_extensions==4.16.0
 wcmatch==11.0.1
 yamllint==1.38.0

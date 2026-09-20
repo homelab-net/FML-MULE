@@ -23,14 +23,8 @@ def _sha256(path: Path) -> str:
 
 
 def validate(cache: Path, locks: list[Path]) -> list[str]:
-    """Return missing or corrupt retained-package defects."""
+    """Return missing, extra, renamed, or corrupt retained-package defects."""
     errors: list[str] = []
-    cache_hashes: set[str] = set()
-    if cache.is_dir():
-        for path in cache.rglob("*.deb"):
-            cache_hashes.add(_sha256(path))
-    else:
-        errors.append(f"package cache does not exist: {cache}")
     expected: dict[str, str] = {}
     for lock in locks:
         try:
@@ -56,9 +50,26 @@ def validate(cache: Path, locks: list[Path]) -> list[str]:
             previous = expected.setdefault(filename, checksum)
             if previous != checksum:
                 errors.append(f"package locks disagree on checksum for {filename}")
+
+    cached: dict[str, list[Path]] = {}
+    if cache.is_dir():
+        for path in cache.rglob("*.deb"):
+            cached.setdefault(path.name, []).append(path)
+    else:
+        errors.append(f"package cache does not exist: {cache}")
+
+    for filename in sorted(set(cached) - set(expected)):
+        errors.append(f"package cache contains unexpected package: {filename}")
     for filename, checksum in sorted(expected.items()):
-        if checksum not in cache_hashes:
-            errors.append(f"package cache is missing expected SHA-256 for {filename}")
+        paths = cached.get(filename, [])
+        if not paths:
+            errors.append(f"package cache is missing expected package: {filename}")
+            continue
+        if len(paths) != 1:
+            errors.append(f"package cache contains duplicate package: {filename}")
+            continue
+        if _sha256(paths[0]) != checksum:
+            errors.append(f"package cache checksum mismatch for {filename}")
     return errors
 
 
