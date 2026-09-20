@@ -19,9 +19,11 @@ sbom_base="$OUTPUTDIR/mule-development.sbom"
 sbom="$sbom_base.cdx.json"
 exceptions="$OUTPUTDIR/mule-development.license-exceptions.json"
 
+# debsbom v0.10.1 generate --help: "--cdx-schema-version {latest}". The
+# built-root validator below independently enforces CycloneDX 1.6.
 debsbom generate \
   --sbom-type cdx \
-  --cdx-schema-version 1.6 \
+  --cdx-schema-version latest \
   --cdx-serialnumber 0cb850a0-e8dd-5310-91f3-f9db6a8a94f9 \
   --timestamp 2026-09-12T00:00:00+00:00 \
   --no-recommends-deps \

@@ -23,6 +23,7 @@ CACHE_VALIDATOR_PATH = REPO_ROOT / "tools/validate-package-cache.py"
 REPRODUCIBILITY_SCRIPT = REPO_ROOT / "tools/verify-image-reproducibility.sh"
 BUILD_SCRIPT = REPO_ROOT / "tools/build-image.sh"
 BUILDER_RESOLVER = REPO_ROOT / "tools/resolve-mkosi-builder.sh"
+FINALIZE_SCRIPT = REPO_ROOT / "os/image/mkosi.finalize"
 DIRECT_PACKAGES = REPO_ROOT / "os/image/manifest/direct-packages.list"
 TARGET_LOCK = REPO_ROOT / "os/image/manifest/target-lock.json"
 TOOLS_TREE_LOCK = REPO_ROOT / "os/image/manifest/tools-tree-lock.json"
@@ -124,6 +125,57 @@ def test_package_cache_validator_exists() -> None:
 def test_reproducibility_runner_exists() -> None:
     """GAP-09C shall execute and preserve the three-build comparison."""
     assert REPRODUCIBILITY_SCRIPT.is_file()
+
+
+def test_finalize_uses_debsbom_0101_supported_schema_selector(
+    tmp_path: Path,
+) -> None:
+    """The pinned debsbom CLI shall receive its only supported schema value."""
+    buildroot = tmp_path / "root"
+    output = tmp_path / "output"
+    source = tmp_path / "source"
+    fake_bin = tmp_path / "bin"
+    (buildroot / "var/lib/dpkg").mkdir(parents=True)
+    output.mkdir()
+    (source / "tools").mkdir(parents=True)
+    fake_bin.mkdir()
+    (fake_bin / "debsbom").write_text(
+        """#!/bin/sh
+set -eu
+previous=
+found=
+for argument do
+  if [ "$previous" = --cdx-schema-version ]; then
+    [ "$argument" = latest ] || exit 64
+    found=1
+  fi
+  previous=$argument
+done
+[ "$found" = 1 ]
+""",
+        encoding="utf-8",
+    )
+    (fake_bin / "python3").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    for executable in fake_bin.iterdir():
+        executable.chmod(0o755)
+
+    shell = shutil.which("sh")
+    assert shell is not None
+    result = subprocess.run(  # noqa: S603
+        [shell, str(FINALIZE_SCRIPT)],
+        env=os.environ
+        | {
+            "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+            "BUILDROOT": str(buildroot),
+            "OUTPUTDIR": str(output),
+            "SRCDIR": str(source),
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_package_cache_validator_detects_missing_and_corrupt_packages(
