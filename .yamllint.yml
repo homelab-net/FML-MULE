@@ -6,9 +6,14 @@
 
 extends: default
 
+# Dev virtualenvs are not this repository's YAML to lint: their site-packages
+# carry third-party data files (e.g. esptool's efuse defs) that fail these rules.
+# .venv is the service/tooling venv; .venv-lora the LoRa/meshtastic one. Both are
+# gitignored and are excluded from markdownlint the same way.
 ignore: |
   node_modules/
   .venv/
+  .venv-lora/
 
 rules:
   # 80 is the prose width used throughout this repository, but YAML carries
