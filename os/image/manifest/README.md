@@ -7,7 +7,7 @@ Machine-readable pins for everything that goes into the image.
 | `direct-packages.list` | Eight owner-approved target package roles. |
 | `target-lock.json` | Generated exact target dependency closure and provenance. |
 | `packages.list` | Generated exact target package specifications consumed by mkosi. |
-| `tools-tree-direct-packages.list` | Package intent captured from pinned mkosi plus `debsbom`. |
+| `tools-tree-direct-packages.list` | Package intent captured from pinned mkosi plus `debsbom` and its required CycloneDX runtime. |
 | `tools-tree-lock.json` | Generated exact build-tools dependency closure and provenance. |
 | `tools-tree-packages.list` | Generated exact tools-tree specifications consumed by mkosi. |
 
@@ -18,7 +18,7 @@ understand a set, and the files here are what a build consumes.
 
 `FML-ADR-081` selects the minimum Debian 13 x86-64 development package
 foundation. The target lock contains 97 packages and the separate build-tools
-lock contains 414 packages at the `20260912T000000Z` snapshot boundary. These
+lock contains 418 packages at the `20260912T000000Z` snapshot boundary. These
 are resolver results, not proof that an image was built or that its installed
 set matched. Production compatibility remains `TBR-LINUX-01`.
 

@@ -11,8 +11,8 @@ policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
 The exact resolver inputs now contain a 97-package target closure and a
-separate 414-package mkosi tools-tree closure. No image has yet been built,
-compared, or booted, so those locks remain build inputs rather than accepted
+separate 418-package mkosi tools-tree closure. No complete image has yet been
+compared or booted, so those locks remain build inputs rather than accepted
 installed-root evidence. The production kernel and board-support path remain
 open under `TBR-LINUX-01` and `TBR-HW-01`.
 
@@ -107,7 +107,8 @@ artifact, SBOM, retained build log, signature, or boot evidence exists yet.
 
 `sandbox-target/etc/apt/sources.list.d/mkosi.sources` supplies only the dated
 main and security archives. `sandbox-tools/etc/apt/sources.list.d/mkosi.sources`
-adds same-time backports for the pinned build-only `debsbom` package. These
+adds same-time backports for pinned build-only `debsbom` and its required
+CycloneDX runtime. These
 trees configure mkosi's package-manager sandboxes and are not copied into the
 target. Validation requires those to be the only files in each
 `sources.list.d`, rejects a legacy `sources.list`, and rejects source-file

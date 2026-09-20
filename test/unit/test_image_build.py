@@ -503,6 +503,25 @@ def test_tools_tree_lock_requires_selected_sbom_generator(
     )
 
 
+def test_tools_tree_lock_requires_cyclonedx_runtime(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The locked generator shall include the runtime its CDX path imports."""
+    lock_path = repository / TOOLS_TREE_LOCK.relative_to(REPO_ROOT)
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    lock["packages"] = [
+        package
+        for package in lock["packages"]
+        if package["name"] != "python3-cyclonedx-lib"
+    ]
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+
+    assert any(
+        "tools-tree lock shall contain the CycloneDX runtime" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
 def test_live_mirror_and_disabled_key_check_are_rejected(
     repository: Path, validator: ModuleType
 ) -> None:

@@ -27,6 +27,7 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 GIT_OBJECT = re.compile(r"^[0-9a-f]{40}$")
 SELECTED_BUILDER_VERSION = "25.3-7"  # FML-ADR-079
 SELECTED_SBOM_VERSION = "0.10.1-1~bpo13+1"  # FML-ADR-081
+SELECTED_CYCLONEDX_RUNTIME_VERSION = "9.1.0-2"  # FML-ADR-081
 SELECTED_SNAPSHOT = "20260912T000000Z"  # FML-ADR-079 and FML-ADR-081
 APPROVED_DIRECT_PACKAGES = {
     "dbus",
@@ -524,6 +525,20 @@ def validate_repository(root: Path) -> list[str]:
         or debsbom_packages[0]["suite"] != "trixie-backports"
     ):
         errors.append("tools-tree lock shall pin debsbom from trixie-backports")
+    cyclonedx_packages = [
+        package
+        for package in tools_packages
+        if package["name"] == "python3-cyclonedx-lib"
+    ]
+    if len(cyclonedx_packages) != 1:
+        errors.append(
+            "tools-tree lock shall contain the CycloneDX runtime exactly once"
+        )
+    elif (
+        cyclonedx_packages[0]["version"] != SELECTED_CYCLONEDX_RUNTIME_VERSION
+        or cyclonedx_packages[0]["suite"] != "trixie"
+    ):
+        errors.append("tools-tree lock shall pin the selected CycloneDX runtime")
     package_lines = _active_lines(root / PACKAGES_RELATIVE, errors)
     locked_specs = [
         f"{package['name']}={package['version']}" for package in target_packages
