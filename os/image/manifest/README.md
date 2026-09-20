@@ -18,7 +18,7 @@ understand a set, and the files here are what a build consumes.
 
 `FML-ADR-081` selects the minimum Debian 13 x86-64 development package
 foundation. The target lock contains 97 packages and the separate build-tools
-lock contains 418 packages at the `20260912T000000Z` snapshot boundary. These
+lock contains 440 packages at the `20260912T000000Z` snapshot boundary. These
 are resolver results, not proof that an image was built or that its installed
 set matched. Production compatibility remains `TBR-LINUX-01`.
 

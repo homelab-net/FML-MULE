@@ -11,7 +11,7 @@
   `trixie-backports` snapshots.
 - The reviewed direct target intent contains eight packages. Authenticated APT
   metadata resolution produced a 97-package candidate target lock and a
-  separate 418-package candidate tools-tree lock. The latter pins
+  separate 440-package candidate tools-tree lock. The latter pins
   `debsbom` `0.10.1-1~bpo13+1` and its required `python3-cyclonedx-lib`
   runtime from backports.
 - `tools/validate-image.py` parses the Deb822 inputs and requires the exact

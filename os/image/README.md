@@ -11,7 +11,7 @@ policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
 The exact resolver inputs now contain a 97-package target closure and a
-separate 418-package mkosi tools-tree closure. No complete image has yet been
+separate 440-package mkosi tools-tree closure. No complete image has yet been
 compared or booted, so those locks remain build inputs rather than accepted
 installed-root evidence. The production kernel and board-support path remain
 open under `TBR-LINUX-01` and `TBR-HW-01`.
