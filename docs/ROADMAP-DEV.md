@@ -1793,9 +1793,15 @@ carries which part of the CONOPS**.
 - **Time** (`TBR-TIME-01`) now has a dedicated item, `4.5`: the readers and the
   per-node decision are built and the partition rule is analysed; the values are
   the open trade. **Storage-at-rest and recovery** (`TBR-SEC-01`, `TBR-REC-01`)
-  still have decisions and `mule/` readers but no dedicated roadmap track; they
-  surface only where another item touches them, and belong to Track 2 and Track 4
-  work not yet written up as items.
+  have decided principles (`FML-ADR-043` LUKS2, `044` crypto-erase zeroize, `050`
+  write-amp, `041` rollback) but **no `mule/` code and no dedicated track**. The
+  hardware-free half of `TBR-SEC-01` -- whether the unlock method forces a hardware
+  root of trust onto the carrier -- is analysed in
+  `docs/evidence/TBR-SEC-01/2026-09-20-unlock-method-comparison.md` (it banks the
+  software half and feeds `TBR-HW-01`/`TBR-CARRIER-01`; the trade stays `OPEN`).
+  The remainder is hardware-gated: `TBR-SEC-01` is `requires-hardware: partly` (the
+  unlock/boot demo) and `TBR-REC-01` `requires-hardware: yes` (the rollback demo),
+  so they surface where Track 2 hardware work touches them, not as software items.
 - **Identity** (`TBR-ID-01`, `FML-ADR-036`/`037`/`038`) is on the critical path
   for the service plane. It now has a dedicated item, `4.6`: the provider
   decision, the RBAC model and identity-aware admission are hardware-free P1 work;
