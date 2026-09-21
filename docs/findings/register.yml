@@ -213,11 +213,14 @@ findings:
     parent: GAP-09
     dependencies: [GAP-09B]
     owner: Codex
-    reviewer: Independent agent
+    reviewer: /root/gap09c_final_verifier
+    state: CLOSED
     evidence:
       - "docs/evidence/findings/GAP-09C/decision-packet.md"
       - "docs/evidence/findings/GAP-09C/execution-card.md"
       - "docs/evidence/findings/GAP-09C/2026-09-14-implementation.md"
+      - "docs/evidence/findings/GAP-09C/2026-09-20-verification.json"
+      - "docs/evidence/findings/GAP-09C/closure.md"
     user_gate: >-
       Minimum boot package set, same-time Debian main/security snapshots,
       builder-only backports, and CycloneDX debsbom approved by the Program

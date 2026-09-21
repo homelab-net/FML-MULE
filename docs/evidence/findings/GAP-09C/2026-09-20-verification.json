@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "finding_id": "GAP-09C",
+  "implementation_commit": "14ff2763452fb26aea3705ac146b4fbeae04e863",
+  "artifact_build_commit": "d31a686a89b09ea933f878fa4f6b17e07088db14",
+  "classification": "SIMULATED",
+  "environment": {
+    "os": "Debian GNU/Linux 13",
+    "architecture": "x86_64",
+    "mkosi": "25.3",
+    "qemu": "10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+    "role": "development article, not production hardware"
+  },
+  "retained_evidence": {
+    "host_path": "/root/FML-MULE-gap09c/out/gap09c.oJ0VqM",
+    "raw_image_sha256": "7bb1d923dfc0a6bfd2028f257124de320718ec87896668a48c59041b080dbccc",
+    "cyclonedx_sha256": "2ae3d81d2da41e86afaf9fbe447d7421babbad7e24c01cb264d94a557e605f85",
+    "license_exceptions_sha256": "d707ca05db81dab292ea41f93cd3f428e5701cc2e9068d5df3382be91047315e",
+    "qemu_log_sha256": "195dc7466d407d2cc3d60805a41ee11ef435c287600795b7b425d43b29ed4f6d",
+    "sbom_components": 224,
+    "license_exception_records": 97
+  },
+  "checks": [
+    {
+      "name": "Three-build reproducibility and isolated QEMU boot",
+      "command": "./tools/verify-image-reproducibility.sh",
+      "exit_code": 0,
+      "result": "Two clean networked builds and one isolated cache-only build produced identical raw images, SBOMs, and licence reports; the isolated image reached multi-user.target with no guest network."
+    },
+    {
+      "name": "Image-input validator",
+      "command": "python3 tools/validate-image.py",
+      "exit_code": 0,
+      "result": "Image build inputs: 0 defects at reviewed runtime-policy commit 14ff276."
+    },
+    {
+      "name": "GitHub pull-request checks",
+      "command": "gh pr checks 154 --repo homelab-net/FML-MULE",
+      "exit_code": 0,
+      "result": "Eight of eight checks passed at the implementation commit."
+    },
+    {
+      "name": "Independent exact-commit review",
+      "command": "review 14ff2763452fb26aea3705ac146b4fbeae04e863",
+      "exit_code": 0,
+      "result": "/root/gap09c_final_verifier approved; image validator clean and 39 image tests passed."
+    }
+  ],
+  "redaction": {
+    "credentials": false,
+    "private_keys": false,
+    "tokens": false,
+    "personally_identifying_data": false,
+    "deployment_locations": false,
+    "sensitive_packet_contents": false
+  }
+}

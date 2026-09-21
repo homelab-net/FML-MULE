@@ -498,9 +498,7 @@ def validate_repository(root: Path) -> list[str]:
         "network": "none",
         "systemd_target": "multi-user.target",
     }:
-        errors.append(
-            "runtime verification shall use QEMU without networking or input"
-        )
+        errors.append("runtime verification shall use QEMU without networking or input")
     for key, expected in {
         "VirtualMachineMonitor": runtime.get("monitor"),
         "Console": runtime.get("console"),
