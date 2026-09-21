@@ -752,9 +752,10 @@ exec "$@"
     assert (repository / "out/image/mule-development.raw").is_file()
     arguments = (tmp_path / "mkosi-arguments.txt").read_text(encoding="utf-8")
     assert "--cache-only=always" in arguments
+    assert "--tools-tree-package=\n" in arguments
     assert (
-        "--tools-tree-package-directory\n"
-        f"{repository / 'os/image/mkosi.pkgcache/cache/apt/archives'}\n"
+        "--tools-tree-package\n"
+        "/var/cache/apt/archives/debsbom_0.10.1-1~bpo13+1_all.deb\n"
         in arguments
     )
     assert f"--build-sources\n{repository}\n" in arguments

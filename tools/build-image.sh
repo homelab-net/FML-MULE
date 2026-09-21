@@ -26,6 +26,11 @@ TARGET_LOCK="$IMAGE_DIR/manifest/target-lock.json"
 TOOLS_LOCK="$IMAGE_DIR/manifest/tools-tree-lock.json"
 OUTPUT_DIR=${FML_IMAGE_OUTPUT_DIR:-"$ROOT/out/image"}
 PACKAGE_CACHE=${FML_IMAGE_PACKAGE_CACHE:-"$IMAGE_DIR/mkosi.pkgcache"}
+DEBSBOM_VERSION=$(sed -n 's/^  sbom_package_version: //p' "$INPUTS")
+[ -n "$DEBSBOM_VERSION" ] || {
+  printf '%s\n' 'The selected debsbom version is missing from build-inputs.yml.' >&2
+  exit 1
+}
 OUTPUT_BASENAME=$(sed -n 's/^  image_id: //p' "$INPUTS")
 [ -n "$OUTPUT_BASENAME" ] || {
   printf '%s\n' 'Image output identity is missing from build-inputs.yml.' >&2
@@ -76,12 +81,10 @@ if [ "$mode" = --offline ]; then
   # mkosi v25.3 manual: CacheOnly=always instructs the package manager not to
   # contact the network. The default is auto and does not prove offline input.
   set -- "$@" --cache-only=always
-  # mkosi v25.3 manual: ToolsTreePackageDirectories is the tools-tree form of
-  # PackageDirectories, for which mkosi "will create a local repository
-  # containing all packages in these directories". The shared metadata cache
-  # retains the target repositories, so expose the authenticated cached .debs
-  # as a local tools-tree repository for the pinned backports-only debsbom.
-  set -- "$@" --tools-tree-package-directory "$PACKAGE_CACHE/cache/apt/archives"
+  # mkosi v25.3 manual: package specifications "may include ... file paths".
+  # Reset the configured debsbom name so the loop below can select its already
+  # authenticated cached .deb without backports repository metadata.
+  set -- "$@" --tools-tree-package=
   command -v unshare >/dev/null 2>&1 || {
     printf '%s\n' 'unshare is required to prove external-network isolation.' >&2
     exit 1
@@ -103,6 +106,9 @@ $active_packages
 EOF
 
 while IFS= read -r package; do
+  if [ "$mode" = --offline ] && [ "$package" = "debsbom=$DEBSBOM_VERSION" ]; then
+    package="/var/cache/apt/archives/debsbom_${DEBSBOM_VERSION}_all.deb"
+  fi
   set -- "$@" --tools-tree-package "$package"
 done <<EOF
 $active_tools_packages
