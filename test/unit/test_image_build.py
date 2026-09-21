@@ -539,7 +539,7 @@ def test_live_mirror_and_disabled_key_check_are_rejected(
     config["Distribution"]["Mirror"] = "https://deb.debian.org/debian"
     config["Distribution"]["RepositoryKeyCheck"] = "no"
     config["Output"]["Seed"] = "random"
-    config["Content"]["Environment"] = (
+    config["Build"]["Environment"] = (
         'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed=random"'
     )
     config["Output"]["Compression"] = "none"
@@ -550,7 +550,7 @@ def test_live_mirror_and_disabled_key_check_are_rejected(
     assert any("Mirror does not match" in error for error in errors)
     assert any("RepositoryKeyCheck shall be yes" in error for error in errors)
     assert any("[Output] Seed does not match" in error for error in errors)
-    assert any("[Content] Environment does not match" in error for error in errors)
+    assert any("[Build] Environment does not match" in error for error in errors)
     assert any("[Output] Compression is not a governed" in error for error in errors)
 
 

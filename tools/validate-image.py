@@ -74,13 +74,13 @@ EXPECTED_CONFIG_KEYS = {
         "Bootable",
         "Bootloader",
         "CleanPackageMetadata",
-        "Environment",
         "KernelCommandLine",
         "SourceDateEpoch",
         "WithDocs",
         "WithRecommends",
     },
     "Build": {
+        "Environment",
         "SandboxTrees",
         "ToolsTree",
         "ToolsTreeDistribution",
@@ -433,9 +433,6 @@ def validate_repository(root: Path) -> list[str]:
         "WithRecommends": False,
         "WithDocs": True,
         "CleanPackageMetadata": False,
-        "Environment": (
-            f'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed={output.get("seed")}"'
-        ),
         "KernelCommandLine": (
             "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes"
         ),
@@ -443,6 +440,9 @@ def validate_repository(root: Path) -> list[str]:
     }.items():
         _expect_config(config, "Content", key, expected, errors)
     for key, expected in {
+        "Environment": (
+            f'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed={output.get("seed")}"'
+        ),
         "ToolsTree": tools_tree.get("mode"),
         "ToolsTreeDistribution": tools_tree.get("distribution"),
         "ToolsTreeRelease": tools_tree.get("release"),
