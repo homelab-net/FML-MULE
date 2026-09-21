@@ -412,6 +412,16 @@ def test_governed_tools_tree_is_enabled() -> None:
     assert config["Build"]["ToolsTree"] == "default"
 
 
+def test_qemu_boot_does_not_wait_for_firstboot_input() -> None:
+    """The no-input acceptance boot shall bypass the interactive setup wizard."""
+    config = ConfigParser(interpolation=None)
+    config.optionxform = str  # type: ignore[method-assign]
+    config.read(REPO_ROOT / "os/image/mkosi.conf", encoding="utf-8")
+    kernel_command_line = config["Content"]["KernelCommandLine"].split()
+
+    assert "systemd.firstboot=no" in kernel_command_line
+
+
 def test_approved_direct_package_intent_is_complete() -> None:
     """FML-ADR-081 shall expose exactly the owner-approved boot foundation."""
     packages = {

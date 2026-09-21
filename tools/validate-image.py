@@ -434,7 +434,8 @@ def validate_repository(root: Path) -> list[str]:
         "WithDocs": True,
         "CleanPackageMetadata": False,
         "KernelCommandLine": (
-            "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes"
+            "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes "
+            "systemd.firstboot=no"
         ),
         "SourceDateEpoch": distribution.get("source_date_epoch"),
     }.items():
