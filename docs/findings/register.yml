@@ -232,6 +232,9 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-09B, GAP-09C]
+    owner: Claude
+    evidence:
+      - "docs/evidence/findings/GAP-09D/decision-packet.md"
     user_gate: "Approve the runtime entry point and installation model"
 
   - <<: *open_independent
@@ -240,6 +243,9 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-03, GAP-04, GAP-09B, GAP-09C]
+    owner: Claude
+    evidence:
+      - "docs/evidence/findings/GAP-09E/decision-packet.md"
     user_gate: "Approve any unresolved network semantics"
 
   - <<: *open_independent
@@ -248,6 +254,9 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [OSS-01]
+    owner: Claude
+    evidence:
+      - "docs/evidence/findings/GAP-09F/decision-packet.md"
     user_gate: "Approve the milestone service"
 
   - <<: *open_independent
