@@ -829,6 +829,10 @@ printf 'cached package\n' >"$FML_IMAGE_PACKAGE_CACHE/fixture.deb"
         """#!/bin/sh
 set -eu
 : >"$FML_TEST_PACKAGED_MKOSI_RAN"
+printf '%s\n' "$@" >"$FML_TEST_VM_ARGUMENTS"
+if IFS= read -r unexpected; then
+  exit 65
+fi
 if [ "${FML_TEST_NO_BOOT_MARKER:-}" != 1 ]; then
   printf '%s\n' 'Reached target multi-user.target'
 fi
@@ -854,6 +858,7 @@ fi
         "FML_TEST_BUILD_CALLS": str(tmp_path / "build-calls.txt"),
         "FML_TEST_PACKAGED_MKOSI": str(packaged_mkosi),
         "FML_TEST_PACKAGED_MKOSI_RAN": str(tmp_path / "packaged-mkosi-ran"),
+        "FML_TEST_VM_ARGUMENTS": str(tmp_path / "vm-arguments.txt"),
         "FML_TEST_SHADOW_MKOSI_RAN": str(tmp_path / "shadow-mkosi-ran"),
     }
     return repository, environment
@@ -897,6 +902,9 @@ def test_reproducibility_runner_uses_clean_builds_and_authenticated_vm(
     assert calls[2][2] == "--offline"
     assert (tmp_path / "packaged-mkosi-ran").is_file()
     assert not (tmp_path / "shadow-mkosi-ran").exists()
+    arguments = (tmp_path / "vm-arguments.txt").read_text(encoding="utf-8")
+    assert "--console=native\n" in arguments
+    assert "--runtime-network=none\n" in arguments
     assert "Three identical raw images" in result.stdout
 
 
