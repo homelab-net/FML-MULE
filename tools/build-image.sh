@@ -76,6 +76,12 @@ if [ "$mode" = --offline ]; then
   # mkosi v25.3 manual: CacheOnly=always instructs the package manager not to
   # contact the network. The default is auto and does not prove offline input.
   set -- "$@" --cache-only=always
+  # mkosi v25.3 manual: ToolsTreePackageDirectories is the tools-tree form of
+  # PackageDirectories, for which mkosi "will create a local repository
+  # containing all packages in these directories". The shared metadata cache
+  # retains the target repositories, so expose the authenticated cached .debs
+  # as a local tools-tree repository for the pinned backports-only debsbom.
+  set -- "$@" --tools-tree-package-directory "$PACKAGE_CACHE/cache/apt/archives"
   command -v unshare >/dev/null 2>&1 || {
     printf '%s\n' 'unshare is required to prove external-network isolation.' >&2
     exit 1
