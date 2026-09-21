@@ -1,8 +1,8 @@
 # FML-ADR-081 build-only package intent.
 #
 # Captured from mkosi v25.3 resources/mkosi-tools at upstream commit
-# 54c625c380ef5500f17460981a3c67b109b6a847. The final line adds the selected
-# SBOM generator. None of these packages is target-image intent.
+# 54c625c380ef5500f17460981a3c67b109b6a847. The added SBOM packages are the
+# selected generator and its required CycloneDX runtime. None is target intent.
 
 acl
 ?exact-name(distribution-gpg-keys)
@@ -21,6 +21,7 @@ createrepo-c
 curl
 debian-archive-keyring
 debsbom
+python3-cyclonedx-lib
 diffutils
 dnf
 dosfstools
@@ -72,3 +73,27 @@ xfsprogs
 xz-utils
 zstd
 zypper
+
+# Additional packages retained by mkosi v25.3's actual default tools image.
+dmeventd
+libbabeltrace1
+libdebuginfod-common
+libdebuginfod1t64
+libdevmapper-event1.02.1
+liblvm2cmd2.03
+libopencsd1
+libslang2
+libtraceevent1
+linux-perf
+lvm2
+p11-kit
+p11-kit-modules
+pkcs11-provider
+python3-importlib-resources
+python3-virt-firmware
+python3-zstandard
+systemd-boot-efi-amd64-signed
+systemd-cryptsetup
+systemd-repart
+systemd-ukify
+ubuntu-keyring

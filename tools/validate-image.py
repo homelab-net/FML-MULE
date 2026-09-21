@@ -27,6 +27,7 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 GIT_OBJECT = re.compile(r"^[0-9a-f]{40}$")
 SELECTED_BUILDER_VERSION = "25.3-7"  # FML-ADR-079
 SELECTED_SBOM_VERSION = "0.10.1-1~bpo13+1"  # FML-ADR-081
+SELECTED_CYCLONEDX_RUNTIME_VERSION = "9.1.0-2"  # FML-ADR-081
 SELECTED_SNAPSHOT = "20260912T000000Z"  # FML-ADR-079 and FML-ADR-081
 APPROVED_DIRECT_PACKAGES = {
     "dbus",
@@ -79,6 +80,7 @@ EXPECTED_CONFIG_KEYS = {
         "WithRecommends",
     },
     "Build": {
+        "Environment",
         "SandboxTrees",
         "ToolsTree",
         "ToolsTreeDistribution",
@@ -432,12 +434,16 @@ def validate_repository(root: Path) -> list[str]:
         "WithDocs": True,
         "CleanPackageMetadata": False,
         "KernelCommandLine": (
-            "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes"
+            "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes "
+            "systemd.firstboot=no"
         ),
         "SourceDateEpoch": distribution.get("source_date_epoch"),
     }.items():
         _expect_config(config, "Content", key, expected, errors)
     for key, expected in {
+        "Environment": (
+            f'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed={output.get("seed")}"'
+        ),
         "ToolsTree": tools_tree.get("mode"),
         "ToolsTreeDistribution": tools_tree.get("distribution"),
         "ToolsTreeRelease": tools_tree.get("release"),
@@ -487,11 +493,12 @@ def validate_repository(root: Path) -> list[str]:
         errors.append("sbom policy shall match the FML-ADR-081 selection")
     if runtime != {
         "monitor": "qemu",
-        "console": "read-only",
+        "console": "native",
+        "console_input": "none",
         "network": "none",
         "systemd_target": "multi-user.target",
     }:
-        errors.append("runtime verification shall use QEMU without networking")
+        errors.append("runtime verification shall use QEMU without networking or input")
     for key, expected in {
         "VirtualMachineMonitor": runtime.get("monitor"),
         "Console": runtime.get("console"),
@@ -524,6 +531,20 @@ def validate_repository(root: Path) -> list[str]:
         or debsbom_packages[0]["suite"] != "trixie-backports"
     ):
         errors.append("tools-tree lock shall pin debsbom from trixie-backports")
+    cyclonedx_packages = [
+        package
+        for package in tools_packages
+        if package["name"] == "python3-cyclonedx-lib"
+    ]
+    if len(cyclonedx_packages) != 1:
+        errors.append(
+            "tools-tree lock shall contain the CycloneDX runtime exactly once"
+        )
+    elif (
+        cyclonedx_packages[0]["version"] != SELECTED_CYCLONEDX_RUNTIME_VERSION
+        or cyclonedx_packages[0]["suite"] != "trixie"
+    ):
+        errors.append("tools-tree lock shall pin the selected CycloneDX runtime")
     package_lines = _active_lines(root / PACKAGES_RELATIVE, errors)
     locked_specs = [
         f"{package['name']}={package['version']}" for package in target_packages

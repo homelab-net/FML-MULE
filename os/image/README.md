@@ -10,11 +10,13 @@ boundary. `build-inputs.yml` governs the builder, snapshot, package, and SBOM
 policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
-The exact resolver inputs now contain a 97-package target closure and a
-separate 414-package mkosi tools-tree closure. No image has yet been built,
-compared, or booted, so those locks remain build inputs rather than accepted
-installed-root evidence. The production kernel and board-support path remain
-open under `TBR-LINUX-01` and `TBR-HW-01`.
+The exact resolver inputs contain a 97-package target closure and a separate
+440-package mkosi tools-tree closure. GAP-09C exercised those inputs in two
+clean networked builds and one externally isolated cache-only build; all three
+raw images, SBOMs, and licence-exception reports were byte-identical, and the
+isolated artifact reached `multi-user.target` under QEMU with no guest network.
+The production kernel and board-support path remain open under `TBR-LINUX-01`
+and `TBR-HW-01`.
 
 ## Intended pipeline
 
@@ -25,10 +27,12 @@ is specific to this program rather than general good practice.
 
 The intended contract is that the same retained inputs produce the same output.
 The builder, repositories, target closure, and tools-tree closure are pinned.
+The ext4 directory hash seed reuses the governed image seed instead of accepting
+mke2fs's random default.
 Package versions come from `manifest/`, kernel and driver versions from
 `os/kernel/PINS.md`, and nothing may resolve from a live source at build time.
-GAP-09C must still exercise the closure and compare the artifacts before the
-claim is earned.
+GAP-09C earned this claim for the development image. Its closure packet records
+the exact hashes and environment.
 
 *Why:* because a node in the field is diagnosed by its set version. If two
 builds of the same set version differ, that identifier means nothing, and the
@@ -100,14 +104,16 @@ the reason belongs in the role.
 - An SBOM. See `os/release/SBOM.md`.
 - A build log, retained.
 
-The source-controlled mechanism and requested-output contract now exist. No
-artifact, SBOM, retained build log, signature, or boot evidence exists yet.
+The GAP-09C execution retained the artifact, SBOM, licence report, build logs,
+raw hashes, and boot transcript on the development article. Image signing is a
+separate release-path decision and is not claimed here.
 
 ## Package-manager sandboxes and build scripts
 
 `sandbox-target/etc/apt/sources.list.d/mkosi.sources` supplies only the dated
 main and security archives. `sandbox-tools/etc/apt/sources.list.d/mkosi.sources`
-adds same-time backports for the pinned build-only `debsbom` package. These
+adds same-time backports for pinned build-only `debsbom` and its required
+CycloneDX runtime. These
 trees configure mkosi's package-manager sandboxes and are not copied into the
 target. Validation requires those to be the only files in each
 `sources.list.d`, rejects a legacy `sources.list`, and rejects source-file

@@ -3,11 +3,14 @@
 This directory records the package-set and provenance decision, implementation,
 and verification for the Debian 13 x86-64 development image.
 
-State: OPEN with the package-set decision approved; implementation and
-verification remain in progress.
+State: CLOSED as `SIMULATED`. The selected development-image closure was built
+twice from clean networked state, replayed once from an isolated authenticated
+cache, compared byte-for-byte, and booted under QEMU without a guest network.
 
 | Artifact | What it records |
 | --- | --- |
 | `decision-packet.md` | Package boundary, archive policy, SBOM choice, alternatives, and requested owner disposition. |
 | `execution-card.md` | Exact implementation scope, acceptance evidence, and stop conditions. |
-| `2026-09-14-implementation.md` | Implemented locks and controls, fail-first results, and evidence still required. |
+| `2026-09-14-implementation.md` | Implemented locks, controls, fail-first results, and completed acceptance result. |
+| `2026-09-20-verification.json` | Exact commit, environment, hashes, checks, and retained lab evidence location. |
+| `closure.md` | Closure rationale, independent verdict, residual risks, and deferred work. |

@@ -1,6 +1,6 @@
 # GAP-09C package and provenance implementation
 
-**Date:** 2026-09-14. **Evidence tier:** UNVERIFIED build mechanism.
+**Date:** 2026-09-14, verified 2026-09-20. **Evidence tier:** SIMULATED.
 
 ## Implemented
 
@@ -11,8 +11,9 @@
   `trixie-backports` snapshots.
 - The reviewed direct target intent contains eight packages. Authenticated APT
   metadata resolution produced a 97-package candidate target lock and a
-  separate 414-package candidate tools-tree lock. The latter pins
-  `debsbom` `0.10.1-1~bpo13+1` from backports.
+  separate 440-package candidate tools-tree lock. The latter pins
+  `debsbom` `0.10.1-1~bpo13+1` and its required `python3-cyclonedx-lib`
+  runtime from backports.
 - `tools/validate-image.py` parses the Deb822 inputs and requires the exact
   signed stanza and source-file sets. It rejects direct-intent drift, live,
   extra, trusted, or incorrectly scoped sources, legacy or sibling source
@@ -58,12 +59,18 @@ records both `CacheOnly=always` and
 image-drift rejection, required boot-marker handling, and resistance to a
 shadow `mkosi` on `PATH`.
 
-## Evidence not yet earned
+## Acceptance result
 
-No disk image, package cache, SBOM, licence-exception report, QEMU transcript,
-or repeated raw-image hash was produced in this checkout. The two locks are
-authenticated resolver outputs, not yet an accepted observation of installed
-image contents. GAP-09C remains OPEN until the execution-card build runs,
-installed state matches, two clean hashes and the isolated cache-only hash are
-identical, QEMU reaches the selected systemd target without WAN, the full gate
-passes, and an independent reviewer authenticates the exact commit.
+On 2026-09-20 the execution-card runner completed at commit `d31a686a89b09ea9`
+`33f878fa4f6b17e07088db14` on the Debian 13 x86-64 development article. Two
+clean networked builds and one externally isolated cache-only replay produced
+the same raw-image SHA-256. Their CycloneDX documents and licence-exception
+reports were also byte-identical. The isolated image reached
+`multi-user.target` under QEMU/OVMF with the guest network disabled.
+
+The retained evidence directory is
+`/root/FML-MULE-gap09c/out/gap09c.oJ0VqM` on the development article. The
+compact, source-controlled record is `2026-09-20-verification.json`; the raw
+images and logs remain outside Git because they are generated artifacts. This
+result is `SIMULATED` and makes no claim about production hardware, radio,
+power, thermal, or field behavior.

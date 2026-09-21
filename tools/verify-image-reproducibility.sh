@@ -93,13 +93,17 @@ fi
 
 boot_log="$EVIDENCE_DIR/qemu-no-network.log"
 set +e
+# mkosi v25.3 manual: native console mode connects the VM console directly to
+# standard input/output. Debian 13 lacks the newer systemd-pty-forward helper
+# needed by mkosi's read-only mode, so /dev/null enforces the same no-input
+# acceptance boundary without adding an unavailable host binary.
 timeout 180 "$mkosi_bin" \
   --directory "$IMAGE_DIR" \
   --output-directory "$isolated_output" \
   --output mule-development \
   --runtime-network=none \
-  --console=read-only \
-  vm >"$boot_log" 2>&1
+  --console=native \
+  vm </dev/null >"$boot_log" 2>&1
 boot_status=$?
 set -e
 case "$boot_status" in

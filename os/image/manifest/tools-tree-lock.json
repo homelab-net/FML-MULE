@@ -284,6 +284,15 @@
       "sha256": "768f24cc1e64501de00b0fcfd1c43645042ea16abba489462cdc3ff061b4f21c"
     },
     {
+      "name": "dmeventd",
+      "version": "2:1.02.205-2",
+      "architecture": "amd64",
+      "source": "lvm2",
+      "suite": "trixie",
+      "filename": "pool/main/l/lvm2/dmeventd_1.02.205-2_amd64.deb",
+      "sha256": "51420462b13fb95b88f084580c8f7f4482b4f59fcc60bd7ad883c6789d61fbcf"
+    },
+    {
       "name": "dmsetup",
       "version": "2:1.02.205-2",
       "architecture": "amd64",
@@ -707,6 +716,15 @@
       "sha256": "874f1cd4ca3ed124f4e9aa659427a5cd0a3db9fc1fa7e30ddecd79f16936a9f8"
     },
     {
+      "name": "libbabeltrace1",
+      "version": "1.5.11-4+b2",
+      "architecture": "amd64",
+      "source": "babeltrace",
+      "suite": "trixie",
+      "filename": "pool/main/b/babeltrace/libbabeltrace1_1.5.11-4+b2_amd64.deb",
+      "sha256": "ae7119a21627f296fa28a46ece67b01b1cbc87e32e971f8fd7629d0f42d1d4b1"
+    },
+    {
       "name": "libblkid1",
       "version": "2.41.5-0+deb13u1",
       "architecture": "amd64",
@@ -977,6 +995,24 @@
       "sha256": "25acadc8b394bc86d05df16e70975e523f8f839a7d8d6d5e22c1cafdcef741aa"
     },
     {
+      "name": "libdebuginfod-common",
+      "version": "0.192-4",
+      "architecture": "all",
+      "source": "elfutils",
+      "suite": "trixie",
+      "filename": "pool/main/e/elfutils/libdebuginfod-common_0.192-4_all.deb",
+      "sha256": "3c775d164b26fc5e8fb1a3606b3de99875cf8ee6e2d9a90018c4d82de2d47f7b"
+    },
+    {
+      "name": "libdebuginfod1t64",
+      "version": "0.192-4",
+      "architecture": "amd64",
+      "source": "elfutils",
+      "suite": "trixie",
+      "filename": "pool/main/e/elfutils/libdebuginfod1t64_0.192-4_amd64.deb",
+      "sha256": "399d156a8a631889c71b1fdeb853d8effc40f812870a0b7b0eb09e04eb0dfa5e"
+    },
+    {
       "name": "libdeflate0",
       "version": "1.23-2",
       "architecture": "amd64",
@@ -984,6 +1020,15 @@
       "suite": "trixie",
       "filename": "pool/main/libd/libdeflate/libdeflate0_1.23-2_amd64.deb",
       "sha256": "5fe37fb79d53f5c91da6ba3ac4c1a8453e1f2b1ff0e0ea45189c5338bbfdbf82"
+    },
+    {
+      "name": "libdevmapper-event1.02.1",
+      "version": "2:1.02.205-2",
+      "architecture": "amd64",
+      "source": "lvm2",
+      "suite": "trixie",
+      "filename": "pool/main/l/lvm2/libdevmapper-event1.02.1_1.02.205-2_amd64.deb",
+      "sha256": "f6af1ffe41ee3c291626b4ebdeda1e90075a7217788b1c2f76fe200cc3e3280a"
     },
     {
       "name": "libdevmapper1.02.1",
@@ -1589,6 +1634,15 @@
       "sha256": "35af63e29e035d7f1ce3586922c51868df86c7fd9a4d28777d80384ad809df61"
     },
     {
+      "name": "liblvm2cmd2.03",
+      "version": "2.03.31-2",
+      "architecture": "amd64",
+      "source": "lvm2",
+      "suite": "trixie",
+      "filename": "pool/main/l/lvm2/liblvm2cmd2.03_2.03.31-2_amd64.deb",
+      "sha256": "a1a5c3ddf09c22038503b975a6f9625d3e41535599c473db7fc98a09f40fc4ea"
+    },
+    {
       "name": "liblz4-1",
       "version": "1.10.0-4",
       "architecture": "amd64",
@@ -1830,6 +1884,15 @@
       "suite": "trixie",
       "filename": "pool/main/libo/libonig/libonig5_6.9.9-1+b1_amd64.deb",
       "sha256": "3abee130696244050500bcc7870e3b4cb82ddd87149ece3fd55010c3d4e1d18c"
+    },
+    {
+      "name": "libopencsd1",
+      "version": "1.5.5-1",
+      "architecture": "amd64",
+      "source": "libopencsd",
+      "suite": "trixie",
+      "filename": "pool/main/libo/libopencsd/libopencsd1_1.5.5-1_amd64.deb",
+      "sha256": "0e6e124ab5834da932d93082b326dbbaf034249e522bddb214ca2bc85808c398"
     },
     {
       "name": "libp11-kit-dev",
@@ -2192,6 +2255,15 @@
       "sha256": "ee6994e992d9bc11c06769e293d95111d3e078a26f1aa14c94c826600d5fdf7c"
     },
     {
+      "name": "libslang2",
+      "version": "2.3.3-5+b2",
+      "architecture": "amd64",
+      "source": "slang2",
+      "suite": "trixie",
+      "filename": "pool/main/s/slang2/libslang2_2.3.3-5+b2_amd64.deb",
+      "sha256": "49b52a2cbe0f2257f4f7c68a0eaecd90962edabf08097611548b3ea4bd73292e"
+    },
+    {
       "name": "libslirp0",
       "version": "4.8.0-1+deb13u1",
       "architecture": "amd64",
@@ -2388,6 +2460,15 @@
       "suite": "trixie",
       "filename": "pool/main/libt/libtpms/libtpms0_0.9.2-3.2_amd64.deb",
       "sha256": "6748109482aeabfa564b33ddd158aab8e26dabf5943389b372d9dd6c7d5564d4"
+    },
+    {
+      "name": "libtraceevent1",
+      "version": "1:1.8.4-2",
+      "architecture": "amd64",
+      "source": "libtraceevent",
+      "suite": "trixie",
+      "filename": "pool/main/libt/libtraceevent/libtraceevent1_1.8.4-2_amd64.deb",
+      "sha256": "94e6599aefb87b1ef4b514a748e4b1af66a198523352aca1fb6ff19f7506d0d4"
     },
     {
       "name": "libtss2-dev",
@@ -2786,6 +2867,15 @@
       "sha256": "dc68dd53c7356598d005866da0d19d7bd33af2a62971aced624cdf04492902b4"
     },
     {
+      "name": "linux-perf",
+      "version": "6.12.107-1",
+      "architecture": "amd64",
+      "source": "linux",
+      "suite": "trixie-security",
+      "filename": "pool/updates/main/l/linux/linux-perf_6.12.107-1_amd64.deb",
+      "sha256": "2a56a9d74c6b881dc3df1361ee09d2cf1b954c2edda2360cd682cefb3015523a"
+    },
+    {
       "name": "login.defs",
       "version": "1:4.17.4-2",
       "architecture": "all",
@@ -2802,6 +2892,15 @@
       "suite": "trixie",
       "filename": "pool/main/e/e2fsprogs/logsave_1.47.2-3+b11_amd64.deb",
       "sha256": "0dd470e53e65eb4307a8911f632d180000ec4380cb4109bddc0ee66ae385fc24"
+    },
+    {
+      "name": "lvm2",
+      "version": "2.03.31-2",
+      "architecture": "amd64",
+      "source": "lvm2",
+      "suite": "trixie",
+      "filename": "pool/main/l/lvm2/lvm2_2.03.31-2_amd64.deb",
+      "sha256": "a6a130eae69ec2ede92b2bf4bfab35208a5340c2c3e2dcb4453bf8fbf742d0a6"
     },
     {
       "name": "makepkg",
@@ -2957,6 +3056,24 @@
       "sha256": "78e0d54df11fc77406cb7a0bc9a39e5bca6d1cbe06556b91d9a73491c52decdf"
     },
     {
+      "name": "p11-kit",
+      "version": "0.25.5-3",
+      "architecture": "amd64",
+      "source": "p11-kit",
+      "suite": "trixie",
+      "filename": "pool/main/p/p11-kit/p11-kit_0.25.5-3_amd64.deb",
+      "sha256": "3b048929b011eab66ad30cf888060456281b12a0e2fce2e17dc62906947d0835"
+    },
+    {
+      "name": "p11-kit-modules",
+      "version": "0.25.5-3",
+      "architecture": "amd64",
+      "source": "p11-kit",
+      "suite": "trixie",
+      "filename": "pool/main/p/p11-kit/p11-kit-modules_0.25.5-3_amd64.deb",
+      "sha256": "9d7c6fd38295115bfbe8ef56bd593a3f50ded285182ab0eeff218d43addb69d8"
+    },
+    {
       "name": "pacman-package-manager",
       "version": "7.0.0-1+b1",
       "architecture": "amd64",
@@ -3018,6 +3135,15 @@
       "suite": "trixie",
       "filename": "pool/main/p/pinentry/pinentry-curses_1.3.1-2_amd64.deb",
       "sha256": "aed82cd9cc92b8a37f1332f951737f549595a3126aa609e632f9205d95405efc"
+    },
+    {
+      "name": "pkcs11-provider",
+      "version": "1.0-3",
+      "architecture": "amd64",
+      "source": "pkcs11-provider",
+      "suite": "trixie",
+      "filename": "pool/main/p/pkcs11-provider/pkcs11-provider_1.0-3_amd64.deb",
+      "sha256": "a5df2585de08d0641ab52022487d75857b139e3ad0b1e4c2a07a652dc713e8dc"
     },
     {
       "name": "pkgconf",
@@ -3110,6 +3236,15 @@
       "sha256": "edfc3aab6cbc4941aa19798059867696eeae90eb41b6dc2c5197c521da548972"
     },
     {
+      "name": "python3-cyclonedx-lib",
+      "version": "9.1.0-2",
+      "architecture": "all",
+      "source": "cyclonedx-python-lib",
+      "suite": "trixie",
+      "filename": "pool/main/c/cyclonedx-python-lib/python3-cyclonedx-lib_9.1.0-2_all.deb",
+      "sha256": "5e221d5ecf0a92e3ec4087d93894872b02ffff4d3d530099530889edde111512"
+    },
+    {
       "name": "python3-dbus",
       "version": "1.4.0-1",
       "architecture": "amd64",
@@ -3126,6 +3261,15 @@
       "suite": "trixie",
       "filename": "pool/main/p/python-debian/python3-debian_1.0.1_all.deb",
       "sha256": "41ab65cba82050e18b12afbf34040ffc7c3d6fe32152f0ae5f33b434f1d1e443"
+    },
+    {
+      "name": "python3-defusedxml",
+      "version": "0.7.1-3",
+      "architecture": "all",
+      "source": "defusedxml",
+      "suite": "trixie",
+      "filename": "pool/main/d/defusedxml/python3-defusedxml_0.7.1-3_all.deb",
+      "sha256": "f77090e227c91bf1fe1485b42d74c833d0de0e4a737c8cd65c27bc25926bb35e"
     },
     {
       "name": "python3-dnf",
@@ -3153,6 +3297,15 @@
       "suite": "trixie",
       "filename": "pool/main/libd/libdnf/python3-hawkey_0.74.0-1_amd64.deb",
       "sha256": "d52816fe2fb7a1061659e5a5e4b716f748a97ea37db07d64ac390d4bf57ed7fd"
+    },
+    {
+      "name": "python3-importlib-resources",
+      "version": "6.5.2-1",
+      "architecture": "all",
+      "source": "importlib-resources",
+      "suite": "trixie",
+      "filename": "pool/main/i/importlib-resources/python3-importlib-resources_6.5.2-1_all.deb",
+      "sha256": "7f6c49804f85cfbe94dcb51d1c34e64795a475e69ab8f4c33bb6100e8c37fc6f"
     },
     {
       "name": "python3-libcomps",
@@ -3209,6 +3362,15 @@
       "sha256": "2100cbd75b5dfd8a8ed5a8fe6ee7adf174e78b34004dcbb5885661834d2f972e"
     },
     {
+      "name": "python3-py-serializable",
+      "version": "2.0.0-2",
+      "architecture": "all",
+      "source": "py-serializable",
+      "suite": "trixie",
+      "filename": "pool/main/p/py-serializable/python3-py-serializable_2.0.0-2_all.deb",
+      "sha256": "252b0aa96974f629141d790147e4861cb10521d4a9e52bbecfb5d4406219459b"
+    },
+    {
       "name": "python3-rpm",
       "version": "4.20.1+dfsg-3",
       "architecture": "amd64",
@@ -3216,6 +3378,33 @@
       "suite": "trixie",
       "filename": "pool/main/r/rpm/python3-rpm_4.20.1+dfsg-3_amd64.deb",
       "sha256": "aebc79bb97275d296c00323868401d337849ab0be9cbb072fa566fe06054fedc"
+    },
+    {
+      "name": "python3-sortedcontainers",
+      "version": "2.4.0-2",
+      "architecture": "all",
+      "source": "sortedcontainers",
+      "suite": "trixie",
+      "filename": "pool/main/s/sortedcontainers/python3-sortedcontainers_2.4.0-2_all.deb",
+      "sha256": "b00fd22e4fd50d8ba44442607fc3c737186082b16648d3995b2e4fca642f53e1"
+    },
+    {
+      "name": "python3-virt-firmware",
+      "version": "24.11-2",
+      "architecture": "all",
+      "source": "virt-firmware",
+      "suite": "trixie",
+      "filename": "pool/main/v/virt-firmware/python3-virt-firmware_24.11-2_all.deb",
+      "sha256": "901e419486774412a093bc8b2e735c2e3ecebe060813a52c751d1b4c4e361320"
+    },
+    {
+      "name": "python3-zstandard",
+      "version": "0.23.0-4",
+      "architecture": "amd64",
+      "source": "python-zstandard",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-zstandard/python3-zstandard_0.23.0-4_amd64.deb",
+      "sha256": "f1c14068258a19023e7b265c6673b0cbcd915c01a27e6cd77775b0408eca9b98"
     },
     {
       "name": "python3.13",
@@ -3524,6 +3713,15 @@
       "sha256": "ee81302a1d5b7434762b6e784a572854d4b6cf6235e33e2d104ad4e1cae71ab4"
     },
     {
+      "name": "systemd-boot-efi-amd64-signed",
+      "version": "257.13-1~deb13u1",
+      "architecture": "amd64",
+      "source": "systemd-boot-efi-amd64-signed",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd-boot-efi-amd64-signed/systemd-boot-efi-amd64-signed_257.13-1~deb13u1_amd64.deb",
+      "sha256": "8ecdb0b4af26105ff8c38986c3c8a261133d60ca342ff75351c1be9d1abf74cc"
+    },
+    {
       "name": "systemd-container",
       "version": "257.13-1~deb13u1",
       "architecture": "amd64",
@@ -3542,6 +3740,15 @@
       "sha256": "37cbea4723c82a9a23f9984ed09319d0ace48eee8e8bde4b9c556d91c1cfaed6"
     },
     {
+      "name": "systemd-cryptsetup",
+      "version": "257.13-1~deb13u1",
+      "architecture": "amd64",
+      "source": "systemd",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd/systemd-cryptsetup_257.13-1~deb13u1_amd64.deb",
+      "sha256": "08ec2063867d0e5861b01340f9705dfe0ef4c4612dc5bdfeae29e5d8e7370034"
+    },
+    {
       "name": "systemd-journal-remote",
       "version": "257.13-1~deb13u1",
       "architecture": "amd64",
@@ -3551,6 +3758,15 @@
       "sha256": "b50f6c070723a4a9ba3a43163d08d3a63ce9ddd6465a5409bfba24ca80444bd8"
     },
     {
+      "name": "systemd-repart",
+      "version": "257.13-1~deb13u1",
+      "architecture": "amd64",
+      "source": "systemd",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd/systemd-repart_257.13-1~deb13u1_amd64.deb",
+      "sha256": "06c6f2c285eb81c8ab1dbcc8f5f8721dd96a2228bc9e6a85beaa22460e0599e1"
+    },
+    {
       "name": "systemd-resolved",
       "version": "257.13-1~deb13u1",
       "architecture": "amd64",
@@ -3558,6 +3774,15 @@
       "suite": "trixie",
       "filename": "pool/main/s/systemd/systemd-resolved_257.13-1~deb13u1_amd64.deb",
       "sha256": "cd8c1bf424def250b2c289859ee4513ddbe8b103b4fa0211dec21fe0d97e5f69"
+    },
+    {
+      "name": "systemd-ukify",
+      "version": "257.13-1~deb13u1",
+      "architecture": "all",
+      "source": "systemd",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd/systemd-ukify_257.13-1~deb13u1_all.deb",
+      "sha256": "78e1f7921f39d07512d848244b8b3e320e93e77d0b5778c211809e9f3b8b8284"
     },
     {
       "name": "sysvinit-utils",
@@ -3621,6 +3846,15 @@
       "suite": "trixie",
       "filename": "pool/main/t/tzdata/tzdata_2026b-0+deb13u1_all.deb",
       "sha256": "306013b77311e875620e89f43c447765a6c72b7b398e0baa8e5721bcbbdf66cf"
+    },
+    {
+      "name": "ubuntu-keyring",
+      "version": "2023.11.28.1-0.2",
+      "architecture": "all",
+      "source": "ubuntu-keyring",
+      "suite": "trixie",
+      "filename": "pool/main/u/ubuntu-keyring/ubuntu-keyring_2023.11.28.1-0.2_all.deb",
+      "sha256": "b2e7ed48431bf9e7978ae810bbdaf253093570d6e3f864e575b7c13554b81174"
     },
     {
       "name": "ucf",

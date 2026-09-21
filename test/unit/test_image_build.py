@@ -23,6 +23,7 @@ CACHE_VALIDATOR_PATH = REPO_ROOT / "tools/validate-package-cache.py"
 REPRODUCIBILITY_SCRIPT = REPO_ROOT / "tools/verify-image-reproducibility.sh"
 BUILD_SCRIPT = REPO_ROOT / "tools/build-image.sh"
 BUILDER_RESOLVER = REPO_ROOT / "tools/resolve-mkosi-builder.sh"
+FINALIZE_SCRIPT = REPO_ROOT / "os/image/mkosi.finalize"
 DIRECT_PACKAGES = REPO_ROOT / "os/image/manifest/direct-packages.list"
 TARGET_LOCK = REPO_ROOT / "os/image/manifest/target-lock.json"
 TOOLS_TREE_LOCK = REPO_ROOT / "os/image/manifest/tools-tree-lock.json"
@@ -126,13 +127,72 @@ def test_reproducibility_runner_exists() -> None:
     assert REPRODUCIBILITY_SCRIPT.is_file()
 
 
+def test_finalize_uses_debsbom_0101_supported_schema_selector(
+    tmp_path: Path,
+) -> None:
+    """The pinned debsbom CLI shall receive its only supported schema value."""
+    buildroot = tmp_path / "root"
+    output = tmp_path / "output"
+    source = tmp_path / "source"
+    fake_bin = tmp_path / "bin"
+    (buildroot / "var/lib/dpkg").mkdir(parents=True)
+    ldconfig_aux = buildroot / "var/cache/ldconfig/aux-cache"
+    ldconfig_aux.parent.mkdir(parents=True)
+    ldconfig_aux.write_bytes(b"per-build cache")
+    alternatives_log = buildroot / "var/log/alternatives.log"
+    alternatives_log.parent.mkdir(parents=True)
+    alternatives_log.write_bytes(b"per-build transcript")
+    output.mkdir()
+    (source / "tools").mkdir(parents=True)
+    fake_bin.mkdir()
+    (fake_bin / "debsbom").write_text(
+        """#!/bin/sh
+set -eu
+previous=
+found=
+for argument do
+  if [ "$previous" = --cdx-schema-version ]; then
+    [ "$argument" = latest ] || exit 64
+    found=1
+  fi
+  previous=$argument
+done
+[ "$found" = 1 ]
+""",
+        encoding="utf-8",
+    )
+    (fake_bin / "python3").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    for executable in fake_bin.iterdir():
+        executable.chmod(0o755)
+
+    shell = shutil.which("sh")
+    assert shell is not None
+    result = subprocess.run(  # noqa: S603
+        [shell, str(FINALIZE_SCRIPT)],
+        env=os.environ
+        | {
+            "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+            "BUILDROOT": str(buildroot),
+            "OUTPUTDIR": str(output),
+            "SRCDIR": str(source),
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not ldconfig_aux.exists()
+    assert not alternatives_log.exists()
+
+
 def test_package_cache_validator_detects_missing_and_corrupt_packages(
     tmp_path: Path,
 ) -> None:
     """The retained cache shall fail on either absence or checksum drift."""
     cache = tmp_path / "cache"
     cache.mkdir()
-    package = cache / "fixture_1.0_amd64.deb"
+    package = cache / "fixture_1%3a1.0_amd64.deb"
     package.write_bytes(b"authenticated fixture")
     checksum = hashlib.sha256(package.read_bytes()).hexdigest()
     lock = tmp_path / "lock.json"
@@ -141,7 +201,10 @@ def test_package_cache_validator_detects_missing_and_corrupt_packages(
             {
                 "packages": [
                     {
-                        "filename": f"pool/main/f/fixture/{package.name}",
+                        "name": "fixture",
+                        "version": "1:1.0",
+                        "architecture": "amd64",
+                        "filename": "pool/main/f/fixture/fixture_1.0_amd64.deb",
                         "sha256": checksum,
                     }
                 ]
@@ -180,6 +243,9 @@ def test_package_cache_rejects_decoy_name_and_modified_expected_file(
             {
                 "packages": [
                     {
+                        "name": "fixture",
+                        "version": "1.0",
+                        "architecture": "amd64",
                         "filename": f"pool/main/f/fixture/{expected.name}",
                         "sha256": hashlib.sha256(authenticated).hexdigest(),
                     }
@@ -346,6 +412,16 @@ def test_governed_tools_tree_is_enabled() -> None:
     assert config["Build"]["ToolsTree"] == "default"
 
 
+def test_qemu_boot_does_not_wait_for_firstboot_input() -> None:
+    """The no-input acceptance boot shall bypass the interactive setup wizard."""
+    config = ConfigParser(interpolation=None)
+    config.optionxform = str  # type: ignore[method-assign]
+    config.read(REPO_ROOT / "os/image/mkosi.conf", encoding="utf-8")
+    kernel_command_line = config["Content"]["KernelCommandLine"].split()
+
+    assert "systemd.firstboot=no" in kernel_command_line
+
+
 def test_approved_direct_package_intent_is_complete() -> None:
     """FML-ADR-081 shall expose exactly the owner-approved boot foundation."""
     packages = {
@@ -451,6 +527,25 @@ def test_tools_tree_lock_requires_selected_sbom_generator(
     )
 
 
+def test_tools_tree_lock_requires_cyclonedx_runtime(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The locked generator shall include the runtime its CDX path imports."""
+    lock_path = repository / TOOLS_TREE_LOCK.relative_to(REPO_ROOT)
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    lock["packages"] = [
+        package
+        for package in lock["packages"]
+        if package["name"] != "python3-cyclonedx-lib"
+    ]
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+
+    assert any(
+        "tools-tree lock shall contain the CycloneDX runtime" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
 def test_live_mirror_and_disabled_key_check_are_rejected(
     repository: Path, validator: ModuleType
 ) -> None:
@@ -462,6 +557,9 @@ def test_live_mirror_and_disabled_key_check_are_rejected(
     config["Distribution"]["Mirror"] = "https://deb.debian.org/debian"
     config["Distribution"]["RepositoryKeyCheck"] = "no"
     config["Output"]["Seed"] = "random"
+    config["Build"]["Environment"] = (
+        'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed=random"'
+    )
     config["Output"]["Compression"] = "none"
     with config_path.open("w", encoding="utf-8") as stream:
         config.write(stream, space_around_delimiters=False)
@@ -470,6 +568,7 @@ def test_live_mirror_and_disabled_key_check_are_rejected(
     assert any("Mirror does not match" in error for error in errors)
     assert any("RepositoryKeyCheck shall be yes" in error for error in errors)
     assert any("[Output] Seed does not match" in error for error in errors)
+    assert any("[Build] Environment does not match" in error for error in errors)
     assert any("[Output] Compression is not a governed" in error for error in errors)
 
 
@@ -675,6 +774,12 @@ exec "$@"
     assert (repository / "out/image/mule-development.raw").is_file()
     arguments = (tmp_path / "mkosi-arguments.txt").read_text(encoding="utf-8")
     assert "--cache-only=always" in arguments
+    assert "--tools-tree-package=\n" in arguments
+    assert (
+        "--tools-tree-package\n"
+        "/var/cache/apt/archives/debsbom_0.10.1-1~bpo13+1_all.deb\n" in arguments
+    )
+    assert f"--build-sources\n{repository}\n" in arguments
     isolation = (tmp_path / "unshare-arguments.txt").read_text(encoding="utf-8")
     assert isolation.startswith(f"--net\n--\n{packaged_mkosi}\n")
     systemd = next(
@@ -734,6 +839,10 @@ printf 'cached package\n' >"$FML_IMAGE_PACKAGE_CACHE/fixture.deb"
         """#!/bin/sh
 set -eu
 : >"$FML_TEST_PACKAGED_MKOSI_RAN"
+printf '%s\n' "$@" >"$FML_TEST_VM_ARGUMENTS"
+if IFS= read -r unexpected; then
+  exit 65
+fi
 if [ "${FML_TEST_NO_BOOT_MARKER:-}" != 1 ]; then
   printf '%s\n' 'Reached target multi-user.target'
 fi
@@ -759,6 +868,7 @@ fi
         "FML_TEST_BUILD_CALLS": str(tmp_path / "build-calls.txt"),
         "FML_TEST_PACKAGED_MKOSI": str(packaged_mkosi),
         "FML_TEST_PACKAGED_MKOSI_RAN": str(tmp_path / "packaged-mkosi-ran"),
+        "FML_TEST_VM_ARGUMENTS": str(tmp_path / "vm-arguments.txt"),
         "FML_TEST_SHADOW_MKOSI_RAN": str(tmp_path / "shadow-mkosi-ran"),
     }
     return repository, environment
@@ -802,6 +912,9 @@ def test_reproducibility_runner_uses_clean_builds_and_authenticated_vm(
     assert calls[2][2] == "--offline"
     assert (tmp_path / "packaged-mkosi-ran").is_file()
     assert not (tmp_path / "shadow-mkosi-ran").exists()
+    arguments = (tmp_path / "vm-arguments.txt").read_text(encoding="utf-8")
+    assert "--console=native\n" in arguments
+    assert "--runtime-network=none\n" in arguments
     assert "Three identical raw images" in result.stdout
 
 
