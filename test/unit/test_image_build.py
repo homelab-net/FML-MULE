@@ -136,6 +136,9 @@ def test_finalize_uses_debsbom_0101_supported_schema_selector(
     source = tmp_path / "source"
     fake_bin = tmp_path / "bin"
     (buildroot / "var/lib/dpkg").mkdir(parents=True)
+    ldconfig_aux = buildroot / "var/cache/ldconfig/aux-cache"
+    ldconfig_aux.parent.mkdir(parents=True)
+    ldconfig_aux.write_bytes(b"per-build cache")
     output.mkdir()
     (source / "tools").mkdir(parents=True)
     fake_bin.mkdir()
@@ -176,6 +179,7 @@ done
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
+    assert not ldconfig_aux.exists()
 
 
 def test_package_cache_validator_detects_missing_and_corrupt_packages(
