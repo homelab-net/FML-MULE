@@ -25,6 +25,8 @@ is specific to this program rather than general good practice.
 
 The intended contract is that the same retained inputs produce the same output.
 The builder, repositories, target closure, and tools-tree closure are pinned.
+The ext4 directory hash seed reuses the governed image seed instead of accepting
+mke2fs's random default.
 Package versions come from `manifest/`, kernel and driver versions from
 `os/kernel/PINS.md`, and nothing may resolve from a live source at build time.
 GAP-09C must still exercise the closure and compare the artifacts before the

@@ -74,6 +74,7 @@ EXPECTED_CONFIG_KEYS = {
         "Bootable",
         "Bootloader",
         "CleanPackageMetadata",
+        "Environment",
         "KernelCommandLine",
         "SourceDateEpoch",
         "WithDocs",
@@ -432,6 +433,9 @@ def validate_repository(root: Path) -> list[str]:
         "WithRecommends": False,
         "WithDocs": True,
         "CleanPackageMetadata": False,
+        "Environment": (
+            f'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed={output.get("seed")}"'
+        ),
         "KernelCommandLine": (
             "console=ttyS0 systemd.unit=multi-user.target systemd.show_status=yes"
         ),
