@@ -493,11 +493,14 @@ def validate_repository(root: Path) -> list[str]:
         errors.append("sbom policy shall match the FML-ADR-081 selection")
     if runtime != {
         "monitor": "qemu",
-        "console": "read-only",
+        "console": "native",
+        "console_input": "none",
         "network": "none",
         "systemd_target": "multi-user.target",
     }:
-        errors.append("runtime verification shall use QEMU without networking")
+        errors.append(
+            "runtime verification shall use QEMU without networking or input"
+        )
     for key, expected in {
         "VirtualMachineMonitor": runtime.get("monitor"),
         "Console": runtime.get("console"),
