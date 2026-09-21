@@ -37,10 +37,12 @@ python3 "$SRCDIR/tools/validate-image-root.py" \
   --sbom "$sbom" \
   --write-exceptions "$exceptions"
 
-# ldconfig's auxiliary cache records per-run filesystem metadata and is not a
-# runtime input. Removing it prevents identical library trees from producing
-# different ext4 payloads; the loader's governed /etc/ld.so.cache is retained.
-rm -f "$BUILDROOT/var/cache/ldconfig/aux-cache"
+# ldconfig's auxiliary cache and update-alternatives' build transcript record
+# per-run metadata. Neither is a runtime input; the loader's governed
+# /etc/ld.so.cache and the selected /etc/alternatives links are retained.
+rm -f \
+  "$BUILDROOT/var/cache/ldconfig/aux-cache" \
+  "$BUILDROOT/var/log/alternatives.log"
 
 # debsbom has consumed the authenticated metadata. Remove it from the deployed
 # root while preserving dpkg status and Debian copyright files.
