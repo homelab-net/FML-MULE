@@ -79,11 +79,22 @@ closes without hardware. Directions are the Owner's to accept, not decisions.
   `TBR-COMP-01`'s USB2-SSD test article characterises.
 - **BOM implication:** whether the field article keeps the single-slot Waveshare
   carrier (+ USB2 SSD) or moves to a carrier with a radio slot **and** NVMe.
+- **Root of trust (from `TBR-SEC-01`):** per the unlock-method analysis
+  (`docs/evidence/TBR-SEC-01/2026-09-20-unlock-method-comparison.md`, trade still
+  `OPEN`), **if** the Owner accepts unattended field restart, a hardware root of
+  trust -- **TPM 2.0 or a secure element; which one is `TBR-SEC-01`'s to select** --
+  becomes a carrier-provision requirement. Unlike the NVMe question above, this
+  footprint (a TPM header, or a secure-element part on SPI/I2C) **cannot be
+  deferred past board lock**, and it contends for the 40-pin header the WM1302
+  HaLow HAT uses. This records the provision the Owner must decide; it neither
+  selects the mechanism nor asserts unattended restart is required.
 - **Direction:** the current single-slot carrier + USB2 SSD suffices for the lab
   article and for maps; defer the NVMe/carrier question to the write-heavy service
-  evidence.
+  evidence -- **but decide the root-of-trust provision before board lock**, since a
+  TPM/secure-element footprint cannot be added after the board is chosen.
 - **Hardware to close:** whether a candidate carrier exposes radio + NVMe
-  together; the USB2 SSD read/write behaviour under the real service load.
+  together, and whether it can also carry a TPM/secure-element without losing the
+  40-pin header; the USB2 SSD read/write behaviour under the real service load.
 
 ### `TBR-COMP-01` -- compute memory and storage class
 
@@ -94,9 +105,17 @@ closes without hardware. Directions are the Owner's to accept, not decisions.
   8 GB CM4; the `RELAY` lab node is a 2 GB CM4, adequate for the network-plane
   demonstrations.
 - **Direction:** the ~650 MB idle figure plus the network-plane reserve, the OS,
-  and headroom is the input to the 4-vs-8 GB call; with `CCR-03` now approved, a
-  live RoIP session is a worst-case contributor that pushes toward 8 GB. The Owner
-  makes the class call with the peak measurement below.
+  and headroom is the input to the class call. The roadmap Bank C two-tier model
+  splits it: the **carry node** targets **4 GB (core profile)**, while **8 GB (the
+  media profile)** is the **TOC/aggregation** node where the heavy contributors
+  concentrate -- a live RoIP session (post-`CCR-03`), an SFU, or multiple video
+  streams. So RoIP pushes the **media/TOC** profile toward 8 GB, not necessarily
+  the carry node. The Owner makes the per-profile class call with the arm64 peak
+  below; **8 GB is a profile assignment pending that peak, not a measured figure.**
+- **Image arch (GAP-09F/G, noted not owned here):** the stack must run on the
+  arm64 carrier, so image selection must pin **arm64 or multi-arch** digests; the
+  upstream base images are multi-arch, so the OTS custom build is the only arch
+  risk. Tracked in roadmap Bank C and owned by GAP-09F/G.
 - **Hardware to close:** the arm64/CM4 resident and CPU figures, and the **peak**
   under start-up, mesh reconfiguration, an association storm, and (post-`CCR-03`)
   a live RoIP session, with the network plane co-resident.
