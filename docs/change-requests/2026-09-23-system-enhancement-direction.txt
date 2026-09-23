@@ -21,6 +21,9 @@ with the tree.
    or HARDWARE-VERIFIED behaviour.
 6. docs/NON-GOALS.md still says the architecture does not require EUD
    Tailscale membership. That remains true. Membership is optional.
+7. The obligations in this file that are not already a controlling record are
+   drafted in CCR-05. That request is OPEN. It has no weight, and it does not
+   change this file into a baseline.
 
 END OF RECONCILIATION
 
