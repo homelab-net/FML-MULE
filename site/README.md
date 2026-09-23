@@ -16,6 +16,13 @@ antennas. No enclosure, antenna, battery, or compute module is selected.
 three identical nodes, HaLow via the ridge team, an assumed direct LoRa path.
 It is not a propagation study and not a field trace.
 
+## Layout
+
+`architecture`, `prototypes`, `status`, and `why` are the other pages. Each is
+a directory with an `index.html`, so the address has no file name. `assets`
+holds the bundled scripts and styles those pages load. `media` holds the two
+pictures named above.
+
 ## How it is published
 
 `.github/workflows/pages.yml` uploads this directory. It does not build an
