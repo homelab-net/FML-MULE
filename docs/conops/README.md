@@ -4,7 +4,7 @@
 
 | File | Contents |
 | --- | --- |
-| `FML-MULE-CONOPS-v1.01.txt` | The controlling operational concept, transcribed verbatim. |
+| `FML-MULE-CONOPS-v1.1.txt` | The controlling operational concept. v1.1 reissues v1.01 with the CCR-04 text. |
 
 The CONOPS is the **controlling subsystem operational concept**. Every
 requirement in this program traces back to it, and the SAD in
@@ -23,11 +23,11 @@ the same reason.
 
 ## Transcription integrity
 
-The document carries its own audit figure: SAD section 35.1 records **145
+The document carries its own audit figure: SAD section 35.1 records **151
 `[SHALL]` markers** in the source.
 
 ```sh
-grep -c '\[SHALL\]' docs/conops/FML-MULE-CONOPS-v1.01.txt   # expect 145
+grep -c '\[SHALL\]' docs/conops/FML-MULE-CONOPS-v1.1.txt   # expect 151
 ```
 
 That check passes on the copy in this repository. It is not proof of a perfect

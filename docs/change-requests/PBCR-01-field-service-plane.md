@@ -77,7 +77,8 @@ service:
 - network reachability does not itself grant service or data authorization;
 - field users do not gain unrestricted access to home, private or administrative
   systems merely because reachability exists (CONOPS section 68);
-- EUDs do not join the WAN overlay (`FML-ADR-039`);
+- under the default posture an EUD does not join the WAN overlay. An admitted
+  EUD reaches only its assigned MULE (`FML-ADR-082`);
 - local operation continues when parent infrastructure is unavailable.
 
 ## Verification

@@ -27,7 +27,8 @@ design is built for.
 repository.**
 
 The program is **pre-PDR**. The operational concept is **baselined**
-(CONOPS v1.01, pending stakeholder signature). The architecture is **drafted**
+(CONOPS v1.1, CCR-04 accepted; the section 87 signature block is still
+unsigned). The architecture is **drafted**
 (SAD v0.31, an SRR package candidate). **Almost nothing is built, and nothing at
 all has been measured.**
 
@@ -82,7 +83,7 @@ Read in this order. Each part assumes the one before it.
    these before you buy or build anything. Lithium cells, sealed-enclosure
    thermal limits, and the fact that the sub-GHz band this program targets is
    **not permitted in the EU or the UK**.
-2. **[`docs/conops/`](docs/conops/)** — CONOPS v1.01, what the system is for.
+2. **[`docs/conops/`](docs/conops/)** — CONOPS v1.1, what the system is for.
    Baselined. Start at its section 1, then sections 5, 9 and 78.
 3. **[`docs/architecture/`](docs/architecture/)** — SAD v0.31, how it is
    arranged. Drafted. Start at its section 1, then 2.1 and 0.8.
@@ -132,7 +133,7 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 
 | Path | Contents |
 | --- | --- |
-| `docs/` | The design record: CONOPS v1.01, SAD v0.31, the decision and trade registers, verification, evidence, fork ledger, change requests. |
+| `docs/` | The design record: CONOPS v1.1, SAD v0.31, the decision and trade registers, verification, evidence, fork ledger, change requests. |
 | `regions/` | Regulatory profiles. Region is an input to configuration, never a constant. |
 | `hardware/` | Qualified hardware blocks, lifecycle register, prototype and test BOM. Nothing selected. |
 | `mule/` | What the node decides while running: the clock, admission, services, status. One small module per question. `FML-ADR-051`. |

@@ -29,7 +29,7 @@ the one-standard-device principle in CONOPS section 5.1 has failed.
 ## What it validates
 
 - **Section 79 success criteria:** none directly
-- **Decisions:** `FML-ADR-039`
+- **Decisions:** `FML-ADR-082`
 - **Trades expected to close or advance here:** none
 
 The criterion-to-stage mapping is CONOPS section 85 and is transcribed as

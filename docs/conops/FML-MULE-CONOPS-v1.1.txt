@@ -4,8 +4,9 @@ MULTI-BEARER UTILITY LINK EQUIPMENT (MULE)
 CONCEPT OF OPERATIONS (CONOPS)
 ================================================================================
 
-Version              : 1.01
-Status               : BASELINE (pending stakeholder signature, Section 87)
+Version              : 1.1
+Status               : BASELINE v1.1 (CCR-04 accepted 2026-09-23;
+                       Section 87 signature block remains unsigned)
 Parent Effort        : Homelab Phase 6 / WP-07 RF, Meshtastic and TAK
                        Communications
 Document Type        : Subsystem Concept of Operations
@@ -67,6 +68,22 @@ Document Purpose
                       (f) corrected formatting defects (collapsed code blocks,
                           malformed table in Section 40).
                       No operational concept was added, removed, or altered.
+  1.1    2026-09-23   CCR-04, accepted by the Program Owner. Sections 12,
+                      43, 78 Stage 6, and 79 criterion 17 only:
+                      (a) mission WAN policy selects remote-EUD overlay
+                          posture, default DISABLED;
+                      (b) ASSIGNED_MULE_ONLY admits an authorized EUD only
+                          as far as its assigned MULE's remote-EUD ingress;
+                      (c) that grant does not place the EUD on the local RF
+                          mesh, and does not remove local access-point access;
+                      (d) the assigned MULE may reach an approved mission
+                          service for that EUD, including over the local RF
+                          mesh. That reach is the MULE's;
+                      (e) loss of the assigned MULE does not attach the EUD
+                          through another MULE;
+                      (f) the overlay does not extend batman-adv across the WAN.
+                      No other SHALL, criterion, stage, or section 81
+                      exclusion changed.
   1.01   2026-08-25   Controlled nomenclature revision:
                       (a) adopted FERAL MULE as the program nickname;
                       (b) adopted FML as the program identifier;
@@ -741,10 +758,17 @@ EUDs connect to the MULE local access network.
           |
     Field services
 
-[SHALL] EUDs shall not join the Tailscale or equivalent WAN overlay directly.
+The diagram above is local access. It is not overlay membership.
 
-[SHALL] The MULE shall be the routing, authentication, and security boundary
-between EUDs and remote field services.
+[SHALL] An EUD shall join the Tailscale or equivalent WAN overlay only when
+the mission WAN policy sets remote-EUD overlay posture to ASSIGNED_MULE_ONLY
+and FML has authorized that EUD for remote continuity to its assigned MULE.
+Under any other posture, including the default DISABLED, an EUD shall not
+join the overlay.
+
+[SHALL] The assigned MULE shall remain the routing, authentication, and
+security boundary between that EUD and remote field services. Overlay
+membership under the posture above shall not itself be that authorization.
 
 ================================================================================
 13. AUTHENTICATION MODEL
@@ -1392,13 +1416,48 @@ separated MULEs and approved remote field infrastructure.
      |
     Remote Field Services
 
-[SHALL] EUDs shall not join the overlay directly.
+The diagram above is the default posture: the EUD reaches remote field
+services through its MULE, and the EUD is not on the overlay.
 
-[SHALL] The MULE shall remain the WAN security and routing boundary.
+[SHALL] Authorized MULE infrastructure shall participate in the approved FML
+WAN overlay when a WAN path is available. That participation shall be limited
+to approved FML inter-MULE resources. It shall not grant unrelated home,
+private, or administrative infrastructure.
+
+[SHALL] An EUD shall join that overlay only when the mission WAN policy sets
+remote-EUD overlay posture to ASSIGNED_MULE_ONLY and FML has authorized that
+EUD for remote continuity to its assigned MULE.
+
+[SHALL] Under any other posture, including the default DISABLED, an EUD shall
+not join the overlay.
+
+[SHALL] An EUD admitted under ASSIGNED_MULE_ONLY shall be granted only the
+approved remote-EUD ingress of its assigned MULE. The assigned MULE shall
+remain the WAN security and routing boundary past that membership. The grant
+shall not extend to any other MULE, to MULE management interfaces, to peer
+EUDs on the overlay, or to unrelated home, private, or administrative
+infrastructure.
+
+[SHALL] The grant shall not place the EUD on the local RF mesh and shall not
+give the EUD a route onto that mesh. Past the assigned ingress, the MULE may
+reach an approved mission service for that EUD, including a service the MULE
+itself reaches over the local RF mesh. That reach is the MULE's. It is not
+membership of the mesh, and it is not an extension of the mesh across the WAN.
+Peer awareness, where approved, shall use a routed application service. It
+shall not be a mesh route the EUD holds.
+
+[SHALL] The grant shall not remove or replace local EUD access through the
+MULE access point.
+
+[SHALL] If the assigned MULE is unavailable, that EUD shall not obtain overlay
+ingress through another MULE.
 
 [SHALL] Infrastructure access control and mission authorization shall remain
 separate. Overlay authentication alone shall not grant service or data
 authorization.
+
+[SHALL] The overlay shall not extend batman-adv or any other Layer-2 mesh
+across the WAN.
 
 ================================================================================
 44. REMOTE TEAM OPERATION
@@ -2240,11 +2299,19 @@ Stage 5 - TAK Service Continuity
 
 Stage 6 - WAN Overlay
   * local WAN gateway;
-  * secure overlay;
+  * secure overlay between authorized MULEs, without extending the local RF
+    mesh across the WAN;
   * remote field services;
-  * EUD isolation from overlay;
+  * default remote-EUD posture: EUD isolation from the overlay;
+  * ASSIGNED_MULE_ONLY: an authorized EUD reaches only its assigned MULE's
+    approved remote-EUD ingress;
+  * that grant does not place the EUD on the local RF mesh; an approved
+    mission service the assigned MULE reaches over that mesh is still reached
+    through the assigned ingress;
+  * loss of the assigned MULE does not attach that EUD through another MULE;
   * unauthorized Homelab access denial;
-  * WAN loss and local continuity.
+  * WAN loss and local continuity;
+  * declining remote-EUD continuity does not remove local EUD operation.
 
 Stage 7 - Sustainment
   * nominal 8-hour objective;
@@ -2334,7 +2401,12 @@ demonstrates that:
   15. RF coexistence and regulatory compliance are validated for the assembled
       device;
   16. WAN remains optional;
-  17. MULE remains the WAN-overlay boundary for EUDs;
+  17. Under the default posture an EUD does not join the WAN overlay. An EUD
+      admitted to the overlay reaches only its assigned MULE's approved
+      remote-EUD ingress and is not placed on the local RF mesh. The assigned
+      MULE remains the security and routing boundary past that ingress,
+      including where it reaches an approved mission service for that EUD
+      over the local RF mesh;
   18. remote teams can reach approved field services when WAN exists;
   19. unauthorized home, private, and administrative infrastructure remains
       inaccessible;
@@ -2593,7 +2665,9 @@ The core concept is technically plausible using current open-source and
 commodity technology, although several integration behaviors require
 engineering and field validation.
 
-Disposition: issue as FML/MULE CONOPS v1.01 BASELINE on signature, then progress
+Disposition: v1.01 was issued as the baseline candidate. v1.1 (CCR-04,
+2026-09-23) is the controlling text for sections 12, 43, 78 Stage 6, and
+79 criterion 17. Progression remains:
 to:
 
   1. System Architecture Description;
@@ -2696,6 +2770,10 @@ ADR, and BOM/CI records, per Section 2.
 87. APPROVAL
 ================================================================================
 
+v1.1 was accepted by the Program Owner on 2026-09-23 under Section 86
+(CCR-04). The signature block below is the v1.01 block and is unchanged.
+It has not been signed.
+
 By signature below, the undersigned accept FML/MULE CONOPS v1.01 as the controlled
 operational baseline for the MULE subsystem, and authorize progression to
 System Architecture and requirements development.
@@ -2714,5 +2792,5 @@ Where one person holds multiple roles, each role shall be signed separately and
 the compensating review control of Section 18 shall apply.
 
 ================================================================================
-END OF DOCUMENT - FML/MULE CONOPS v1.01 BASELINE
+END OF DOCUMENT - FML/MULE CONOPS v1.1 BASELINE
 ================================================================================

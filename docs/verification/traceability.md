@@ -40,10 +40,10 @@ rationale; `may` creates no obligation. See `CONTRIBUTING.md`.
 | `FML-REQ-013` | CONOPS 79.13 | `shall` | `FML-ADR-026` | `STAGE-03` | `docs/verification/requirements.md` |
 | `FML-REQ-014` | CONOPS 79.14 | `shall` | `FML-ADR-027` | `STAGE-03` | `docs/verification/requirements.md` |
 | `FML-REQ-015` | CONOPS 79.15 | `shall` | `FML-ADR-027` | `STAGE-03` | `docs/verification/requirements.md` |
-| `FML-REQ-016` | CONOPS 79.16 | `shall` | `FML-ADR-039` | `STAGE-06` | `docs/verification/requirements.md` |
-| `FML-REQ-017` | CONOPS 79.17 | `shall` | `FML-ADR-039` | `STAGE-06` | `docs/verification/requirements.md` |
-| `FML-REQ-018` | CONOPS 79.18 | `shall` | `FML-ADR-039` | `STAGE-06` | `docs/verification/requirements.md` |
-| `FML-REQ-019` | CONOPS 79.19 | `shall` | `FML-ADR-039` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-016` | CONOPS 79.16 | `shall` | `FML-ADR-082` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-017` | CONOPS 79.17 | `shall` | `FML-ADR-082` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-018` | CONOPS 79.18 | `shall` | `FML-ADR-082` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-019` | CONOPS 79.19 | `shall` | `FML-ADR-082` | `STAGE-06` | `docs/verification/requirements.md` |
 | `FML-REQ-020` | CONOPS 79.20 | `shall` | `TBR-CARRIER-01` | `STAGE-08` | `docs/verification/requirements.md` |
 | `FML-REQ-021` | CONOPS 79.21 | `shall` | `TBR-PWR-01` | `STAGE-07` | `docs/verification/requirements.md` |
 | `FML-REQ-022` | CONOPS 79.22 | `shall` | `FML-ADR-046` | `STAGE-01` | `docs/verification/requirements.md` |

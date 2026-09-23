@@ -28,18 +28,18 @@ The SAD states its own counts, which gives four independent checks on this copy:
 
 ```sh
 grep -c '^| FML-ADR-0' docs/architecture/FML-MULE-SAD-v0.31.md   # 30 decisions
-grep -c '^| C[0-9]'    docs/architecture/FML-MULE-SAD-v0.31.md   # 140 traced clauses
+grep -c '^| C[0-9]'    docs/architecture/FML-MULE-SAD-v0.31.md   # 146 traced clauses
 grep -c '^| \*\*TBR-'  docs/architecture/FML-MULE-SAD-v0.31.md   # 16 trades
 grep -c '^| SR-0'      docs/architecture/FML-MULE-SAD-v0.31.md   # 11 source entries
 ```
 
-All four pass. Section 35.1 states 140 traced clauses; section 0.8 lists 30
+All four pass. Section 35.1 states 146 traced clauses; section 0.8 lists 30
 controlling decisions; section 30.2 lists 16 trades; section 34 lists 11
 sources.
 
 Section 35.4 still requires a second reviewer to confirm each `PRESENT` row
 against the actual SAD text, and to confirm quoted CONOPS text against the
-controlled v1.01 source. **That review has not been performed.**
+controlled v1.1 source. **That review has not been performed.**
 
 ## Identifier control, and what it means for this repository
 

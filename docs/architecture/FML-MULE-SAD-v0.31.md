@@ -5,7 +5,7 @@
 **Version:** 0.31  
 **Status:** DRAFT - SRR Package Candidate  
 **Date:** 2026-08-25  
-**Parent:** FML/MULE CONOPS v1.01 BASELINE  
+**Parent:** FML/MULE CONOPS v1.1 BASELINE  
 **Parent Homelab Phase:** Phase 6 / WP-07 RF, Meshtastic & TAK Communications  
 **Document Type:** Subsystem System Architecture Description  
 **Architecture Maturity:** SRR-ready architecture / evidence-driven refinement phase; quantitative hardware and continuity trades remain open
@@ -65,7 +65,7 @@ This document uses the following architecture statuses:
 
 For MULE subsystem work:
 
-1. FML/MULE CONOPS v1.01 is the controlling subsystem operational concept.
+1. FML/MULE CONOPS v1.1 is the controlling subsystem operational concept.
 2. Homelab v2.5.3 plus as-built Git remains the parent execution authority.
 3. The inspectable v2.5.1 TRD, ICD, SOW, ADR, ATP, and BOM remain the detailed reference set where v2.5.3 detail is not directly available.
 4. Where the MULE CONOPS intentionally changes an older parent allocation, the difference is recorded as a parent-baseline change action rather than silently reconciled.
@@ -118,7 +118,7 @@ Beginning with v0.31, existing SAD section numbers are frozen for downstream tra
 | FML-ADR-036 | Smallstep step-ca is preferred initial PKI | PREFERRED | Carries forward draft AD-017 |
 | FML-ADR-037 | Application-native RBAC first; OPA only when cross-application policy justifies it | SELECTED | Supersedes draft AD-018 |
 | FML-ADR-038 | EAP-TLS is the production EUD admission target | SELECTED TARGET | Carries forward draft AD-019 |
-| FML-ADR-039 | WAN overlay terminates on MULE infrastructure, never directly on EUDs | SELECTED | Carries forward draft AD-020 |
+| FML-ADR-039 | WAN overlay terminates on MULE infrastructure, never directly on EUDs | SUPERSEDED | Superseded by FML-ADR-082. Carries forward draft AD-020 |
 | FML-ADR-040 | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | SELECTED | New in v0.3 |
 | FML-ADR-041 | MULE requires an A/B or equivalently bootable known-good rollback path | SELECTED PRINCIPLE | New in v0.3 |
 | FML-ADR-042 | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | SELECTED | New in v0.3 |
@@ -1234,21 +1234,27 @@ This is network admission only. Operational role/scope remains application polic
 
 ## 18.1 Overlay Boundary
 
-**FML-ADR-039 - SELECTED**
+**FML-ADR-082 - SELECTED. Supersedes FML-ADR-039.**
 
-Only MULE infrastructure participates in Tailscale or an equivalent WAN overlay.
+Authorized MULE infrastructure participates in the approved FML WAN overlay when a WAN path is available. That participation is limited to approved FML inter-MULE resources.
 
-EUDs do not join the tailnet.
+An EUD joins that overlay only when the mission WAN policy sets remote-EUD overlay posture to ASSIGNED_MULE_ONLY and FML has authorized that EUD for remote continuity to its assigned MULE. Under every other posture, including the default DISABLED, an EUD does not join the overlay.
+
+An EUD admitted under ASSIGNED_MULE_ONLY is granted only the approved remote-EUD ingress of its assigned MULE. The assigned MULE remains the security and routing boundary past that membership. The grant does not place the EUD on the local RF mesh and does not give the EUD a route onto that mesh. Past that ingress, the MULE may reach an approved mission service for that EUD, including a service the MULE itself reaches over the local RF mesh. That reach is the MULE's.
+
+The grant does not remove local access-point access. Whether a local access-point EUD is forwarded onto batman-adv remains open (FML-ADR-068, TBR-TAK-01).
+
+If the assigned MULE is unavailable, that EUD does not obtain overlay ingress through another MULE. The overlay does not extend batman-adv or any other Layer-2 mesh across the WAN.
 
 ## 18.2 Policy
 
-Tailscale Grants are the preferred current policy model for WAN-overlay access.
+The ACL syntax that enforces an admitted EUD's assigned ingress is not decided. FML-ADR-082 does not name that mechanism.
 
 Overlay policy remains deny-by-default and restricts MULE nodes to approved field-service destinations.
 
-Tailscale device tags/grants represent infrastructure/service identity.
+An admitted remote EUD, and only that EUD, carries one managed tag. The tag names the mission and the assigned team. It does not name an operational role. One tag is the whole infrastructure grant. The grant is not composed from several broad tags, because those tags are additive. The spelling is not frozen. FML signed mission policy remains the source of who the person is, what role they hold, and what they may see or do. MULE infrastructure tags do not name a mission or a team.
 
-They do not represent Team Alpha, Team Bravo, Team Lead, or other operational mission roles.
+A grant from that EUD tag reaches only the assigned MULE's approved remote-EUD ingress. Overlay authentication alone does not grant service or data authorization.
 
 ## 18.3 WAN Failure
 
@@ -2237,7 +2243,7 @@ These findings are addressed by a selected architecture direction but remain ope
 | Peer ATAK vs routed service hosting | EUDs remain on validated BATMAN field domain; services use local ingress | 2, 5 | OPEN until scale/failover test |
 | Stable service identity vs host movement | local DNS + HAProxy/TCP passthrough | 5 | OPEN until failover test |
 | LoRa as degraded bearer vs IP routing | Meshtastic stays separate from IP MANET | 3 | OPEN until degraded-mode test |
-| Tailscale vs mission authorization | EUDs excluded from tailnet; application role/scope remains separate | 6, 9 | OPEN until authorization test |
+| Tailscale vs mission authorization | Default posture excludes an EUD. An admitted EUD carries one mission-and-team tag and no operational role. Overlay membership is not application role or scope. | 6, 9 | OPEN until authorization test |
 | Stateful availability vs split brain | state classification first; automatic only when authority is provable; admin fallback | 5 | OPEN until partition test |
 | Service workload vs routing stability | rootless containers + cgroups + native network priority | 1, 7 | OPEN / TBR-COMP-01 |
 | EMCON usability | tactile/local indication plus multi-layer control | 8, 10 | OPEN until field demo |
@@ -2362,7 +2368,7 @@ This graph should be used to build the Integrated Test & Evaluation Plan and the
 
 The MULE subsystem is ready for SRR package review with SAD v0.31 as the preferred architecture draft.
 
-The architecture is internally coherent with FML/MULE CONOPS v1.01 and explicitly preserves the CONOPS automatic-recovery objective, local-first operation, peer ATAK fallback, role/scope separation, EUD exclusion from the WAN overlay, LoRa degradation path, and field-replaceable appliance philosophy.
+The architecture is internally coherent with FML/MULE CONOPS v1.1 and explicitly preserves the CONOPS automatic-recovery objective, local-first operation, peer ATAK fallback, role/scope separation, the assigned-MULE overlay boundary of FML-ADR-082, LoRa degradation path, and field-replaceable appliance philosophy.
 
 The v0.31 architecture intentionally simplifies v0.1:
 
@@ -2523,7 +2529,7 @@ Use the ITEP and §35 as predecessors. Formal verification methods and evidence 
 ## 33.5 Architecture Feedback Loop
 
 ```text
-CONOPS v1.01
+CONOPS v1.1
       |
       v
 SAD v0.311
@@ -2607,9 +2613,9 @@ This v0.3 pass corrects the specific defects identified during review:
 - `PRESENT` means architecture text currently exists; `PARTIAL` means downstream policy/TRD/ICD/security content is still required;
 - the table cross-references the TBR or qualification stage that is expected to produce evidence where identifiable.
 
-Source `[SHALL]` markers: **145**.
+Source `[SHALL]` markers: **151**.
 
-System/operational/policy clauses traced below: **140**.
+System/operational/policy clauses traced below: **146**.
 
 Document-governance clauses handled separately in §35.3: **4**.
 
@@ -2649,8 +2655,8 @@ This remains a preliminary SRR allocation, not the baselined Verification Matrix
 | C10-01 | 10 | Service activation shall not tie team-level capability to a single EUD<br>remaining connected. | 15 | PRESENT | Stage 1 |
 | C10-02 | 10 | Grace periods and damping shall be applied so that brief roaming, EUD<br>sleep states, or momentary disconnects do not repeatedly start and stop<br>services. | 15 | PRESENT | Stage 1 |
 | C11-01 | 11 | Service activation shall not create externally observable behavior that<br>directly and unnecessarily reveals privileged-user login, leadership presence,<br>or command structure. | 15, 23 | PRESENT | Stage 10 |
-| C12-01 | 12 | EUDs shall not join the Tailscale or equivalent WAN overlay directly. | 17, 18, 27 | PRESENT | Stage 6/9 |
-| C12-02 | 12 | The MULE shall be the routing, authentication, and security boundary<br>between EUDs and remote field services. | 17, 18, 27 | PRESENT | Stage 6/9 |
+| C12-01 | 12 | An EUD shall join the Tailscale or equivalent WAN overlay only when the mission WAN policy sets remote-EUD overlay posture to ASSIGNED_MULE_ONLY and FML has authorized that EUD for remote continuity to its assigned MULE. Under any other posture, including the default DISABLED, an EUD shall not join the overlay. | 18.1, 27 | PRESENT | Stage 6 |
+| C12-02 | 12 | The assigned MULE shall remain the routing, authentication, and security boundary between that EUD and remote field services. Overlay membership under the posture above shall not itself be that authorization. | 18.1, 27 | PRESENT | Stage 6 |
 | C13-01 | 13 | The system shall separate:<br>1. network admission;<br>  2. user identity;<br>  3. role and scope;<br>  4. application authorization;<br>  5. TAK authorization;<br>  6. infrastructure administration. | 16.4-16.5, 17, 27 | PRESENT | Stage 9 |
 | C13-02 | 13 | Knowledge of a shared WLAN password shall not be sufficient<br>authorization for the production field environment. | 17.1-17.3 | PRESENT | Stage 9 |
 | C13-03 | 13 | Each authorized EUD shall use an individually identifiable, revocable,<br>and time-bounded credential appropriate to the mission. | 16.2-16.4, 17 | PRESENT | Stage 9 |
@@ -2705,9 +2711,15 @@ This remains a preliminary SRR allocation, not the baselined Verification Matrix
 | C40-01 | 40 | Traffic policy shall preserve mission-critical communications before<br>bandwidth-intensive services. | 4-7, 15 | PRESENT | Stages 2-4 |
 | C41-01 | 41 | Loss of WAN shall not remove:<br>* local EUD access;<br>  * local mesh;<br>  * peer ATAK;<br>  * local S0 and S1 services;<br>  * LoRa/Meshtastic degraded communications. | 1, 18, 26 | PRESENT | Stage 6 |
 | C42-01 | 42 | Any standard MULE shall be technically capable of assuming an<br>authorized local WAN-gateway role. | 18 | PRESENT | Stage 6 |
-| C43-01 | 43 | EUDs shall not join the overlay directly. | 18, 27 | PRESENT | Stage 6/9 |
-| C43-02 | 43 | The MULE shall remain the WAN security and routing boundary. | 18, 27 | PRESENT | Stage 6/9 |
+| C43-01 | 43 | An EUD shall join that overlay only when the mission WAN policy sets remote-EUD overlay posture to ASSIGNED_MULE_ONLY and FML has authorized that EUD for remote continuity to its assigned MULE. | 18.1, 27 | PRESENT | Stage 6 |
+| C43-02 | 43 | An EUD admitted under ASSIGNED_MULE_ONLY shall be granted only the approved remote-EUD ingress of its assigned MULE. The assigned MULE shall remain the WAN security and routing boundary past that membership. | 18.1, 27 | PRESENT | Stage 6 |
 | C43-03 | 43 | Infrastructure access control and mission authorization shall remain<br>separate. Overlay authentication alone shall not grant service or data<br>authorization. | 18, 27 | PRESENT | Stage 6/9 |
+| C43-04 | 43 | Authorized MULE infrastructure shall participate in the approved FML WAN overlay when a WAN path is available. That participation shall be limited to approved FML inter-MULE resources. It shall not grant unrelated home, private, or administrative infrastructure. | 18.1, 27 | PRESENT | Stage 6 |
+| C43-05 | 43 | Under any other posture, including the default DISABLED, an EUD shall not join the overlay. | 18.1, 27 | PRESENT | Stage 6 |
+| C43-06 | 43 | The grant shall not place the EUD on the local RF mesh and shall not give the EUD a route onto that mesh. Past the assigned ingress, the MULE may reach an approved mission service for that EUD, including a service the MULE itself reaches over the local RF mesh. | 18.1 | PRESENT | Stage 6 |
+| C43-07 | 43 | The grant shall not remove or replace local EUD access through the MULE access point. | 18.1 | PRESENT | Stage 6 |
+| C43-08 | 43 | If the assigned MULE is unavailable, that EUD shall not obtain overlay ingress through another MULE. | 18.1 | PRESENT | Stage 6 |
+| C43-09 | 43 | The overlay shall not extend batman-adv or any other Layer-2 mesh across the WAN. | 18.1, 4 | PRESENT | Stage 6 |
 | C44-01 | 44 | Remote ATAK communication shall use the TAK service or another approved<br>routed application service. | 11, 13, 18 | PRESENT | Stage 6 |
 | C46-01 | 46 | Amateur-radio egress shall be a distinct mission capability and shall<br>be disabled by default. | 24 | PARTIAL | RF SOP/POLICY; Stage 11 |
 | C46-02 | 46 | Activation shall require:<br>* an approved mission profile;<br>  * an appropriately authorized control operator;<br>  * applicable station identification;<br>  * appropriate rate limits;<br>  * lawful message and content handling;<br>  * a defined gateway mode. | 24 | PARTIAL | RF SOP/POLICY; Stage 11 |
@@ -2780,7 +2792,7 @@ Before the MULE TRD/Verification Matrix is baselined:
 3. every verification-bearing row must map to a test method and evidence location;
 4. every new TRD requirement derived from an architecture choice must identify its parent CONOPS clause and FML-ADR/TBR source;
 5. no document-control requirement may be counted as a system requirement merely to make the matrix appear complete.
-6. the second reviewer must confirm quoted CONOPS text against the controlled v1.01 source and record reviewer/date;
+6. the second reviewer must confirm quoted CONOPS text against the controlled v1.1 source and record reviewer/date;
 7. established SAD section numbers remain frozen once referenced by the baselined RTM; future content uses subsections/appendices rather than renumbering.
 
 ---

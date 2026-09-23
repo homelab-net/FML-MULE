@@ -117,8 +117,12 @@ resilience and contention observed, not a threshold fixed here.
   on), `TBR-LINUX-01` (interface naming and driver behaviour).
 - **Feeds:** `FML-ADR-069`, and the `GatewayMode` decision in
   `os/config/networkd.conf.template`.
-- **Related decisions:** `FML-ADR-069`, `FML-ADR-068`, `FML-ADR-039` (the WAN
-  overlay), `FML-ADR-053` (BATMAN-IV, whose gateway-mode behaviour applies).
+- **Related decisions:** `FML-ADR-069`, `FML-ADR-068`, `FML-ADR-082` (the WAN
+  overlay; `FML-ADR-039` is superseded), `FML-ADR-053` (BATMAN-IV, whose
+  gateway-mode behaviour applies). `FML-ADR-082` does not decide this trade.
+  Geographic MULE overlay membership is not uplink election, and the closure
+  gate's prohibition on routing access-point EUD traffic into the overlay
+  still applies to this exercise.
 - **Validating stage:** `test/stages/stage-06-wan-overlay/`.
 - **Requires hardware:** `partly`. The routing and election logic is exercisable
   on `mac80211_hwsim`; real uplink behaviour and RF are not.

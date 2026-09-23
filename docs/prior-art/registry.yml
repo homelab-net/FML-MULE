@@ -2733,7 +2733,9 @@ candidates:
       findings: [OSS-01, GAP-09, GAP-10]
     reuse:
       mode: undecided
-      rationale: FML-ADR-039 permits Tailscale or an equivalent overlay.
+      rationale: >-
+        FML-ADR-082 permits Tailscale or an equivalent overlay.
+        EUD membership is the assigned-MULE posture, default off.
       approval_ref: null
     prototype:
       status: not-run

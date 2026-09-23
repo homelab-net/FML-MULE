@@ -62,9 +62,10 @@ table inet filter {
     # DECIDED: an EUD on the access point is forwarded to the WAN uplink and
     #          receives general IP connectivity through it. FML-ADR-068. The
     #          Program Owner accepted the exposure: a device the node cannot
-    #          vet or contain is given reach to the uplink and thus the overlay
-    #          (FML-ADR-039). THREAT_MODEL.md records the consequence.
-    #          Interface names are TBR-LINUX-01.
+    #          vet or contain is given reach to the general WAN uplink
+    #          (FML-ADR-068). The node shall not route that traffic into the
+    #          secure overlay (FML-ADR-068, FML-ADR-082). THREAT_MODEL.md
+    #          records the consequence. Interface names are TBR-LINUX-01.
     #   iifname $AP_IFACE  oifname $WAN_IFACE accept
     #   iifname $WAN_IFACE oifname $AP_IFACE  ct state established,related accept
     #          The masquerade in `table ip nat` below is REQUIRED alongside

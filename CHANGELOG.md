@@ -14,6 +14,21 @@ this program needs them visible:
 
 ## Unreleased
 
+### Accepted remote-EUD overlay posture
+
+`CCR-04` is accepted. CONOPS v1.1 replaces v1.01 as the controlling copy.
+`FML-ADR-082` is `SELECTED` and supersedes `FML-ADR-039`. The grant does not
+place an EUD on the local RF mesh. An admitted EUD carries one tag that names
+the mission and the assigned team and does not name a role. Several broad
+tags are not how that grant is composed. MULE tags do not name a mission or
+a team. The assigned MULE may still reach an
+approved mission service for that EUD over that mesh. Stage 6 is still not an
+executable definition. The files in `docs/evidence/stage-06-wan-overlay/`
+record the cases and state that none has been run. Nothing here is
+`SIMULATED` or `HARDWARE-VERIFIED`. v0.0.1 is unchanged. The parallel
+enhancement list is `docs/change-requests/2026-09-23-system-enhancement-direction.txt`.
+It is not a baseline and it is not implemented.
+
 ### TBR-TAK-01 evidence complete, and a clobbered analysis recovered
 
 The empirical half of the mission-critical state boundary is done. All four
