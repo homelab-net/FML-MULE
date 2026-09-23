@@ -14,6 +14,16 @@ this program needs them visible:
 
 ## Unreleased
 
+### Reconciled after the overlay acceptance
+
+Section 43 clauses `C43-02` and `C43-06` in the SAD now carry the full
+controlling sentences. Current citations of `FML-ADR-039` name `FML-ADR-082`
+where they state present policy. `CCR-03` is recorded as `APPROVED`, with its
+CONOPS text still unissued. `CCR-05` stays `OPEN`. It no longer claims
+exclusions the CONOPS does not contain, and each proposed `[SHALL]` names a
+stage. The public site bundle is unchanged. `site/README.md` records the two
+captions that still describe v1.01.
+
 ### Drafted, not accepted
 
 `CCR-05` proposes CONOPS v1.2 language for mission observations and optional

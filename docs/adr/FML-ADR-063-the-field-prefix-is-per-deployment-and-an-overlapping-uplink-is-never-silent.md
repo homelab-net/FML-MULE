@@ -55,7 +55,8 @@ prefix without reporting it.** Detection is the requirement; silence is what is
 prohibited.
 
 **What a node does beyond reporting is not decided here.** Refusing the lease
-costs the WAN overlay `FML-ADR-039` puts on MULE infrastructure; accepting it
+costs the WAN overlay that `FML-ADR-039` put on MULE infrastructure and that
+`FML-ADR-082` now records; accepting it
 costs part of the mesh. Which is right depends on whether the uplink is
 load-bearing for the mission in progress, which is service-plane policy and
 belongs with `TBR-TAK-01` and `services/`.
