@@ -10,7 +10,9 @@ here disagrees with `docs/conops/` or with `STATUS.md`, those win.
 ## What the pictures are
 
 `media/concept-node.jpg` is a study still of an unlabeled enclosure and spare
-antennas. No enclosure, antenna, battery, or compute module is selected.
+antennas. The picture is not a selected enclosure. The Gate-1 list names a
+Compute Module 4, radio modules, and a USB-C bench sink. The high-rate radio
+is buy-one-then-verify, the pack is held, and nothing on that list is qualified.
 
 `media/canyon-conops.jpg` places the CONOPS section 77 deployment in a canyon:
 three identical nodes, HaLow via the ridge team, an assumed direct LoRa path.
