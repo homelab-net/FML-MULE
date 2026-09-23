@@ -1,9 +1,9 @@
 ---
 id: FML-ADR-082
 title: Optional remote-EUD overlay membership ends at the assigned MULE
-status: PROPOSED
+status: SELECTED
 date: 2026-09-23
-supersedes: none
+supersedes: FML-ADR-039
 superseded-by: none
 trades: []
 verification: Stage 6
@@ -13,13 +13,10 @@ verification: Stage 6
 
 ## Context
 
-`FML-ADR-039` is `SELECTED`. It says only MULE infrastructure shall participate
-in the WAN overlay and that EUDs shall not join the tailnet. CONOPS sections 12
-and 43 say the same thing, and section 79 criterion 17 says the MULE remains
-the WAN-overlay boundary for EUDs. Stage 6 tests EUD isolation from the overlay
-as a negative. `FML-ADR-039`'s own fallback says admitting an EUD would violate
-CONOPS section 12 and requires a CONOPS change request. A mission package cannot
-override that today.
+`FML-ADR-039` was `SELECTED`. It said only MULE infrastructure shall participate
+in the WAN overlay and that EUDs shall not join the tailnet. This record
+supersedes it. The text below is the replacement, including the clauses of
+`FML-ADR-039` that still apply.
 
 The Program Owner has directed the exception anyway: on mission creation, an
 administrator may opt managed EUDs into the overlay, default off, and only as
@@ -28,29 +25,39 @@ overlay participants. Geographically separated MULEs with their own WAN paths
 compose one mission fabric. That fabric is not a `batman-adv` extension, and it
 is not the local uplink-pooling question in `FML-ADR-069` and `TBR-NET-04`.
 
-Doing nothing leaves later simulated work with a choice between pretending the
-prohibition is already gone, or refusing a directed capability. Neither is
-acceptable. This record writes the replacement policy down as `PROPOSED`. It
-has no weight until `CCR-04` is accepted and both supersession directions are
-recorded. Until that acceptance, `FML-ADR-039` remains the controlling decision.
+Doing nothing would have left later work pretending the prohibition was already
+gone, or refusing a directed capability. This record is the replacement. It was
+accepted with `CCR-04` on 2026-09-23. `FML-ADR-039` is `SUPERSEDED`.
 
 Alternatives that were rejected:
 
 - Leave the prohibition absolute. The Program Owner declined this.
 - Let a mission package contradict `FML-ADR-039` without a CONOPS change. The
   fallback of `FML-ADR-039` forbids it.
-- Admit an EUD to arbitrary MULEs, management interfaces, peer EUDs, or the
-  field mesh. That is not the directed posture.
-- Encode mission, team, or role in a Tailscale tag. `FML-ADR-039` already
-  forbids that, and this record keeps the prohibition.
+- Admit an EUD to arbitrary MULEs, management interfaces, or peer EUDs, or
+  place that EUD on the field mesh. Direct unrestricted field-mesh access is
+  not the directed posture. An approved mission service reached by the
+  assigned MULE, including one that MULE reaches over the RF mesh, is not
+  this alternative.
+- Keep `FML-ADR-039`'s rule that a tag shall not name a mission or a team.
+  The Program Owner directed the opposite for an admitted EUD: one tag names
+  the mission and the assigned team. Several broad tags cannot be intersected,
+  so that older rule would force a wider grant. A tag still shall not name an
+  operational role.
+- Compose the remote-EUD grant from additive broad tags, such as an EUD tag
+  plus a mission tag plus a team tag. Tailscale tags are additive. A grant on
+  any one of them widens the endpoint. That composition was rejected.
 - Treat loss of the assigned MULE as permission to attach through another MULE.
   The Program Owner declined implicit failover.
-- Supersede `FML-ADR-039` while this record is only `PROPOSED`. That would leave
-  no `SELECTED` overlay decision.
+- Supersede `FML-ADR-039` while this record was only `PROPOSED`. That was not
+  done. Both directions were recorded in the acceptance change, not before.
 
-What this record does not know: the grant mechanism that enforces "assigned
-ingress only", the state-label spelling for "remote continuity waiting for
-WAN", and whether offline browser-trusted TLS for onboarding can be done.
+What this record does not know: the grant syntax that enforces "assigned
+ingress only", the exact spelling of the mission-and-team tag, the
+state-label spelling for "remote continuity waiting for WAN", and whether
+offline browser-trusted TLS for onboarding can be done. The tag's contents
+are decided. The ACL text is not.
+
 Roadmap item 4.6 already owns that bootstrap. `TBR-NET-04` remains open and is
 not a dependency of this decision.
 
@@ -73,17 +80,46 @@ An EUD admitted under `ASSIGNED_MULE_ONLY` shall be granted only the approved
 remote-EUD ingress of its assigned MULE. The assigned MULE shall remain the
 security and routing boundary past that membership. The grant shall not extend
 to any other MULE, to MULE management interfaces, to peer EUDs on the overlay,
-to the local RF mesh, or to unrelated home, private, or administrative
-infrastructure.
+or to unrelated home, private, or administrative infrastructure.
+
+The grant shall not place the EUD on the local RF mesh and shall not give the
+EUD a route onto that mesh. Past the assigned ingress, the MULE may reach an
+approved mission service for that EUD, including a service the MULE itself
+reaches over the local RF mesh. That reach is the MULE's. It is not membership
+of the mesh, and it is not an extension of `batman-adv` across the WAN. Peer
+awareness, where approved, shall use a routed application service. It shall
+not be a mesh route the EUD holds.
+
+This grant shall not remove or replace the EUD's local access-point path.
+Whether a local access-point EUD is also forwarded onto `batman-adv` remains
+the open question in `FML-ADR-068` and `TBR-TAK-01`. This record does not
+close it.
 
 If the assigned MULE is unavailable, that EUD shall not obtain overlay ingress
 through another MULE.
 
 Overlay policy shall remain deny-by-default. Overlay membership shall not
-itself authorize mission data or mission actions. Tailscale device tags and
-grants shall represent infrastructure and access scope only. They shall not
-represent a mission, a team, a unit, or an operational role. FML signed mission
-policy remains the source of those facts.
+itself authorize mission data or mission actions.
+
+When the posture is `ASSIGNED_MULE_ONLY`, the Tailscale identity of an admitted
+EUD shall be one managed tag. That tag shall name the mission and the assigned
+team, and it shall not name an operational role. One tag is the whole
+infrastructure grant. The program shall not compose that grant from several
+broad tags, because Tailscale tags are additive and a grant on any one of them
+widens the endpoint. An illustrative form is
+`tag:eud-mission-<mission>-team-<team>`. The spelling is not frozen here.
+
+That tag is how the overlay names an assignment FML has already authorized. It
+is not the source of mission authorization. FML signed mission policy remains
+the source of who the person is, what role they hold, and what they may see or
+do. FML shall retain the mapping from that person and that EUD to the tagged
+node. Ordinary operators shall not hold Tailscale user accounts. Using a tag
+for a managed EUD is an explicit exception to Tailscale's guidance that tags
+are for non-human devices.
+
+A grant from that tag shall reach only the assigned MULE's approved
+remote-EUD ingress. The tagged EUD shall not be a subnet router or an exit
+node, and the tag shall not admit SSH, database, or management-plane access.
 
 Authorized MULEs shall participate in the approved FML WAN overlay when their
 WAN paths are available, and shall exchange the inter-MULE traffic that overlay
@@ -113,13 +149,8 @@ automatic WAN gateways" out of CONOPS section 81.
 
 ## Status
 
-`PROPOSED`.
-
-`PROPOSED` carries no weight. `FML-ADR-039` stays `SELECTED`, and its
-`superseded-by` stays `none`, until `CCR-04` is accepted. Acceptance sets this
-record to `SELECTED`, sets `supersedes` to `FML-ADR-039`, and in the same change
-sets `FML-ADR-039` to `SUPERSEDED` with `superseded-by: FML-ADR-082`. Both
-directions, and not before.
+`SELECTED`. Accepted with `CCR-04` on 2026-09-23. This record supersedes
+`FML-ADR-039`. Both directions are recorded.
 
 The exact label a node shows for "remote continuity is selected but WAN is
 absent" is not decided here. It shall not be invented as a `mule/status.py`
@@ -127,17 +158,18 @@ literal by this record.
 
 ## Consequences
 
-- CONOPS sections 12 and 43, section 78 Stage 6, and section 79 criterion 17
-  cannot stay as written if this record is accepted. `CCR-04` is the section 86
-  request. The transcribed CONOPS v1.01 is not edited in place. Acceptance
-  reissues CONOPS v1.1.
+- CONOPS v1.1 reissues sections 12 and 43, section 78 Stage 6, and section
+  79 criterion 17. v1.01 is not the controlling copy. `CCR-04` is accepted.
 - `FML-ADR-068` is not superseded. The access-point passthrough and the optional
   remote-EUD enrollment are different paths. The threat-model bullet that says
-  passthrough does not reach the overlay stays true. A separate enrollment, once
-  accepted, needs its own threat-model paragraph. `CCR-04` lists that edit and
-  does not make it now.
-- Tailscale identity still does not answer who the user is, which mission or
-  team they are in, or what they may see or do.
+  passthrough does not reach the overlay stays true. The managed-enrollment
+  paragraph is separate.
+- The managed-EUD tag names the mission and the assigned team as the scope
+  of the ingress grant. It does not answer who the user is, what role they
+  hold, or what mission data they may see or do. Those remain signed mission
+  policy. FML keeps the human-to-EUD-to-node mapping. Operators do not hold
+  Tailscale user accounts. MULE infrastructure tags stay infrastructure tags.
+  This record does not put a mission or a team into a MULE's tag.
 - Joining a MULE's onboarding WLAN may supply that MULE's organizational scope
   as context. It shall not be identity and it shall not be authorization.
   Production onboarding remains roadmap item 4.6. This record does not create a
@@ -155,11 +187,11 @@ literal by this record.
   remote-EUD behavior does.
 - `docs/prior-art/wan-and-halow-dependencies.md` evaluated the Tailscale client
   under the absolute prohibition. That evaluation stands. The proof it asked
-  for, that EUDs never join, becomes a two-posture proof only on acceptance.
-- `os/config/nftables.conf.template` comments that an EUD uplink reaches "thus
-  the overlay". `FML-ADR-068` says the node shall not route that traffic into
-  the overlay. This record does not edit the comment and does not authorize
-  that route.
+  for is now the two-posture proof: default, an EUD does not join; selected,
+  the EUD reaches only the assigned ingress.
+- `os/config/nftables.conf.template` no longer says an EUD uplink reaches "thus
+  the overlay". `FML-ADR-068` still says the node shall not route that traffic
+  into the overlay. This record does not authorize that route.
 
 ## Accepted cost
 
@@ -180,33 +212,29 @@ argue was incomplete.
 
 ## Fallback
 
-Reject `CCR-04`. This record stays `PROPOSED` or is retired without ever
-becoming `SELECTED`, and `FML-ADR-039` remains controlling. No CONOPS text
-changes.
+`CCR-04` was accepted. Rejection is no longer the fallback.
 
-If this record is accepted and a Stage 6 negative fails — an EUD reaches
-another MULE, a management interface, a peer EUD, the RF mesh, or unrelated
-infrastructure, or overlay membership is treated as mission authorization — the
-recovery is a further ADR that returns the only posture to `DISABLED` and
-supersedes this one. The same recovery applies if operators cannot tell
-infrastructure reachability from mission authorization.
+If a Stage 6 negative fails — an EUD reaches another MULE, a management
+interface, a peer EUD on the overlay, or unrelated infrastructure, or the EUD
+is placed on the RF mesh, or overlay membership is treated as mission
+authorization — the recovery is a further ADR that returns the only posture to
+`DISABLED` and supersedes this one. An approved mission service that the
+assigned MULE itself reaches over the RF mesh is not that failure. The same
+recovery applies if operators cannot tell infrastructure reachability from
+mission authorization.
 
 ## Superseded by
 
 None.
 
-This record does not yet supersede `FML-ADR-039`. Recording both directions
-while the status is `PROPOSED` would either contradict `SELECTED` on `039` or
-remove the only controlling overlay decision. `CCR-04` states the acceptance
-edit. `tools/new-adr.sh` asks for both directions in the change that performs
-the supersession. That change is acceptance, not this one.
+This record does not yet have a successor.
 
 ## Verification dependency
 
 Stage 6, `test/stages/stage-06-wan-overlay/`. The executable definition does
-not exist. On acceptance the stage scope gains the cases below and keeps the
-negative it already has. Until acceptance the directory's current scope, quoted
-from CONOPS v1.01, remains the stage.
+not exist. The stage scope is the CONOPS v1.1 list. The files under
+`docs/evidence/stage-06-wan-overlay/` record the cases and state that none of
+them has been run.
 
 The definition shall eventually prove all of the following. None of them is
 demonstrated here. Any flat-sat of them is `SIMULATED` and says nothing about
@@ -215,6 +243,10 @@ physical behaviour. Nothing in this record is `HARDWARE-VERIFIED`.
 - Posture `DISABLED`: an EUD does not join the overlay.
 - Posture `ASSIGNED_MULE_ONLY`: an authorized EUD reaches only its assigned
   MULE's approved remote-EUD ingress.
+- The admitted EUD is not a participant of the local RF mesh and holds no
+  route onto it. An approved mission service the assigned MULE reaches over
+  that mesh is still reached through the assigned ingress. The path past the
+  ingress is the MULE's.
 - The assigned MULE is lost: the EUD does not attach through another MULE.
 - Three geographically separated MULEs, each with its own WAN: authorized
   MULEs exchange approved inter-MULE traffic, and the local RF mesh is not
@@ -224,4 +256,7 @@ physical behaviour. Nothing in this record is `HARDWARE-VERIFIED`.
 - Unrelated home, private, and administrative infrastructure stays
   inaccessible, for MULEs and for any admitted remote EUD.
 - The EUD declines remote continuity: local operation continues.
+- The admitted EUD carries one tag that names the mission and the assigned
+  team and does not name a role. A grant assembled from several broad tags is
+  a failure of this case.
 - Access-point passthrough still does not enter the overlay (`FML-ADR-068`).

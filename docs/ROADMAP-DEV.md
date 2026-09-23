@@ -955,7 +955,7 @@ of them cannot close before hardware exists anyway.
 | Finding | State |
 | --- | --- |
 | TBR schedule concentration -- named-person assignment | **Done 2026-08-31.** Every trade names an owner. |
-| Traceability integrity -- clause-complete section 35 | Not repository work. Section 35 is already clause-complete; it is `OPEN until formal RTM baseline`, and baselining an RTM is a program act. `docs/verification/requirements.md` records why this repository tracks the 33 section 79 criteria rather than duplicating a 140-row table. |
+| Traceability integrity -- clause-complete section 35 | Not repository work. Section 35 is already clause-complete; it is `OPEN until formal RTM baseline`, and baselining an RTM is a program act. `docs/verification/requirements.md` records why this repository tracks the 33 section 79 criteria rather than duplicating a 146-row table. |
 
 Everything else in that table is gated on CONOPS stages 1, 2, 5, 7, 8, 9 or 13,
 which are test campaigns, and most need hardware.
@@ -1341,11 +1341,13 @@ decided):**
   certificate (Android has no equally clean single-file path), and one-time
   per-user enrollment tokens in preference to reusable passwords.
 
-**Not this item.** `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) are a
-mission WAN-policy posture for optional remote-EUD overlay membership. They do
-not add an onboarding architecture, and they do not move the bootstrap deadlock
-out of this item. Production enrollment stays the path above. The proposal has
-no weight until `CCR-04` is accepted.
+**Not this item.** `CCR-04` is accepted and `FML-ADR-082` is `SELECTED`. That
+is a mission WAN-policy posture for optional remote-EUD overlay membership. It
+does not add an onboarding architecture, and it does not move the bootstrap
+deadlock out of this item. The admitted EUD's tag may name the mission and
+the assigned team. That names the ingress grant. It is not the identity
+provider this item is deciding, and it does not put a role in the tag.
+Production enrollment stays the path above.
 
 **Residual risks and open sub-decisions (documented, not solved):**
 

@@ -1,34 +1,46 @@
 # Stage 6 - WAN Overlay
 
 **Status: not defined.** This directory records the CONOPS scope for the
-stage.
-The executable stage definition does not exist.
+stage. The executable stage definition does not exist.
 
-**Source:** CONOPS v1.01 section 78, Stage 6.
+**Source:** CONOPS v1.1 section 78, Stage 6. `FML-ADR-082`.
 
 ## Scope
 
-From the CONOPS:
+From CONOPS v1.1:
 
 - local WAN gateway;
-- secure overlay;
+- secure overlay between authorized MULEs, without extending the local RF
+  mesh across the WAN;
 - remote field services;
-- EUD isolation from overlay;
+- default remote-EUD posture: EUD isolation from the overlay;
+- `ASSIGNED_MULE_ONLY`: an authorized EUD reaches only its assigned MULE's
+  approved remote-EUD ingress;
+- that grant does not place the EUD on the local RF mesh; an approved mission
+  service the assigned MULE reaches over that mesh is still reached through
+  the assigned ingress;
+- loss of the assigned MULE does not attach that EUD through another MULE;
 - unauthorized Homelab access denial;
-- WAN loss and local continuity.
+- WAN loss and local continuity;
+- declining remote-EUD continuity does not remove local EUD operation;
+- the admitted EUD carries one tag naming the mission and the assigned team,
+  not a role, and not a grant built from several broad tags.
 
-The bullets above are CONOPS v1.01 and remain the stage scope. `CCR-04` and
-`FML-ADR-082` (`PROPOSED`, no weight) would revise the EUD-isolation bullet and
-add assigned-ingress, no-reattach, and no-Layer-2-extension cases. They do not
-apply until that request is accepted and CONOPS v1.1 is reissued. `FML-ADR-039`
-stays the controlling decision.
+`docs/evidence/stage-06-wan-overlay/` records each case. None of those files
+is a result. No case has been run.
 
 ## Why this stage
 
-Two of the four criteria here are **negative**: EUDs must be shown not to join
-the overlay, and unauthorized home, private and administrative infrastructure
-must be shown inaccessible. A stage that only demonstrates working reachback
-has not tested the boundary.
+The default posture is still a negative: an EUD is shown not to join the
+overlay, and unauthorized home, private and administrative infrastructure is
+shown inaccessible. A stage that only demonstrates working reachback has not
+tested the boundary.
+
+The opt-in adds a positive and two further negatives: the authorized EUD
+reaches only the assigned ingress, it is not placed on the local RF mesh, and
+loss of that MULE does not attach it through another. A service the assigned
+MULE reaches over the RF mesh is the MULE's path, not a failure of the mesh
+negative.
 
 WAN loss and local continuity is the other half: CONOPS section 41 requires
 local EUD access, local mesh, peer ATAK, local S0 and S1 services, and LoRa to
@@ -37,7 +49,7 @@ survive it.
 ## What it validates
 
 - **Section 79 success criteria:** 16, 17, 18, 19
-- **Decisions:** `FML-ADR-039`
+- **Decisions:** `FML-ADR-082`
 - **Trades expected to close or advance here:** none
 
 The criterion-to-stage mapping is CONOPS section 85 and is transcribed as

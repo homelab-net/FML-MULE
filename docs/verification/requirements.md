@@ -94,25 +94,25 @@ requirements:
     source: CONOPS 79.16
     modal: shall
     text: "WAN remains optional."
-    allocation: FML-ADR-039
+    allocation: FML-ADR-082
     stage: STAGE-06
   - id: FML-REQ-017
     source: CONOPS 79.17
     modal: shall
-    text: "MULE remains the WAN-overlay boundary for EUDs."
-    allocation: FML-ADR-039
+    text: "Under the default posture an EUD does not join the WAN overlay. An EUD admitted to the overlay reaches only its assigned MULE's approved remote-EUD ingress and is not placed on the local RF mesh. The assigned MULE remains the security and routing boundary past that ingress, including where it reaches an approved mission service for that EUD over the local RF mesh."
+    allocation: FML-ADR-082
     stage: STAGE-06
   - id: FML-REQ-018
     source: CONOPS 79.18
     modal: shall
     text: "Remote teams can reach approved field services when WAN exists."
-    allocation: FML-ADR-039
+    allocation: FML-ADR-082
     stage: STAGE-06
   - id: FML-REQ-019
     source: CONOPS 79.19
     modal: shall
     text: "Unauthorized home, private, and administrative infrastructure remains inaccessible."
-    allocation: FML-ADR-039
+    allocation: FML-ADR-082
     stage: STAGE-06
   - id: FML-REQ-020
     source: CONOPS 79.20
@@ -203,7 +203,7 @@ requirements:
 # Requirements
 
 **Generated-from-source, hand-maintained.** This file transcribes the **33
-operational success criteria of CONOPS v1.01 section 79** as structured
+operational success criteria of CONOPS v1.1 section 79** as structured
 requirements, with the validating stage taken from the **CONOPS section 85
 verification traceability matrix**.
 
@@ -213,13 +213,13 @@ requirement with no allocation or no validating stage.
 
 ## Scope, and what this file is not
 
-This is **not** the full requirement set. CONOPS v1.01 carries **145 `[SHALL]`
-markers**, of which SAD section 35.1 traces **140** as system, operational or
+This is **not** the full requirement set. CONOPS v1.1 carries **151 `[SHALL]`
+markers**, of which SAD section 35.1 traces **146** as system, operational or
 policy clauses and handles 4 as document governance.
 
 That clause-level decomposition lives in **SAD section 35.2** and belongs in the
 TRD. It is not duplicated here, because a second hand-maintained copy of a
-140-row table is exactly the drift this program's traceability rules exist to
+146-row table is exactly the drift this program's traceability rules exist to
 prevent.
 
 What is transcribed here is the **section 79 criteria**, because:

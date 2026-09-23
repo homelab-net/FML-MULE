@@ -12,10 +12,12 @@ set.
 
 ## Boundary set by existing decisions
 
-`FML-ADR-039` requires an optional WAN overlay to terminate on MULE
-infrastructure and names Tailscale Grants as the preferred current policy
-model, but permits Tailscale or an equivalent. It does not select a client or
-coordination service.
+`FML-ADR-082` requires an optional WAN overlay. Authorized MULEs participate.
+An EUD joins only under posture `ASSIGNED_MULE_ONLY`, and then only as far as
+its assigned MULE's approved remote-EUD ingress. The decision permits Tailscale
+or an equivalent. It does not select a client or coordination service.
+`FML-ADR-039` is superseded and is the decision this evaluation was written
+against.
 
 `FML-ADR-040` requires the field kernel, radio driver, firmware and userspace
 tooling to be promoted as one tested compatibility set. `FML-ADR-062` fixes the
@@ -36,8 +38,10 @@ The persistent state contains node and control-plane identity, configuration,
 TLS material and other daemon state. It is a credential-bearing durable set,
 not a cache. An authentication key may bootstrap a node, but it shall not be
 committed to the repository or mission examples. Tailscale identity and grants
-authorize infrastructure reachability only; `FML-ADR-039` keeps mission and
-service authorization separate.
+authorize infrastructure reachability only. `FML-ADR-082` lets the admitted
+EUD's one tag name the mission and the assigned team as that reachability
+scope, and it keeps mission-data authorization separate. The 2026-09-11
+reading was done under `FML-ADR-039`.
 
 The client source is BSD-3-Clause. The hosted coordination service, account
 terms and any selected package repository are separate dependencies. Release
@@ -56,13 +60,13 @@ policy still require GAP-10 evidence.
 
 No exact client package was installed or run. Selection still requires a
 package pin, deny-by-default grants, route-overlap rejection, loss-of-control
-plane behavior, durable-state backup/revocation, and proof that EUDs never join
-the overlay. `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) would replace
-that proof with a default of not joining and an administrator-selected
-assigned-MULE ingress. This evaluation was made under `FML-ADR-039` and is not
-amended by that proposal. The exit strategy is the routed application boundary in
-`FML-ADR-039`: an equivalent overlay can replace the client without changing
-EUD membership or mission authorization.
+plane behavior, durable-state backup/revocation, and a two-posture proof:
+under the default, an EUD does not join the overlay; under `ASSIGNED_MULE_ONLY`,
+the EUD reaches only its assigned MULE's approved remote-EUD ingress. This
+evaluation was made under `FML-ADR-039` on 2026-09-11 and is not rewritten as
+if it had been run under `FML-ADR-082`. The exit strategy is the routed
+application boundary in `FML-ADR-082`: an equivalent overlay can replace the
+client without making overlay membership into mission authorization.
 
 ## Morse Micro Linux driver
 

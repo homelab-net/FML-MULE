@@ -1,10 +1,10 @@
 ---
 id: FML-ADR-039
 title: WAN overlay terminates on MULE infrastructure, never directly on EUDs
-status: SELECTED
+status: SUPERSEDED
 date: 2026-08-25
 supersedes: none
-superseded-by: none
+superseded-by: FML-ADR-082
 trades: []
 verification: Stage 6
 ---
@@ -37,7 +37,9 @@ any other operational mission role.
 
 ## Status
 
-`SELECTED`.
+`SUPERSEDED` by `FML-ADR-082` on 2026-09-23, with `CCR-04`. The decision text
+below is the record of what this ADR decided. It is not the controlling
+overlay rule.
 
 CONOPS section 43 adds that infrastructure access control and mission
 authorization remain separate, and that overlay authentication alone **shall
@@ -75,7 +77,8 @@ CONOPS section 12 and requires a CONOPS change request.
 
 ## Superseded by
 
-None.
+`FML-ADR-082`. Both directions are recorded. The clauses of this record that
+still apply are restated there.
 
 ## Verification dependency
 

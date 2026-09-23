@@ -3,9 +3,10 @@
 This directory is a generated reading of the repository, for GitHub Pages.
 It is not evidence. It is not a node. It does not select hardware.
 
-The pages repeat CONOPS v1.01 and the decision register in shorter words,
-and they label what is still `UNVERIFIED` or only `SIMULATED`. If a sentence
-here disagrees with `docs/conops/` or with `STATUS.md`, those win.
+The pages were generated against CONOPS v1.01 and have not been regenerated
+for v1.1. They are not evidence. They are not a node. They do not select
+hardware. If a sentence here disagrees with `docs/conops/` or with `STATUS.md`,
+those win.
 
 ## What the pictures are
 

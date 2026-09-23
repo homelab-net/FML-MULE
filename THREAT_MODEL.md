@@ -215,18 +215,15 @@ a role the MULE is expected to fill.
   EUD. Passthrough extends that device's reach to the general WAN uplink
   (Starlink, Ethernet, cellular). The blast radius of a bad EUD grows from
   node-local to that uplink.
-- **It does not reach the secure overlay.** CONOPS section 43 and section 744
-  make the MULE the routing and security boundary and forbid EUDs on the overlay;
-  the passthrough rules match the EUD prefix to the uplink, not the overlay
-  (`FML-ADR-039`). So the exposure is to the internet uplink, not to the other
-  MULEs and infrastructure the overlay reaches. That boundary is load-bearing:
-  if a future change routed EUD traffic onto the overlay, this bullet would be
-  wrong. `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) do not do that.
-  They propose a separate, default-off enrollment of a managed EUD to its
-  assigned MULE's remote-EUD ingress only. The node still shall not route
-  access-point traffic into the overlay (`FML-ADR-068`). This bullet stays in
-  force until `CCR-04` is accepted, and even then it stays true of the
-  passthrough path.
+- **It does not reach the secure overlay.** The passthrough rules match the EUD
+  prefix to the uplink, not the overlay (`FML-ADR-068`). The exposure of this
+  path is the internet uplink, not the other MULEs and infrastructure the
+  overlay reaches. That boundary is load-bearing: if a future change routed
+  access-point traffic onto the overlay, this bullet would be wrong. `CCR-04`
+  and `FML-ADR-082` (`SELECTED`) do not do that. They are a separate,
+  default-off enrollment of a managed EUD to its assigned MULE's remote-EUD
+  ingress only. The node still shall not route access-point traffic into the
+  overlay (`FML-ADR-068`). This bullet stays true of the passthrough path.
 - **Mesh-wide sharing widens it further, by design and separately.**
   `FML-ADR-069` makes WAN a mesh-wide capability, so a device several hops away
   can reach an uplink. The same overlay boundary must then hold across the mesh,
@@ -239,6 +236,31 @@ a role the MULE is expected to fill.
 - **It is reversible.** Removing the forward accept and the uplink masquerade
   returns an EUD to node-local services only. This is a firewall decision, not a
   structural one; see `os/config/nftables.conf.template`.
+
+### A managed EUD may join its assigned MULE
+
+**Added 2026-09-23, `FML-ADR-082`, `CCR-04` accepted.** This is not the
+passthrough path above.
+
+- **Default remains off.** Posture `DISABLED` admits no EUD to the overlay.
+- **The opt-in is one ingress.** Posture `ASSIGNED_MULE_ONLY` grants an
+  authorized EUD only the approved remote-EUD ingress of its assigned MULE.
+  Compromise of that endpoint reaches that ingress. It does not reach another
+  MULE, a management interface, a peer EUD on the overlay, or unrelated
+  infrastructure. The EUD is not placed on the local RF mesh.
+- **The MULE may still reach an approved mission service for that EUD,**
+  including a service the MULE itself reaches over the RF mesh. That path is
+  the MULE's. It is not a route the EUD holds.
+- **No silent failover.** Loss of the assigned MULE does not attach the EUD
+  through another MULE.
+- **Overlay membership is not mission authorization.** The same separation
+  CONOPS already required still holds. The admitted EUD's tag names the
+  mission and the assigned team so the grant can be one tag rather than
+  several additive tags. The tag does not name a role, and it does not
+  authorize mission data. MULE tags do not carry a mission or a team.
+- **No measurement supports this paragraph.** Stage 6 has not been run. The
+  case files under `docs/evidence/stage-06-wan-overlay/` say so. This paragraph
+  records the accepted exposure, not a test.
 
 ### Other explicit non-defences
 

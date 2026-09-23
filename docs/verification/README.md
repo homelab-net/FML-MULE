@@ -43,11 +43,11 @@ structured requirements, with the validating stage taken from the CONOPS section
 85 verification traceability matrix. All 33 are binding, all 33 have an
 allocation and a stage, and the check reports zero defects.
 
-That is not the full set. CONOPS v1.01 carries **145 `[SHALL]` markers**, of
-which SAD section 35.1 traces **140** as system, operational or policy clauses.
+That is not the full set. CONOPS v1.1 carries **151 `[SHALL]` markers**, of
+which SAD section 35.1 traces **146** as system, operational or policy clauses.
 That clause-level decomposition lives in **SAD section 35.2** and belongs in the
 TRD; it is deliberately not duplicated here, because a second hand-maintained
-copy of a 140-row table is exactly the drift these rules exist to prevent.
+copy of a 146-row table is exactly the drift these rules exist to prevent.
 
 ## The Integrated Test and Evaluation Plan
 

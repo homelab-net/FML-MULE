@@ -37,7 +37,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-033` | PyTAK is preferred custom CoT transport/gateway library | none |
 | `FML-ADR-035` | MULE service controller is a fixed-policy lifecycle layer, not a cluster scheduler | TBR-HA-01, TBR-COMP-01 |
 | `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | TBR-ID-01 |
-| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | none |
 | `FML-ADR-040` | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | TBR-LINUX-01, TBR-REC-01, TBR-HW-01 |
 | `FML-ADR-042` | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | TBR-TIME-01, TBR-HW-01, TBR-SEC-01, TBR-HA-01 |
 | `FML-ADR-046` | MULE Status Aggregator is approved thin original software | TBR-HA-01, TBR-TIME-01, TBR-COMP-01 |
@@ -62,6 +61,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-076` | The operator WAN answer is the undetermined-capable mode value, not a boolean | none |
 | `FML-ADR-077` | An unknown radio enumeration is a distinct fault and the node fails closed | none |
 | `FML-ADR-078` | A node runs only services the catalog approves, and the catalog is machine-checked | TBR-COMP-01, TBR-MAP-01 |
+| `FML-ADR-082` | Optional remote-EUD overlay membership ends at the assigned MULE | none |
 
 ### SELECTED PRINCIPLE
 
@@ -107,17 +107,12 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
 
-### PROPOSED
-
-| ID | Decision | Open trades it depends on |
-| --- | --- | --- |
-| `FML-ADR-082` | Optional remote-EUD overlay membership ends at the assigned MULE | none |
-
 ### SUPERSEDED
 
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-024` | IEEE 802.11s + batman-adv/BATMAN-V as baseline IP MANET | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
+| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | none |
 | `FML-ADR-054` | Bridge loop avoidance is disabled on the mesh interface | TBR-RF-01 |
 | `FML-ADR-055` | EUD to EUD traffic transits the node | TBR-ID-01, TBR-RF-03 |
 | `FML-ADR-060` | Deployments converge by a routed liaison, and MULE v1 ships none | none |

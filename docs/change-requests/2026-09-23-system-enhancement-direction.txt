@@ -1,0 +1,2289 @@
+RECONCILIATION, READ THIS BEFORE THE BODY
+Checked 2026-09-23 against main at ceedd34 and this branch.
+This file is the engineering handoff, kept in full. The edits below are the
+only places the handed text was changed, and each one removes a conflict
+with the tree.
+
+1. The snapshot is ceedd34 plus this branch, not 7b1e862.
+2. FML-ADR-082 now decides the tag provision the handoff asked for. One
+   managed tag on the admitted EUD names the mission and the assigned team.
+   It does not name a role. It is not composed from several broad tags.
+   The illustration tag:eud-mission-<mission>-team-<team> is not a frozen
+   spelling. MULE infrastructure tags do not name a mission or a team.
+   The ACL text is not decided. Stage 6 has not been run.
+3. CORE_READY, PENDING_WAN, REMOTE_CONTINUITY_READY, and READY/DISABLED as
+   EUD status words are proposed labels. They are not mule/status.py
+   literals. The decided behaviour is narrower: declining remote continuity,
+   or losing WAN, does not fail local operation.
+4. EMCON-RX and HARD-SILENT are not emission modes.
+5. No capability in sections 3 through 17 is built. The lists are the
+   direction. They are not a catalog, a schema, or a claim of SIMULATED
+   or HARDWARE-VERIFIED behaviour.
+6. docs/NON-GOALS.md still says the architecture does not require EUD
+   Tailscale membership. That remains true. Membership is optional.
+
+END OF RECONCILIATION
+
+FML / MULE SYSTEM ENHANCEMENT ENGINEERING HANDOFF
+Distributed Awareness / Observation Plane, EUD and ESD Sensing, RF/Communications
+Terrain, EUD Onboarding, Team-Scoped Remote Continuity, Fusion, Sensor Tasking,
+EMCON Collection, Derived Awareness, and Reference Scenario Expansion
+
+Date: 2026-09-23
+Revision: 2026-09-23 EUD ONBOARDING / OFFLINE-FIRST / REMOTE-CONTINUITY UPDATE
+Repository: https://github.com/homelab-net/FML-MULE
+Repository snapshot reviewed: main at ceedd34, plus this branch
+docs/ccr-04-remote-eud-overlay. The earlier note of 7b1e862 is stale.
+Parent handoff:
+FML_MULE_Integrated_Engineering_Handoff_2026-09-22
+Status:
+PROGRAM-OWNER SYSTEM-ENHANCEMENT DIRECTION / ENGINEERING HANDOFF
+NOT A CONTROLLED BASELINE
+NOT HARDWARE-VERIFIED
+NOT SIMULATED
+
+The word "shall" in this file is proposed direction. It is not a CONOPS
+[SHALL]. The accepted overlay shalls are CONOPS v1.1 and FML-ADR-082 only.
+If a sentence below disagrees with those two records, those two records win.
+Nothing in this file is implemented. Nothing in mule/ or the mission schema
+changed because of it. v0.0.1 is unchanged.
+
+================================================================================
+0. PURPOSE AND RELATIONSHIP TO CURRENT MAIN
+================================================================================
+
+This document records the system-enhancement decisions developed after the
+2026-09-22 integrated engineering handoff, red-teamed against current repository
+main, AGENTS.md, STATUS.md, docs/ROADMAP-DEV.md, docs/NON-GOALS.md,
+THREAT_MODEL.md, the current mission schema, the service/gateway/status
+boundaries, the flat-sat rules, and the current M0-M7 demonstration ladder.
+
+CURRENT REPOSITORY MAIN REMAINS AUTHORITATIVE.
+
+This document does not:
+- close a TBR;
+- select production hardware;
+- promote a proposal to a CONOPS SHALL;
+- authorize implementation of a blocked placeholder service;
+- create a new production daemon merely because a logical component is useful;
+- establish hardware, RF, driver, mobile-OS, power, thermal, timing-under-load,
+  coexistence, or electromagnetic-silence evidence.
+
+The Program Owner has clarified the implementation posture:
+
+Hardware is the validation gate, not the software-development gate.
+
+The software-rich portions of this enhancement may be implemented now against
+the flat-sat / digital twin, fakes, fixtures, deterministic scenarios, and
+ordinary development hosts. They may earn SIMULATED status when exercised end
+to end. Physical claims remain gated on hardware evidence.
+
+This work is a PARALLEL SOFTWARE ENHANCEMENT TRACK. It does not enlarge or
+reorder the committed v0.0.1 milestone in ROADMAP.md.
+
+This revision also incorporates the Program Owner's EUD onboarding decisions:
+- baseline EUD mission onboarding SHALL NOT require WAN, Tailscale, enhanced
+  sensor permissions, or an FML sensor plugin;
+- ATAK/iTAK remains the normal EUD mission application;
+- the MULE-hosted onboarding portal is the single guided setup surface;
+- association to a team MULE/AP establishes the default team context but is not,
+  by itself, sufficient authorization for permanent enrollment;
+- enhanced EUD sensing is optional and capability-driven;
+- Tailscale remote continuity is optional and may remain pending until WAN exists;
+- EUDs shall retain access to authorized mesh-carried mission services through
+  their assigned MULE when WAN is absent;
+- the target user experience is: install TAK, join the assigned MULE AP, complete
+  the web-guided onboarding flow, then return to TAK.
+
+Before implementation:
+1. Read AGENTS.md.
+2. Read STATUS.md.
+3. Read docs/ROADMAP-DEV.md.
+4. Read docs/NON-GOALS.md.
+5. Read THREAT_MODEL.md.
+6. Revalidate every path and status named here against current main.
+7. Run tools/lint.sh and read its exit code.
+8. Name the ADR, trade, change request, or Program-Owner enhancement direction
+   served by each change.
+9. For new behavior, create a test that fails without the change.
+10. Keep real identities, locations, callsigns, captures, credentials, and
+    mission data out of repository fixtures.
+
+================================================================================
+1. RED-TEAM RESULT
+================================================================================
+
+The proposed enhancement is technically compatible with the current FML/MULE
+architecture, but several earlier formulations required correction before
+implementation.
+
+1.1 KEEP: DISTRIBUTED AWARENESS / OBSERVATION PLANE
+
+The concept is compatible with the existing EUD/ESD capability direction:
+- MULE-native observations;
+- opportunistic EUD observations;
+- specialist ESD observations;
+- local-first processing;
+- upstream-first TAK/Meshtastic/native integration;
+- adaptive information fidelity;
+- semantic AAR rather than packet archives.
+
+The enhancement should be treated as a logical architecture and a family of
+small decision functions/adapters, not automatically as a new daemon.
+
+1.2 MODIFY: COMMON JSON IS A SEMANTIC CONTRACT, NOT A UNIVERSAL WIRE PROTOCOL
+
+FML shall not force all mission data into proprietary JSON.
+
+A small versioned machine-readable vocabulary is appropriate for:
+- capability descriptors;
+- capability records;
+- task semantics;
+- normalized observation semantics;
+- test fixtures;
+- local IPC/API boundaries where justified.
+
+Actual mission data should continue to use appropriate existing representations:
+- CoT for TAK/geospatial mission objects;
+- MQTT where appropriate for machine-facing telemetry;
+- HTTPS/REST for request-response services;
+- RTSP/ONVIF/HTTPS where appropriate for cameras;
+- Meshtastic-native supported payloads for degraded LoRa workflows;
+- documented native radio/vendor protocols through protocol-specific adapters.
+
+Illustrative JSON in this document defines semantics only. Do not freeze exact
+field names or make it the mandatory mesh transport until evidence justifies it.
+
+1.3 MODIFY: NO GENERIC "AWARENESS SERVICE" DAEMON YET
+
+Do not create a new standalone awareness/fusion/tasking daemon merely to match a
+diagram.
+
+Follow AGENTS.md:
+- exercise the end-to-end behavior first in test/flatsat;
+- keep hardware readers behind narrow fakeable interfaces;
+- promote demonstrated runtime decisions into mule/ only when justified;
+- reuse existing status, gateway, TAK, ingress, mission, and catalog boundaries
+  where their responsibilities genuinely fit;
+- create a new service only if a second-order need demonstrates that a process
+  boundary is required.
+
+The Status Aggregator remains node/status oriented. Do not turn it into a
+mission-observation database by convenience.
+
+1.4 MODIFY: EUD SENSING EXPANDS THE SECURITY/THREAT BOUNDARY
+
+The current threat model explicitly places EUD internals outside its scope.
+An FML EUD companion/ATAK plugin that performs Wi-Fi/BLE/GNSS/cellular sensing
+changes that boundary.
+
+Before a production EUD sensing implementation:
+- update the threat-model scope;
+- define permission/consent behavior;
+- separate view, task, and administer authorization;
+- document background-execution/mobile-OS constraints;
+- preserve device-local policy so a MULE task cannot bypass EUD permissions;
+- avoid persistent third-party identifier tracking by default.
+
+The software contract and fake EUD may be implemented now.
+
+1.5 MODIFY: EMCON-RX AND HARD-SILENT ARE PROPOSED SUB-PROFILES, NOT YET NEW
+TOP-LEVEL CONTROLLED MODES
+
+Current code recognizes the existing EMCON-SILENT emission axis. The proposed
+distinction is useful:
+
+NORMAL
+EMCON-RX
+HARD-SILENT
+
+But production promotion of those labels may touch the controlled CONOPS
+operating-mode semantics / CCR-01.
+
+Therefore:
+- simulate the behavioral distinction later, under test-local names;
+- model it as proposed emission-policy subprofiles;
+- do not silently alter the controlled operator-state vocabulary;
+- mule/modes.py EmissionPosture is only NORMAL-EMISSION or EMCON-SILENT.
+  CCR-01 is OPEN. EMCON-RX and HARD-SILENT are not modes;
+- do not claim HARD-SILENT electromagnetic performance until measured with
+  independent RF instrumentation;
+- do not reuse mule/status.py Observations or NodeStatus.data_stale as the
+  mission-observation store. Those are the operator view.
+
+1.6 MODIFY: MULE GNSS/PNT CAPABILITY IS CONDITIONAL
+
+Current architecture treats MULE GNSS as optional mission hardware for time
+discipline; EUDs remain the normal source of participant PLI.
+
+Therefore:
+- MULE-native PNT integrity is a conditional capability when the hardware exposes
+  appropriate data;
+- no baseline MULE capability shall require GNSS merely to support the awareness
+  architecture;
+- time credibility remains the existing RTC/chrony/FML-ADR-042 path;
+- do not claim spoofing detection from a commodity single-receiver GNSS path.
+
+1.7 MODIFY: "RULES ENGINE" BECOMES SMALL DETERMINISTIC DERIVED ALERTS FIRST
+
+Do not create a generalized policy/rules platform.
+
+First implement narrow, testable evaluators such as:
+- geofence/hazard entry;
+- observation stale/expired;
+- link-degradation trend;
+- threshold-based weather/environment alert;
+- capability unavailable/degraded.
+
+Only extract a generalized rules abstraction after multiple real evaluators
+demonstrate a common need.
+
+1.8 MODIFY: "PARTITION PREDICTION" BECOMES A LINK-DEGRADATION TREND INDICATOR
+
+Do not claim probabilistic prediction without evidence.
+
+A useful software-only capability is:
+- detect sustained decline in available link indicators;
+- detect loss of path diversity / a single remaining IP path;
+- tell the operator connectivity is degrading;
+- state the available fallback bearer.
+
+This is deterministic trend/status reporting, not AI forecasting.
+
+1.9 KEEP: SECOND MILSIM / FIELD-EXERCISE SCENARIO
+
+A second scenario adds value because it stresses different architecture:
+- mobility;
+- frequent topology change;
+- EMCON;
+- intermittent partitions;
+- opportunistic EUD sensing;
+- RF/communications-terrain mapping;
+- tasking;
+- disconnected collection;
+- source-density changes.
+
+It remains a secondary architecture stress scenario, not a replacement for the
+wildfire/disaster-response integrated reference scenario.
+
+1.10 KEEP: SOFTWARE CAN PROCEED NOW
+
+The enhancement work can proceed while hardware is pending if claims remain
+honest.
+
+SIMULATED may cover:
+- schema/semantic validation;
+- task authorization and leases;
+- observation lifecycle;
+- deduplication/correlation logic;
+- entity lifecycle;
+- stale/TTL handling;
+- store-and-forward behavior;
+- representation/fidelity decisions;
+- geofence/derived alerts;
+- link-trend logic;
+- deterministic SITREP generation;
+- scenario behavior;
+- CoT/MQTT/native adapter semantics against fakes/fixtures.
+
+SIMULATED cannot establish:
+- real Wi-Fi/BLE scan behavior;
+- monitor-mode support;
+- Remote ID reception on target hardware;
+- SDR performance;
+- RF range;
+- RF terrain accuracy;
+- HaLow/LoRa coexistence;
+- electromagnetic silence;
+- Android/iOS background behavior;
+- battery impact;
+- thermal impact;
+- timing/latency under target load.
+
+
+1.11 KEEP: OFFLINE-FIRST EUD ONBOARDING
+
+CORE_READY shall be attainable with:
+- no WAN;
+- no Tailscale enrollment;
+- no enhanced sensor permissions;
+- no FML sensor plugin;
+- only the local MULE, mission package, local trust/configuration, and supported
+  TAK client behavior required for the baseline EUD role.
+
+Enhanced sensing and remote continuity are OPTIONAL branches. Refusal, absence,
+or temporary unavailability of either branch shall not cause baseline onboarding
+to fail.
+
+1.12 MODIFY: AP ASSOCIATION INFERS TEAM CONTEXT BUT DOES NOT GRANT AUTHORIZATION
+
+Joining MULE-C's AP should make TEAM C the default enrollment context. This is a
+usability rule, not an authorization primitive.
+
+Do not allow possession of an AP credential alone to mint a durable mission or
+remote-access identity. The mission's enrollment policy shall separately decide
+whether the EUD may enroll.
+
+1.13 ADD: TEAM-SCOPED REMOTE EUD CONTINUITY
+
+Tailscale may be installed on approved EUDs as an OPTIONAL remote-continuity path.
+The normal relationship is:
+
+LOCAL:
+EUD -> assigned MULE AP -> assigned MULE -> FML mesh/services
+
+REMOTE, WHEN WAN EXISTS:
+EUD -> Internet/WAN -> Tailscale -> assigned MULE mission ingress -> FML services
+
+Remote EUD access shall remain anchored to the assigned MULE. An EUD assigned to
+Team C shall not automatically fail over to Team A/B/D/E MULEs if MULE-C becomes
+unreachable.
+
+The preferred Tailscale authorization model is the one FML-ADR-082 now
+decides. An admitted EUD carries one managed tag. That tag names the mission
+and the assigned team. It does not name an operational role. One tag is the
+whole infrastructure grant. The spelling is not frozen. An illustration, not
+a schema, is:
+
+  tag:eud-mission-<mission>-team-<team>
+      -> assigned MULE approved remote-EUD ingress only
+
+Do not compose that grant from several broad tags such as tag:eud +
+tag:team-c. Tailscale tags are additive. A grant on any one of them widens
+the endpoint. A MULE infrastructure tag does not name a mission or a team.
+The ACL text that enforces the ingress is not decided. Signed mission policy
+remains who the person is, what role they hold, and what they may see or do.
+
+This is a deliberate exception, now recorded in FML-ADR-082, to Tailscale's
+guidance that tags are for non-human devices. Ordinary operators do not hold
+Tailscale user accounts. FML keeps the mapping between the person, the EUD,
+and the tagged node. The tag is the overlay name of an assignment FML has
+already authorized. It is not mission authorization.
+
+Tailscale is not part of CORE_READY and shall never become a hidden prerequisite
+for local mission execution.
+
+1.14 ADD: REMOTE ENROLLMENT REQUIRES CONTROL-PLANE REACHABILITY
+
+If WAN/Tailscale coordination is unavailable during onboarding:
+- complete local mission onboarding;
+- complete TAK configuration;
+- complete optional local sensor setup if desired;
+- record remote-continuity desired state as a waiting-for-WAN condition.
+  PENDING_WAN is a proposed label only. FML-ADR-082 does not put that
+  spelling in mule/status.py;
+- do not fail the EUD's local mission readiness.
+
+Do not solve this by stockpiling reusable Tailscale auth keys on field MULEs.
+Where remote enrollment is authorized, prefer a narrowly scoped provisioning
+path that obtains a one-use/pre-authorized credential only when control-plane
+reachability exists.
+
+External dependency facts verified 2026-09-23 against current Tailscale docs:
+- OAuth clients with auth_keys scope can create tagged auth keys;
+- one-off auth keys are supported;
+- tags are additive identities, not an intersection of multiple tags;
+- tagged devices lose user identity and are intended by Tailscale for non-human
+  devices, making FML's tagged-EUD use an explicit architectural exception;
+- if the Tailscale coordination server is unavailable, existing devices may keep
+  working from cached state, but new users/devices cannot be added.
+
+References:
+https://tailscale.com/docs/features/oauth-clients
+https://tailscale.com/docs/features/access-control/auth-keys
+https://tailscale.com/docs/features/tags
+https://tailscale.com/docs/reference/coordination-server-down
+
+================================================================================
+2. ENHANCED PRODUCT THESIS
+================================================================================
+
+Existing product thesis:
+
+Configure a mission, enroll approved people/nodes/devices/capabilities, verify
+readiness, preserve useful information as conditions degrade, protect higher-
+value traffic, and reconstruct what happened afterward.
+
+Enhancement:
+
+Every MULE deployment should also be able to turn approved sensors already
+present on MULEs, EUDs, and specialist ESDs into a distributed local-first
+awareness fabric without requiring the operator to understand sensor transport,
+routing, adapters, or bearer mechanics.
+
+Conceptual flow:
+
+MULE NATIVE       EUD OPPORTUNISTIC       SPECIALIST ESD
+   |                     |                     |
+   +---------------------+---------------------+
+                         |
+                    OBSERVATIONS
+                         |
+             validate / freshness / policy
+                         |
+            local correlation / aggregation
+                         |
+              useful mission representation
+                         |
+            +------------+------------+
+            |            |            |
+           TAK         Portal         AI
+            |
+           AAR
+
+The MULE remains the mission-service/security gateway for EUD access. Optional
+EUD Tailscale termination does not grant direct access around the assigned MULE;
+remote EUD traffic still terminates at approved MULE mission ingress. Sensors do
+not become privileged because they can publish data.
+
+================================================================================
+3. SENSOR SOURCE MODEL
+================================================================================
+
+A physical device may hold one or more existing roles:
+CLIENT
+SERVICE_HOST
+EVENT_SOURCE
+GATEWAY
+INFRASTRUCTURE_NODE
+
+Sensor behavior is expressed through capabilities, not hardware SKU.
+
+3.1 MULE-NATIVE SOURCE
+
+Conditional capabilities depending on fitted hardware/driver support may include:
+- own node/network state;
+- link observations;
+- Wi-Fi environment;
+- BLE environment;
+- HaLow link/environment observations;
+- LoRa link/environment observations;
+- GNSS/PNT observations when fitted;
+- local time/clock health;
+- local power/thermal/status observations.
+
+MULE-native sensing must not assume a receiver can be made passive/silent without
+hardware evidence.
+
+3.2 EUD SOURCE
+
+EUD support has three valid capability levels. The first is baseline and the
+others are optional enhancements.
+
+3.2.1 BASELINE EUD — NO FML SENSOR SOFTWARE REQUIRED
+
+A baseline EUD uses ATAK/iTAK and connects to its assigned MULE AP.
+
+The MULE may obtain or correlate, where supported:
+- normal TAK/CoT PLI and mission traffic;
+- AP-side association state;
+- AP-side link measurements such as signal/RSSI, rate, retries/failures, traffic,
+  airtime, and other readings exposed by the selected Linux Wi-Fi stack/driver;
+- team/mission context from the MULE through which the device enrolled.
+
+A baseline EUD therefore remains useful for communications-terrain and link-health
+work even when the user installs no FML sensor component and grants no enhanced
+sensor permissions.
+
+Do not claim that AP ownership grants the MULE access to the EUD's GNSS, BLE scan,
+Wi-Fi scan, cellular radio metrics, camera, microphone, or motion sensors. Those
+remain client/OS-controlled resources.
+
+3.2.2 WEB-ENHANCED EUD — OPTIONAL
+
+The MULE onboarding/dashboard web application may request browser-supported
+permissions/capabilities where the platform exposes them, for example location,
+motion/orientation, and operator-directed media capture.
+
+Web-enhanced sensing is opportunistic:
+- it shall not be required for CORE_READY;
+- it shall not be treated as equivalent to a persistent native background agent;
+- unsupported browser capabilities shall be reported as UNAVAILABLE rather than
+  treated as an onboarding defect.
+
+3.2.3 NATIVE/TAK-INTEGRATED EUD SENSOR — OPTIONAL
+
+Android is the preferred full enhanced-EUD implementation path because an ATAK
+plugin can interact with ATAK and Android capabilities while keeping ATAK as the
+operator's normal UI.
+
+When authorized and supported, the Android EUD sensor component may expose:
+- position;
+- Wi-Fi environment;
+- BLE environment;
+- Remote ID observations where supported;
+- cellular-environment state where exposed by Android/device APIs;
+- motion sensors;
+- magnetometer/barometer where useful;
+- operator-initiated imagery;
+- bounded local buffering;
+- bounded sensor task execution;
+- capability/permission health.
+
+The Android component should remain a thin sensor shim rather than a second
+mission application. Fusion, correlation, mission policy, task authorization,
+communications-terrain logic, and operator-level presentation remain MULE-side.
+
+For iOS/iTAK, preserve the same capability contract but do not assume Android-style
+plugin sideloading or feature parity. Current public iTAK material identifies an
+SDK/plugin-development architecture, but the production distribution/install path
+shall be verified before baselining an iOS implementation. A thin companion app
+is an acceptable fallback if direct iTAK integration cannot satisfy the need.
+
+References verified 2026-09-23:
+https://tak.gov/pages/our-process
+https://tak.gov/pages/sdks
+https://tak.gov/solutions/law-enforcement
+https://apps.apple.com/us/app/itak/id1561656396
+
+3.2.4 PERMISSION MODEL
+
+Sensor permissions are optional and individually evaluated.
+
+Example:
+
+EUD-C03
+  CLIENT                    READY
+  TAK                       READY
+  MULE_LINK                 READY
+  position.location         UNAVAILABLE   # permission denied
+  rf.wifi_environment       READY
+  rf.ble_environment        UNAVAILABLE   # permission denied
+
+Permission denial shall:
+- remove/degrade only the affected capability;
+- never bypass the OS permission model;
+- never fail baseline EUD enrollment;
+- remain reversible if the user enables the permission later.
+
+3.2.5 EUD READINESS MODEL
+
+CORE_READY means baseline mission participation is functional.
+
+Optional states are reported separately:
+- ENHANCED_SENSORS_READY / PARTIAL / DISABLED / UNAVAILABLE;
+- REMOTE_CONTINUITY_READY / PENDING_WAN / DISABLED / UNAVAILABLE.
+
+Do not redefine READY to mean that all optional features were accepted.
+
+3.3 SPECIALIST ESD SOURCE
+
+Representative ESD capability profiles:
+
+RF awareness:
+- rf.adsb
+- rf.remote_id
+- rf.aprs
+- rf.ais
+- rf.weather_radio
+- rf.spectrum_summary
+- rf.wifi_environment
+- rf.ble_environment
+
+Weather/environment:
+- weather.observation
+- environment.temperature
+- environment.humidity
+- environment.pressure
+- environment.wind
+- environment.smoke
+- environment.air_quality
+- environment.water_level
+
+Imaging:
+- camera.image
+- camera.video
+- camera.detection
+
+Tracking:
+- tracker.position
+- tracker.geofence_state
+
+Service/data:
+- gis.layer
+- files
+- ai.inference
+- ai.rag
+
+External radio:
+- radio.aprs
+- radio.packet
+- radio.gateway_status
+
+This is a capability vocabulary, not a mandated device catalog.
+
+================================================================================
+4. RF SENSOR AS AN ESD
+================================================================================
+
+An RF sensor is a valid ESD.
+
+Typical roles:
+EVENT_SOURCE
+and, when translating an external/native protocol,
+GATEWAY
+
+Example:
+
+Device:
+ESD-RF-03
+
+Roles:
+EVENT_SOURCE
+GATEWAY
+
+Capabilities:
+rf.adsb
+rf.spectrum_summary
+rf.aprs
+
+The RF sensor may be:
+- an SDR plus managed host;
+- a dedicated protocol receiver;
+- another approved networked receiver;
+- a future integrated receiver.
+
+The rest of FML should consume the capability, not depend on the vendor/device
+implementation.
+
+Do not baseline:
+- communications-content interception;
+- persistent third-party tracking;
+- cellular identity collection;
+- raw wideband IQ capture;
+- precise emitter geolocation;
+- generic direction finding.
+
+Such functions are outside this enhancement unless separately authorized,
+legally reviewed, and justified.
+
+================================================================================
+5. THREE INFORMATION OBJECTS
+================================================================================
+
+Keep three concepts separate.
+
+5.1 OBSERVATION
+
+Meaning:
+A source reported or measured something at a time.
+
+Observation is evidence, not truth.
+
+Illustrative semantic envelope only:
+
+{
+  "schema": "fml.observation/0.x",
+  "event_id": "fake-observation-id",
+  "source": {
+    "device_id": "FAKE-EUD-01",
+    "capability": "rf.remote_id"
+  },
+  "observed_at": "2030-01-01T00:00:00Z",
+  "received_at": "2030-01-01T00:00:01Z",
+  "sensor_position": {
+    "lat": 0.0,
+    "lon": 0.0,
+    "accuracy_m": 10
+  },
+  "observation_type": "uas.remote_id",
+  "ttl_s": 15,
+  "payload": {}
+}
+
+Required semantics should eventually answer:
+- who produced it;
+- capability/source type;
+- when observed;
+- when received;
+- sensor position where available;
+- measurement/object position where available;
+- freshness/TTL;
+- provenance/quality facts;
+- typed payload;
+- related task ID where applicable.
+
+Do not create a universal numerical FML confidence score.
+
+5.2 ENTITY / TRACK / AGGREGATE
+
+Meaning:
+A local correlation/fusion process concludes that multiple compatible
+observations refer to one logical mission object or one aggregate condition.
+
+Examples:
+- multiple Remote ID observations -> one UAS entity;
+- multiple ADS-B receptions -> one aircraft track;
+- multiple link observations -> one communications-terrain cell/statistic;
+- multiple environmental observations -> one area/threshold state.
+
+Correlation shall be capability-specific.
+
+Do not build a generic AI identity engine that tries to infer that an anonymous
+Wi-Fi device, BLE device, camera detection, and person are the same individual.
+
+5.3 OPERATOR PRODUCT
+
+Meaning:
+The representation appropriate to the user.
+
+Examples:
+- aircraft/UAS -> CoT/TAK track;
+- hazard -> TAK point/area + alert;
+- weather -> TAK object + portal telemetry;
+- communications terrain -> map/grid overlay;
+- camera -> snapshot/video/detection representation;
+- capability health -> portal/readiness state.
+
+Operator products should hide protocol/device mechanics unless diagnostics are
+requested.
+
+================================================================================
+6. CAPABILITY DESCRIPTOR AND RECORD
+================================================================================
+
+Preserve the existing three-artifact ESD concept:
+
+ADMIN-ALLOWED DEVICE PROFILE
+        INTERSECT
+DEVICE/ADAPTER CAPABILITY DESCRIPTOR
+        INTERSECT
+OBSERVED / VALIDATED FUNCTION
+        =
+CURRENT USABLE CAPABILITY RECORD
+
+Illustrative descriptor:
+
+{
+  "schema": "fml.capability-descriptor/0.x",
+  "device_id": "FAKE-ESD-RF-03",
+  "roles": ["event_source", "gateway"],
+  "capabilities": [
+    {
+      "type": "rf.adsb",
+      "modes": ["periodic", "event", "tasked"],
+      "representations": ["track", "aircraft_state"]
+    }
+  ]
+}
+
+Illustrative capability record:
+
+{
+  "schema": "fml.capability-record/0.x",
+  "device_id": "FAKE-ESD-RF-03",
+  "capability": "rf.adsb",
+  "authorized": true,
+  "validated": true,
+  "state": "healthy",
+  "scope": "FAKE-TEAM",
+  "last_seen": "2030-01-01T00:00:00Z"
+}
+
+Do not freeze these exact fields until at least three different source types have
+exercised the same semantic path.
+
+Recommended proving set:
+1. EUD opportunistic sensor;
+2. message-native weather ESD;
+3. RF-awareness ESD.
+
+================================================================================
+7. SENSOR TASKING
+================================================================================
+
+Tasking should ask for a capability outcome, not low-level implementation
+details.
+
+Supported conceptual task modes:
+
+PERIODIC
+Sensor samples/reports on a policy schedule.
+
+EVENT
+Sensor reports when a defined condition occurs.
+
+TASKED
+MULE or authorized user requests bounded collection.
+
+CONTINUOUS
+Long-running stream; requires explicit resource/policy handling.
+
+Illustrative task semantics:
+
+{
+  "schema": "fml.task/0.x",
+  "task_id": "fake-task-id",
+  "capability": "rf.wifi_environment",
+  "action": "survey",
+  "duration_s": 8,
+  "priority": "routine",
+  "expires_at": "2030-01-01T00:01:00Z"
+}
+
+The common task contract should not expose arbitrary SDR gain/sample-rate/radio
+internals. Sensor-specific adapters own those implementation details.
+
+Task authorization shall distinguish:
+VIEW
+TASK
+ADMINISTER
+
+Long-running or resource-heavy tasks should use leases:
+REQUEST
+-> AUTHORIZE
+-> START
+-> LEASE ACTIVE
+-> RENEW / EXPIRE / STOP
+
+Task results return through the normal observation path. Do not invent a second
+result architecture.
+
+================================================================================
+8. OBSERVATION FUSION AND LIFECYCLE
+================================================================================
+
+Recommended lifecycle:
+
+NEW
+-> ACTIVE
+-> STALE
+-> EXPIRED
+
+Optional correlation outcomes:
+MERGED
+SUPERSEDED
+
+TTL/freshness is capability-specific policy, not one program-wide duration.
+
+Initial correlation mechanisms should be deterministic and narrow:
+
+ADS-B:
+protocol identity + time
+
+Remote ID:
+broadcast identity + time
+
+Enrolled ESD:
+authenticated device identity
+
+Meshtastic:
+upstream node/callsign identity
+
+PLI:
+mission identity
+
+Weather:
+sensor identity/location
+
+Camera detections:
+do not automatically cross-correlate across unrelated sources in the initial
+implementation
+
+Anonymous Wi-Fi/BLE:
+aggregate/environmental use by default, not persistent identity tracking
+
+RF occupancy:
+time/frequency/spatial bins, not "entities"
+
+Preserve provenance through fusion so diagnostics, AI, and AAR can answer:
+- which sources contributed;
+- when they observed the object;
+- which measurement was selected;
+- how fresh it is;
+- whether the value is direct, broadcast, authenticated, or derived.
+
+================================================================================
+9. COMMUNICATIONS-TERRAIN MAPPING
+================================================================================
+
+This is a priority software-rich enhancement.
+
+Goal:
+Answer "where does each bearer work reliably?" rather than produce a decorative
+RSSI heatmap.
+
+Inputs may include, where available:
+- time;
+- transmitting/receiving node identity;
+- endpoint positions;
+- heading/orientation metadata if available;
+- bearer;
+- frequency/channel;
+- RSSI;
+- SNR;
+- PHY rate/MCS ceiling;
+- packet loss;
+- latency;
+- BATMAN TQ;
+- observed throughput where an approved measurement exists.
+
+Position may come from:
+- optional MULE GNSS;
+- associated EUD position;
+- another validated mission position source.
+
+Do not assume every MULE has GNSS.
+
+Moving nodes remain useful.
+
+If three nodes move and one is stationary:
+- the stationary node provides a useful reference anchor;
+- mobile-to-mobile observations add spatial coverage.
+
+If all nodes move:
+- treat each sample as a time-tagged link between two moving endpoints;
+- aggregate repeated observations spatially;
+- do not interpret one RSSI reading as a fixed property of one location.
+
+Preferred derived product:
+spatial link-performance cells/segments with evidence counts and freshness.
+
+Example operator result:
+
+COMMUNICATIONS TERRAIN
+Sector C
+
+High-rate Wi-Fi  POOR
+HaLow            GOOD
+LoRa             GOOD
+Cellular         NONE
+
+Evidence:
+4 MULEs
+9 EUDs
+164 recent link observations
+
+Primary ranking should emphasize usable link behavior such as:
+- packet delivery / TQ;
+- SNR;
+- usable PHY/goodput evidence;
+- latency/loss;
+with RSSI as supporting evidence rather than the sole score.
+
+Do not infer precise third-party emitter location from ordinary moving-node RSSI.
+
+================================================================================
+10. LOW-HANGING SOFTWARE DERIVED CAPABILITIES
+================================================================================
+
+These are recommended for implementation in the parallel software-enhancement
+track.
+
+10.1 PNT / TIME HEALTH
+
+Use existing time-credibility logic and optional positioning inputs.
+
+Potential outputs:
+TIME GOOD
+TIME DEGRADED
+POSITION QUALITY DEGRADED
+PNT DEGRADED
+
+Do not label:
+GPS SPOOFING DETECTED
+
+without a separately justified detection method.
+
+10.2 DETERMINISTIC DERIVED ALERTS
+
+Implement specific evaluators first:
+- hazard/geofence entry;
+- stale/expired observation;
+- capability unavailable/degraded;
+- weather/environment threshold;
+- link-degradation trend.
+
+Do not build a broad generic automation engine yet.
+
+10.3 GEOFENCE / HAZARD ZONES
+
+Mission-configured polygons may represent:
+HAZARD
+EXCLUSION
+SEARCH_AREA
+SAFE_AREA
+RENDEZVOUS
+other approved mission semantics
+
+Evaluate locally where practical so WAN/TOC loss does not remove warnings.
+
+10.4 DISCONNECTED STORE-AND-FORWARD
+
+Use a bounded semantic event/observation queue.
+
+PARTITIONED:
+collect -> local queue
+
+RECONNECTED:
+freshness evaluation
+-> dedupe/correlation
+-> current useful state to COP
+-> expired/historical data to policy-approved AAR/history
+
+This is not a global distributed database.
+
+Buffered observations retain original observed_at time.
+
+10.5 LINK-DEGRADATION TREND
+
+Use existing/passive link observations to detect:
+- sustained decline;
+- decreasing path diversity;
+- only one remaining IP path;
+- likely transition to lower capability.
+
+Operator language should remain factual:
+CONNECTIVITY DEGRADING
+LoRa remains available.
+
+Do not present an unevidenced time-to-failure prediction.
+
+10.6 DETERMINISTIC FIELD STATUS / SITREP
+
+Generate a non-LLM summary from authoritative/current status.
+
+Example:
+
+FIELD STATUS
+
+Teams:
+3/3 reporting
+
+Network:
+2 teams VIDEO
+1 team TEXT
+LoRa available all teams
+
+WAN:
+Unavailable
+
+Hazards:
+1 active
+Wind warning at WX-02
+
+Services:
+TAK authoritative
+Maps local
+AI unavailable
+
+Sensors:
+11 healthy
+1 stale
+
+An LLM may later synthesize/present this, but the underlying digest shall not
+depend on the LLM.
+
+10.7 RF-ENVIRONMENT CHANGE DETECTION
+
+Optional extension after baseline observations exist.
+
+Examples:
+2.4 GHz activity elevated
+900 MHz occupancy elevated
+Wi-Fi channel congestion changed
+BLE activity increased
+
+This is environmental change awareness, not attribution.
+
+================================================================================
+11. REPRESENTATION AND ADAPTIVE FIDELITY
+================================================================================
+
+Do not send every raw observation across the mesh.
+
+Preferred model:
+
+SENSOR / ESD
+-> native data
+-> local adapter/normalization
+-> local observation
+-> correlation/aggregation
+-> useful representation
+
+High-rate IP:
+may carry richer telemetry, imagery, streams, and dense updates.
+
+HaLow / degraded IP:
+prefer lower-rate observation summaries and selected mission objects.
+
+LoRa:
+selected compact alerts/events/status only.
+Do not send verbose generic JSON merely because the internal semantic contract
+uses JSON fixtures.
+
+Example RF fidelity:
+
+NORMAL:
+dense local measurement / richer map update
+
+DEGRADED:
+summary such as "900 MHz occupancy elevated"
+
+LoRa:
+compact approved event only if mission policy says it matters
+
+================================================================================
+12. OPERATOR UX
+================================================================================
+
+Separate the operational views from onboarding and diagnostics.
+
+12.1 ATAK / COP
+Question:
+What is happening?
+
+Present:
+- PLI/team tracks;
+- hazards;
+- weather;
+- aircraft/UAS;
+- selected sensor-derived mission objects;
+- communications-terrain layer;
+- alerts.
+
+ATAK/iTAK remains the normal EUD operational interface after onboarding.
+
+12.2 PORTAL / READINESS
+Question:
+What capabilities and sensors do I have?
+
+Present:
+- core mission readiness;
+- sensor/capability health;
+- freshness;
+- available representations;
+- degraded/unavailable state;
+- scope;
+- taskable or view-only state;
+- remote-continuity state.
+
+Readiness shall distinguish required from optional capability. Example:
+
+TEAM C EUD SETUP
+
+Core mission             READY
+TAK                       READY
+Local mesh access         READY
+Enhanced sensors          PARTIAL
+Remote continuity         PENDING_WAN
+
+This is a successful onboarding state.
+
+12.3 ADMIN / DIAGNOSTICS
+Question:
+Why is it behaving this way?
+
+Present:
+- adapter/protocol details;
+- queue depth;
+- schema/version;
+- source observations;
+- correlation/provenance;
+- task history;
+- diagnostic radio/network information;
+- EUD assignment and enrollment history;
+- remote-continuity provisioning status.
+
+Ordinary operators should not need adapter, MQTT, schema, BATMAN, Tailscale,
+certificate, or service-host details to interpret the COP or finish onboarding.
+
+12.4 EUD ONBOARDING — PRIMARY PRODUCT EXPERIENCE
+
+Target operator experience:
+
+1. Install ATAK/iTAK.
+2. Join the assigned team's MULE AP.
+3. Open/scan the MULE onboarding portal.
+4. Follow the guided prompts.
+5. Return to TAK.
+6. Operate.
+
+The onboarding portal is the single orchestrator for EUD setup. It should handle
+or guide, as applicable:
+- mission/team context;
+- local EUD identity enrollment;
+- TAK configuration/import;
+- local mission-service endpoints;
+- map/package discovery where already supported by the approved architecture;
+- optional enhanced sensor component installation/integration;
+- optional OS sensor permissions;
+- optional Tailscale remote-continuity setup;
+- capability discovery;
+- readiness verification.
+
+12.5 TEAM INFERENCE AND AUTHORIZATION
+
+Normal path:
+
+EUD joins MULE-C AP
+-> onboarding portal identifies MULE-C
+-> TEAM C becomes the default enrollment context
+-> mission enrollment policy separately authorizes/rejects enrollment
+-> authorized EUD receives Team-C local mission identity/configuration
+
+Do not present a team-selection screen to ordinary users when the assigned MULE
+already establishes the intended context.
+
+An authenticated network admin may override team assignment for staging,
+replacement hardware, liaison devices, or reassignment.
+
+12.6 OPTIONAL ENHANCED SENSING
+
+After CORE_READY is established or while the guided flow continues, offer:
+
+ENHANCED DEVICE SENSING
+[Enable] [Not now]
+
+If enabled:
+- install/configure the approved Android ATAK sensor plugin or approved iOS path;
+- request only the permissions required by selected capabilities;
+- allow the user to deny any permission;
+- derive the final capability record from what is actually authorized/available.
+
+If skipped or denied:
+- continue onboarding;
+- report the affected capabilities as DISABLED/UNAVAILABLE;
+- preserve normal TAK and local mesh access.
+
+12.7 OPTIONAL REMOTE CONTINUITY
+
+Offer separately:
+
+REMOTE CONTINUITY
+Stay connected to your assigned MULE through Internet connectivity when away from
+local MULE RF coverage?
+[Enable] [Skip]
+
+If skipped:
+remote continuity stays off. DISABLED and CORE_READY are proposed labels,
+not mule/status.py literals. Local operation remains successful, which is
+what FML-ADR-082 decides.
+
+If enabled but WAN/control-plane reachability is absent:
+remote continuity = waiting for WAN. PENDING_WAN and CORE_READY are
+proposed labels, not mule/status.py literals. Local readiness remains true.
+
+If enabled and provisioning succeeds:
+remote continuity is up. READY is a proposed label, not a status literal.
+
+12.8 LOCAL-FIRST PATH SELECTION
+
+When the assigned MULE is locally reachable, local MULE access is preferred.
+Tailscale is continuity/fallback for geographic separation, not the preferred path
+for a nearby EUD.
+
+Conceptual behavior:
+
+local assigned MULE reachable? -> YES -> local path
+                              -> NO  -> approved Tailscale path if available
+
+Do not route a nearby EUD out to WAN merely to return to the same MULE.
+
+12.9 NO-WAN MISSION EXECUTION
+
+With no WAN, the system shall still support, subject to the current approved
+service architecture and available local bearers:
+- MULE provisioning from the mission profile;
+- local mesh formation;
+- baseline EUD onboarding;
+- ATAK/iTAK configuration;
+- EUD access through its assigned MULE to authorized mesh-carried mission services;
+- local observations/sensor tasking where otherwise permitted;
+- local maps/services already present in the mission package or MULE service set.
+
+WAN absence is a degraded external condition, not a baseline mission-onboarding
+failure.
+
+================================================================================
+
+13. EMCON COLLECTION BEHAVIOR
+================================================================================
+
+Simulate three behavioral profiles while preserving current controlled mode
+vocabulary until change control decides otherwise.
+
+13.1 NORMAL
+
+Periodic: permitted by policy
+Event: permitted
+Tasked: permitted
+Continuous: permitted by policy
+Distribution: permitted
+
+13.2 PROPOSED EMCON-RX SUB-PROFILE
+
+Goal:
+receive-dominant/local collection with transmission minimized/suppressed.
+
+Potential behavior, subject to hardware validation:
+- high-rate transmission suppressed;
+- WAN/background traffic suppressed;
+- passive/local sensing continues where technically validated;
+- observations buffer locally;
+- continuous streams stop unless explicitly authorized;
+- no remote polling that itself defeats the emission posture.
+
+Commodity Wi-Fi/BLE "scan" APIs shall not be assumed RF-silent.
+
+13.3 PROPOSED HARD-SILENT SUB-PROFILE
+
+Goal:
+strongest software-enforced emission suppression.
+
+Potential behavior:
+- wireless tasking off;
+- transmit-capable radios administratively disabled;
+- CPU/local storage remain;
+- local wired/permitted receive-only sensors may continue;
+- GNSS may continue when policy allows;
+- observations buffer locally.
+
+Do not call the result electromagnetically silent until independently measured.
+
+13.4 EMCON EXIT
+
+On restoration:
+- re-establish capability;
+- re-advertise usable capability;
+- synchronize permitted buffered observations;
+- apply freshness/TTL before COP publication;
+- retain stale/expired events for AAR only where policy permits.
+
+================================================================================
+14. SECURITY / PRIVACY / RETENTION
+================================================================================
+
+Recommended data classes:
+
+TRANSIENT
+- raw local link/RF measurements;
+- anonymous Wi-Fi/BLE environment observations;
+- short-lived correlation evidence;
+- short-lived enrollment transaction state.
+
+OPERATIONAL
+- active tracks;
+- current hazards;
+- current weather;
+- current communications terrain;
+- current sensor/capability state;
+- current EUD readiness/assignment state.
+
+MISSION HISTORY
+- important alerts;
+- selected tasked observations;
+- operator reports;
+- policy-approved products;
+- relevant enrollment/reassignment events without retaining secrets.
+
+AAR
+- semantic state transitions/events selected by mission policy.
+
+RAW CAPTURE
+- off by default;
+- not introduced by this enhancement merely because storage is available.
+
+Preserve existing security principles:
+- unique device identity;
+- human identity separate from device identity;
+- network admission != mission enrollment;
+- mission enrollment != capability publication;
+- capability publication != administration;
+- AP association/team inference != authorization;
+- no MAC address as primary identity;
+- no credentials/unnecessary real location in logs;
+- explicit freshness;
+- fail closed on unauthorized capability publication or remote access.
+
+For Wi-Fi/BLE awareness:
+- aggregate where possible;
+- avoid long-term raw third-party identifier retention;
+- do not build persistent person/device tracking as a default feature.
+
+14.1 EUD THREAT-BOUNDARY EXPANSION
+
+Production enhanced-EUD sensing expands the current threat boundary because the
+FML system begins relying on client-side permissions, native APIs, and optional
+background execution.
+
+Before production promotion:
+- update THREAT_MODEL.md;
+- define permission and consent behavior;
+- separate VIEW/TASK/ADMINISTER authorization;
+- preserve device-local permission enforcement;
+- document Android/iOS background limitations;
+- treat unavailable/revoked permissions as capability loss, not authorization to
+  bypass the OS.
+
+14.2 LOCAL EUD ENROLLMENT SECURITY
+
+Joining a MULE AP establishes context, not authorization.
+
+A leaked Wi-Fi/AP credential shall not be sufficient to mint a durable FML mission
+identity or remote-access identity. Enrollment policy shall be separately enforced.
+
+Mission configuration may support controlled enrollment windows, expected device
+counts, administrator approval, one-time onboarding tokens, or another simple
+mechanism consistent with the controlling identity architecture. Do not add user
+friction without a demonstrated security need, but do not collapse AP admission
+and mission enrollment into the same trust decision.
+
+14.3 TAILSCALE REMOTE-CONTINUITY SECURITY
+
+The remote EUD path is an OPTIONAL extension of the mission boundary.
+
+Preferred policy characteristics:
+- EUD remote identity is scoped to mission + team;
+- EUD can reach only its assigned MULE's approved mission-ingress services;
+- no EUD-to-EUD Tailscale access by default;
+- no EUD-to-other-team-MULE access by default;
+- no SSH/database/management-plane access from an EUD tag;
+- no EUD subnet-router or exit-node role;
+- no broad reusable enrollment secret stored on field MULEs;
+- FML retains the human <-> EUD <-> Tailscale-node audit mapping.
+
+Tailscale tags are additive identities. FML-ADR-082 selects one tag on the
+admitted EUD. An illustration, not a frozen spelling:
+
+  tag:eud-mission-<mission>-team-<team>
+
+That tag names the mission and the assigned team and does not name a role.
+Do not rely on the intersection of broad tags such as:
+
+  tag:eud + tag:mission-alpha + tag:team-c
+
+because a grant applying to any one tag can widen access. A MULE
+infrastructure tag does not name a mission or a team. The ACL text is not
+decided.
+
+14.4 REMOTE PROVISIONING AUTHORITY
+
+The shape below is a preferred direction. It is not the grant syntax
+FML-ADR-082 decided. That syntax is still open. Do not stockpile reusable
+keys, and do not treat this sketch as an implemented control.
+
+MULE-C
+  -> authenticated request for one Team-C EUD enrollment
+  -> narrow FML provisioning authority
+  -> Tailscale API/OAuth
+  -> one-use/pre-authorized mission+team-scoped credential
+  -> EUD enrollment
+
+A prototype may use a narrower per-MULE credential only if it is technically
+constrained to the intended child tag and cannot administer unrelated tailnet
+resources. Centralization of the higher-value OAuth secret is preferred.
+
+If WAN/control-plane reachability is absent, store only desired state and retry
+when allowed; do not cache pools of reusable auth keys to simulate offline Tailscale
+enrollment.
+
+14.5 TEAM REASSIGNMENT
+
+Changing the assigned MULE/team is an explicit administrative event.
+
+Example:
+EUD-C03 -> ADMIN REASSIGN -> Team D
+
+Required behavior:
+- local mission assignment changes under admin authorization;
+- old remote identity/access is revoked/replaced when control-plane reachability
+  allows;
+- new mission+team-scoped remote identity is provisioned if remote continuity is
+  enabled;
+- the device shall not silently accumulate Team-C and Team-D remote authorization.
+
+================================================================================
+
+15. UPDATED REFERENCE SCENARIO A — WILDLAND-FIRE / HAZARDOUS-AREA RESPONSE
+================================================================================
+
+Scenario A remains the primary comprehensive integrated scenario.
+
+Add to the existing scenario:
+
+15.1 EUD ONBOARDING AND SENSOR PARTICIPATION
+
+Exercise at least one Team-C-style EUD onboarding path with no WAN available.
+
+Expected baseline path:
+- EUD joins assigned MULE AP;
+- team context inferred from assigned MULE;
+- separate mission-enrollment authorization succeeds;
+- ATAK/iTAK/local mission configuration completes;
+- EUD reaches authorized mission services through assigned MULE/mesh;
+- CORE_READY becomes true with Tailscale unavailable.
+
+Exercise optional branches independently:
+- one EUD enables enhanced sensing;
+- one EUD denies one or more sensor permissions;
+- one EUD skips enhanced sensing entirely;
+- one EUD requests remote continuity while WAN is absent and reaches
+  REMOTE_CONTINUITY=PENDING_WAN without losing CORE_READY;
+- after WAN appears, the pending remote enrollment completes and remains anchored
+  to the assigned MULE.
+
+Baseline EUD may hold:
+CLIENT
+
+Enhanced EUD may additionally hold:
+EVENT_SOURCE
+
+Baseline observations may include:
+- TAK/PLI position where supplied by TAK;
+- MULE AP-side link quality/association telemetry.
+
+Optional enhanced capabilities may include:
+- Wi-Fi environment;
+- BLE environment;
+- Remote ID;
+- cellular environment;
+- motion/environmental phone sensors where supported.
+
+15.2 RF-AWARENESS ESD
+
+Add a managed RF-awareness ESD at an appropriate field site.
+
+Representative simulated capabilities:
+rf.adsb
+rf.remote_id
+rf.spectrum_summary
+
+The exercise proves onboarding/capability/fusion/presentation semantics, not SDR
+or antenna performance.
+
+15.3 OBSERVATION FUSION
+
+Inject one compatible broadcast object observed by:
+- one MULE-native fake;
+- two EUD sensor fakes;
+- one RF ESD fake.
+
+Expected:
+four observations
+-> one correlated entity
+-> one operator object
+with provenance/source count available to diagnostics.
+
+15.4 COMMUNICATIONS TERRAIN
+
+As teams move, collect fake link observations from MULEs/EUDs and generate a
+communications-terrain product.
+
+Demonstrate:
+- moving + fixed nodes;
+- all-moving nodes;
+- multiple bearers;
+- freshness/evidence count;
+- no false emitter-geolocation claim.
+
+15.5 TASKED SURVEY
+
+Authorized team lead requests one bounded environment survey.
+
+Task capable sources:
+EUD Wi-Fi/BLE fake
+RF ESD fake
+MULE-native link snapshot
+
+Expected:
+authorization
+-> bounded task
+-> observation results
+-> fusion/summary
+-> operator product
+
+15.6 DEGRADATION
+
+When high-rate IP degrades:
+- video reduces/stops;
+- weather continues;
+- RF awareness becomes summary/event only;
+- EUD surveys reduce/yield;
+- local collection may continue;
+- only selected useful representation crosses constrained bearers.
+
+15.7 EMCON EPISODE
+
+Exercise:
+NORMAL
+-> proposed EMCON-RX
+-> proposed HARD-SILENT
+-> NORMAL
+
+Verify software policy:
+- task/distribution changes as specified;
+- observations buffer;
+- original timestamps survive;
+- stale observations do not become current COP objects after rejoin.
+
+No claim of real RF silence is earned.
+
+15.8 AAR EXPANSION
+
+Capture semantic events sufficient to answer:
+- which sources contributed to an entity;
+- which observations were merged;
+- which observations became stale/expired;
+- which tasks were requested/authorized/completed;
+- whether EMCON suppressed distribution;
+- what buffered data was released;
+- which released observations were excluded from current COP due to age;
+- when communications-terrain state changed materially.
+
+================================================================================
+16. REFERENCE SCENARIO B — MOBILE MILSIM / FIELD-EXERCISE STRESS SCENARIO
+================================================================================
+
+Status:
+SECONDARY ARCHITECTURE STRESS SCENARIO
+EXERCISE / SYNTHETIC DATA ONLY
+
+Purpose:
+Stress mobility, EMCON, topology churn, opportunistic sensing, RF terrain,
+tasking, disconnected collection, and graceful degradation.
+
+Do not duplicate Scenario A merely with different vocabulary.
+
+16.1 FORCE PACKAGE
+
+FAKE TEAM RED
+- MULE-R1
+- multiple EUD fakes
+- LoRa
+- camera/tracker ESD as needed
+
+FAKE TEAM BLUE
+- MULE-B1
+- multiple EUD fakes
+- LoRa
+- RF-awareness ESD
+
+FAKE MOBILE CONTROL
+- MULE-C1
+- laptop/operator service client
+- TAK/map/service stand-ins or current approved bench equivalents
+- optional simulated WAN
+
+16.2 CONDITIONS
+
+- no permanent TOC dependency;
+- WAN opportunistic;
+- teams move frequently;
+- EUD attachment/topology changes;
+- one team periodically falls to LoRa-only;
+- partitions are normal, not exceptional.
+
+16.3 TEST OBJECTIVES
+
+Mobility:
+- topology changes without manual route selection;
+- capability records expire/reappear correctly.
+
+Communications terrain:
+- moving MULEs/EUDs populate spatial link-performance evidence.
+
+EMCON:
+- exercise NORMAL -> EMCON-RX -> HARD-SILENT -> NORMAL software policy.
+
+Sensor density:
+- one broadcast object observed by changing numbers of sources;
+- source_count changes;
+- entity transitions ACTIVE -> STALE -> EXPIRED.
+
+Tasking:
+- exercise repeated bounded surveys;
+- only authorized/capable devices execute them.
+
+Disconnected collection:
+- Team Blue collects while partitioned;
+- reconnects;
+- queued observations undergo freshness/dedupe;
+- current data reaches COP;
+- expired data remains history/AAR only.
+
+Degradation:
+- VIDEO -> VOICE -> TEXT -> NONE as path capability changes;
+- useful sensor/event representations remain where lower bandwidth permits.
+
+16.3.1 REMOTE EUD CONTINUITY / ANCHOR FAILURE
+
+Exercise one EUD leaving local MULE coverage while retaining independent WAN.
+
+Expected:
+- local path is preferred while local assigned MULE remains reachable;
+- after geographic separation, approved Tailscale path reaches the same assigned
+  MULE mission ingress;
+- no cross-team MULE access appears;
+- if the assigned MULE loses Tailscale/WAN reachability, the remote EUD loses FML
+  reachability rather than silently failing over to another team's MULE;
+- if the assigned MULE keeps Tailscale but loses the field mesh, the EUD retains
+  only the services/state that assigned MULE can still provide;
+- if the EUD skips Tailscale entirely, local mission behavior remains unchanged.
+
+16.4 WHY SCENARIO B EXISTS
+
+Scenario A:
+broad integrated disaster-response capability.
+
+Scenario B:
+RF/mobility/EMCON/disconnected-awareness stress.
+
+Do not add a third comprehensive scenario until evidence shows a major uncovered
+behavior.
+
+================================================================================
+17. PARALLEL SOFTWARE ENHANCEMENT TRACK
+================================================================================
+
+This track may proceed while hardware procurement/integration is pending.
+
+It does not modify the committed ROADMAP.md v0.0.1 milestone.
+
+E-00 SOURCE / DELTA CHECK
+- compare this handoff with current main;
+- identify any new ADR/TBR/CCR need;
+- verify no current decision is being overwritten.
+
+E-01 SEMANTIC FIXTURES
+- create fake capability profiles;
+- fake observations;
+- fake task requests/results;
+- fake entity states;
+- obviously synthetic identities/locations only.
+
+E-02 END-TO-END FLAT-SAT SCENARIO
+- exercise source -> observation -> fusion -> presentation stand-in;
+- start with single-source/single-observation case;
+- then multi-source correlation;
+- produce SIMULATED evidence.
+
+E-03 OBSERVATION LIFECYCLE
+- TTL/freshness;
+- ACTIVE/STALE/EXPIRED;
+- provenance preservation;
+- tests that fail when stale information is presented as current.
+
+E-04 CAPABILITY-SPECIFIC FUSION
+Initial proving types:
+- Remote ID or ADS-B-style keyed track fixture;
+- weather ESD;
+- communications-terrain aggregate.
+
+Do not build generic AI correlation.
+
+E-05 SENSOR TASKING
+- PERIODIC/EVENT/TASKED/CONTINUOUS vocabulary;
+- authorization;
+- leases;
+- expiry/cancel;
+- task result returns as observation.
+
+E-06 DISCONNECTED QUEUE
+- bounded local queue;
+- reconnect;
+- TTL/freshness;
+- dedupe;
+- current vs AAR routing.
+
+E-07 COMMUNICATIONS TERRAIN
+- ingest synthetic link observations;
+- include baseline EUD AP-side link observations;
+- support moving endpoints;
+- spatial aggregation;
+- evidence/freshness count;
+- deterministic operator product.
+
+E-08 DERIVED ALERTS
+- geofence;
+- stale sensor;
+- weather threshold;
+- link-degradation trend.
+
+No generalized rules daemon.
+
+E-09 DETERMINISTIC SITREP
+- synthesize current status from existing authoritative/current facts;
+- no LLM dependency.
+
+E-10 REPRESENTATION ADAPTERS
+- use CoT/MQTT/native formats where appropriate;
+- avoid custom mesh-wide JSON transport;
+- use stand-ins where production gateway/service remains blocked.
+
+E-11 EMCON SOFTWARE POLICY
+- simulate NORMAL / EMCON-RX / HARD-SILENT behaviors;
+- do not change controlled production mode vocabulary without required process.
+
+E-12 SCENARIO A UPDATE
+- integrate offline-first onboarding, awareness/fusion/tasking/EMCON, optional
+  sensing, and pending/active remote continuity into the wildfire scenario.
+
+E-13 SCENARIO B
+- add MILSIM/mobile field-exercise stress scenario including remote-EUD separation
+  and assigned-MULE anchor failure.
+
+E-14 EUD ONBOARDING / CLIENT CONTRACT
+- define CORE_READY separately from optional features;
+- define fake/host-side baseline EUD interface;
+- define AP-derived default team context plus separate enrollment authorization;
+- define TAK configuration/import contract;
+- define web-guided onboarding state machine;
+- define optional Android ATAK sensor-plugin contract;
+- preserve iOS/iTAK capability subset and verify distribution path before baseline;
+- define permission/consent semantics;
+- update threat-model delta.
+
+E-15 TEAM-SCOPED REMOTE EUD CONTINUITY
+- define remote-continuity desired state independently of local mission readiness;
+- define mission+team-scoped EUD and assigned-MULE remote identities;
+- constrain EUD grants to approved mission ingress on assigned MULE only;
+- simulate local-preferred / remote-fallback path selection;
+- simulate PENDING_WAN -> READY transition;
+- simulate assigned-MULE remote failure with no cross-team failover;
+- simulate team reassignment and old-identity removal;
+- keep real Tailscale credentials out of fixtures/repository;
+- the overlay decision is FML-ADR-082, accepted with CCR-04. Do not open a
+  second ADR for the same posture. The grant syntax, the tag spelling, and
+  the waiting-for-WAN label remain undecided. Do not implement enrollment
+  in this change.
+
+E-16 MISSION-PROFILE ONBOARDING POLICY
+- mission compiler/profile describes MULE-to-team assignment;
+- assigned MULE derives default EUD team context;
+- mission profile defines whether enhanced sensing is offered/required/disabled;
+- mission profile defines whether remote continuity is offered/disabled;
+- mission profile defines local service scope independent of WAN;
+- local mission package contains enough configuration/trust material for baseline
+  EUD onboarding and mission execution without WAN;
+- do not place reusable remote-enrollment secrets into the mission package.
+
+E-17 HARDWARE / MOBILE HANDOFF
+Prepare narrow interfaces/readings required to replace each fake when hardware and
+representative EUDs are available.
+
+Each hardware reading must be added to docs/readings.md before production reader
+implementation.
+
+================================================================================
+
+18. IMPLEMENTATION LOCATION RULES
+================================================================================
+
+Do not start by creating production modules for everything.
+
+Preferred progression:
+
+STEP 1
+test/flatsat fixtures/fakes/scenarios demonstrate semantics.
+
+STEP 2
+tests prove the decision must exist and can fail.
+
+STEP 3
+pure runtime decision logic that has earned promotion may move to mule/ under
+FML-ADR-051 / FML-ADR-052 discipline.
+
+STEP 4
+hardware/mobile/native readers remain behind narrow interfaces and replace
+fakes later.
+
+STEP 5
+process/service boundaries are created only when demonstrated behavior requires
+a distinct runtime service and the relevant gate permits it.
+
+Candidate pure decisions eventually suitable for mule/ after evidence:
+- freshness/lifecycle assessment;
+- task authorization/lease decision;
+- deterministic correlation for keyed observations;
+- geofence evaluation;
+- link-degradation trend;
+- communications-terrain aggregation policy;
+- representation selection;
+- deterministic SITREP reduction.
+
+Do not move RF/OS readers into production merely because a parser exists.
+
+================================================================================
+19. RED-TEAM FAILURE CASES TO ADD
+================================================================================
+
+Add deterministic tests for:
+
+DUPLICATE OBSERVATION
+Same event arrives through multiple sources.
+Expected: one entity where capability-specific correlation proves sameness.
+
+FALSE MERGE
+Two different keyed objects are close in space/time.
+Expected: remain distinct.
+
+STALE REJOIN
+Partitioned source reconnects with expired observation.
+Expected: history/AAR only, not live COP.
+
+CLOCK PROBLEM
+Observation time credibility is degraded.
+Expected: freshness/authority handling does not pretend precise current state.
+
+TASK AFTER EXPIRY
+Late task arrives after expires_at.
+Expected: refuse.
+
+UNAUTHORIZED TASK
+Viewer attempts TASK action.
+Expected: refuse.
+
+ORPHAN CONTINUOUS TASK
+Controller disappears.
+Expected: lease expires and stream/task stops.
+
+CHATTY SENSOR
+Rate exceeds policy.
+Expected: rate limit without starving critical traffic.
+
+CAPABILITY DRIFT
+ESD descriptor changes after update.
+Expected: revalidate before widening published capability.
+
+EUD PERMISSION DENIED
+User refuses one or all enhanced sensor permissions.
+Expected: CORE_READY succeeds; only affected sensor capabilities become
+DISABLED/UNAVAILABLE.
+
+EUD PERMISSION REVOKED
+Previously available permission is revoked.
+Expected: capability becomes unavailable/degraded; MULE does not bypass.
+
+EUD SENSOR COMPONENT ABSENT
+ATAK/iTAK is present but optional FML sensor integration is absent.
+Expected: baseline CLIENT role and AP-side link observations still function.
+
+TAILSCALE DECLINED
+User chooses not to enable remote continuity.
+Expected: CORE_READY and local mesh/service access remain successful.
+
+NO WAN DURING ONBOARDING
+Mission profile and MULE are available but no Internet/control-plane reachability
+exists.
+Expected: local EUD onboarding, TAK setup, local service access, and optional local
+sensor setup complete; remote continuity is DISABLED or PENDING_WAN.
+
+PENDING REMOTE ENROLLMENT
+User requested remote continuity with no WAN, then WAN becomes available.
+Expected: a fresh authorized provisioning transaction completes; no reusable
+stockpiled key is required.
+
+AP CREDENTIAL LEAK / UNAUTHORIZED ENROLLMENT
+Unknown EUD joins MULE-C AP but mission enrollment policy does not authorize it.
+Expected: Team-C context may be inferred, but durable mission/remote identity is
+not issued.
+
+WRONG-TEAM REMOTE ACCESS
+A Team-C tagged EUD attempts to reach MULE-B.
+Expected: denied.
+
+EUD-TO-EUD REMOTE ACCESS
+EUD-C1 attempts to reach EUD-C2 over the tailnet without an explicit requirement.
+Expected: denied.
+
+REMOTE MANAGEMENT ACCESS
+Tagged EUD attempts SSH/database/admin access on assigned MULE.
+Expected: denied unless a separately approved role explicitly allows it.
+
+ASSIGNED-MULE REMOTE FAILURE
+Remote Team-C EUD has WAN; MULE-C loses Tailscale/WAN reachability.
+Expected: Team-C EUD loses remote FML access; it does not silently fail over to
+MULE-A/B/D/E.
+
+ASSIGNED-MULE MESH FAILURE
+Remote Team-C EUD reaches MULE-C over Tailscale but MULE-C loses field mesh.
+Expected: EUD retains only services/state locally available from MULE-C; system
+reports degraded mesh reachability accurately.
+
+LOCAL PATH PRESENT
+EUD is physically on assigned MULE AP while Tailscale is also available.
+Expected: local path is preferred; traffic is not intentionally hairpinned through
+WAN to the same MULE.
+
+TEAM REASSIGNMENT
+EUD moves administratively from Team C to Team D.
+Expected: local assignment changes explicitly; old remote access is revoked/replaced
+when control-plane reachability allows; EUD does not accumulate both team grants.
+
+ADDITIVE TAG POLICY ERROR
+Test fixture intentionally adds a broad tag/grant that would widen EUD access.
+Expected: policy validation/lint catches or test suite demonstrates the unintended
+reachability before deployment.
+
+EMCON TASK ATTEMPT
+Remote survey requested while policy prohibits transmission/tasking.
+Expected: refuse/defer according to policy.
+
+STALE COMMS TERRAIN
+Old samples dominate a cell.
+Expected: freshness weighting/expiration prevents old terrain from appearing
+current.
+
+MOVING-ENDPOINT MISINTERPRETATION
+RSSI changes while both endpoints move.
+Expected: store endpoint/time context; no fixed-site/emitter-location conclusion.
+
+OPTIONAL GNSS ABSENT
+MULE has no GNSS.
+Expected: baseline awareness still functions; PNT-specific capability absent.
+
+UNKNOWN HARDWARE READER
+Platform cannot expose a reading.
+Expected: None/UNKNOWN, not healthy/zero.
+
+================================================================================
+
+20. DOCUMENT / CHANGE-CONTROL IMPACT
+================================================================================
+
+Current main must be re-read at implementation time.
+
+Likely affected repository areas:
+- docs/ROADMAP-DEV.md
+- docs/parking-lot.md
+- docs/readings.md
+- mission/
+- mission/schema/
+- services/status-aggregator/
+- services/gateways/
+- services/catalog/
+- mule/
+- test/flatsat/
+- test/bench/
+- docs/verification/
+- docs/evidence/
+- THREAT_MODEL.md
+- docs/change-requests/
+
+Potential decision/change subjects:
+- EUD sensing threat-model scope;
+- offline-first EUD onboarding and CORE_READY semantics;
+- AP-derived default team context versus enrollment authorization;
+- ATAK plugin / iTAK integration or companion distribution path;
+- direct optional EUD Tailscale termination, which changes the previous overlay
+  boundary assumption;
+- deliberate use of mission-managed tagged mobile endpoints despite Tailscale's
+  general recommendation against tags for end-user devices;
+- mission+team-scoped remote identity/grant model;
+- remote provisioning authority and secret placement;
+- observation semantic contract;
+- capability/task vocabulary;
+- EMCON sub-profile semantics;
+- store-and-forward retention;
+- production process boundary if a distinct awareness component is eventually
+  justified.
+
+Do not mint identifiers manually.
+
+The exact need for ADR/TBR/CCR shall be determined against current main and
+repository governance before production promotion.
+
+================================================================================
+21. DEFINITION OF SUCCESS — SOFTWARE PHASE
+================================================================================
+
+Against fakes/fixtures, the software enhancement should demonstrate:
+
+- MULE, EUD, and ESD sources can enter one semantic observation path;
+- capability declaration is distinct from authorization and validation;
+- RF-awareness ESD behaves as an ordinary capability-bearing ESD;
+- task authorization distinguishes VIEW/TASK/ADMINISTER;
+- bounded tasks expire;
+- task results become observations;
+- observations preserve source/time/freshness/provenance;
+- duplicate keyed observations correlate without duplicate COP objects;
+- false merges are rejected;
+- entity lifecycle reaches stale/expired correctly;
+- expired reconnect data cannot masquerade as current;
+- communications terrain accepts moving endpoints;
+- communications terrain exposes evidence/freshness rather than a misleading
+  RSSI-only heatmap;
+- optional GNSS absence does not break baseline awareness;
+- deterministic derived alerts work;
+- disconnected queue/rejoin works;
+- deterministic SITREP works without AI;
+- representation adapts to link/budget constraints;
+- LoRa path receives compact selected events, not arbitrary JSON tunneling;
+- proposed EMCON policies change collection/distribution behavior in simulation;
+- Scenario A exercises broad integration;
+- Scenario B exercises mobility/EMCON/partition stress;
+- AAR records semantic events sufficient to explain fusion/tasking/degradation;
+- a mission profile can assign multiple MULEs to teams and activate locally with no
+  WAN dependency;
+- an EUD can reach CORE_READY through its assigned MULE with no WAN, no Tailscale,
+  no sensor plugin, and all enhanced sensor permissions denied;
+- AP/MULE context defaults the team without making AP association the sole
+  enrollment authorization decision;
+- baseline EUD AP-side link observations remain available without enhanced client
+  sensing;
+- enhanced sensor permission denial removes only affected capabilities;
+- remote continuity can be skipped without affecting local readiness;
+- remote continuity can remain PENDING_WAN without affecting local readiness;
+- simulated remote EUD access is scoped to the assigned MULE and approved ingress;
+- simulated assigned-MULE failure does not cause cross-team remote failover;
+- team reassignment does not accumulate stale remote authorization;
+- no reusable real Tailscale auth key exists in source, fixture, evidence, or
+  mission package;
+- all claims remain SIMULATED unless real hardware/mobile/client evidence exists.
+
+================================================================================
+22. HARDWARE VALIDATION HANDOFF
+================================================================================
+
+When hardware arrives, do not redesign this architecture first.
+
+Replace fakes one interface at a time and determine which assumptions fail.
+
+Priority physical/mobile validation:
+1. target-radio enumeration/readers;
+2. AP-side EUD link telemetry on selected Wi-Fi hardware/driver;
+3. Wi-Fi/BLE scan/receive behavior and AP/scanner concurrency;
+4. representative Android/ATAK plugin install, permission, background, buffering,
+   and task behavior;
+5. representative iOS/iTAK integration/distribution path and supported sensor
+   capability subset;
+6. MULE-hosted onboarding flow on representative Android/iOS browsers;
+7. Tailscale client enrollment UX on representative Android/iOS devices, including
+   exact user-confirmation steps and PENDING_WAN recovery;
+8. local-path preference when local Wi-Fi and Tailscale are simultaneously present;
+9. HaLow/LoRa coexistence and scan/transmit controls;
+10. receive-dominant/EMCON behavior;
+11. independent measurement of claimed transmit suppression;
+12. GNSS fields actually exposed by candidate receiver;
+13. RF sensor/SDR performance where fitted;
+14. power/thermal impact of sensing;
+15. real communications-terrain measurements versus synthetic logic.
+
+A hardware finding may:
+- confirm the fake boundary;
+- change the reader/interface;
+- narrow a capability;
+- remove a capability;
+- create a new trade;
+- require controlled CONOPS/ADR change.
+
+Do not preserve the software design merely because it already exists.
+
+================================================================================
+23. SCOPE GUARDRAILS
+================================================================================
+
+Do not use this enhancement to justify:
+- a custom TAK replacement;
+- a custom LoRa PHY/protocol;
+- a custom MANET protocol;
+- Kubernetes or distributed application scheduling;
+- a fleet-wide distributed observation database;
+- a generic AI fusion engine;
+- autonomous AI network control;
+- a plugin marketplace;
+- persistent anonymous device/person tracking;
+- broad communications interception;
+- arbitrary IQ collection as a default;
+- precise emitter geolocation from ordinary RSSI;
+- a new daemon for every logical box in a diagram.
+- WAN/Tailscale as a prerequisite for baseline mission execution;
+- silent OS permission grants or attempts to bypass mobile permission controls;
+- AP association as the sole durable mission-enrollment authorization;
+- broad EUD access to the entire tailnet;
+- automatic cross-team MULE failover for remote EUDs;
+- reusable pools of Tailscale auth keys stored on field MULEs;
+- treating optional sensor/Tailscale refusal as an onboarding failure.
+
+Prefer:
+- deterministic policy;
+- upstream/native representations;
+- local-first processing;
+- bounded queues;
+- freshness/TTL;
+- evidence counts;
+- explainable correlation;
+- explicit unknown/unavailable state;
+- small reusable primitives;
+- tests that fail without the behavior;
+- SIMULATED now, physical evidence later.
+
+================================================================================
+24. RECEIVING AGENT EXECUTION DIRECTIVE
+================================================================================
+
+Upon receipt:
+
+1. Read current AGENTS.md, STATUS.md, ROADMAP.md, ROADMAP-DEV.md,
+   NON-GOALS.md, THREAT_MODEL.md, and the controlling CONOPS/SAD/ADRs.
+2. Produce a short delta against this handoff; current main wins.
+3. Do not enlarge the committed v0.0.1 milestone.
+4. Treat this as a parallel software-enhancement track while hardware is pending.
+5. Start with the smallest end-to-end fake path:
+   source -> observation -> lifecycle -> presentation stand-in.
+6. Write the failing test first.
+7. Use synthetic identities/locations only.
+8. Implement single-source behavior before multi-source fusion.
+9. Prove false-merge and stale-data refusal paths.
+10. Add tasking only after observation lifecycle works.
+11. Add communications-terrain logic only after link-observation fixtures exist.
+12. Keep exact wire representation upstream-first.
+13. Do not implement blocked placeholder services merely to make the scenario pass.
+14. Do not create a new daemon without evidence a process boundary is required.
+15. Keep mobile/hardware access behind fakeable interfaces.
+16. Update docs/readings.md before adding a production hardware reading.
+17. Update THREAT_MODEL.md before production EUD sensing crosses its current scope.
+18. Preserve CORE_READY as independent of WAN, Tailscale, enhanced sensor
+    permissions, and optional sensor-plugin availability.
+19. Implement MULE/AP-derived default team context separately from enrollment
+    authorization.
+20. Implement no-WAN local mission/EUD tests before remote-continuity tests.
+21. Treat Tailscale as optional remote continuity; keep real credentials out of the
+    repository and fixtures.
+22. Use mission+team-scoped remote identities and assigned-MULE-only grants in
+    simulation; do not model broad EUD tailnet access.
+23. Treat tagged mobile EUD identity as an explicit FML architectural exception to
+    Tailscale's normal user-device guidance and preserve FML-side human/device audit
+    mapping.
+24. Treat EMCON-RX/HARD-SILENT as proposed simulation subprofiles pending required
+    control/change process.
+25. Run tools/lint.sh, mutation checks, and relevant tests.
+26. Produce evidence for every SIMULATED claim.
+27. When hardware/representative phones arrive, replace fakes rather than invent
+    parallel platform-only behavior.
+28. If hardware/mobile OS/client behavior falsifies an assumption, change the
+    architecture; do not hide the mismatch.
+
+================================================================================
+25. GUIDING ENHANCEMENT RULE
+================================================================================
+
+MULE should convert approved sensing that is already present on MULEs, EUDs, and
+specialist ESDs into useful mission awareness without forcing operators to
+understand sensor transport, routing, protocol adapters, or bearer mechanics.
+
+The system should preserve the distinction between:
+- what a sensor observed;
+- what FML can defensibly correlate or derive;
+- what the operator is shown.
+
+It should preserve provenance and freshness, degrade representation before
+dropping useful information, collect locally through partitions where policy
+permits, and never turn software simulation into a claim about physical RF
+behavior.
+
+For EUDs, the product rule is:
+
+INSTALL ATAK/iTAK
+-> JOIN THE ASSIGNED MULE AP
+-> COMPLETE THE MULE WEB ONBOARDING FLOW
+-> RETURN TO TAK
+-> OPERATE
+
+Sensor enhancement and remote continuity may improve that experience, but neither
+is permitted to become a prerequisite for baseline local mission participation.
+A five-MULE mission shall still be provisionable, form its local network, onboard
+EUDs, and execute authorized mesh-carried mission services with no WAN.
+
+END OF SYSTEM ENHANCEMENT HANDOFF

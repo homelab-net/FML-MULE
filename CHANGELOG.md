@@ -14,14 +14,20 @@ this program needs them visible:
 
 ## Unreleased
 
-### Proposed remote-EUD overlay posture
+### Accepted remote-EUD overlay posture
 
-`FML-ADR-082` is `PROPOSED` and `CCR-04` is `OPEN`. Neither has weight.
-`FML-ADR-039` remains the controlling overlay decision, and CONOPS v1.01 is
-not edited. The request is the section 86 path for an optional, default-off,
-assigned-MULE-only EUD overlay grant. Acceptance, later, is a CONOPS v1.1
-reissue and both supersession directions in one change. The child list is in
-`CCR-04`.
+`CCR-04` is accepted. CONOPS v1.1 replaces v1.01 as the controlling copy.
+`FML-ADR-082` is `SELECTED` and supersedes `FML-ADR-039`. The grant does not
+place an EUD on the local RF mesh. An admitted EUD carries one tag that names
+the mission and the assigned team and does not name a role. Several broad
+tags are not how that grant is composed. MULE tags do not name a mission or
+a team. The assigned MULE may still reach an
+approved mission service for that EUD over that mesh. Stage 6 is still not an
+executable definition. The files in `docs/evidence/stage-06-wan-overlay/`
+record the cases and state that none has been run. Nothing here is
+`SIMULATED` or `HARDWARE-VERIFIED`. v0.0.1 is unchanged. The parallel
+enhancement list is `docs/change-requests/2026-09-23-system-enhancement-direction.txt`.
+It is not a baseline and it is not implemented.
 
 ### TBR-TAK-01 evidence complete, and a clobbered analysis recovered
 

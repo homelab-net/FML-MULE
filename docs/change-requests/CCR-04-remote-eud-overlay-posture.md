@@ -1,17 +1,13 @@
 # CCR-04 Optional remote-EUD overlay membership ends at the assigned MULE
 
 **Type:** CONOPS change request
-**Status:** `OPEN`
-**Target version:** CONOPS **v1.1** (minor increment, stakeholder re-approval)
+**Status:** `ACCEPTED`
+**Target version:** CONOPS **v1.1** (issued)
 **Sections affected:** 12, 43, 78 Stage 6, 79 criterion 17, 85 (impact only; the
 matrix row for criterion 17 keeps Stage 6)
 **Raised by:** Program Owner direction, 2026-09-23
-**Decision:** `FML-ADR-082` (`PROPOSED`, no weight)
-**Does not block:** `FML-ADR-039`, which stays `SELECTED` until this request is
-accepted. Does not block `FML-ADR-068`, `FML-ADR-069`, or `TBR-NET-04`. Does
-not block v0.0.1, `mule/`, or the mission schema.
-**Blocks on acceptance:** any implementation that places an EUD on the overlay,
-including a flat-sat that claims the new posture is controlling.
+**Accepted by:** Program Owner, 2026-09-23
+**Decision:** `FML-ADR-082` (`SELECTED`; supersedes `FML-ADR-039`)
 
 ## Statement
 
@@ -21,11 +17,12 @@ that change: mission creation selects a remote-EUD overlay posture, default
 `DISABLED`, optional `ASSIGNED_MULE_ONLY`, and the assigned MULE remains the
 boundary past that membership.
 
-This record is that request. It does not approve it, it does not edit CONOPS
-v1.01, and it does not supersede `FML-ADR-039`. `docs/conops/README.md` forbids
-editing the transcribed CONOPS in place. Acceptance reissues v1.1 and, in the
-same change, sets `FML-ADR-082` to `SELECTED` with `supersedes: FML-ADR-039`
-and sets `FML-ADR-039` to `SUPERSEDED` with `superseded-by: FML-ADR-082`.
+This record is that request. It was accepted on 2026-09-23. CONOPS v1.1 is the
+controlling copy. `FML-ADR-082` is `SELECTED` and `FML-ADR-039` is
+`SUPERSEDED`. It does not block `FML-ADR-068`, `FML-ADR-069`, or `TBR-NET-04`.
+It does not enlarge v0.0.1, and it does not edit `mule/` or the mission schema.
+A flat-sat may now exercise the posture. Until that flat-sat exists, the
+posture is decided and not demonstrated.
 
 The change alters `[SHALL]` statements, a section 79 criterion, and a section
 78 stage. Section 86 makes that a minor increment and stakeholder re-approval,
@@ -73,8 +70,8 @@ Section 79, criterion 17:
 17. MULE remains the WAN-overlay boundary for EUDs;
 ```
 
-SAD section 35.2 transcribes the same prohibitions as `C12-01`, `C43-01`, and
-`C43-02`. Those rows are downstream of this request. They are not edited here.
+SAD section 35.2 transcribes the clauses as `C12-01`, `C12-02`, and `C43-01`
+through `C43-09`. Those rows were updated in the acceptance change.
 
 ## 3. Proposed text
 
@@ -113,8 +110,19 @@ not join the overlay.
 approved remote-EUD ingress of its assigned MULE. The assigned MULE shall
 remain the WAN security and routing boundary past that membership. The grant
 shall not extend to any other MULE, to MULE management interfaces, to peer
-EUDs on the overlay, to the local RF mesh, or to unrelated home, private, or
-administrative infrastructure.
+EUDs on the overlay, or to unrelated home, private, or administrative
+infrastructure.
+
+[SHALL] The grant shall not place the EUD on the local RF mesh and shall not
+give the EUD a route onto that mesh. Past the assigned ingress, the MULE may
+reach an approved mission service for that EUD, including a service the MULE
+itself reaches over the local RF mesh. That reach is the MULE's. It is not
+membership of the mesh, and it is not an extension of the mesh across the WAN.
+Peer awareness, where approved, shall use a routed application service. It
+shall not be a mesh route the EUD holds.
+
+[SHALL] The grant shall not remove or replace local EUD access through the
+MULE access point.
 
 [SHALL] If the assigned MULE is unavailable, that EUD shall not obtain overlay
 ingress through another MULE.
@@ -139,6 +147,9 @@ becomes:
 * default remote-EUD posture: EUD isolation from the overlay;
 * ASSIGNED_MULE_ONLY: an authorized EUD reaches only its assigned MULE's
   approved remote-EUD ingress;
+* that grant does not place the EUD on the local RF mesh; an approved mission
+  service the assigned MULE reaches over that mesh is still reached through
+  the assigned ingress;
 * loss of the assigned MULE does not attach that EUD through another MULE;
 * unauthorized Homelab access denial;
 * WAN loss and local continuity;
@@ -150,8 +161,10 @@ Section 79, criterion 17:
 ```text
 17. Under the default posture an EUD does not join the WAN overlay. An EUD
     admitted to the overlay reaches only its assigned MULE's approved
-    remote-EUD ingress, and that MULE remains the security and routing
-    boundary past that membership.
+    remote-EUD ingress and is not placed on the local RF mesh. The assigned
+    MULE remains the security and routing boundary past that ingress,
+    including where it reaches an approved mission service for that EUD
+    over the local RF mesh.
 ```
 
 Criteria 16, 18, and 19 are unchanged. WAN stays optional. Remote teams still
@@ -166,12 +179,20 @@ not turn MULEs off. The default preserves today's prohibition.
 
 The boundary sentence is restated rather than deleted. Membership, when
 selected, ends at one ingress on the assigned MULE. The MULE is still the
-boundary between that EUD and everything else: other MULEs, management,
-peer EUDs, the RF mesh, and unrelated infrastructure.
+boundary past that ingress: other MULEs, management, peer EUDs on the overlay,
+and unrelated infrastructure. The EUD is not placed on the RF mesh and holds
+no route onto it. The MULE may still reach an approved mission service for
+that EUD, including a service the MULE reaches over the RF mesh. That is the
+MULE's path, not the EUD's overlay grant. The local access-point path is a
+different path and is not removed.
 
-Tailscale answers which infrastructure an endpoint may reach. FML answers
-mission, team, role, and authorization. A tag that spells a team name is not
-introduced.
+Tailscale answers which infrastructure an endpoint may reach. For an admitted
+EUD that answer is one tag, and the tag names the mission and the assigned
+team. It does not name a role. The grant is not assembled from several broad
+tags. FML signed mission policy still answers who the person is, what role
+they hold, and what they may see or do. MULE tags do not name a mission or a
+team. `FML-ADR-039`'s prohibition on a mission or team in any tag is the
+clause this acceptance changes, and only for the admitted EUD.
 
 Local mission operation does not require WAN, and declining the opt-in does
 not fail onboarding. A reusable Tailscale authentication key is not cached on
@@ -189,62 +210,38 @@ The opt-in is the EUD's own enrollment, not masquerade onto the tailnet.
 
 ## 5. Downstream documents affected
 
-Edited in this change, as pointers only. None of them adopts the proposed
-text.
+Edited when this request was accepted.
 
-| Document | What this change does |
+| Document | What the acceptance change did |
 | --- | --- |
-| `docs/adr/FML-ADR-082-optional-remote-eud-overlay-membership-ends-at-the-assigned-mule.md` | The `PROPOSED` decision. No weight. |
-| `docs/change-requests/README.md` | Register row. |
-| `test/stages/stage-06-wan-overlay/README.md` | Points at this request. Current scope stays the CONOPS v1.01 quote. |
-| `THREAT_MODEL.md` | States that the passthrough bullet is unchanged and names this request. |
-| `docs/ROADMAP-DEV.md` item 4.6 | States that onboarding is not this request. |
-| `docs/trades/TBR-NET-04-how-does-the-mesh-elect-and-pool-wan-gateways-across-multiple-uplinks.md` | States that this request does not decide the trade. The closure gate is unchanged. |
-| `docs/prior-art/wan-and-halow-dependencies.md` | States that the 2026-09-11 evaluation stands under `FML-ADR-039`. |
+| `docs/conops/FML-MULE-CONOPS-v1.1.txt` | Reissue. v1.01 was removed as the controlling copy. |
+| `docs/conops/README.md` | `[SHALL]` count is 151. |
+| `docs/adr/FML-ADR-082-optional-remote-eud-overlay-membership-ends-at-the-assigned-mule.md` | `SELECTED`. `supersedes: FML-ADR-039`. |
+| `docs/adr/FML-ADR-039-wan-overlay-terminates-on-mule.md` | `SUPERSEDED`. `superseded-by: FML-ADR-082`. Decision text kept. |
+| `docs/architecture/FML-MULE-SAD-v0.31.md` | Section 0.8 row; section 18.1; section 18.2 tag rule; section 35.1 counts; section 35.2 rows `C12-01`, `C12-02`, `C43-01` through `C43-09`. Section 18.3 was not relaxed. |
+| `docs/verification/requirements.md` | Criterion 17 text. Allocations of `FML-REQ-016` through `FML-REQ-019` moved to `FML-ADR-082`. |
+| `docs/verification/traceability.md` | Regenerated. |
+| `test/stages/stage-06-wan-overlay/README.md` | Scope is the v1.1 list. Decision is `FML-ADR-082`. |
+| `test/stages/stage-12-nomad-integration/README.md` | Decision citation moved to `FML-ADR-082`. Scope unchanged. |
+| `THREAT_MODEL.md` | Managed-enrollment paragraph added. Passthrough bullet kept. |
+| `docs/prior-art/wan-and-halow-dependencies.md` | Two-posture proof. The 2026-09-11 evaluation was not rewritten. |
+| `docs/prior-art/registry.yml` | Membership rationale cites `FML-ADR-082`. |
+| `docs/change-requests/PBCR-01-field-service-plane.md` | Default posture, with the assigned-MULE exception. |
+| `os/config/nftables.conf.template` | Comment only. "thus the overlay" removed. No rule change. |
+| `docs/evidence/stage-06-wan-overlay/` | Case files. Each states that the case has not been run. |
 | `STATUS.md`, `docs/decision-index.md` | Regenerated. |
 
-Not edited. On acceptance, the same change that reissues CONOPS v1.1 does the
-following. Doing any of it now would make proposed text look controlling.
+Not edited, on purpose.
 
-| Document | Acceptance edit | Why not now |
-| --- | --- | --- |
-| `docs/conops/FML-MULE-CONOPS-v1.01.txt` | Replace the file with the v1.1 reissue. Do not patch v1.01. | Controlled transcription. Section 86. |
-| `docs/conops/README.md` | Update the `[SHALL]` count check. v1.01 expects 145. The proposed section 43 text adds sentences, so the count moves. | The count is of the issued file. |
-| `docs/adr/FML-ADR-039-wan-overlay-terminates-on-mule.md` | `SUPERSEDED`, `superseded-by: FML-ADR-082`. | Both directions wait for acceptance. `082` repeats every clause that would otherwise die with `039`. |
-| `docs/architecture/FML-MULE-SAD-v0.31.md` | Section 0.8 row; section 18.1 "EUDs do not join the tailnet"; section 35.2 rows `C12-01`, `C43-01`, `C43-02`. Section 18.2 (tags are not mission roles) is already the rule `082` carries forward and stays. Section 18.3 (overlay loss does not remove local operation) stays. | The SAD is derived from the issued CONOPS. |
-| `docs/verification/requirements.md` | Rewrite `FML-REQ-017` text to the new criterion 17. Move its allocation from `FML-ADR-039` to `FML-ADR-082`. Move `FML-REQ-016`, `FML-REQ-018`, and `FML-REQ-019` allocations the same way, because `082` carries those clauses and acceptance supersedes `039`. Regenerate `docs/verification/traceability.md`. | This file transcribes CONOPS v1.01 section 79. Changing it now makes it a second, drifting copy. |
-| `test/stages/stage-06-wan-overlay/README.md` | Replace the scope list with the proposed Stage 6 bullets. Decisions line becomes `FML-ADR-082`. | The current bullets are the issued stage. |
-| `test/stages/stage-12-nomad-integration/README.md` | Retarget the decisions citation from `FML-ADR-039` to `FML-ADR-082`. The stage scope does not change. | On acceptance `039` is no longer the live decision. The Homelab-denial obligation moves with `082`. |
-| `THREAT_MODEL.md` | Add a paragraph for the managed enrollment. Do not rewrite the passthrough bullet that says the uplink path does not reach the overlay. | That bullet is `FML-ADR-068`, and it stays true. |
-| `docs/prior-art/wan-and-halow-dependencies.md` | Replace "proof that EUDs never join the overlay" with the two-posture proof. Do not rewrite the 2026-09-11 client evaluation as if it had been run under `082`. | The evaluation is evidence of what was true that day. |
-| `docs/prior-art/registry.yml` | The Tailscale rationale cites `FML-ADR-039`. Point the membership rule at `FML-ADR-082`. `FML-REQ-017` keeps its identifier. | Requirement identifiers are stable. The live ADR citation is not, after supersession. |
-| `docs/change-requests/PBCR-01-field-service-plane.md` | The preserved constraint "EUDs do not join the WAN overlay (`FML-ADR-039`)" becomes the default posture, with the assigned-MULE exception cited to `FML-ADR-082`. | That constraint is still binding. |
-| `os/config/nftables.conf.template` | Retarget the `FML-ADR-039` comment to `FML-ADR-068` and `FML-ADR-082`. Delete the phrase "thus the overlay". It overstates `FML-ADR-068`, which forbids routing access-point traffic into the overlay. No rule change. | A comment edit in live configuration would look like the firewall had adopted `082`. |
-| `docs/adr/FML-ADR-068-an-eud-on-the-access-point-is-forwarded-to-the-wan-uplink.md` | No decision edit. A reader who needs the relationship uses `082`, which says `068` stands. | A `SELECTED` decision is not amended in place. |
-| `docs/adr/FML-ADR-069-a-mule-shares-its-wan-uplink-across-the-mesh-and-available-uplinks-are-pooled.md` | No edit. Its "overlay boundary of CONOPS section 43" remains the passthrough and pooling boundary, which `082` does not relax. | Different question. |
-| `docs/adr/README.md` | No hand edit. The reading-aid table already lags past `FML-ADR-051`. `STATUS.md` is the generated register. | Repairing that lag is not this request. |
-
-Historical records. Do not rewrite them on acceptance either. They describe the
-boundary as it was when they were written.
-
-- `docs/evidence/TBR-NET-01/2026-08-31-external-network-collision-analysis.md`
-- `docs/evidence/TBR-NET-03/2026-09-04-what-a-liaison-forwards-and-who-authorises.md`
-- `docs/evidence/TBR-NET-04/2026-09-04-gateway-sharing-hwsim.txt`
-- `docs/change-requests/CCR-03-source-dm32-roip-handoff.txt`
-- `hardware/prototype/BOM-v0.4-DM32-RoIP-handoff.txt`
-- `docs/prior-art/openmanetd.md` cites `FML-REQ-017` by identifier only. The
-  identifier does not change.
-
-Not in this request, and not an acceptance edit of those files:
-
-- `mission/schema/mission-package.schema.json`. CONOPS section 19 already
-  requires users, roles, and organizational scope. The schema has none of
-  them. Sensor and remote-access fields wait until that foundation exists.
-  SAD section 19.2 already lists WAN policy as package content, which is the
-  conceptual slot. A fixture may model the posture.
-- `mule/`. No production literal, including a "waiting for WAN" status.
-- `docs/NON-GOALS.md`. Nothing is promoted off section 81.
-- v0.0.1.
+| Document | Why it stays |
+| --- | --- |
+| `docs/adr/FML-ADR-068-an-eud-on-the-access-point-is-forwarded-to-the-wan-uplink.md` | A `SELECTED` decision is not amended in place. `082` says it stands. |
+| `docs/adr/FML-ADR-069-a-mule-shares-its-wan-uplink-across-the-mesh-and-available-uplinks-are-pooled.md` | Different question. Its overlay boundary is the passthrough and pooling boundary. |
+| `mission/schema/mission-package.schema.json` | Identity, role, and organizational scope are still absent. The posture is not a schema field yet. |
+| `mule/` | No production literal. |
+| `docs/NON-GOALS.md` | Nothing left section 81. |
+| `docs/adr/README.md` | The reading-aid table already lags past `FML-ADR-051`. `STATUS.md` is the register. |
+| Historical evidence and the hardware BOM | They describe the boundary as it was when they were written. |
 
 ## 6. Verification impact against section 85
 
@@ -263,24 +260,29 @@ the scope the definition covers. It does not invent pass thresholds.
 
 ## 7. Approval
 
-None. Status is `OPEN`.
+Accepted. Program Owner, 2026-09-23.
 
-Approval is a named Program Owner acceptance of this request, followed by the
-CONOPS v1.1 reissue and the supersession edit in section 5. Approval of this
-file alone, as with `CCR-03` before its reissue, does not change v1.01 and
-does not by itself make `FML-ADR-082` `SELECTED`. The reissue and the
-supersession are the baselining step, and they are one change.
+Acceptance is this reissue and the supersession, in one change. The section 87
+signature block in CONOPS v1.1 is still unsigned. That is a different signature
+from this acceptance, and it was already unsigned on v1.01.
 
 ## What this request does not decide
 
-- How a Tailscale grant, or an equivalent, is written so the only destination
-  is the assigned ingress. The policy is decided. The mechanism is not, and it
-  is not given an identifier here.
+- How the Tailscale grant syntax, or an equivalent, is written so the only
+  destination is the assigned ingress. The tag's contents are decided. The
+  ACL mechanism is not, and it is not given an identifier here.
+- The exact spelling of `tag:eud-mission-<mission>-team-<team>`. The
+  illustration is not a frozen field name.
 - Gateway election and uplink pooling (`TBR-NET-04`, `FML-ADR-069`).
-- Access-point forwarding (`FML-ADR-068`).
+- Access-point forwarding (`FML-ADR-068`). Whether a local EUD is also
+  forwarded onto `batman-adv` stays open there, with `TBR-TAK-01`. The
+  remote-EUD grant does not close it, and it does not remove the access-point
+  path.
 - Onboarding transport, EAP-TLS bootstrap, or browser-trusted TLS without WAN
   (roadmap item 4.6, `FML-ADR-038`, `FML-ADR-031`).
 - Sensor permission, observation lifecycle, communications-terrain wording,
   EMCON vocabulary, or `mule/capability.py`.
 - A node-status literal for remote continuity.
-- Team, role, or mission identity inside Tailscale.
+- The rest of `docs/change-requests/2026-09-23-system-enhancement-direction.txt`.
+  That file is not accepted by this request. The admitted-EUD tag is the only
+  identity change this request makes.
