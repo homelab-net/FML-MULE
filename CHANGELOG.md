@@ -14,6 +14,11 @@ this program needs them visible:
 
 ## Unreleased
 
+### Drafted, not accepted
+
+`CCR-05` proposes CONOPS v1.2 language for mission observations and optional
+sensing. It is `OPEN` and changes nothing that is already controlling.
+
 ### Accepted remote-EUD overlay posture
 
 `CCR-04` is accepted. CONOPS v1.1 replaces v1.01 as the controlling copy.
