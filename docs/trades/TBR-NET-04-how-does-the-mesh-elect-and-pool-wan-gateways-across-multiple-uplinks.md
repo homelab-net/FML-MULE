@@ -119,6 +119,9 @@ resilience and contention observed, not a threshold fixed here.
   `os/config/networkd.conf.template`.
 - **Related decisions:** `FML-ADR-069`, `FML-ADR-068`, `FML-ADR-039` (the WAN
   overlay), `FML-ADR-053` (BATMAN-IV, whose gateway-mode behaviour applies).
+  `FML-ADR-082` (`PROPOSED`) does not decide this trade. Geographic MULE overlay
+  membership is not uplink election, and the closure gate's prohibition on
+  routing EUD traffic into the overlay still applies to this exercise.
 - **Validating stage:** `test/stages/stage-06-wan-overlay/`.
 - **Requires hardware:** `partly`. The routing and election logic is exercisable
   on `mac80211_hwsim`; real uplink behaviour and RF are not.

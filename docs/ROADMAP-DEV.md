@@ -1341,6 +1341,12 @@ decided):**
   certificate (Android has no equally clean single-file path), and one-time
   per-user enrollment tokens in preference to reusable passwords.
 
+**Not this item.** `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) are a
+mission WAN-policy posture for optional remote-EUD overlay membership. They do
+not add an onboarding architecture, and they do not move the bootstrap deadlock
+out of this item. Production enrollment stays the path above. The proposal has
+no weight until `CCR-04` is accepted.
+
 **Residual risks and open sub-decisions (documented, not solved):**
 
 - **Physical capture is an expected condition and yields keys.** `THREAT_MODEL.md`

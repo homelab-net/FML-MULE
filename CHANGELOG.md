@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Proposed remote-EUD overlay posture
+
+`FML-ADR-082` is `PROPOSED` and `CCR-04` is `OPEN`. Neither has weight.
+`FML-ADR-039` remains the controlling overlay decision, and CONOPS v1.01 is
+not edited. The request is the section 86 path for an optional, default-off,
+assigned-MULE-only EUD overlay grant. Acceptance, later, is a CONOPS v1.1
+reissue and both supersession directions in one change. The child list is in
+`CCR-04`.
+
 ### TBR-TAK-01 evidence complete, and a clobbered analysis recovered
 
 The empirical half of the mission-critical state boundary is done. All four

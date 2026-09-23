@@ -57,7 +57,10 @@ policy still require GAP-10 evidence.
 No exact client package was installed or run. Selection still requires a
 package pin, deny-by-default grants, route-overlap rejection, loss-of-control
 plane behavior, durable-state backup/revocation, and proof that EUDs never join
-the overlay. The exit strategy is the routed application boundary in
+the overlay. `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) would replace
+that proof with a default of not joining and an administrator-selected
+assigned-MULE ingress. This evaluation was made under `FML-ADR-039` and is not
+amended by that proposal. The exit strategy is the routed application boundary in
 `FML-ADR-039`: an equivalent overlay can replace the client without changing
 EUD membership or mission authorization.
 

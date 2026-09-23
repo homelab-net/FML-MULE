@@ -221,7 +221,12 @@ a role the MULE is expected to fill.
   (`FML-ADR-039`). So the exposure is to the internet uplink, not to the other
   MULEs and infrastructure the overlay reaches. That boundary is load-bearing:
   if a future change routed EUD traffic onto the overlay, this bullet would be
-  wrong.
+  wrong. `CCR-04` and `FML-ADR-082` (`PROPOSED`, no weight) do not do that.
+  They propose a separate, default-off enrollment of a managed EUD to its
+  assigned MULE's remote-EUD ingress only. The node still shall not route
+  access-point traffic into the overlay (`FML-ADR-068`). This bullet stays in
+  force until `CCR-04` is accepted, and even then it stays true of the
+  passthrough path.
 - **Mesh-wide sharing widens it further, by design and separately.**
   `FML-ADR-069` makes WAN a mesh-wide capability, so a device several hops away
   can reach an uplink. The same overlay boundary must then hold across the mesh,

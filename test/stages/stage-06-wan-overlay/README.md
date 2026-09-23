@@ -17,6 +17,12 @@ From the CONOPS:
 - unauthorized Homelab access denial;
 - WAN loss and local continuity.
 
+The bullets above are CONOPS v1.01 and remain the stage scope. `CCR-04` and
+`FML-ADR-082` (`PROPOSED`, no weight) would revise the EUD-isolation bullet and
+add assigned-ingress, no-reattach, and no-Layer-2-extension cases. They do not
+apply until that request is accepted and CONOPS v1.1 is reissued. `FML-ADR-039`
+stays the controlling decision.
+
 ## Why this stage
 
 Two of the four criteria here are **negative**: EUDs must be shown not to join
