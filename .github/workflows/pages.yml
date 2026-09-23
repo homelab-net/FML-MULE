@@ -1,0 +1,50 @@
+---
+# Publish the static front door.
+#
+# This workflow does not build a node. It uploads the files already in site/.
+# A green deploy says the pages were copied. It says nothing about RF, power,
+# thermal, or an image. See site/README.md.
+
+name: Pages
+
+"on":
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish the front door
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site directory
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
