@@ -18,7 +18,8 @@ What would be shown: posture ASSIGNED_MULE_ONLY. The admitted EUD has one
 Tailscale tag. That tag names the mission and the assigned team. It does not
 name an operational role. The assigned MULE is reached only through the
 approved remote-EUD ingress. The spelling of the tag is not frozen by this
-file. An illustrative form is tag:eud-mission-<mission>-team-<team>.
+file. An illustrative form is tag:eud-mission-NAME-team-NAME. The words
+NAME are placeholders. They are not a frozen spelling.
 
 Pass: one tag is sufficient for the ingress grant, and a role is not in it.
 Removing that tag removes the grant. Adding a second broad tag is not what

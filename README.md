@@ -27,7 +27,8 @@ design is built for.
 repository.**
 
 The program is **pre-PDR**. The operational concept is **baselined**
-(CONOPS v1.1, CCR-04 accepted; the section 87 signature block is still unsigned). The architecture is **drafted**
+(CONOPS v1.1, CCR-04 accepted; the section 87 signature block is still
+unsigned). The architecture is **drafted**
 (SAD v0.31, an SRR package candidate). **Almost nothing is built, and nothing at
 all has been measured.**
 
