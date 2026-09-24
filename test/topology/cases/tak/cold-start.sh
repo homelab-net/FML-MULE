@@ -33,10 +33,17 @@ home=/home/$account
 runtime=""
 
 as_user() {
-  sudo -u "$account" env \
+  # This runner's sudo keeps XDG_CONFIG_HOME on the invoking home.
+  # env -i is what points Podman and systemctl at this account.
+  sudo -u "$account" env -i \
+    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+    HOME="$home" \
+    USER="$account" \
+    LOGNAME="$account" \
     XDG_RUNTIME_DIR="$runtime" \
     DBUS_SESSION_BUS_ADDRESS="unix:path=${runtime}/bus" \
-    HOME="$home" \
+    XDG_CONFIG_HOME="$home/.config" \
+    XDG_DATA_HOME="$home/.local/share" \
     "$@"
 }
 

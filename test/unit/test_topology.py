@@ -29,6 +29,8 @@ def test_cold_start_starts_at_the_repository_root() -> None:
     assert "services/tak/Containerfile" in script
     assert 'systemctl start "user@${account_uid}.service"' in script
     assert "systemctl --user start opentakserver.target" in script
+    assert "env -i" in script
+    assert 'XDG_CONFIG_HOME="$home/.config"' in script
     assert "--user 0" not in script
     assert ".erlang.cookie" not in script
     run_lines = [line for line in script.splitlines() if "podman run" in line]
