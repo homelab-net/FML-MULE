@@ -176,7 +176,18 @@ TimeoutStartSec=240
 ExecStart=/bin/sh -c 'i=0; while [ ! -f /home/fml/mesh-gate-open ]; do i=$((i+1)); if [ "$i" -gt 180 ]; then exit 1; fi; sleep 1; done'
 EOF
 chown -R "$account:$account" "$home/.config"
+# This runner's home has a default ACL, so the copies are group
+# writable. Quadlet ignores those files. Drop the group and other
+# write bits or the generator installs nothing.
+chmod -R go-w "$home/.config"
 
+# User generators do not inherit this account's login environment.
+# Quadlet only looks in $XDG_CONFIG_HOME or $HOME, and neither is set
+# for them unless the user manager's transient environment has it.
+as_user systemctl --user set-environment \
+  HOME="$home" \
+  XDG_CONFIG_HOME="$home/.config" \
+  XDG_RUNTIME_DIR="$runtime"
 as_user systemctl --user daemon-reload
 for unit in ots-network.service postgresql.service rabbitmq.service \
   opentakserver.service eud-handler.service cot-parser.service \
@@ -184,6 +195,7 @@ for unit in ots-network.service postgresql.service rabbitmq.service \
   if ! as_user systemctl --user cat "$unit" >/dev/null; then
     echo "generator did not install ${unit}" >&2
     ls -l /usr/lib/systemd/user-generators "$home/.config/containers/systemd" >&2 || true
+    as_user journalctl --user -n 80 --no-pager >&2 || true
     as_user systemctl --user --no-pager --failed || true
     exit 1
   fi

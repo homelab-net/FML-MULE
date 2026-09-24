@@ -32,6 +32,8 @@ def test_cold_start_starts_at_the_repository_root() -> None:
     assert "env -i" in script
     assert 'XDG_CONFIG_HOME="$home/.config"' in script
     assert 'cd "$home"' in script
+    assert 'chmod -R go-w "$home/.config"' in script
+    assert "systemctl --user set-environment" in script
     assert "--user 0" not in script
     assert ".erlang.cookie" not in script
     run_lines = [line for line in script.splitlines() if "podman run" in line]
