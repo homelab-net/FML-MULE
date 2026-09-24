@@ -60,16 +60,28 @@ podman run -d --name postgresql --network "$net" \
   -e POSTGRES_PASSWORD="$db_pass" \
   -e POSTGRES_DB="$db_name" \
   "$postgres" >/dev/null
-# The image ships .erlang.cookie in a layer this podman cannot chown
-# into a readable inode (eacces after uid 0). Delete it as root so the
-# entrypoint creates a new file, then drops to the rabbitmq user. This
-# is the test process, not the Quadlet.
+# uid 0 is real here, and the layered cookie is absent. Erlang then
+# creates /var/lib/rabbitmq/.erlang.cookie and reports eacces, which is
+# the data directory not being writable by the image user. Write a new
+# cookie and hand the directory to that user before the entrypoint drops
+# privileges. This is the test process, not the Quadlet.
 podman run -d --name rabbitmq --network "$net" --user 0 \
+  -e HOME=/var/lib/rabbitmq \
   -e RABBITMQ_DEFAULT_USER="$db_user" \
   -e RABBITMQ_DEFAULT_PASS="$db_pass" \
   --entrypoint /bin/bash \
   "$rabbit" \
-  -c 'set -eu; id; ls -l /var/lib/rabbitmq/.erlang.cookie || true; rm -f /var/lib/rabbitmq/.erlang.cookie; exec /usr/local/bin/docker-entrypoint.sh rabbitmq-server' \
+  -c 'set -eu
+ls -ld /var/lib/rabbitmq
+chown rabbitmq:rabbitmq /var/lib/rabbitmq
+chmod 700 /var/lib/rabbitmq
+printf %s fmltopologycookie > /var/lib/rabbitmq/.erlang.cookie
+chown rabbitmq:rabbitmq /var/lib/rabbitmq/.erlang.cookie
+chmod 400 /var/lib/rabbitmq/.erlang.cookie
+ls -l /var/lib/rabbitmq/.erlang.cookie
+gosu rabbitmq test -r /var/lib/rabbitmq/.erlang.cookie
+echo cookie-readable
+exec /usr/local/bin/docker-entrypoint.sh rabbitmq-server' \
   >/dev/null
 
 ready=0

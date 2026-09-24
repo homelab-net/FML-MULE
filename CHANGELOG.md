@@ -23,10 +23,9 @@ itself holds them. `test/topology/` checks that graph, asks Quadlet to
 generate the units, and can persist one synthetic CoT. The generator
 check reads the service names it emits. The software path is rooted at
 the repository and runs podman as root on the runner. The broker
-container starts as root and removes the image cookie, which this
-podman cannot chown into a readable file. The entrypoint then creates a
-new one. Media stays off. No restart and no different-node restore were
-run.
+container starts as root and writes a cookie the image user can read.
+The layered cookie was not the file Erlang failed to open. Media stays
+off. No restart and no different-node restore were run.
 
 ### Corrected the TAK unit topology
 
