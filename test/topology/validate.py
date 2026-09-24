@@ -123,8 +123,8 @@ def check_case(
                 if member in startup_only:
                     if service in requires:
                         errors.append(
-                            f"{case['id']}: target runtime-requires startup-only member "
-                            f"{service}"
+                            f"{case['id']}: target runtime-requires "
+                            f"startup-only member {service}"
                         )
                 elif service not in requires:
                     errors.append(
