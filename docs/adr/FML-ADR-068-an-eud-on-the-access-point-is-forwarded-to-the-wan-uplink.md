@@ -30,7 +30,7 @@ dropped the traffic.
 The tension is real and is not resolved by wishing it away. `THREAT_MODEL.md`
 records that the MULE **cannot detect or contain a compromised EUD**, and the
 WAN uplink is not a dumb internet pipe: it reaches the WAN overlay
-(`FML-ADR-039`, Tailscale) and therefore other MULEs and program
+(`FML-ADR-082`, which supersedes `FML-ADR-039`) and therefore other MULEs and program
 infrastructure. Forwarding an untrusted device to that uplink widens what a
 compromised EUD can touch.
 

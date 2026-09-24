@@ -30,7 +30,7 @@ block parent-system integration baseline closure.
 | --- | --- | --- |
 | `CCR-01` | CONOPS section 50 operating modes are concurrent axes, and need transition criteria | `OPEN` |
 | `CCR-02` | CONOPS section 9 does not state the service shedding order below S3 | `OPEN` |
-| `CCR-03` | Integrated RF: the DM-32UV and audio/PTT RoIP become baseline voice (CONOPS v1.1) | `OPEN` |
+| `CCR-03` | Integrated RF voice is approved; the CONOPS text was not in the v1.1 issue | `APPROVED` |
 | `CCR-04` | Optional remote-EUD overlay membership ends at the assigned MULE (CONOPS v1.1) | `ACCEPTED` |
 | `CCR-05` | Mission observations and optional sensing (draft for CONOPS v1.2) | `OPEN` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |

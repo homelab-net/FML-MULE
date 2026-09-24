@@ -4,9 +4,23 @@ This directory is a generated reading of the repository, for GitHub Pages.
 It is not evidence. It is not a node. It does not select hardware.
 
 The pages were generated against CONOPS v1.01 and have not been regenerated
-for v1.1. They are not evidence. They are not a node. They do not select
-hardware. If a sentence here disagrees with `docs/conops/` or with `STATUS.md`,
-those win.
+for v1.1. The generator is not in this repository, so the bundled pages were
+not rewritten. If a sentence here disagrees with `docs/conops/` or with
+`STATUS.md`, those win.
+
+Two captions on the architecture page are the stale ones:
+
+- "WAN stops at the node."
+- "Cloud, past the gate: Terminates on the node. Phones do not join it."
+
+The controlling distinction, CONOPS v1.1 section 43 and `FML-ADR-082`, is:
+
+- Authorized MULEs may use the WAN overlay for approved inter-MULE traffic.
+  That is routed overlay connectivity. It does not extend the RF mesh.
+- The default is that an EUD does not join the overlay.
+- An administrator may select assigned-MULE-only remote continuity. That EUD
+  reaches only its assigned MULE's remote-EUD ingress. That is not the
+  normal path, and local operation does not require it.
 
 ## What the pictures are
 

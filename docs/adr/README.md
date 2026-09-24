@@ -131,14 +131,17 @@ Patroni, etcd, Raft, a witness, a lease, quorum or fencing.
 
 | Status | Count |
 | --- | ---: |
-| `SELECTED` | 21 |
+| `SELECTED` | 20 |
 | `SELECTED PRINCIPLE` | 4 |
 | `SELECTED TARGET` | 1 |
 | `SELECTED PLANNING BASELINE` | 1 |
 | `PREFERRED` | 2 |
 | `CONDITIONAL` | 1 |
 
-30 controlling decisions, matching SAD section 0.8.
+30 controlling decisions, matching SAD section 0.8. That match is the old
+register. `FML-ADR-039` in the table below is `SUPERSEDED` by `FML-ADR-082`.
+Decisions after `FML-ADR-050`, including `FML-ADR-082`, are not in this table.
+`STATUS.md` is the register.
 
 ## Register
 
@@ -165,7 +168,7 @@ table is a reading aid and may lag; the generated one does not.
 | `FML-ADR-036` | Smallstep step-ca is preferred initial PKI | `PREFERRED` |
 | `FML-ADR-037` | Application-native RBAC first; OPA only when cross-application policy justifies it | `SELECTED` |
 | `FML-ADR-038` | EAP-TLS is the production EUD admission target | `SELECTED TARGET` |
-| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | `SELECTED` |
+| `FML-ADR-039` | WAN overlay terminates on MULE infrastructure, never directly on EUDs | `SUPERSEDED` |
 | `FML-ADR-040` | Field kernel/radio-driver promotion is gated and pinned as a tested compatibility set | `SELECTED` |
 | `FML-ADR-041` | MULE requires an A/B or equivalently bootable known-good rollback path | `SELECTED PRINCIPLE` |
 | `FML-ADR-042` | Battery-backed local RTC + chrony; optional GNSS discipline; credential validity never fails open | `SELECTED` |
