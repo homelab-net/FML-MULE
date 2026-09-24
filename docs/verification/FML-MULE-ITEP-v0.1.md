@@ -280,8 +280,10 @@ programme.
     specification they build to, and the `FML-ADR-067` single-egress invariant is
     the comparison. `CCR-03` is approved and the CONOPS text is issued in v1.2.
     This analysis half has not been run.
-11. **`TBR-OBS-01` observation representation.** Compare existing
-    representations against the eight CONOPS v1.2 section 28A sentences.
+11. **`TBR-OBS-01` observation representation.** The comparison is written
+    (`docs/evidence/TBR-OBS-01/2026-09-24-representation-comparison.md`).
+    It finds that no existing representation carries the eight sentences.
+    `FML-ADR-083` is `PROPOSED` and not accepted. The trade stays `OPEN`.
     No schema, no code, and no run. The Stage 1 demonstrations are not this
     item.
 12. **`TBR-SENSE-01` capability mark and sensor task.** How a mission profile
@@ -293,7 +295,8 @@ programme.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The other items produce written
-analyses. Items 11 through 13 have not been started.
+analyses. Item 11 has a comparison and no accepted representation. Items 12
+and 13 have not been started.
 
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.

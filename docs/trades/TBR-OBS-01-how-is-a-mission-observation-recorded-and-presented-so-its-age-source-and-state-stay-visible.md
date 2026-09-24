@@ -11,7 +11,7 @@ depends-on: []
 feeds: []
 requires-hardware: no
 evidence: docs/evidence/TBR-OBS-01/
-adr: [FML-ADR-048, FML-ADR-050]
+adr: [FML-ADR-048, FML-ADR-050, FML-ADR-083]
 target-date: 2026-09-30
 ---
 
@@ -60,10 +60,21 @@ the existing representations can carry the eight sentences. An ADR records
 that choice and cites the comparison. Until then this trade stays `OPEN`.
 The Stage 1 demonstrations in CONOPS section 85 are not this gate.
 
+## Comparison
+
+Written 2026-09-24 in
+`docs/evidence/TBR-OBS-01/2026-09-24-representation-comparison.md`. No
+candidate carries all eight sentences. `FML-ADR-083` is `PROPOSED` to record
+that finding. It does not select a format. While `PROPOSED` it carries no
+weight.
+
+**Not closed.** The named owner has not accepted the finding and has not
+accepted a representation. This trade stays `OPEN`.
+
 ## Dependencies
 
 - **Depends on:** none.
-- **Feeds:** none yet. A later ADR would cite this trade.
-- **Related decisions:** `FML-ADR-048`, `FML-ADR-050`.
+- **Feeds:** none yet. `FML-ADR-083` cites this trade and is `PROPOSED`.
+- **Related decisions:** `FML-ADR-048`, `FML-ADR-050`, and proposed `FML-ADR-083`.
 - **Validating stage:** Stage 1, after a representation exists. Not run.
 - **Requires hardware:** no. The comparison is a document.

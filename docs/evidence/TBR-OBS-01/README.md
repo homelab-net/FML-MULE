@@ -4,8 +4,13 @@
 
 **Trade file:** `docs/trades/TBR-OBS-01-how-is-a-mission-observation-recorded-and-presented-so-its-age-source-and-state-stay-visible.md`
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** one written comparison,
+`2026-09-24-representation-comparison.md`. No flat-sat was run. Nothing in it
+is `SIMULATED` or `HARDWARE-VERIFIED`.
+
+The comparison finds that no existing representation carries the eight
+CONOPS v1.2 section 28A sentences. `FML-ADR-083` is `PROPOSED` to record that
+finding and is not accepted. The trade stays `OPEN`.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,

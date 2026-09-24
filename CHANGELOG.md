@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Compared mission-observation representations
+
+`TBR-OBS-01` has a written comparison of a CoT event, the OpenTAKServer
+`cot` row, a Meshtastic `Position`, and a Meshtastic `Neighbor` against the
+eight CONOPS v1.2 section 28A sentences. None of them carries all eight.
+`FML-ADR-083` is `PROPOSED` to record that finding and is not accepted. The
+trade stays open. No schema, no code, nothing in `mule/`, and `v0.0.1` is
+unchanged. Nothing was run.
+
 ### Issued CONOPS v1.2
 
 `CCR-05` is accepted. `CCR-03` stays approved, and its voice text is in the
