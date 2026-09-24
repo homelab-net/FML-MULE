@@ -1,11 +1,10 @@
 #!/bin/sh
-# Install a distro Podman whose health checks can be scheduled by systemd.
+# Require a distro Podman whose health checks can be scheduled by systemd.
 #
-# PR173 previously fell back to mgoltzsche/podman-static on Ubuntu 24.04.
-# That bundle is built without systemd support. It accepted
-# --sdnotify=healthy/HealthCmd but never scheduled the health checks, so
-# containers remained "starting" until systemd timed out. The topology jobs
-# therefore run on Ubuntu 26.04 and use Ubuntu's systemd-enabled Podman 5.
+# A prior CI fallback used mgoltzsche/podman-static. That bundle is built
+# without systemd support: it accepted --sdnotify=healthy/HealthCmd but never
+# scheduled the checks. Prefer the runner's distro Podman when it already
+# satisfies the contract. Only install packages when that contract is missing.
 set -eu
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -13,34 +12,48 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-apt-get update -qq
-apt-get install -y -qq podman uidmap slirp4netns dbus-user-session ca-certificates
+quadlet_path() {
+  for candidate in \
+    /usr/libexec/podman/quadlet \
+    /usr/lib/podman/quadlet \
+    /usr/local/libexec/podman/quadlet; do
+    if [ -x "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
 
-major=$(podman version -f '{{.Client.Version}}' | cut -d. -f1)
-if [ "${major:-0}" -lt 5 ]; then
-  echo "Podman 5 or newer is required for Quadlet Notify=healthy" >&2
+runtime_ok() {
+  command -v podman >/dev/null 2>&1 || return 1
+  major=$(podman version -f '{{.Client.Version}}' 2>/dev/null | cut -d. -f1)
+  [ "${major:-0}" -ge 5 ] || return 1
+  quadlet_path >/dev/null 2>&1 || return 1
+  [ -x /usr/lib/systemd/user-generators/podman-user-generator ] || return 1
+}
+
+if ! runtime_ok; then
+  # Hosted runners can carry vendor package sources unrelated to this test.
+  # Restrict apt to Ubuntu's own deb822 source when available so a broken
+  # third-party repository cannot make the topology proof fail before Podman.
+  if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+    apt_opts='-o Dir::Etc::sourcelist=/etc/apt/sources.list.d/ubuntu.sources -o Dir::Etc::sourceparts=-'
+  else
+    apt_opts=''
+  fi
+  # shellcheck disable=SC2086
+  apt-get $apt_opts update -qq
+  # shellcheck disable=SC2086
+  apt-get $apt_opts install -y -qq podman uidmap slirp4netns dbus-user-session ca-certificates
+fi
+
+if ! runtime_ok; then
+  echo "systemd-enabled Podman 5+ with the user Quadlet generator is required" >&2
   podman version >&2 || true
   exit 1
 fi
 
-quadlet=""
-for candidate in \
-  /usr/libexec/podman/quadlet \
-  /usr/lib/podman/quadlet \
-  /usr/local/libexec/podman/quadlet; do
-  if [ -x "$candidate" ]; then
-    quadlet=$candidate
-    break
-  fi
-done
-if [ -z "$quadlet" ]; then
-  echo "Podman Quadlet generator is not installed" >&2
-  exit 1
-fi
-if [ ! -x /usr/lib/systemd/user-generators/podman-user-generator ]; then
-  echo "systemd-enabled Podman user generator is not installed" >&2
-  exit 1
-fi
-
+quadlet=$(quadlet_path)
 podman version
 printf 'quadlet=%s\n' "$quadlet"
