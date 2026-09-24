@@ -52,6 +52,7 @@ def test_static_podman_may_create_a_user_namespace() -> None:
     script = (root / "test/topology/ensure-podman.sh").read_text()
     assert "apparmor_restrict_unprivileged_userns" in script
     assert "ln -sfn /usr/local/bin/crun /usr/bin/crun" in script
+    assert "/usr/lib/systemd/user-generators/podman-user-generator" in script
 
 
 def test_quadlet_check_reads_generated_service_names() -> None:

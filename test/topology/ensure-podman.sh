@@ -58,6 +58,14 @@ hash -r
 # specified"). The static build ships a crun that accepts it, and the
 # engine calls /usr/bin/crun ahead of /usr/local/bin/crun.
 ln -sfn /usr/local/bin/crun /usr/bin/crun
+# Apt's generator is Podman 4. systemd runs the copy in /usr/lib, not
+# only the one this tarball drops under /usr/local. Quadlet decides
+# user mode from argv0, so the user link name has to contain "user".
+mkdir -p /usr/lib/systemd/user-generators /usr/lib/systemd/system-generators
+ln -sfn /usr/local/libexec/podman/quadlet \
+  /usr/lib/systemd/user-generators/podman-user-generator
+ln -sfn /usr/local/libexec/podman/quadlet \
+  /usr/lib/systemd/system-generators/podman-system-generator
 # Ubuntu 24.04 denies a user namespace to a binary with no AppArmor
 # profile. The pinned static build has none. Apt's podman would have
 # shipped a profile and would not reach this branch. This is the

@@ -183,6 +183,7 @@ for unit in ots-network.service postgresql.service rabbitmq.service \
   opentakserver.target systemd-networkd-wait-online@TBD.service; do
   if ! as_user systemctl --user cat "$unit" >/dev/null; then
     echo "generator did not install ${unit}" >&2
+    ls -l /usr/lib/systemd/user-generators "$home/.config/containers/systemd" >&2 || true
     as_user systemctl --user --no-pager --failed || true
     exit 1
   fi
