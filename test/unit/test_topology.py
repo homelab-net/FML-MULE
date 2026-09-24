@@ -19,3 +19,18 @@ def _load() -> ModuleType:
 def test_tak_topology_holds_and_mutations_fail() -> None:
     validator = _load()
     assert validator.main() == 0
+
+
+def test_software_path_starts_at_the_repository_root() -> None:
+    root = Path(__file__).resolve().parents[2]
+    script = (root / "test/topology/cases/tak/integrate.sh").read_text()
+    assert '$(dirname "$0")/../../../..' in script
+    assert "services/tak/Containerfile" in script
+
+
+def test_quadlet_check_reads_generated_service_names() -> None:
+    root = Path(__file__).resolve().parents[2]
+    script = (root / "test/topology/quadlet-dry-run.sh").read_text()
+    assert "QUADLET_UNIT_DIRS" in script
+    assert "ots-network.service" in script
+    assert "grep -q 'ots.network'" not in script

@@ -2,42 +2,32 @@
 # Ask the Podman Quadlet generator to accept the TAK units.
 # Image=TBD is replaced only in this temporary copy. The committed units
 # keep Image=TBD. This does not build or start a container.
+#
+# The generator does not echo the source name ots.network. A .network
+# file becomes <name>-network.service, and the podman argument is the
+# derived network name. Success is those generated names, plus --internal.
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
 work=$(mktemp -d)
-copied=""
+dest="$work/units"
 
 cleanup() {
-  # shellcheck disable=SC2086
-  if [ -n "$copied" ]; then
-    rm -f $copied
-  fi
   rm -rf "$work"
 }
 trap cleanup EXIT
 
-if [ "$(id -u)" -eq 0 ]; then
-  dest=/usr/share/containers/systemd
-  user_flag=""
-else
-  dest="$work/home/.config/containers/systemd"
-  export HOME="$work/home"
-  export XDG_RUNTIME_DIR="$work/run"
-  mkdir -p "$XDG_RUNTIME_DIR"
-  user_flag="--user"
-fi
 mkdir -p "$dest"
 
 base_image="docker.io/library/python@sha256:dbbe4ceb97851e2e5fa83798b239811f871cb743b259ba3563737349f6bcfaa0"
-for src in "$root"/services/quadlets/*.container.disabled "$root"/services/quadlets/*.network.disabled; do
+for src in "$root"/services/quadlets/*.container.disabled \
+  "$root"/services/quadlets/*.network.disabled; do
   [ -f "$src" ] || continue
   base=$(basename "$src" .disabled)
   case "$base" in
     example.container) continue ;;
   esac
   sed "s|^Image=TBD$|Image=${base_image}|" "$src" >"$dest/$base"
-  copied="$copied $dest/$base"
 done
 
 quadlet=""
@@ -56,10 +46,36 @@ if [ -z "$quadlet" ]; then
   exit 1
 fi
 
+# Absolute, and preferred over the user or system search path, so a
+# runner HOME or XDG_CONFIG_HOME cannot hide this copy.
+export QUADLET_UNIT_DIRS="$dest"
+user_flag=""
+if [ "$(id -u)" -ne 0 ]; then
+  user_flag="-user"
+fi
+
 # shellcheck disable=SC2086
-if ! output=$("$quadlet" $user_flag --dryrun 2>&1); then
+if ! output=$("$quadlet" $user_flag -dryrun 2>&1); then
   printf '%s\n' "$output" >&2
   exit 1
 fi
-printf '%s\n' "$output" | grep -q 'ots.network'
+
+missing=""
+for needle in \
+  ots-network.service \
+  postgresql.service \
+  rabbitmq.service \
+  opentakserver.service \
+  eud-handler.service \
+  cot-parser.service \
+  --internal; do
+  if ! printf '%s\n' "$output" | grep -q -F -- "$needle"; then
+    missing="$missing $needle"
+  fi
+done
+if [ -n "$missing" ]; then
+  printf '%s\n' "$output" >&2
+  echo "quadlet dry-run output missing:$missing" >&2
+  exit 1
+fi
 echo "quadlet dry-run accepted the TAK units"

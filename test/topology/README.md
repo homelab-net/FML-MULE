@@ -12,8 +12,8 @@ Three layers, and they are not the same claim:
    it. Mutations that use loopback, drop the network, publish `8088`, or
    drop the listener's database dependency must fail.
 2. **Quadlet generation** (`quadlet-dry-run.sh`). The generator has to
-   accept the container and network files. `Image=TBD` is replaced only in
-   that temporary copy.
+   accept the container and network files and emit their service names.
+   `Image=TBD` is replaced only in that temporary copy.
 3. **Software path** (`cases/tak/integrate.sh`). Build the image, start
    PostgreSQL, RabbitMQ, and the three OpenTAKServer processes on an
    internal network, and persist one synthetic PyTAK position.

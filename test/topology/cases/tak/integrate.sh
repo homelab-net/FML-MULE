@@ -1,11 +1,17 @@
 #!/bin/sh
 # Run the TAK software topology on an internal network and persist one CoT.
 # This is not a mesh proof, a restart proof, or a different-node restore.
-# The runner here is rootful. The unit files stay rootless in intent.
+# CI runs this as the runner user. The unit files stay rootless in intent.
+# The host is not given 8081 or 8088.
 set -eu
 
-root=$(CDPATH= cd -- "$(dirname "$0")/../../.." && pwd)
+root=$(CDPATH= cd -- "$(dirname "$0")/../../../.." && pwd)
 cd "$root"
+
+if [ ! -f "$root/services/tak/Containerfile" ]; then
+  echo "repository root not found from $0 (got $root)" >&2
+  exit 1
+fi
 
 if ! command -v podman >/dev/null 2>&1; then
   echo "podman is required" >&2

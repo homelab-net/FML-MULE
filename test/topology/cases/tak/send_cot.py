@@ -36,8 +36,13 @@ class OnePosition(pytak.QueueWorker):  # type: ignore[misc]
         point.set("hae", "1608")
         point.set("ce", "10")
         point.set("le", "10")
+        detail = ET.SubElement(event, "detail")
+        contact = ET.SubElement(detail, "contact")
+        contact.set("callsign", "FMLTOPO")
         await self.put_queue(ET.tostring(event))
-        await asyncio.sleep(1)
+        # The transmitter is another task. Leave it time to write the
+        # event before this process ends.
+        await asyncio.sleep(5)
         os._exit(0)
 
 

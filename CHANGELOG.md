@@ -20,8 +20,10 @@ this program needs them visible:
 the contract stays disabled. Members require the unresolved mesh gate.
 The target waits for the members instead of pretending an `After=` on
 itself holds them. `test/topology/` checks that graph, asks Quadlet to
-generate the units, and can persist one synthetic CoT. Media stays off.
-No restart and no different-node restore were run.
+generate the units, and can persist one synthetic CoT. The generator
+check reads the service names it emits. The software path is rooted at
+the repository. Media stays off. No restart and no different-node
+restore were run.
 
 ### Corrected the TAK unit topology
 
