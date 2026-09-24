@@ -90,20 +90,13 @@ if ! loginctl enable-linger "$account"; then
 fi
 # This image pins XDG_* to the invoking account in /etc/environment.
 # pam_env copies that into every user manager, and Quadlet follows it
-# instead of this account's home.
+# instead of this account's home. %h in a system unit is root's home,
+# so a user@.service drop-in cannot name this account.
 if [ -f /etc/environment ]; then
   grep -v -E '^(XDG_CONFIG_HOME|XDG_RUNTIME_DIR|XDG_DATA_HOME|XDG_CACHE_HOME)=' \
     /etc/environment >/etc/environment.fml || true
   mv /etc/environment.fml /etc/environment
 fi
-mkdir -p /etc/systemd/system/user@.service.d
-cat >/etc/systemd/system/user@.service.d/account-home.conf <<'EOF'
-[Service]
-Environment=HOME=%h
-Environment=XDG_CONFIG_HOME=%h/.config
-Environment=XDG_RUNTIME_DIR=/run/user/%U
-EOF
-systemctl daemon-reload
 account_uid=$(id -u "$account")
 systemctl start "user@${account_uid}.service"
 runtime="/run/user/${account_uid}"
@@ -197,13 +190,21 @@ chown -R "$account:$account" "$home/.config"
 # write bits or the generator installs nothing.
 chmod -R go-w "$home/.config"
 
-# User generators do not inherit this account's login environment.
-# Quadlet only looks in $XDG_CONFIG_HOME or $HOME, and neither is set
-# for them unless the user manager's transient environment has it.
-as_user systemctl --user set-environment \
-  HOME="$home" \
-  XDG_CONFIG_HOME="$home/.config" \
-  XDG_RUNTIME_DIR="$runtime"
+# User generators on this runner do not see this account's home, so
+# they never read these files. Run the same generator with the
+# account's environment and install what it writes. systemd starts
+# those units. The script does not start the containers.
+quadlet_out="$runtime/quadlet-out"
+rm -rf "$quadlet_out"
+mkdir -p "$quadlet_out"
+chown "$account:$account" "$quadlet_out"
+if ! as_user /usr/local/libexec/podman/quadlet -user "$quadlet_out"; then
+  echo "quadlet did not accept the TAK units" >&2
+  exit 1
+fi
+find "$quadlet_out" -type f -name '*.service' -exec cp {} "$home/.config/systemd/user/" \;
+chown -R "$account:$account" "$home/.config/systemd/user"
+chmod -R go-w "$home/.config/systemd/user"
 as_user systemctl --user daemon-reload
 for unit in ots-network.service postgresql.service rabbitmq.service \
   opentakserver.service eud-handler.service cot-parser.service \
