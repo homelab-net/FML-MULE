@@ -68,11 +68,14 @@ def test_three_processes_share_the_data_folder() -> None:
         assert "Environment=OTS_MEDIAMTX_ENABLE=false" in text
 
 
-def test_workers_depend_on_the_database_and_the_broker_only() -> None:
+def test_workers_wait_for_a_ready_api_without_requiring_it() -> None:
     for name in ("eud-handler", "cot-parser"):
         text = _unit(name)
         assert DEPS in text
-        assert "opentakserver.service" not in text
+        requires = [line for line in _assignments(text) if line.startswith("Requires=")]
+        after = [line for line in _assignments(text) if line.startswith("After=")]
+        assert all("opentakserver.service" not in line for line in requires)
+        assert any("opentakserver.service" in line for line in after)
 
 
 def test_backend_ports_stay_off_the_host() -> None:
@@ -156,4 +159,23 @@ def test_build_pins_the_release_and_the_base() -> None:
     text = (REPO / "services" / "tak" / "Containerfile").read_text(encoding="utf-8")
     assert f"FROM {BASE}" in text
     assert "opentakserver==1.7.13" in text
+    assert "COPY listen_ready.py /usr/local/bin/fml-listen-ready.py" in text
     assert "git+" not in text
+
+
+def test_readiness_is_a_health_notification() -> None:
+    probes = {
+        "postgresql": "HealthCmd=pg_isready",
+        "rabbitmq": "HealthCmd=rabbitmq-diagnostics -q ping",
+        "opentakserver": "HealthCmd=python /usr/local/bin/fml-listen-ready.py 8081",
+        "eud-handler": "HealthCmd=python /usr/local/bin/fml-listen-ready.py 8088",
+    }
+    for name, probe in probes.items():
+        assignments = _assignments(_unit(name))
+        assert probe in assignments
+        assert "Notify=healthy" in assignments
+        assert any(line.startswith("TimeoutStartSec=") for line in assignments)
+    parser = _assignments(_unit("cot-parser"))
+    assert "Notify=healthy" not in parser
+    for name in DEPENDENCIES:
+        assert "User=0" in _assignments(_unit(name))

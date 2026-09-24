@@ -21,6 +21,14 @@ cases:
     forbidden_requires:
       - {from: eud-handler.container, to: opentakserver.service}
       - {from: cot-parser.container, to: opentakserver.service}
+    required_after:
+      - {from: eud-handler.container, to: opentakserver.service}
+      - {from: cot-parser.container, to: opentakserver.service}
+    notify_healthy:
+      - postgresql.container
+      - rabbitmq.container
+      - opentakserver.container
+      - eud-handler.container
     rabbit_env: OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
     sql_host_marker: "SQLALCHEMY_DATABASE_URI host=postgresql"
     mutations:
@@ -40,3 +48,7 @@ cases:
         unit: eud-handler.container
         replace: "postgresql.service "
         with: ""
+      - id: drop-postgres-readiness
+        unit: postgresql.container
+        replace: "Notify=healthy"
+        with: "Notify=false"

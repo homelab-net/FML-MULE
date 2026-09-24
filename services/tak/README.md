@@ -27,7 +27,8 @@ which also holds the credential. The environment file supplies that string
 and must use host `postgresql`. It must not override the broker address.
 The broker account 1.7.13 uses by default is accepted only from the same
 network namespace, so the environment file has to supply a different
-account. No runtime proof has checked either connection.
+account. Cold-start CI supplies that account from an environment file
+and checks the connection. That run is not a field proof.
 
 The API listens on the container interface (`OTS_LISTENER_ADDRESS=0.0.0.0`)
 and the CoT listener uses the container interface
@@ -36,16 +37,28 @@ API `8081` and plain CoT `8088` stay on the internal network for ingress.
 This is not host networking. The 2026-08-31 bench used that and recorded it
 as a deviation.
 
-Workers require the database and the broker. They do not require the API
-process. Whether the API must finish migration before a worker starts is
-not a unit dependency. The integration test starts the API first because
-that process applies the schema; that order is the test, not `Requires=`.
-No unit sets `Restart=`.
+Workers require the database and the broker. They `After=` the API and
+do not `Requires=` it. The API unit does not become active until its
+health check can open port 8081, which is this process finishing
+startup migrations. `After=` waits for that. `Requires=` would tie the
+workers' lifetime to the API, and the API is not their runtime
+dependency. No unit sets `Restart=`. A cold start stops the target and
+starts it again to show the row is still there. That is not a
+different-node restore.
 
 The mesh interface is still `TBD` (`TBR-LINUX-01`). Each member
 `Requires=` `systemd-networkd-wait-online@TBD.service`. The target does
 not. An `After=` on the target would not hold the units it `Wants=`.
-`network-online.target` is not that gate.
+`network-online.target` is not that gate. PostgreSQL, RabbitMQ, the
+API, and the listener set `Notify=healthy`, so an `After=` on them
+waits until the probe passes. Started is not ready. The parser has no
+listen port.
+
+The database and the broker set `User=0` so the image entrypoint can
+chown its data directory and drop privileges. Under rootless Podman
+that uid 0 is the user namespace, not host root. The field account is
+not selected. Cold-start CI creates a throwaway account with a
+subordinate UID range and starts the target as that user.
 
 Media is outside this topology. The units set `OTS_MEDIAMTX_ENABLE=false`.
 The image does not install the ffmpeg package upstream's Dockerfile adds

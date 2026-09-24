@@ -141,6 +141,16 @@ def check_case(
         requires = _requires(texts[edge["from"]])
         if edge["to"] not in requires:
             errors.append(f"{case['id']}: {edge['from']} does not require {edge['to']}")
+    for edge in case.get("required_after", []):
+        if edge["to"] not in _after(texts[edge["from"]]):
+            errors.append(
+                f"{case['id']}: {edge['from']} does not order after {edge['to']}"
+            )
+    for logical in case.get("notify_healthy", []):
+        if "Notify=healthy" not in _assignments(texts[logical]):
+            errors.append(f"{case['id']}: {logical} does not notify when healthy")
+        if not _keys(texts[logical], "HealthCmd"):
+            errors.append(f"{case['id']}: {logical} has no health command")
     for edge in case["forbidden_requires"]:
         if edge["to"] in _requires(texts[edge["from"]]):
             errors.append(

@@ -33,8 +33,10 @@ done
 quadlet=""
 for candidate in \
   quadlet \
+  /usr/local/libexec/podman/quadlet \
   /usr/libexec/podman/quadlet \
   /usr/lib/podman/quadlet \
+  /usr/local/lib/systemd/system-generators/podman-system-generator \
   /usr/lib/systemd/system-generators/podman-system-generator; do
   if [ -x "$candidate" ] || command -v "$candidate" >/dev/null 2>&1; then
     quadlet=$candidate
@@ -68,7 +70,10 @@ for needle in \
   opentakserver.service \
   eud-handler.service \
   cot-parser.service \
-  --internal; do
+  --internal \
+  --sdnotify=healthy \
+  --health-cmd \
+  pg_isready; do
   if ! printf '%s\n' "$output" | grep -q -F -- "$needle"; then
     missing="$missing $needle"
   fi

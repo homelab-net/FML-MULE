@@ -3,13 +3,16 @@
 # A client reaches this process through the ingress path, not a host port.
 # The 2026-09-06 bench found the listener opens its broker channel only
 # after the broker is listening (docs/bench-service-bringup.md). Requires=
-# does not wait for that port. The API process is not a runtime dependency.
+# does not wait for that port. Notify=healthy on the broker does.
+# The API process is not a runtime dependency. After= waits until the API
+# unit is healthy, which is when its migrations have finished, and does
+# not stop this process if the API later exits.
 
 [Unit]
 Description=OpenTAKServer CoT listener
 Documentation=file:///usr/share/doc/fml/tak
 PartOf=opentakserver.target
-After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
+After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service opentakserver.service
 Requires=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
 
 [Container]
@@ -27,8 +30,15 @@ Environment=OTS_MEDIAMTX_ENABLE=false
 # so EnvironmentFile supplies it and must use that host. It must not
 # override OTS_RABBITMQ_SERVER_ADDRESS.
 EnvironmentFile=/run/fml/ots.env
+HealthCmd=python /usr/local/bin/fml-listen-ready.py 8088
+HealthInterval=5s
+HealthTimeout=5s
+HealthRetries=24
+HealthStartPeriod=40s
+Notify=healthy
 
 [Service]
+TimeoutStartSec=180
 # No Restart=. TBR-HA-01 is open.
 
 [Install]

@@ -2,13 +2,15 @@
 # Owned by opentakserver.target. Not a separate mission service.
 # It writes the rows. It shares the data folder with the other two
 # processes. FML-ADR-071: a database-only copy is not a restore.
-# The API process is not a runtime dependency.
+# The API process is not a runtime dependency. After= waits until that
+# unit is healthy so the schema exists. This process has no listen port.
+# A persisted row is its readiness proof, not Notify=.
 
 [Unit]
 Description=OpenTAKServer CoT parser
 Documentation=file:///usr/share/doc/fml/tak
 PartOf=opentakserver.target
-After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
+After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service opentakserver.service
 Requires=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
 
 [Container]

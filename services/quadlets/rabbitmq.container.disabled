@@ -3,6 +3,11 @@
 # recorded on 2026-08-31. The broker is not a field-wide bus, and this
 # file sets no cluster. Endpoint name on ots.network is the container
 # name below.
+# The image entrypoint starts as uid 0, chowns its data directory, and
+# drops to the rabbitmq user. Under rootless Podman that uid 0 is the
+# user namespace, not host root.
+# Notify=healthy holds every After= on this unit until the broker answers
+# ping. Started is not ready. No credential is in the probe.
 
 [Unit]
 Description=RabbitMQ for the TAK capability
@@ -13,12 +18,20 @@ Requires=systemd-networkd-wait-online@TBD.service ots-network.service
 
 [Container]
 Image=docker.io/library/rabbitmq@sha256:9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920
+User=0
 ContainerName=rabbitmq
 Network=ots.network
 Volume=/var/lib/fml/rabbitmq:/var/lib/rabbitmq:Z
 EnvironmentFile=/run/fml/rabbitmq.env
+HealthCmd=rabbitmq-diagnostics -q ping
+HealthInterval=5s
+HealthTimeout=5s
+HealthRetries=24
+HealthStartPeriod=40s
+Notify=healthy
 
 [Service]
+TimeoutStartSec=180
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
