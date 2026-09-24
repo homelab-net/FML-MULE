@@ -1,12 +1,12 @@
 ---
-# Test-only catalog for the software digital twin service-plane stand-in. FML-ADR-078.
+# Test-only catalog for the flat-sat service-plane stand-in. FML-ADR-078.
 # It names no real service, image, credential, identity, or deployment.
 services:
   - name: stand-in-alpha
     enabled: true
     aliases: []
     unit: stand-in-alpha.container
-    purpose: Synthetic software digital twin service-plane stand-in.
+    purpose: Synthetic flat-sat service-plane stand-in.
     image: TBD
     upstream:
       project: Synthetic test fixture
@@ -23,7 +23,7 @@ services:
     enabled: true
     aliases: []
     unit: stand-in-beta.container
-    purpose: Synthetic software digital twin service-plane stand-in.
+    purpose: Synthetic flat-sat service-plane stand-in.
     image: TBD
     upstream:
       project: Synthetic test fixture

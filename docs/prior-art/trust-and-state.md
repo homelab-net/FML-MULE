@@ -15,7 +15,7 @@ keys, serving policy and fallback behavior remain mission and image inputs.
 
 The evaluated artifact is chrony 4.9 at commit
 `8df4f1263e206585e6c4e61352d042c2dd12916a`, dated 2026-08-27 and licensed
-GPL-2.0. It has not been run in the MULE software digital twin. Promotion must verify the
+GPL-2.0. It has not been run in the MULE flat-sat. Promotion must verify the
 exact package, startup ordering, RTC source, loss-of-source behavior,
 permissions, reboot persistence and the status readings documented in
 `docs/readings.md`.
@@ -86,7 +86,7 @@ No component here is a package pin. The userland compatibility set, encrypted
 storage boundary, secret provisioning, least privilege, backup retention,
 upgrade and rollback paths, resource measurements and clean-host restore tests
 remain necessary. Hardware is needed only for the RTC and final device behavior,
-not for the source and software digital twin work that precedes it.
+not for the source and flat-sat work that precedes it.
 
 chrony stays behind the time-source interface, OpenSSH behind management policy,
 step-ca behind standard certificate protocols, and PostgreSQL behind the

@@ -61,7 +61,7 @@ This document records the system-enhancement decisions developed after the
 2026-09-22 integrated engineering handoff, red-teamed against current repository
 main, AGENTS.md, STATUS.md, docs/ROADMAP-DEV.md, docs/NON-GOALS.md,
 THREAT_MODEL.md, the current mission schema, the service/gateway/status
-boundaries, the software digital twin rules, and the current M0-M7 demonstration ladder.
+boundaries, the flat-sat rules, and the current M0-M7 demonstration ladder.
 
 CURRENT REPOSITORY MAIN REMAINS AUTHORITATIVE.
 
@@ -79,7 +79,7 @@ The Program Owner has clarified the implementation posture:
 Hardware is the validation gate, not the software-development gate.
 
 The software-rich portions of this enhancement may be implemented now against
-the software digital twin, fakes, fixtures, deterministic scenarios, and
+the flat-sat / digital twin, fakes, fixtures, deterministic scenarios, and
 ordinary development hosts. They may earn SIMULATED status when exercised end
 to end. Physical claims remain gated on hardware evidence.
 
@@ -165,7 +165,7 @@ Do not create a new standalone awareness/fusion/tasking daemon merely to match a
 diagram.
 
 Follow AGENTS.md:
-- exercise the end-to-end behavior first in test/digital_twin;
+- exercise the end-to-end behavior first in test/flatsat;
 - keep hardware readers behind narrow fakeable interfaces;
 - promote demonstrated runtime decisions into mule/ only when justified;
 - reuse existing status, gateway, TAK, ingress, mission, and catalog boundaries
@@ -1757,7 +1757,7 @@ E-01 SEMANTIC FIXTURES
 - fake entity states;
 - obviously synthetic identities/locations only.
 
-E-02 END-TO-END SOFTWARE DIGITAL TWIN SCENARIO
+E-02 END-TO-END FLAT-SAT SCENARIO
 - exercise source -> observation -> fusion -> presentation stand-in;
 - start with single-source/single-observation case;
 - then multi-source correlation;
@@ -1880,7 +1880,7 @@ Do not start by creating production modules for everything.
 Preferred progression:
 
 STEP 1
-test/digital_twin fixtures/fakes/scenarios demonstrate semantics.
+test/flatsat fixtures/fakes/scenarios demonstrate semantics.
 
 STEP 2
 tests prove the decision must exist and can fail.
@@ -2059,7 +2059,7 @@ Likely affected repository areas:
 - services/gateways/
 - services/catalog/
 - mule/
-- test/digital_twin/
+- test/flatsat/
 - test/bench/
 - docs/verification/
 - docs/evidence/

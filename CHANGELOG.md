@@ -18,11 +18,10 @@ this program needs them visible:
 
 `test/flatsat/` is now `test/digital_twin/`, and `FlatSatNode` is
 `DigitalTwinNode`. A software digital twin is fakes, fixtures, and software
-stand-ins. A passing run stays `SIMULATED`. A flat-sat is representative
-physical hardware out of final packaging. An integrated prototype and a
-field article are the later physical articles. No test behaviour changed,
-and no recorded evidence status was raised. Dated closure packets keep the
-command and the file list from the run that produced them.
+stand-ins. The status belongs to the claim: a claim that rests on fakes is
+`SIMULATED`, whichever article was used. Dated records keep the names, paths,
+and commands they were written with. The synthetic mission identifiers are
+unchanged. No evidence status was raised.
 
 ### Compared mission-observation representations
 

@@ -37,7 +37,7 @@ files_changed:
   - tools/gen-config.py
   - tools/validate-catalog.py
 tests:
-  - name: Independent focused GAP-02 and software digital twin suite
+  - name: Independent focused GAP-02 and flat-sat suite
     command: .venv/bin/python -m pytest -q test/unit/test_gen_config.py test/unit/test_service_catalog.py test/flatsat
     exit_code: 0
   - name: Independent service-catalog validator
@@ -101,7 +101,7 @@ existing `<name>.container`, and a loadable production Quadlet has exactly one
 enabled catalog owner. Operator `--check` uses the same service gates.
 
 OpenTAKServer and Martin remain disabled contracts with `TBD` units. The
-software digital twin exercises the production resolver through clearly synthetic test-only
+flat-sat exercises the production resolver through clearly synthetic test-only
 services and existence markers, so this closure does not imply that a product
 service has been selected or deployed.
 

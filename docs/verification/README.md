@@ -110,20 +110,22 @@ the first real verification the program will perform.
 Verification here has three tiers, and conflating them is the failure this
 section exists to prevent.
 
-| Status | Produced by | Supports |
+| Status | What the claim rests on | Supports |
 | --- | --- | --- |
-| `UNVERIFIED` | nothing | nothing |
-| `SIMULATED` | the software digital twin, `test/digital_twin/` | software logic, integration, user flow |
-| `HARDWARE-VERIFIED` | ITEP campaigns on real hardware | physical behaviour |
+| `UNVERIFIED` | nothing exercised | nothing |
+| `SIMULATED` | fakes or recorded fixtures, not the hardware the claim is about | software logic, integration, user flow |
+| `HARDWARE-VERIFIED` | the real hardware that claim is about | physical behaviour |
 
 **All testing is hypothetical until someone brings hardware to the loop.** Code
 written now is expected to be correct and exercised end to end; it simply cannot
 be *known* to work on a node. `SIMULATED` records that honestly, and never
-substitutes for a qualification stage.
+substitutes for a qualification stage. The status belongs to the claim. The
+article does not set it. `test/digital_twin/` is where fake-backed claims are
+exercised today.
 
-The software digital twin's first target is the `ROADMAP.md` `v0.0.1` acceptance criterion,
-because they are the same flow: one node, one service, reachable from a client,
-end to end.
+The software digital twin's first target is the `ROADMAP.md` `v0.0.1`
+acceptance criterion, because they are the same flow: one node, one service,
+reachable from a client, end to end.
 
 ## What CI verifies, and what it does not
 

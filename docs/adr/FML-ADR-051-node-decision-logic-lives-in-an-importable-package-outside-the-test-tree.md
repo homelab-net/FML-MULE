@@ -13,15 +13,15 @@ verification: TBD
 
 ## Context
 
-The software digital twin needs the node to make real decisions, because a decision made by
-a fake is a decision nobody has tested. An adversarial review of the software digital twin
+The flat-sat needs the node to make real decisions, because a decision made by
+a fake is a decision nobody has tested. An adversarial review of the flat-sat
 found exactly that failure: time credibility was returned by `FakeClock`
 directly, so the `FML-ADR-042` fail-closed tests asserted that a fixture agreed
 with itself. No code decided anything, and no test could have failed.
 
 Splitting the decision out fixed the test. It did not fix where the decision
 lives. `timekeeping.py` was written as production code and parked under
-`test/digital_twin/` with a note saying it would move when a production package
+`test/flatsat/` with a note saying it would move when a production package
 existed, because none did, and inventing a package layout was a larger decision
 than the fix in front of it.
 

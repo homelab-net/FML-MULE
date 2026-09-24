@@ -11,7 +11,7 @@ Ambient: none
 Who ran it: nobody
 
 This file is the pass condition written before the run. It is not a result.
-A software digital twin of this case, if one is later written, is SIMULATED and says
+A flat-sat of this case, if one is later written, is SIMULATED and says
 nothing about physical behaviour. Nothing here is HARDWARE-VERIFIED.
 
 What would be shown: an EUD on the access point is forwarded to the general

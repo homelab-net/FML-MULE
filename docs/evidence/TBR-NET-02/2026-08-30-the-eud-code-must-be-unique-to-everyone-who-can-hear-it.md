@@ -102,7 +102,7 @@ Recorded as options, not as a selection.
 `TBR-NET-03` with the specification's own statement that the index is allocated
 per deployment, and draws the consequence.
 
-**Not tested with two deployments on one channel.** `test/digital_twin/` builds one
+**Not tested with two deployments on one channel.** `test/flatsat/` builds one
 node, and the empirical half of `TBR-NET-02` still does not exist: nothing
 anywhere exercises an EUD behind one MULE reaching an EUD behind another, let
 alone two deployments doing it at once. `TBR-RF-02` is blocked on a second

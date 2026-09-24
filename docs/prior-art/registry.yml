@@ -830,9 +830,7 @@ candidates:
         - metric: Idle resident memory for all three OpenTAKServer processes
           value: 536
           unit: MB
-          environment: >-
-            Debian x86-64 rootful Podman software digital twin, warmed
-            approximately two days, no load
+          environment: Debian x86-64 rootful Podman flat-sat, warmed approximately two days, no load
           source: docs/evidence/TBR-COMP-01/2026-09-06-service-plane-steady-state-footprint.md
     runtime:
       ports:
@@ -1320,10 +1318,7 @@ candidates:
         - git checkout 7f03ae65c28605152c7a1a9ba7d9d0bcfb50f8b0
         - make help
       evidence: [docs/prior-art/platform-runtime.md]
-      gaps:
-        - No exact-build software digital twin run
-        - No package SBOM
-        - No measured ingress failover
+      gaps: [No exact-build flat-sat run, No package SBOM, No measured ingress failover]
     exit_strategy: >-
       Preserve stable DNS and TCP ingress so another standards-compatible proxy can replace it.
     decision_questions:
@@ -1422,7 +1417,7 @@ candidates:
         - make podman
       evidence: [docs/prior-art/platform-runtime.md]
       gaps:
-        - No exact-build software digital twin run
+        - No exact-build flat-sat run
         - No selected image SBOM
         - No measured MULE resource footprint
     exit_strategy: >-

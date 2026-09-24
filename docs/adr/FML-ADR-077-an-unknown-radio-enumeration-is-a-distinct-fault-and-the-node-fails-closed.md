@@ -19,7 +19,7 @@ could not enumerate at all (for example the enumeration command failed to run).
 The reader's own contract already treats `None` as distinct from an empty list --
 "cannot tell what is present" is not "nothing is present".
 
-The status plane did not honour that distinction. `DigitalTwinNode._enumerated()`
+The status plane did not honour that distinction. `FlatSatNode._enumerated()`
 evaluated `list(self._radio.enumerated())`, which raises `TypeError` on `None`, so
 an unknown enumeration crashed the node rather than being handled. Even without the
 crash, collapsing `None` to an empty list would report every required bearer as

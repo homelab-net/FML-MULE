@@ -25,8 +25,8 @@
   (`RADIO_NOT_SERVING`) and `_state` (FAULT); `wan_available` retyped to
   `WanReachability | None` and sourced from `observed.modes.wan`; redundant
   `Observations.wan_available` removed.
-- `test/digital_twin/node.py`: dropped the `wan_available=bool(self._wan)` collapse.
-- `test/digital_twin/scenarios/test_v001_flow.py`: question 11 now asserts the honest
+- `test/flatsat/node.py`: dropped the `wan_available=bool(self._wan)` collapse.
+- `test/flatsat/scenarios/test_v001_flow.py`: question 11 now asserts the honest
   undetermined value (`None`) rather than silently passing on it.
 
 ## Failing-first demonstration
@@ -43,5 +43,5 @@ branch) makes the new tests fail:
 
 ## Reproduce
 
-`python -m pytest test/digital_twin test/unit` (308 tests). `mule/` coverage held at
-100%. SIMULATED against the software digital twin fakes; nothing here is claimed on hardware.
+`python -m pytest test/flatsat test/unit` (308 tests). `mule/` coverage held at
+100%. SIMULATED against the flat-sat fakes; nothing here is claimed on hardware.

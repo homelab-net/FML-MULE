@@ -17,9 +17,11 @@ the verdict untestable, because the test then agrees with the fixture rather
 than with the code.
 
 **A fake may not describe hardware that cannot exist.** `FakeRadio` rejects a
-bearer that is linked without being present. The software digital twin's
-whole claim is that passing here means something on hardware, and a fake
-free to script impossible states voids it.
+bearer that is linked without being present. Passing here supports a claim
+about the software that consumed the readings. It does not support a claim
+about the hardware. A fake free to script a state no hardware can produce
+voids even that software claim, because the node was not shown handling a
+state a real platform can report.
 """
 
 from __future__ import annotations

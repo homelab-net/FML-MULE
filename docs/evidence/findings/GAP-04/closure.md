@@ -36,7 +36,7 @@ files_changed:
   - test/flatsat/mutations.yml
   - docs/adr/FML-ADR-075-a-node-s-active-bearer-set-is-declared-node-data-and-scopes-which-configuration-targets-must-resolve.md
 tests:
-  - name: unit and software digital twin suite
+  - name: unit and flat-sat suite
     command: "python -m pytest test/flatsat test/unit -q"
     exit_code: 0
   - name: gen-config target-aware unit tests

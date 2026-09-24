@@ -2,8 +2,8 @@
 
 This directory is the software digital twin: fakes, fixtures, and software
 stand-ins. It runs the real node logic end to end, with the hardware layer
-replaced by fakes behind the narrow interfaces in `interfaces.py`. A passing
-scenario is `SIMULATED` only.
+replaced by fakes behind the narrow interfaces in `interfaces.py`. A claim
+from a passing scenario rests on those fakes, so the claim is `SIMULATED`.
 
 A flat-sat is a different article. In spacecraft practice it is the flight
 hardware laid out on a bench. Here it means representative physical hardware,

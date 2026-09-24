@@ -8,7 +8,7 @@ scope: >-
 governing_refs:
   - FML-ADR-077
 pre_fix_reproduction: >-
-  On the pre-fix tree, DigitalTwinNode._enumerated() evaluated
+  On the pre-fix tree, FlatSatNode._enumerated() evaluated
   list(self._radio.enumerated()), raising TypeError when the reader returned None
   (the platform could not enumerate).
 expected_failure: >-
@@ -24,7 +24,7 @@ files_changed:
   - test/flatsat/mutations.yml
   - docs/adr/FML-ADR-077-an-unknown-radio-enumeration-is-a-distinct-fault-and-the-node-fails-closed.md
 tests:
-  - name: unit and software digital twin suite
+  - name: unit and flat-sat suite
     command: "python -m pytest test/flatsat test/unit -q"
     exit_code: 0
   - name: mule coverage held at 100 percent
@@ -56,7 +56,7 @@ red_team_attempts:
     outcome: "Each killed; the enumeration-None fault term is covered."
 residual_risks:
   - >-
-    SIMULATED only: exercised against software digital twin fakes. The real reader
+    SIMULATED only: exercised against flat-sat fakes. The real reader
     (CommandRadio) already returns None when iw dev cannot run, but the
     fail-closed behaviour on real hardware is unverified.
 deferred_work:

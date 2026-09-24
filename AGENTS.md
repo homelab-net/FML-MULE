@@ -124,17 +124,18 @@ when it meets real hardware. It just cannot be *known* to.
 | Status | Meaning |
 | --- | --- |
 | `UNVERIFIED` | Nothing exercised. The default for a claim with no evidence. |
-| `SIMULATED` | Exercised end to end on the software digital twin against fakes and recorded fixtures. The logic is correct and the user flow coherent. **Says nothing about physical behaviour.** |
-| `HARDWARE-VERIFIED` | Demonstrated on real hardware, evidence under `docs/evidence/` or `test/results/`. **Nothing carries this.** |
+| `SIMULATED` | A claim exercised against fakes and recorded fixtures. The logic under that claim is correct and the user flow coherent. **Says nothing about physical behaviour.** |
+| `HARDWARE-VERIFIED` | A claim demonstrated on the real hardware that claim is about, with evidence under `docs/evidence/` or `test/results/`. **Nothing carries this.** |
 
-The article is not the status word. A **software digital twin** is fakes,
-fixtures, and software stand-ins, and a pass there is `SIMULATED` only. A
-**flat-sat** is representative physical hardware out of final packaging,
-including a hardware-in-the-loop bench, and what it can support is
-hardware-integration evidence. An **integrated prototype** is the physical
-architecture close to its final form. A **field article** is a representative
-operational environment. This vocabulary does not reclassify any recorded
-result, and it does not make anything `HARDWARE-VERIFIED`.
+The article is not the status. A **software digital twin** is fakes, fixtures,
+and software stand-ins (`test/digital_twin/`). A **flat-sat** is representative
+physical hardware out of final packaging, including a hardware-in-the-loop
+bench. An **integrated prototype** is the physical architecture close to its
+final form. A **field article** is a representative operational environment.
+Which article was used does not set the status. A claim that still rests on a
+fake is `SIMULATED`. A claim demonstrated on the hardware it is about can be
+hardware evidence. This vocabulary does not reclassify any recorded result,
+and it does not make anything `HARDWARE-VERIFIED`.
 
 `SIMULATED` is a real result and worth having. It is not a softer word for
 tested, and it never supports a claim about RF, power, thermal, timing under

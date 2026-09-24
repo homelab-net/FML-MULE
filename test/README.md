@@ -40,7 +40,7 @@ gate in `os/release/README.md`.
 | Directory | Contents |
 | --- | --- |
 | `unit/` | Unit tests. `bats` for shell, `pytest` for Python. Run in CI. |
-| `digital twin/` | The software digital twin: the real node logic end to end, hardware replaced by fakes. Carries `mutations.yml`, the list of defects the suite must detect. |
+| `digital_twin/` | The software digital twin: the real node logic end to end, hardware replaced by fakes. Carries `mutations.yml`, the list of defects the suite must detect. |
 | `fixtures/` | Recorded output captured from real hardware, replayed against fakes. |
 | `stages/` | Qualification stage definitions. One directory per stage. |
 | `bench/` | Bench procedures and instrumentation notes. |
@@ -75,11 +75,11 @@ All testing is hypothetical until someone brings hardware to the loop. That is a
 statement about what the evidence supports, not permission to write untested
 code.
 
-| Status | Produced by | Supports a claim about |
+| Status | What the claim rests on | Supports a claim about |
 | --- | --- | --- |
-| `UNVERIFIED` | nothing | nothing |
-| `SIMULATED` | `test/digital_twin/`, against fakes | software logic, integration, user flow |
-| `HARDWARE-VERIFIED` | the ITEP campaigns, on real hardware | physical behaviour |
+| `UNVERIFIED` | nothing exercised | nothing |
+| `SIMULATED` | fakes or recorded fixtures | software logic, integration, user flow |
+| `HARDWARE-VERIFIED` | the real hardware that claim is about | physical behaviour |
 
 **Nothing in this repository is `HARDWARE-VERIFIED`.** No node exists.
 

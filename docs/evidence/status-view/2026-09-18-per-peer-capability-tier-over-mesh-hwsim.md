@@ -18,7 +18,7 @@ live mesh. The tier vocabulary is `FML-ADR-080`
 (`VIDEO`/`VOICE`/`TEXT`/`NONE`/`UNKNOWN`, the per-link view of the CONOPS section
 50 ladder); the derivation is the pure `mule/capability.py:capability_tier`,
 transcribing those tiers under `FML-ADR-052`; the signals are the passive ones
-the software digital twin parser extracts (`test/digital_twin/radio_parse.py`:
+the flat-sat parser extracts (`test/flatsat/radio_parse.py`:
 `station_bitrates_mbps` for the `iw` PHY-rate ceiling, `originator_tqs` for
 batman-adv TQ). The tier rides as bench telemetry alongside the status, under
 `_bench_peer_capability`, **not** inside `NodeStatus` -- the same discipline the

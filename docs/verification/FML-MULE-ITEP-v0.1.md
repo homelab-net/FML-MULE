@@ -303,10 +303,11 @@ and 13 have not been started.
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.
 
-**R0, the software digital twin, is the persistent half of this campaign.** Analysis outputs
-are documents; the software digital twin is executable and stays in CI, so a later change
-that breaks the user flow is caught rather than rediscovered. Results from it
-carry `SIMULATED` and never substitute for a hardware campaign.
+**R0, the software digital twin, is the persistent half of this campaign.**
+Analysis outputs are documents; the software digital twin is executable and
+stays in CI, so a later change that breaks the user flow is caught rather
+than rediscovered. A claim from it rests on fakes, so that claim is
+`SIMULATED`. It never substitutes for a hardware campaign.
 
 ---
 

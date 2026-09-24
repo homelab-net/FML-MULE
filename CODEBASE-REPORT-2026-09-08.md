@@ -99,9 +99,9 @@ detects unresolved `TBD` values and performs selected value checks.
 Only the synthetic fixture region is fully resolvable. The real US-915 profile contains unresolved
 regulatory and configuration values. The generator does not render the templates under `os/config/`.
 
-### Software digital twin simulation
+### Flat-sat simulation
 
-`test/digital_twin/` integrates the runtime kernel with fake radio, power, thermal, time, WAN, and
+`test/flatsat/` integrates the runtime kernel with fake radio, power, thermal, time, WAN, and
 service implementations. It tests state transitions and fault behavior without physical hardware.
 
 The service plane is a stand-in: service names resolve to `local`, no actual HTTP request is made,
@@ -154,8 +154,7 @@ schema validator.
 Reproduction: the repository's deliberately invalid `mission/examples/invalid-unknown-field.json`,
 containing `transmit_power_dbm`, was passed to the generator and accepted successfully.
 
-The software digital twin boot path calls the same generator function and
-therefore inherits the bypass.
+The flat-sat boot path calls the same generator function and therefore inherits the bypass.
 
 ### 2. Service-catalog enforcement is absent
 
@@ -163,7 +162,7 @@ The mission schema states that every service name must have a catalog entry and 
 validator will enforce this. No such validator is present in `tools/`, `test/`, or `mule/`.
 
 The catalog is empty, while example missions name services such as `example-service-a` and
-`example-service-b`; the generator and software digital twin accept them.
+`example-service-b`; the generator and flat-sat accept them.
 
 ### 3. `address_prefix` is discarded
 
@@ -185,7 +184,7 @@ profile until irrelevant bearer parameters are resolved.
 ### 5. Unknown radio enumeration can crash integration
 
 The radio interface explicitly permits `enumerated()` to return either a list or `None`.
-`DigitalTwinNode._enumerated()` applies `list()` directly to the result.
+`FlatSatNode._enumerated()` applies `list()` directly to the result.
 
 A probe using an implementation that returned `None` produced:
 
@@ -211,8 +210,7 @@ A direct probe returned an equivalent of:
 }
 ```
 
-The intended meaning of `operational` needs to be defined and tested. The
-software digital twin wrapper also
+The intended meaning of `operational` needs to be defined and tested. The flat-sat wrapper also
 converts unknown WAN state (`None`) to `false`, although the operating-mode logic preserves unknown
 state.
 

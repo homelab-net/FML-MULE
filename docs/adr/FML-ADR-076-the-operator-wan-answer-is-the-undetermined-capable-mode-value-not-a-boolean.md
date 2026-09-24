@@ -15,7 +15,7 @@ verification: SIMULATED
 
 CONOPS section 67 asks "Is WAN available?". `mule/status.py` answered it with
 `wan_available: bool`, fed from a separate `Observations.wan_available: bool`. The
-software digital twin adapter built that field with `bool(self._wan)`, so a node that genuinely
+flat-sat adapter built that field with `bool(self._wan)`, so a node that genuinely
 *cannot tell* whether a WAN gateway is reachable reported `False` -- indistinguishable
 from a node that has confirmed there is no WAN.
 
@@ -52,10 +52,10 @@ SELECTED.
   so the two cannot drift.
 - `NodeStatus.wan_available` changes type from `bool` to `WanReachability | None`.
   This changes a CONOPS section 67 output field's contract. No serializer or operator
-  display consumes `NodeStatus` today, so the reachable blast radius is the software digital twin
-  fixtures and one scenario assertion.
-- A contributor without hardware exercises it on the software digital twin by driving the WAN fake
-  to its unknown state.
+  display consumes `NodeStatus` today, so the reachable blast radius is the
+  software digital twin fixtures and one scenario assertion.
+- A contributor without hardware exercises it on the software digital twin
+  by driving the WAN fake to its unknown state.
 
 ## Accepted cost
 

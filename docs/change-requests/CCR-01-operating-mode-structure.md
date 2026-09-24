@@ -227,7 +227,7 @@ absorb the difference quietly.
 Part A is editorial and adds no verification obligation.
 
 Part B adds four `[SHALL]` clauses. Hysteresis and automatic transition are
-exercised on the software digital twin without hardware, and are `SIMULATED` there. The
+exercised on the flat-sat without hardware, and are `SIMULATED` there. The
 threshold values are not verifiable until `TBR-RF-01`, `TBR-RF-02` and
 `TBR-PWR-01` close and a node exists to measure, which is stage 4 and stage 7
 under section 78.
