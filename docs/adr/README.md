@@ -3,11 +3,10 @@
 Every controlling architecture decision in this program is recorded here as a
 numbered document in the `FML-ADR-###` namespace.
 
-The decisions are transcribed from **SAD v0.31 section 0.8**, which is the
-controlling register. `docs/architecture/FML-MULE-SAD-v0.31.md` is the source of
-rationale; the files here record the decision, its status, its consequences and
-its accepted cost with a permanent identifier, and cite the SAD section that
-argues it.
+The decisions through `FML-ADR-050` are transcribed from SAD v0.31 section
+0.8. `FML-MULE-SAD-v0.32.md` is the current architecture description. The files
+in this directory record each decision, its status, its consequences and its
+accepted cost. `STATUS.md` is the current register.
 
 Neither replaces the other. A decision described only in the SAD is not citable;
 a decision recorded only here has lost its reasoning.
@@ -129,19 +128,24 @@ Patroni, etcd, Raft, a witness, a lease, quorum or fencing.
 
 ## Status summary
 
+This summary counts the table below. It does not count the ADR directory.
+`STATUS.md` is the current register.
+
 | Status | Count |
 | --- | ---: |
 | `SELECTED` | 20 |
-| `SELECTED PRINCIPLE` | 4 |
+| `SELECTED PRINCIPLE` | 5 |
 | `SELECTED TARGET` | 1 |
 | `SELECTED PLANNING BASELINE` | 1 |
 | `PREFERRED` | 2 |
 | `CONDITIONAL` | 1 |
+| `SUPERSEDED` | 1 |
 
-30 controlling decisions, matching SAD section 0.8. That match is the old
-register. `FML-ADR-039` in the table below is `SUPERSEDED` by `FML-ADR-082`.
-Decisions after `FML-ADR-050`, including `FML-ADR-082`, are not in this table.
-`STATUS.md` is the register.
+The table lists `FML-ADR-021` through `FML-ADR-051`. It does not list
+`FML-ADR-052` or later, so `FML-ADR-082` is not in it. SAD v0.31 section 0.8
+stops at `FML-ADR-050`. The `FML-ADR-051` row was added here when that decision
+was recorded. `FML-ADR-039` is in the table and is `SUPERSEDED`. It is counted
+in the superseded row, not in the selected row.
 
 ## Register
 
