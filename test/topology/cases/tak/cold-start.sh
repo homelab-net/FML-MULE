@@ -301,6 +301,21 @@ if [ "$status" -ne 0 ]; then
 fi
 
 net=$(as_user podman inspect --format '{{.HostConfig.NetworkMode}}' eud-handler)
+dns_enabled=$(as_user podman network inspect --format '{{.DNSEnabled}}' "$net")
+if [ "$dns_enabled" != "true" ]; then
+  echo "TAK internal network does not have container-name DNS enabled" >&2
+  as_user podman network inspect "$net" >&2 || true
+  dump
+  exit 1
+fi
+if ! as_user podman run --rm --network "$net" \
+  localhost/fml-ots-client:test \
+  python -c 'import socket; print(socket.getaddrinfo("eud-handler", 8088))'; then
+  echo "client on $net cannot resolve eud-handler" >&2
+  as_user podman network inspect "$net" >&2 || true
+  dump
+  exit 1
+fi
 as_user podman run --rm --network "$net" --name cot-client \
   localhost/fml-ots-client:test python /send_cot.py
 
