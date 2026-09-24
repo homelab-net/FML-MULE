@@ -3,10 +3,53 @@
 Deployment and state notes for the TAK-compatible situational-awareness service
 in the mission-service plane.
 
-**Nothing is deployed.** `FML-ADR-032` makes **OpenTAKServer** the preferred
-initial implementation, and the architecture remains **TAK-compatible, not
-OpenTAKServer-exclusive**. `FML-ADR-033` makes PyTAK the preferred library for
-custom CoT clients and translation gateways.
+**Nothing is loadable yet.** `FML-ADR-032` makes **OpenTAKServer** the
+preferred initial implementation, and the architecture remains
+**TAK-compatible, not OpenTAKServer-exclusive**. `FML-ADR-033` makes PyTAK
+the preferred library for custom CoT clients and translation gateways.
+`TBR-TAK-01` is `CLOSED` on `FML-ADR-071`.
+
+The mission capability is one catalog entry, `opentakserver`. PostgreSQL,
+RabbitMQ, `eud_handler`, and `cot_parser` are internal units in that
+entry's bundle. They are not mission-selectable services.
+`services/tak/Containerfile` installs release `1.7.13` on a digest-pinned
+Python 3.12 base. Nothing in the bundle is loadable: the application image
+has no digest until that Containerfile is built, and no registry publishes
+one. A database-only copy is not a restore.
+
+The units share an internal Podman network, `ots.network`, and name each
+other on it: `postgresql` and `rabbitmq`. Release 1.7.13 defaults those
+dependencies to `127.0.0.1`, which is the container itself, so separate
+containers cannot use the defaults. The units set
+`OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq`. The SQL host is not a separate
+setting in that release: it is the host inside `SQLALCHEMY_DATABASE_URI`,
+which also holds the credential. The environment file supplies that string
+and must use host `postgresql`. It must not override the broker address.
+The broker account 1.7.13 uses by default is accepted only from the same
+network namespace, so the environment file has to supply a different
+account. No runtime proof has checked either connection.
+
+The API listens on the container interface (`OTS_LISTENER_ADDRESS=0.0.0.0`)
+and the CoT listener uses the container interface
+(`OTS_STREAMING_INTERFACE=0.0.0.0`). Neither port is published on the host.
+API `8081` and plain CoT `8088` stay on the internal network for ingress.
+This is not host networking. The 2026-08-31 bench used that and recorded it
+as a deviation.
+
+Workers require the database and the broker. They do not require the API
+process. Whether the API must finish migration before a worker starts is
+not a unit dependency. The integration test starts the API first because
+that process applies the schema; that order is the test, not `Requires=`.
+No unit sets `Restart=`.
+
+The mesh interface is still `TBD` (`TBR-LINUX-01`). Each member
+`Requires=` `systemd-networkd-wait-online@TBD.service`. The target does
+not. An `After=` on the target would not hold the units it `Wants=`.
+`network-online.target` is not that gate.
+
+Media is outside this topology. The units set `OTS_MEDIAMTX_ENABLE=false`.
+The image does not install the ffmpeg package upstream's Dockerfile adds
+for MediaMTX.
 
 ## What this is
 
@@ -20,37 +63,16 @@ already have on devices they already carry. The program does not define the
 protocol and does not redefine CoT; it consumes an interface defined elsewhere.
 See `docs/NON-GOALS.md`.
 
-## The open question that blocks everything here
+## The state boundary is decided
 
-`TBR-TAK-01`, **mission-critical state boundary**, is on the critical path and
-is the trade this directory waits on.
+`TBR-TAK-01` is `CLOSED`. The durable set is the SQL backend plus
+`config.yml`, `ca/`, and `uploads/` inside `OTS_DATA_FOLDER`
+(`FML-ADR-071`). The units mount that folder at `/var/lib/fml/ots`.
 
-The question: which mission state must survive a node loss, a partition, or a
-rejoin, and which may be discarded and regenerated?
-
-The consequences are not subtle:
-
-- If position reports are transient and regenerable, this service needs no
-  durable store for them, and a node that reboots simply catches up.
-- If operator-authored markers, tasking or annotations must survive, the plane
-  needs durable storage, a replication story across a **partitioned mesh**, and
-  a conflict resolution rule for two partitions that edited the same object and
-  later rejoined.
-
-Getting it wrong in the permissive direction builds a distributed database
-nobody needed. Getting it wrong in the other loses an operator's work during an
-incident, which is unrecoverable and visible.
-
-**`TBR-TAK-01` requires no hardware.** It is a design and analysis trade,
-resolvable against documentation, protocol behaviour, and reasoning about
-partition, running against fakes on an ordinary laptop. It is the highest-value
-work available to a contributor who owns no hardware, and its named owner is
-still `TBD-SRR`.
-
-SAD section 14.1 lists the ten state categories the study must classify, and SAD
-section 14.2 warns that **database support claimed by an ORM is not sufficient
-acceptance evidence**: the actual MULE workflows must be tested against the
-selected backend.
+What is still open is deployment, not the classification: the built image
+digest, `TBR-HA-01` for recovery, and `TBR-COMP-01` for the field budget.
+`GAP-09F` has not selected the `v0.0.1` milestone service. These units do
+not make that selection.
 
 ### Known internal dependencies
 
@@ -60,20 +82,15 @@ storage. RabbitMQ is treated as **local transient service infrastructure**, not
 a field-wide clustered message bus. All three land on the compute budget
 `TBR-COMP-01` must size.
 
-## What must be recorded here when work starts
+## What is already recorded, and what is not
 
-- **State inventory.** Every object the service holds, classified transient or
-  durable, with the operational justification traced to the CONOPS.
-- **Partition behaviour.** What the service does when the mesh splits, and what
-  it does when it rejoins. Documented from the upstream service's actual
-  behaviour, cited, not assumed.
-- **Conflict resolution.** For the durable set, the rule when two partitions
-  diverged.
-- **Rollback behaviour.** What happens to state when a node rolls back to the
-  known-good path (`FML-ADR-041`, `TBR-REC-01`).
-- **Resource envelope.** Measured, feeding `TBR-COMP-01`.
-- **Catalog entry** in `services/catalog/`, with the image referenced by
-  immutable digest.
+The state inventory, the partition result, and the durable set are in
+`docs/evidence/TBR-TAK-01/`. They are not repeated here. Still open:
+
+- The digest of the image `services/tak/Containerfile` builds.
+- Recovery and rollback, which are `TBR-HA-01` and `TBR-REC-01`.
+- The field resource envelope, which is `TBR-COMP-01`. The x86 idle
+  measurement is not that envelope.
 
 ## Threat model notes
 

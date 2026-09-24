@@ -1,0 +1,42 @@
+---
+# TAK is the only topology this framework runs. A later service adds a case.
+# Do not add a source here until that interface is actually selected.
+version: 1
+mesh_gate: systemd-networkd-wait-online@TBD.service
+mesh_gate_resolved: false
+cases:
+  - id: tak
+    catalog_service: opentakserver
+    network: ots.network
+    forbidden_host_ports:
+      - "8081"
+      - "8088"
+    required_requires:
+      - {from: opentakserver.container, to: postgresql.service}
+      - {from: opentakserver.container, to: rabbitmq.service}
+      - {from: eud-handler.container, to: postgresql.service}
+      - {from: eud-handler.container, to: rabbitmq.service}
+      - {from: cot-parser.container, to: postgresql.service}
+      - {from: cot-parser.container, to: rabbitmq.service}
+    forbidden_requires:
+      - {from: eud-handler.container, to: opentakserver.service}
+      - {from: cot-parser.container, to: opentakserver.service}
+    rabbit_env: OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+    sql_host_marker: "SQLALCHEMY_DATABASE_URI host=postgresql"
+    mutations:
+      - id: rabbit-localhost
+        unit: eud-handler.container
+        replace: OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+        with: OTS_RABBITMQ_SERVER_ADDRESS=127.0.0.1
+      - id: drop-parser-network
+        unit: cot-parser.container
+        replace: "Network=ots.network"
+        with: "Network=none"
+      - id: publish-cot-port
+        unit: eud-handler.container
+        insert_after: "[Container]"
+        line: "PublishPort=8088:8088"
+      - id: drop-listener-database
+        unit: eud-handler.container
+        replace: "postgresql.service "
+        with: ""

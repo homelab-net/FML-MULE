@@ -1,0 +1,35 @@
+# CoT listener. Not loadable: the suffix is .container.disabled.
+# Owned by opentakserver.target. Not a separate mission service.
+# A client reaches this process through the ingress path, not a host port.
+# The 2026-09-06 bench found the listener opens its broker channel only
+# after the broker is listening (docs/bench-service-bringup.md). Requires=
+# does not wait for that port. The API process is not a runtime dependency.
+
+[Unit]
+Description=OpenTAKServer CoT listener
+Documentation=file:///usr/share/doc/fml/tak
+PartOf=opentakserver.target
+After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
+Requires=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
+
+[Container]
+Image=TBD
+ContainerName=eud-handler
+Network=ots.network
+Exec=eud_handler
+Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
+Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+Environment=OTS_STREAMING_INTERFACE=0.0.0.0
+Environment=OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+Environment=OTS_MEDIAMTX_ENABLE=false
+# SQLALCHEMY_DATABASE_URI host=postgresql
+# 1.7.13 has no separate SQL host setting. The URI holds the credential,
+# so EnvironmentFile supplies it and must use that host. It must not
+# override OTS_RABBITMQ_SERVER_ADDRESS.
+EnvironmentFile=/run/fml/ots.env
+
+[Service]
+# No Restart=. TBR-HA-01 is open.
+
+[Install]
+WantedBy=opentakserver.target

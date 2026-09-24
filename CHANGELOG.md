@@ -14,6 +14,43 @@ this program needs them visible:
 
 ## Unreleased
 
+### An enabled bundle is still one capability
+
+Turning `opentakserver` on no longer requires the catalog to pretend the
+root is `opentakserver.container`. The loadable member containers belong
+to that capability. `tools/validate-catalog.py` and `tools/gen-config.py`
+both accept the `.target` plus its members, and both reject the same
+shape when a member file is missing. The committed contract stays
+disabled. No container was started.
+
+### Checked the TAK topology, including the bundle root
+
+`opentakserver` names `opentakserver.target` as its deployment root while
+the contract stays disabled. Members require the unresolved mesh gate.
+The target waits for the members instead of pretending an `After=` on
+itself holds them. `test/topology/` checks that graph, asks Quadlet to
+generate the units, and can persist one synthetic CoT. The generator
+check reads the service names it emits. The software path is rooted at
+the repository and runs podman as root on the runner. The broker
+container starts as root and writes a cookie the image user can read.
+The layered cookie was not the file Erlang failed to open. Media stays
+off. No restart and no different-node restore were run.
+
+### Corrected the TAK unit topology
+
+`opentakserver` is one catalog capability. Its bundle owns the internal
+units: the API, the CoT listener, the parser, PostgreSQL, RabbitMQ, an
+internal network, and a target. Those are not mission services. The units
+do not publish the API or plain CoT port on the host, and the workers do
+not require the API process. No container was started.
+
+### Started the TAK service unit texts
+
+Roadmap 4.1 now has a Containerfile for OpenTAKServer 1.7.13 and disabled
+Quadlet texts for the API, the CoT listener, the parser, PostgreSQL, and
+RabbitMQ. The three OpenTAKServer processes share `/var/lib/fml/ots`. No
+unit is loadable. No container was started. `TBR-OBS-01` was not changed.
+
 ### Read the observation consumers the comparison left unread
 
 `TBR-OBS-01` now has a reading of the OpenTAKServer 1.7.13 streaming

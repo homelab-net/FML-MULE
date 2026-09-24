@@ -27,7 +27,8 @@ appearing in `quadlets/`.
 | Name | Stable identifier used by the Quadlet unit and the ingress configuration. |
 | Enabled | True only when the deployment unit exists and a mission may select it. |
 | Aliases | Optional alternate mission references; every alias resolves uniquely. |
-| Unit | The exact `<name>.container` Quadlet, or `TBD` while the record is disabled. |
+| Unit | Deployment root. One `.container` for a single-unit capability, or one `.target` when the capability owns a bundle. `TBD` only while that root is not chosen. A disabled contract keeps the name and stores the file with a `.disabled` suffix. |
+| Bundle | Optional internal units the capability owns, by deployment name. Not mission-selectable. |
 | Purpose | One line. Why a node runs this. |
 | Image | OCI reference **by immutable digest**, never by tag. |
 | Upstream | Project, licence, and where its source lives. |
@@ -45,8 +46,12 @@ entry with an estimated envelope has not been evaluated.
 ## Rules
 
 - **Digest, never tag.** Anywhere in this repository. See `services/README.md`.
-- **No service is added without a catalog entry.** A Quadlet unit with no entry
-  is a defect.
+- **No service is added without a catalog entry.** A loadable container with
+  no enabled owner is a defect. An internal unit is not a second service: it
+  is listed in the owning capability's `bundle` and cannot be selected by a
+  mission. Enabling a bundle keeps the `.target` root and requires each
+  member file, without the `.disabled` suffix.
+  `example.container.disabled` is the convention reference and is not bundled.
 - **No disabled service is enabled by a mission.** A contract with a `TBD` unit
   is retained for planning but cannot become generated configuration.
 - **Aliases and units resolve exactly once.** Duplicate names, ambiguous aliases,

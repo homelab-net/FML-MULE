@@ -43,7 +43,9 @@ def repository(tmp_path: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / relative, destination)
     (tmp_path / "mission" / "examples").mkdir(parents=True)
-    (tmp_path / "services" / "quadlets").mkdir(parents=True)
+    shutil.copytree(
+        REPO_ROOT / "services" / "quadlets", tmp_path / "services" / "quadlets"
+    )
     return tmp_path
 
 
@@ -129,7 +131,7 @@ def test_enabled_service_requires_existing_named_quadlet(
     _write_mission(repository, ["martin"])
 
     assert any(
-        "enabled service 'martin' deployment unit is absent" in error
+        "service 'martin' deployment file is absent" in error
         for error in validator.validate_repository(repository)
     )
 
@@ -159,3 +161,69 @@ def test_enabled_alias_resolves_uniquely(
     _write_mission(repository, ["maps"])
 
     assert validator.validate_repository(repository) == []
+
+
+def test_unbundled_internal_unit_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """An internal unit cannot appear without an owning capability."""
+    stray = repository / "services" / "quadlets" / "stray.container.disabled"
+    stray.write_text("# not a catalog service\n", encoding="utf-8")
+
+    assert any(
+        "internal unit 'stray.container.disabled' is not in a catalog bundle" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_missing_bundle_member_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """A capability cannot claim an internal unit that is not in the tree."""
+    document = _catalog(repository)
+    document["services"][0]["bundle"].append("missing.container")
+    _write_catalog(repository, document)
+
+    assert any(
+        "deployment file is absent: services/quadlets/missing.container.disabled"
+        in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def _materialize(repository: Path, entry: dict[str, Any]) -> None:
+    """Drop the ``.disabled`` suffix from one capability's root and bundle."""
+    quadlets = repository / "services" / "quadlets"
+    for logical in [entry["unit"], *entry.get("bundle", [])]:
+        (quadlets / f"{logical}.disabled").rename(quadlets / logical)
+
+
+def test_enabled_bundle_keeps_its_target(
+    repository: Path, validator: ModuleType
+) -> None:
+    """Enabling the capability does not require pretending it is one container."""
+    document = _catalog(repository)
+    entry = document["services"][0]
+    assert entry["unit"] == "opentakserver.target"
+    entry["enabled"] = True
+    _write_catalog(repository, document)
+    _materialize(repository, entry)
+    _write_mission(repository, ["opentakserver"])
+
+    assert validator.validate_repository(repository) == []
+
+
+def test_enabled_bundle_without_its_files_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """``enabled`` is not a flag that can outrun the files it names."""
+    document = _catalog(repository)
+    document["services"][0]["enabled"] = True
+    _write_catalog(repository, document)
+
+    errors = validator.validate_repository(repository)
+    assert any(
+        "deployment file is absent: services/quadlets/opentakserver.target" in error
+        for error in errors
+    )
+    assert any("postgresql.container" in error for error in errors)

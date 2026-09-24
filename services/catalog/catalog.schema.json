@@ -51,11 +51,22 @@
           "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
         },
         "unit": {
-          "description": "Loadable Quadlet filename, or TBD while this is a disabled catalog contract.",
+          "description": "Deployment root: a .container, a .target for a bundle, or TBD if unchosen. Disabled contracts keep this name in a .disabled file.",
           "oneOf": [
             { "$ref": "#/$defs/tbd" },
-            { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.container$" }
+            { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.container$" },
+            { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.target$" }
           ]
+        },
+        "bundle": {
+          "type": "array",
+          "description": "Internal deployment names this capability owns. Not mission-selectable. Absent when the capability is one unit.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*\\.(container|network|target)$"
+          }
         },
         "purpose": { "type": "string", "minLength": 1 },
         "image": {

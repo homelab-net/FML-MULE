@@ -1,0 +1,16 @@
+# Internal network for the OpenTAKServer capability. Not loadable: the
+# suffix is .network.disabled. This is not the host network. The 2026-08-31
+# bench used host networking; that remains a bench deviation.
+# Ingress reaches a backend by joining this network. The host is not given
+# the API port or the plain CoT port.
+# The mesh gate is on this member. The interface name is unresolved.
+
+[Unit]
+Description=Internal network for the OpenTAKServer capability
+Documentation=file:///usr/share/doc/fml/tak
+PartOf=opentakserver.target
+After=systemd-networkd-wait-online@TBD.service
+Requires=systemd-networkd-wait-online@TBD.service
+
+[Network]
+Internal=true

@@ -71,7 +71,8 @@ def _catalog_references() -> dict[str, dict[str, Any]]:
     """Return each unique canonical name and alias (FML-ADR-078, GAP-02).
 
     This is runtime enforcement, not only a CI assumption: a duplicate name or
-    alias is ambiguous, an enabled entry needs its named loadable Quadlet, and
+    alias is ambiguous, an enabled single-unit entry needs its ``.container``,
+    an enabled bundle needs its ``.target`` plus every member file, and
     malformed catalog data fails closed before configuration is generated.
     """
     with CATALOG_PATH.open(encoding="utf-8") as handle:
@@ -122,18 +123,48 @@ def _catalog_references() -> dict[str, dict[str, Any]]:
         name = entry["name"]
         enabled = entry["enabled"]
         unit = entry["unit"]
+        bundle = entry.get("bundle") or []
+        if not isinstance(bundle, list):
+            raise ConfigError(f"catalog record {name!r} bundle is malformed")
         if enabled:
-            expected = f"{name}.container"
-            if unit != expected:
+            logicals: list[str]
+            if bundle:
+                if not unit.endswith(".target"):
+                    raise ConfigError(
+                        f"enabled bundled service {name!r} must name a .target, "
+                        f"got {unit!r}"
+                    )
+                logicals = [unit, *[str(member) for member in bundle]]
+            elif unit != f"{name}.container":
                 raise ConfigError(
                     f"enabled catalog service {name!r} must name deployment unit "
-                    f"{expected!r}"
+                    f"{name}.container, got {unit!r}"
                 )
-            if not (quadlets / unit).is_file():
+            else:
+                logicals = [unit]
+            for logical in logicals:
+                if not (quadlets / logical).is_file():
+                    raise ConfigError(
+                        f"enabled catalog service {name!r} deployment unit is absent: "
+                        f"services/quadlets/{logical}"
+                    )
+                if (quadlets / f"{logical}.disabled").is_file():
+                    raise ConfigError(
+                        f"enabled catalog service {name!r} still has disabled text "
+                        f"{logical}.disabled"
+                    )
+        elif bundle:
+            if not unit.endswith(".target"):
                 raise ConfigError(
-                    f"enabled catalog service {name!r} deployment unit is absent: "
-                    f"services/quadlets/{unit}"
+                    f"disabled bundled service {name!r} must name its .target root, "
+                    f"got {unit!r}"
                 )
+            for logical in [unit, *[str(member) for member in bundle]]:
+                if (quadlets / logical).is_file():
+                    raise ConfigError(
+                        f"disabled catalog service {name!r} names loadable unit "
+                        f"{logical!r}"
+                    )
         elif unit != "TBD":
             raise ConfigError(
                 f"disabled catalog service {name!r} names loadable unit {unit!r}"
