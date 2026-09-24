@@ -283,8 +283,9 @@ programme.
 11. **`TBR-OBS-01` observation representation.** The comparison is written
     (`docs/evidence/TBR-OBS-01/2026-09-24-representation-comparison.md`).
     None of the reviewed native representations satisfies the complete
-    section 28A contract without new FML semantics. That finding is not
-    accepted. Owner acceptance is pending. The trade stays `OPEN`.
+    section 28A contract without new FML semantics. Accepting that finding
+    does not close the trade. No representation is selected. The trade stays
+    `OPEN`.
     No schema, no code, and no run. The Stage 1 demonstrations are not this
     item.
 12. **`TBR-SENSE-01` capability mark and sensor task.** How a mission profile

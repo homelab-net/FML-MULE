@@ -20,7 +20,7 @@ this program needs them visible:
 `cot` row, a Meshtastic `Position`, and a Meshtastic `Neighbor` against the
 eight CONOPS v1.2 section 28A sentences. None of those reviewed
 representations satisfies the complete contract on its documented native
-semantics alone. The finding is not accepted. The trade stays open. No
+semantics alone. Accepting that finding would not close the trade. No
 schema, no code, nothing in `mule/`, and `v0.0.1` is unchanged. Nothing
 was run. No ADR records the finding.
 
