@@ -300,7 +300,7 @@ if [ "$status" -ne 0 ]; then
   exit 1
 fi
 
-net=$(as_user podman inspect --format '{{.HostConfig.NetworkMode}}' eud-handler)
+net=$(as_user podman inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{end}}' eud-handler)
 dns_enabled=$(as_user podman network inspect --format '{{.DNSEnabled}}' "$net")
 if [ "$dns_enabled" != "true" ]; then
   echo "TAK internal network does not have container-name DNS enabled" >&2
