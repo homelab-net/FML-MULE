@@ -27,8 +27,10 @@ cases:
       - {from: eud-handler.container, to: opentakserver.service}
       - {from: cot-parser.container, to: opentakserver.service}
     required_start_pre:
-      - {unit: eud-handler.container, command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"}
-      - {unit: cot-parser.container, command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"}
+      - unit: eud-handler.container
+        command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"
+      - unit: cot-parser.container
+        command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"
     notify_healthy:
       - postgresql.container
       - rabbitmq.container
