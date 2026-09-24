@@ -1,0 +1,24 @@
+# CoT listener. Not loadable: the suffix is .container.disabled.
+# A client reaches this process, not the API. The 2026-09-06 bench found
+# the listener opens its broker channel only after RabbitMQ is listening
+# (docs/bench-service-bringup.md). Requires= does not wait for that port.
+
+[Unit]
+Description=OpenTAKServer CoT listener
+Documentation=file:///usr/share/doc/fml/tak
+After=network-online.target postgresql.service rabbitmq.service opentakserver.service
+Requires=postgresql.service rabbitmq.service opentakserver.service
+
+[Container]
+Image=TBD
+Exec=eud_handler
+Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
+Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+EnvironmentFile=/run/fml/ots.env
+PublishPort=8088:8088
+
+[Service]
+# No Restart=. TBR-HA-01 is open.
+
+[Install]
+WantedBy=multi-user.target

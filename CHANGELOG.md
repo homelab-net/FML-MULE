@@ -14,6 +14,13 @@ this program needs them visible:
 
 ## Unreleased
 
+### Started the TAK service unit texts
+
+Roadmap 4.1 now has a Containerfile for OpenTAKServer 1.7.13 and disabled
+Quadlet texts for the API, the CoT listener, the parser, PostgreSQL, and
+RabbitMQ. The three OpenTAKServer processes share `/var/lib/fml/ots`. No
+unit is loadable. No container was started. `TBR-OBS-01` was not changed.
+
 ### Read the observation consumers the comparison left unread
 
 `TBR-OBS-01` now has a reading of the OpenTAKServer 1.7.13 streaming

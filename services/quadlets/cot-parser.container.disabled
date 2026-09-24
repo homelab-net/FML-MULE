@@ -1,0 +1,22 @@
+# CoT parser. Not loadable: the suffix is .container.disabled.
+# It writes the rows. It shares the data folder with the other two
+# processes. FML-ADR-071: a database-only copy is not a restore.
+
+[Unit]
+Description=OpenTAKServer CoT parser
+Documentation=file:///usr/share/doc/fml/tak
+After=network-online.target postgresql.service rabbitmq.service opentakserver.service
+Requires=postgresql.service rabbitmq.service opentakserver.service
+
+[Container]
+Image=TBD
+Exec=cot_parser
+Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
+Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+EnvironmentFile=/run/fml/ots.env
+
+[Service]
+# No Restart=. TBR-HA-01 is open.
+
+[Install]
+WantedBy=multi-user.target

@@ -5,8 +5,10 @@ Podman Quadlet and systemd unit definitions for the mission-service plane.
 **Empty of loadable units.** The catalogued services (`services/catalog/`,
 `FML-ADR-078`) are approved as disabled contracts but not yet deployable: their
 unit references, image digests and resource envelopes are still `TBD`.
-`example.container.disabled` is a commented reference showing the conventions,
-and is deliberately not a loadable unit.
+`example.container.disabled` shows the conventions. The TAK service texts,
+also disabled, are `opentakserver`, `eud-handler`, `cot-parser`,
+`postgresql`, and `rabbitmq`. The `.disabled` suffix is what keeps systemd
+from starting them.
 
 ## What a Quadlet is
 

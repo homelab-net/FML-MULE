@@ -1,0 +1,23 @@
+# OpenTAKServer API. Not loadable: the suffix is .container.disabled.
+# The application image has no digest until services/tak/Containerfile is
+# built. No registry publishes one. Do not replace Image with a tag.
+
+[Unit]
+Description=OpenTAKServer web application and API
+Documentation=file:///usr/share/doc/fml/tak
+After=network-online.target postgresql.service rabbitmq.service
+Requires=postgresql.service rabbitmq.service
+
+[Container]
+Image=TBD
+Exec=opentakserver
+Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
+Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+EnvironmentFile=/run/fml/ots.env
+PublishPort=8081:8081
+
+[Service]
+# No Restart=. TBR-HA-01 is open.
+
+[Install]
+WantedBy=multi-user.target

@@ -1064,9 +1064,10 @@ continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
 `FML-ADR-034`, `FML-ADR-035`, `FML-ADR-029`.
 
 **State:** the state study is **done** (`TBR-TAK-01` is `CLOSED` on
-`FML-ADR-071`) and the implementation is not started, but the shape is now known
-from a running instance. `OpenTAKServer` is **three** console entry points, and
-upstream's own container runs only the first:
+`FML-ADR-071`). The unit texts and `services/tak/Containerfile` are in the
+tree. They are not loadable. The application image has no digest, and the
+five runtime proofs have not been run. `OpenTAKServer` is **three** console
+entry points, and upstream's own container runs only the first:
 
 - `opentakserver` -- the web application and API;
 - `eud_handler` -- the CoT listener that binds the TCP/SSL/UDP streaming ports.
