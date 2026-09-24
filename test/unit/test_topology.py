@@ -36,6 +36,7 @@ def test_cold_start_starts_at_the_repository_root() -> None:
     assert "/usr/libexec/podman/quadlet" in script
     assert 'as_user "$quadlet" -user "$quadlet_out"' in script
     assert "health-scheduler-probe" in script
+    assert 'socket.getaddrinfo("eud-handler", 8088)' in script
     assert "/etc/environment" in script
     assert "account-home.conf" not in script
     assert "--user 0" not in script
@@ -58,6 +59,8 @@ def test_topology_requires_systemd_enabled_distro_podman() -> None:
     script = (root / "test/topology/ensure-podman.sh").read_text()
     assert "Podman 5 or newer is required" in script
     assert "/usr/lib/systemd/user-generators/podman-user-generator" in script
+    assert "/usr/lib/podman/netavark" in script
+    assert "/usr/lib/podman/aardvark-dns" in script
     assert "podman-static" in script
     assert "curl -fsSL" not in script
     assert "apparmor_restrict_unprivileged_userns" not in script
