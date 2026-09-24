@@ -70,7 +70,7 @@ dump() {
 cleanup() {
   if id "$account" >/dev/null 2>&1 && [ -n "$runtime" ] && [ -S "$runtime/bus" ]; then
     as_user systemctl --user stop opentakserver.target >/dev/null 2>&1 || true
-    as_user podman rm -f postgresql rabbitmq opentakserver eud-handler cot-parser \
+    as_user podman rm -f health-scheduler-probe postgresql rabbitmq opentakserver eud-handler cot-parser \
       >/dev/null 2>&1 || true
     as_user podman network prune -f >/dev/null 2>&1 || true
   fi
@@ -161,6 +161,35 @@ rabbit_image=$(sed -n 's/^Image=//p' services/quadlets/rabbitmq.container.disabl
 as_user podman pull "$postgres_image"
 as_user podman pull "$rabbit_image"
 
+# A previous CI fallback used a Podman binary built without systemd support.
+# It accepted health configuration but never scheduled the checks, leaving
+# containers permanently in "starting". Prove the rootless health scheduler
+# works before asking systemd to wait on Notify=healthy.
+as_user podman rm -f health-scheduler-probe >/dev/null 2>&1 || true
+as_user podman run -d --name health-scheduler-probe \
+  --health-cmd=true \
+  --health-interval=1s \
+  --health-timeout=2s \
+  --health-retries=5 \
+  localhost/fml-ots-topology:test sleep 30 >/dev/null
+health=""
+i=0
+while [ "$i" -lt 20 ]; do
+  health=$(as_user podman inspect --format '{{.State.Health.Status}}' \
+    health-scheduler-probe 2>/dev/null || true)
+  if [ "$health" = "healthy" ]; then
+    break
+  fi
+  i=$((i + 1))
+  sleep 1
+done
+if [ "$health" != "healthy" ]; then
+  echo "rootless Podman did not schedule health checks (state: ${health:-unknown})" >&2
+  as_user podman inspect health-scheduler-probe >&2 || true
+  exit 1
+fi
+as_user podman rm -f health-scheduler-probe >/dev/null
+
 dest="$home/.config/containers/systemd"
 for src in "$root"/services/quadlets/*.container.disabled \
   "$root"/services/quadlets/*.network.disabled; do
@@ -198,7 +227,21 @@ quadlet_out="$runtime/quadlet-out"
 rm -rf "$quadlet_out"
 mkdir -p "$quadlet_out"
 chown "$account:$account" "$quadlet_out"
-if ! as_user /usr/local/libexec/podman/quadlet -user "$quadlet_out"; then
+quadlet=""
+for candidate in \
+  /usr/libexec/podman/quadlet \
+  /usr/lib/podman/quadlet \
+  /usr/local/libexec/podman/quadlet; do
+  if [ -x "$candidate" ]; then
+    quadlet=$candidate
+    break
+  fi
+done
+if [ -z "$quadlet" ]; then
+  echo "quadlet generator not found" >&2
+  exit 1
+fi
+if ! as_user "$quadlet" -user "$quadlet_out"; then
   echo "quadlet did not accept the TAK units" >&2
   exit 1
 fi
