@@ -170,7 +170,7 @@ def test_build_pins_the_release_and_the_base() -> None:
 def test_readiness_is_a_health_notification() -> None:
     probes = {
         "postgresql": "HealthCmd=pg_isready",
-        "rabbitmq": "HealthCmd=rabbitmq-diagnostics -q ping",
+        "rabbitmq": "HealthCmd=docker-entrypoint.sh rabbitmq-diagnostics -q ping",
         "opentakserver": "HealthCmd=python /usr/local/bin/fml-listen-ready.py 8081",
         "eud-handler": "HealthCmd=python /usr/local/bin/fml-listen-ready.py 8088",
     }
