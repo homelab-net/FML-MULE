@@ -1,4 +1,4 @@
-# What existing representations do with a mission observation
+# What the reviewed representations already say about a mission observation
 
 **Trade:** `TBR-OBS-01`.
 **Date:** 2026-09-24.
@@ -7,40 +7,70 @@ nothing here is `SIMULATED` or `HARDWARE-VERIFIED`.
 
 ## What this is
 
-The closure evidence named in the trade: a comparison of candidate
-representations against the eight sentences in CONOPS v1.2 section 28A. It
-names what each candidate does with time, source, state, a queued delivery,
-an expired record, two subjects, a link report, a derived product, and a full
-queue.
+A comparison of four existing representations against the eight sentences in
+CONOPS v1.2 section 28A. The question it answers is which of those sentences
+the cited sources already define, and which they do not, without adding new
+FML semantics.
 
-It does not select a representation. It does not close the trade. `FML-ADR-083`
-is `PROPOSED` to record the finding below, and it carries no weight until the
-named owner accepts it. The gate is that acceptance, which is not recorded
-in this file.
+It does not select a representation. It does not close the trade. It does
+not issue an ADR. It does not decide which layer would supply a semantic the
+reviewed sources do not define. Owner acceptance is still pending.
 
-A field counts only when the source already gives it the meaning the sentence
-needs. Putting that meaning into a profile, a `detail` subschema, or a new
-element is a new document. `FML-ADR-048` allows that only as protocol-specific
-glue for semantics upstream does not have, and this comparison does not write
-that glue.
+A cell in the score counts only when the cited source already gives the
+field the meaning the sentence needs. A mapping convention, a profile, a
+detail schema this file did not read, or a new element is not that meaning.
+This comparison does not write any of those.
+
+## Two kinds of sentence
+
+Section 28A mixes data on a record with behavior around that record. Asking
+whether one message carries all eight treats both kinds as fields. They are
+not. A payload can stay in an upstream form while presentation, correlation,
+retention, and queue policy sit beside it. This file does not choose that
+split. It only keeps the two kinds separate so a later decision does not
+invent one record for all eight.
+
+Data. A representation can carry these as native semantics.
+
+| Criterion | What would be on the record |
+| --- | --- |
+| `FML-REQ-034` | Time observed, the source, and one of the six lifecycle words. |
+| `FML-REQ-040` | A derived product names the observations it came from and does not replace them. A model product is labeled as one. |
+
+Behavior. These need not be fields in the message. Local policy can carry
+them.
+
+| Criterion | The behavior |
+| --- | --- |
+| `FML-REQ-035` | A stale or expired observation is not presented as current. |
+| `FML-REQ-036` | Relaying or queuing does not replace the time of observation with the time of delivery. |
+| `FML-REQ-037` | Expiry keeps history for the retention the mission profile sets. Expiry is not deletion. |
+| `FML-REQ-038` | An observation of one subject is not merged with an observation of a different subject. A possible match is not presented as a confirmed identity. |
+| `FML-REQ-039` | A report that a link was heard is not presented as a usable path or as an emitter location. |
+| `FML-REQ-041` | While the node cannot deliver, locally produced observations stay, up to a bound. A discard to stay inside the bound is recorded. The bound does not by itself end local participation. |
 
 ## Candidates
 
-These already exist. A new observation document is not a candidate.
+These already exist. A new observation document is not a candidate. The four
+below are the representations this file read. They are not a claim that every
+upstream message was read.
 
 1. A Cursor on Target event, as `Event.xsd` Version 2.0 defines it. The
    program does not redefine CoT (`docs/interfaces/README.md`,
-   `services/tak/README.md`).
+   `services/tak/README.md`). Base `detail` contents are defined outside
+   that schema. This file did not inventory those detail schemas.
 2. The `cot` row OpenTAKServer 1.7.13 already stores for such an event.
    `FML-ADR-032` prefers that server. `FML-ADR-071` classed the table as
    reconstructable PLI.
 3. A Meshtastic `Position`, and the `MeshPacket` fields that carry it.
 4. A Meshtastic `Neighbor` inside `NeighborInfo`. This is the existing
    "a link was heard" message, scored on its own and not stretched into a
-   general observation.
+   general observation. Other messages in the same protobuf were not scored.
+   This file does not show that none of them can carry a sensor reading.
 
 Also looked at, and not scored as representations, because none of them is an
-observation record:
+observation record of the kind above. Setting them aside is not an inventory
+of every OpenTAKServer table or every local log:
 
 - `mule/status.py` defines a class named `Observations`. The module is the
   CONOPS section 67 status view. The class docstring says it is everything the
@@ -136,8 +166,11 @@ interval.
 ```
 
 The schema's own example puts generation at noon and validity from 1300 until
-1330. Those are three different facts. None of the three attributes is
-defined as the time the thing was observed. `stale` is a timestamp. It is not
+1330. Those are three different facts. CoT does not define `time` as
+observation time. It defines `time` as event-generation time. An FML gateway
+could generate the event at the moment of observation and map that moment
+onto `time`. That would be a mapping convention, not a meaning the schema
+states. `stale` is a timestamp, the end of the validity interval. It is not
 one of the six state words, and the schema has no attribute whose values are
 `new`, `active`, `stale`, `expired`, `merged`, or `superseded`.
 
@@ -170,9 +203,16 @@ still an area around a point. The base schema has no field meaning "this is
 not a location" or "this path cannot be assumed to carry traffic".
 
 `Event.xsd` on `detail`: information for a smaller community, "defined
-outside of this document". A state word placed there would be a new
-subschema. Stock clients are not required to read it. That is the case
-`FML-ADR-048` and `AGENTS.md` already refuse as a private tag.
+outside of this document". The base schema therefore does not define a
+lifecycle word, a source list, or a model-product label inside `detail`.
+That is not the same claim as "no existing CoT representation defines
+them." This comparison did not inventory detail schemas outside `Event.xsd`.
+
+A newly invented private element inside `detail` is not shown to be
+acceptable by this file. It would need its own interface decision, evidence
+that the upstream semantics already in use are insufficient, and a check
+that the TAK clients this program actually uses can read it. This file
+does not make that decision.
 
 OpenTAKServer 1.7.13 `CoT` columns are `how`, `type`, `uid`,
 `sender_callsign`, `sender_device_name`, `sender_uid`, `recipients`,
@@ -189,17 +229,18 @@ defaulting to `1`, in `defaultconfig.py`. That deletes the row on a server
 clock. It is not a mission-profile retention, and it is deletion.
 
 Meshtastic `Position.timestamp` is "Positional timestamp (actual timestamp of
-GPS solution) in integer epoch seconds". `Position.time` is "usually not sent
-over the mesh" and exists so a phone can set a device clock. `location_source`
-is "How the location was acquired: manual, onboard GPS, external (EUD) GPS".
-`sensor_id` is "Sensor ID - in case multiple positioning sensors are being
-used." That is which positioning sensor produced the fix, not the source of
-an observation of some other subject. The enum value comments on
-`location_source` in that commit are `TODO: REPLACE`, so they are not used
-here. `MeshPacket.from` is "The sending node number." `MeshPacket.rx_time`
-is "The time this message was received", "never sent on the radio link", and
-"may still be re-timestamped once a valid clock becomes available, before the
-phone ever sees it."
+GPS solution) in integer epoch seconds". For a position fix, that documented
+meaning is a time of observation of that fix. `Position.time` is "usually not
+sent over the mesh" and exists so a phone can set a device clock.
+`location_source` is "How the location was acquired: manual, onboard GPS,
+external (EUD) GPS". `sensor_id` is "Sensor ID - in case multiple positioning
+sensors are being used." That is which positioning sensor produced the fix,
+not the source of an observation of some other subject. The enum value
+comments on `location_source` in that commit are `TODO: REPLACE`, so they are
+not used here. `MeshPacket.from` is "The sending node number."
+`MeshPacket.rx_time` is "The time this message was received", "never sent on
+the radio link", and "may still be re-timestamped once a valid clock becomes
+available, before the phone ever sees it."
 
 Meshtastic `Neighbor.snr` is "SNR of last heard message". `Neighbor` has a
 `node_id` and no latitude or longitude. `Neighbor.last_rx_time` is reception
@@ -208,12 +249,15 @@ node ID of the node sending info on its neighbors."
 
 ## Score
 
+A behavior row that names no field means the record does not state that
+policy. It does not mean the sentence can be met only by adding a field.
+
 | Sentence | CoT event | OpenTAKServer `cot` row | Meshtastic `Position` | Meshtastic `Neighbor` |
 | --- | --- | --- | --- | --- |
-| Time observed | Not defined. `time` is birth. `start` is validity start. | Copies those two, plus the row's `timestamp` from the event `time`. | `timestamp` is the GPS solution time, for this position only. | None. `last_rx_time` is when a message was received, and it is not sent. |
+| Time observed | Not defined as observation time. `time` is event generation. `start` is validity start. Mapping observation time onto `time` would be a convention. | Copies those two, plus the row's `timestamp` from the event `time`. | `timestamp` is the GPS solution time, for this position only. | None. `last_rx_time` is when a message was received, and it is not sent. |
 | Source | `how` is how the coordinates were made, not who produced the observation. | `sender_uid` and `sender_callsign` name the connected endpoint. A relay can be that endpoint. | `from` is the sending node number. `location_source` is how the fix was acquired. | `node_id` is the node reporting neighbors, or the neighbor. Neither is a subject separate from the radio. |
 | Six state words | No such values. Optional `qos` uses "supersede" to mean the newer event deletes the older one. | No state column. | None. `sensor_id` names a positioning sensor. | None. |
-| Not presented as current | After `stale`, the event is outside its validity interval. One timestamp covers both "stale" and "expired", so the record cannot say which. | Same timestamps. | No validity end. | No validity end. |
+| Not presented as current | After `stale`, the event is outside its validity interval. One timestamp covers both "stale" and "expired", so the record cannot say which. Presentation of a past-`stale` event is not defined here. | Same timestamps. No presentation rule. | No validity end. | No validity end. |
 | Delivery must not replace observation time | No delivery-time field. A forwarded event can keep `time` and `start`. A newly generated event has a new birth time, which is what `time` means. | Stores the event times it was given. | `timestamp` is in the position. `rx_time` is reception, is not sent on the radio, and may be rewritten before a phone sees it. Using `rx_time` as the observed time would be the replacement the sentence forbids. | `last_rx_time` is reception time and is local only. |
 | Expiry is history, not deletion | The `uid` rule overwrites every previous event for that UID with the latest. Optional `qos` value `r` is "new event replaces (deletes) old event". | `uid` is not unique, so more than one row can exist. `delete_old_data` then deletes rows older than a server cutoff, default one week. That is not a mission-profile retention. `FML-ADR-071` does not require the table to survive. | A position is the position. No retention field. | Local only. No retention field. |
 | Two subjects; possible match is not identity | Distinct UIDs are distinct pieces of information. Nothing records "possible" versus "confirmed". `how` value `f` means fused, "corroborated from multiple sources", which is a confirmation hint, not a caution. | Same. | One sending node. No match field. | One neighbor id. No match field. |
@@ -223,52 +267,60 @@ node ID of the node sending info on its neighbors."
 
 ## Finding
 
-No candidate carries all eight sentences. A separate reading was asked to
-falsify that result against the same sentences and the same kinds of source.
-It confirmed the result. The `qos` quotations, the `delete_old_data` cutoff,
-`sensor_id`, and the `mule/status.py` `Observations` class are in this file
-because that reading named them and the pins above support them.
+None of the reviewed representations, using only the meanings their cited
+sources already define, satisfies the complete section 28A contract without
+new FML semantics.
 
-`Position.timestamp` is the one field whose documented meaning is a time of
-observation, and only for a GPS fix of that position. `Neighbor` is the one
-message that reports a heard link without coordinates. Neither message
-records the six state words, a retention rule, a derived product, or a
-discard. A mission observation cannot be one of those messages without giving
-the other sentences meanings those files do not give.
+That is the finding this file supports. It is not a finding that no existing
+representation anywhere can carry the contract. Detail schemas outside
+`Event.xsd` were not read. `Position` and `Neighbor` are not every
+Meshtastic message.
 
-A CoT event is the exchange form `FML-ADR-048` already prefers, and it is the
-closest of the four. It still does not carry the sentences:
+What those sources do already define:
 
-- Observed time is not `time` and is not `start`. Using `start` for it is a
-  convention the schema does not state. That convention would be a new
-  document.
-- The six words are not values of any attribute. Collapsing stale and expired
-  into the one `stale` timestamp records neither word.
-- The `uid` rule overwrites previous events. That treats the previous event
-  as replaced. It is not a mission-profile retention, and it is not "expiry
-  is not deletion".
-- The OpenTAKServer row can keep more than the latest event, and it can name
-  a sender. The program has already classed that table as reconstructable
-  PLI, so it is not the history the retention sentence requires. The sender
-  column is not one of the six words.
-- A heard link does not fit in an event whose point is required, unless the
-  report is presented as a location.
-- A derived or model product has no base-schema place to name its sources
-  that also stops a reused UID from overwriting them. `how` does not say the
-  event is not an observation.
-- Nothing in the event, the row, or `FML-ADR-050` is a bounded observation
-  queue that records a discard.
+- `Position.timestamp` is a GPS solution time, for that position only. It is
+  the one reviewed field whose documented meaning is a time of observation,
+  and only for that fix.
+- `Neighbor` reports a heard link and has no coordinates. It does not say
+  the path can carry traffic, and it does not say it cannot. It is not a
+  general observation, and it has no lifecycle word.
+- CoT `how` is a hint about how coordinates were generated, including fused,
+  predicted, simulated, and relayed. It is not the producer of an
+  observation, and it does not say the event is not an observation.
+- CoT `uid` names one piece of information. The latest event for that `uid`
+  overwrites the earlier ones.
+- The OpenTAKServer row can keep more than one event for a `uid`, and its
+  sender columns name the connected endpoint the server associated with the
+  row. A relay can be that endpoint.
 
-Using CoT for some sentences and `Neighbor` for the link sentence is two
-representations, not one, and the CoT half still fails the rest.
+What those sources do not define as native semantics:
 
-The trade's first option therefore does not apply: no existing field shows
-time, source, and one of the six state words without a new document. The
-second option does not apply either: the node does not already keep an
-observation record that can be presented as itself. `FML-ADR-048` still
-permits glue for the missing semantics. This file is the reason that glue
-would be needed. It does not specify the glue, and it does not adopt a custom
-observation format.
+- None of the four defines `new`, `active`, `stale`, `expired`, `merged`, or
+  `superseded` as values of a field.
+- CoT `stale` is the end of a validity interval. One timestamp cannot say
+  both "stale" and "expired".
+- CoT `time` is event-generation time. It is not defined as observation
+  time. Mapping one onto the other would be a convention.
+- Optional `qos` uses "supersede" to mean the newer event deletes the older
+  one. The `uid` rule overwrites the previous event. Neither is a retained
+  superseded state, and neither is the retention a mission profile sets.
+- OpenTAKServer `delete_old_data` deletes `cot` rows past a server cutoff
+  that defaults to one week. That is deletion on a server clock.
+  `FML-ADR-071` already classed that table as reconstructable PLI, so it is
+  not the history the retention sentence requires.
+- No reviewed field names the source observations of a derived product and
+  also keeps those observations from being overwritten. `how` does not say
+  the event is not an observation. Whether some existing detail schema does
+  is outside this file.
+- None of the four is a bounded observation queue that records a discard
+  and says local participation continues. Optional `qos` value `c` drops a
+  message on congestion and does not record the drop.
+
+The behavior sentences are not shown to be missing fields that one new
+record would have to add. A later decision can keep an upstream payload and supply
+only the semantics that payload does not carry, as local metadata or as
+local policy. This file does not choose the payload, the metadata, or the
+policy, and it does not place that work in any existing ADR.
 
 ## What this does not establish
 
@@ -276,3 +328,7 @@ No client, server, or radio was run for this comparison. The OpenTAKServer
 behavior cited from `TBR-TAK-01` was already recorded there; it was not
 repeated. Stage 1 was not run. Nothing in `mule/` changed. `v0.0.1` is
 unchanged.
+
+The named owner has not accepted the finding. `TBR-OBS-01` stays `OPEN`.
+No representation is selected. No custom observation format is adopted.
+No schema is added.

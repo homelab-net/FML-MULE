@@ -8,9 +8,10 @@
 `2026-09-24-representation-comparison.md`. No flat-sat was run. Nothing in it
 is `SIMULATED` or `HARDWARE-VERIFIED`.
 
-The comparison finds that no existing representation carries the eight
-CONOPS v1.2 section 28A sentences. `FML-ADR-083` is `PROPOSED` to record that
-finding and is not accepted. The trade stays `OPEN`.
+The comparison finds that none of the reviewed representations, using their
+documented native semantics and without new FML semantics, satisfies the
+complete CONOPS v1.2 section 28A contract. It does not select a
+representation. The trade stays `OPEN`. Owner acceptance is pending.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,

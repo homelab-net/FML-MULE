@@ -169,8 +169,8 @@ representation. The other two have not been started. None of the CONOPS
 criteria they own has been run:
 
 - **`TBR-OBS-01`**, how a mission observation keeps its age, source, and
-  state. The comparison does not select a representation. `FML-ADR-083` is
-  `PROPOSED`. The trade stays open.
+  state. The comparison is written. It does not select a representation.
+  The trade stays open. Owner acceptance is pending.
 - **`TBR-SENSE-01`**, how a mission profile marks a capability, and how a
   sensor task ends.
 - **`TBR-EMCON-01`**, which transmissions an EMCON posture classes as
