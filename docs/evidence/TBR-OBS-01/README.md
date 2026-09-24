@@ -10,6 +10,8 @@ The CoT schema, the OpenTAKServer `CoT` model, `scheduled_jobs.py`, and
 Meshtastic `mesh.proto` are archived beside it. The OpenTAKServer
 `defaultconfig.py` is not archived whole, because it contains upstream
 default credentials. The one default the comparison uses is excerpted.
+The Python snapshots keep a `.py.txt` suffix so their text stays verbatim.
+Their GPL-3.0 text is `docs/evidence/licenses/GPL-3.0.txt`.
 No flat-sat was run. Nothing in the comparison is `SIMULATED` or
 `HARDWARE-VERIFIED`.
 

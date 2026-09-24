@@ -59,13 +59,21 @@ The comparison is evidence. Accepting its bounded finding does not close
 this trade and does not select a representation.
 
 The named owner closes it only by accepting how an observation is recorded
-and presented. An ADR records that choice and cites the comparison. For any
-semantic that choice does not take from the four reviewed representations,
-the ADR also cites a reading of the CoT detail schemas and the other
-Meshtastic messages the comparison names as unread. If that reading is
-absent, assigning the semantic to local metadata or local policy does not
-close the trade. Until the choice is recorded this trade stays `OPEN`.
-The Stage 1 demonstrations in CONOPS section 85 are not this gate.
+and presented. An ADR records that choice and cites the comparison.
+
+For any behavior the reviewed definitions do not state, that ADR does not
+assign the behavior to local FML policy until it cites a reading of the
+upstream consumer that would perform it. For a CoT behavior that is the
+TAK client or the OpenTAKServer code. For a Meshtastic behavior that is
+the firmware. A schema or a message definition is not that reading. CoT
+detail schemas and other Meshtastic messages the comparison names as
+unread still have to be read before a semantic they might carry is
+assigned to local metadata.
+
+If that consumer cannot be read, the ADR records the limitation. It does
+not treat the unread consumer as proof that the behavior is absent.
+Until the choice is recorded this trade stays `OPEN`. The Stage 1
+demonstrations in CONOPS section 85 are not this gate.
 
 ## Comparison
 

@@ -97,8 +97,8 @@ that copy.
 | Source | Pin |
 | --- | --- |
 | `Event.xsd` header: "Schema for Cursor-On-Target (CoT) Event data model (Version 2.0) 13-June-2003" | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-event-xsd-version-2.0.xsd`. Retrieved 2026-09-24 from `docjason/XmlValidate` commit `89ced733e661d14cd21f58fce5a60ed5fa60f067`, file `schemas/Event.xsd`. SHA-256 `c3416f653638cffa3354ba8556fa7855cfc9bec4ed1a4e23a0e979bded3b9365`. |
-| OpenTAKServer `opentakserver/models/CoT.py` | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-opentakserver-1.7.13-cot.py`. Tag `1.7.13`, commit `67903c26d95552738d85be4bc3c3ff3321378dbe`. GPL-3.0, not relicensed. |
-| Meshtastic `meshtastic/mesh.proto` | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-meshtastic-mesh.proto`. `meshtastic/protobufs` commit `8f97d66a63ce10cfb12f94203e361691647f5ad3` (2026-09-21). GPL-3.0, not relicensed. |
+| OpenTAKServer `opentakserver/models/CoT.py` | Archived verbatim at `docs/evidence/TBR-OBS-01/2026-09-24-opentakserver-1.7.13-cot.py.txt`. Tag `1.7.13`, commit `67903c26d95552738d85be4bc3c3ff3321378dbe`. GPL-3.0-only. License text: `docs/evidence/licenses/GPL-3.0.txt`. Not relicensed. |
+| Meshtastic `meshtastic/mesh.proto` | Archived verbatim at `docs/evidence/TBR-OBS-01/2026-09-24-meshtastic-mesh.proto`. `meshtastic/protobufs` commit `8f97d66a63ce10cfb12f94203e361691647f5ad3` (2026-09-21). GPL-3.0-only. License text: `docs/evidence/licenses/GPL-3.0.txt`. Not relicensed. |
 
 The CoT copy in this directory is the file retrieved from that commit. It is
 not a download from the DISA XML registry. The header in that file is the
@@ -224,7 +224,7 @@ with the row. It is not a CoT attribute. `FML-ADR-071` classed this table as
 reconstructable: loss and regeneration are acceptable for it. The
 `TBR-TAK-01` bench found the only CoT queue, `cot_parser`, non-durable.
 `delete_old_data` in the archived
-`2026-09-24-opentakserver-1.7.13-scheduled-jobs.py` executes
+`2026-09-24-opentakserver-1.7.13-scheduled-jobs.py.txt` executes
 `delete(CoT).where(CoT.timestamp <= timestamp)`. The default cutoff includes
 `OTS_DELETE_OLD_DATA_WEEKS` from the environment, defaulting to `1`. That
 passage is archived as
@@ -331,17 +331,19 @@ What those sources do not define as native semantics:
   message on congestion and does not record the drop.
 
 The behavior sentences are not shown to be missing fields that one new
-record would have to add. A later decision can keep an upstream payload and supply
-only the semantics that payload does not carry, as local metadata or as
-local policy. This file does not choose the payload, the metadata, or the
-policy, and it does not place that work in any existing ADR.
+record would have to add. This file does not choose a payload, local
+metadata, or local policy. A definition that does not state a behavior is
+not a finding that the upstream consumer lacks it. No TAK client source
+and no Meshtastic firmware source were read for those sentences.
 
 ## What this does not establish
 
-No client, server, or radio was run for this comparison. The OpenTAKServer
+No client, server, or radio was run for this comparison. No TAK client
+source and no Meshtastic firmware source were read. The OpenTAKServer
 behavior cited from `TBR-TAK-01` was already recorded there; it was not
-repeated. Stage 1 was not run. Nothing in `mule/` changed. `v0.0.1` is
-unchanged.
+repeated. Where a consumer was not read, that is a limit of this file.
+It is not proof that the behavior is absent. Stage 1 was not run.
+Nothing in `mule/` changed. `v0.0.1` is unchanged.
 
 The named owner has not accepted the finding. `TBR-OBS-01` stays `OPEN`.
 No representation is selected. No custom observation format is adopted.
