@@ -1071,9 +1071,12 @@ internal units. Its root is `opentakserver.target`, including while the
 contract is disabled. Topology CI checks the graph. A cold start
 installs the units for an unprivileged account and lets systemd start
 the target. `Notify=healthy` waits for the database, the broker, API
-migrations, and the listener. One synthetic CoT is persisted, including
-after the target is stopped and started again. That is not `Restart=`,
-not a different-node restore, and the mesh interface is still `TBD`.
+migrations, and the listener. The target wants rather than runtime-requires
+the API; worker startup checks fail closed if the API/migrations do not
+start, while a later API stop leaves the target, listener, and parser up.
+One synthetic CoT is persisted, including after the target is stopped and
+started again. That is not `Restart=`, not a different-node restore, and
+the mesh interface is still `TBD`.
 `OpenTAKServer` is
 **three** console entry points, and upstream's own container runs only the
 first:
