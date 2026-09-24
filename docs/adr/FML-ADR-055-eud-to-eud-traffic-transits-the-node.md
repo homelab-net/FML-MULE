@@ -133,6 +133,6 @@ hardware. That measurement is named in the status section and does not exist.
 `TBD`, pending `TBR-RF-03` and `TBR-LINUX-01` for the hardware half.
 
 The software half is testable earlier. A node that assumes it is in the path
-can be exercised against the flat-sat, and 802.11s and access point behaviour
+can be exercised against the software digital twin, and 802.11s and access point behaviour
 become testable on a machine with a wireless stack, which hosted CI does not
 provide. CONOPS section 78 stage 1 is the first stage that could carry it.

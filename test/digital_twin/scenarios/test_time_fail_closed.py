@@ -5,7 +5,8 @@ check that the decision is *acted on* at the point where it matters, and that
 the refusal reaches the operator rather than appearing as an unexplained
 failure to connect.
 
-This is the behaviour most worth having in a flat-sat. It is unwelcome in the
+This is the behaviour most worth having in a software digital twin. It is
+unwelcome in the
 field, it is correct, and it is the easiest thing in the system to regress into
 failing open, because failing open makes the symptom disappear.
 """

@@ -1,9 +1,10 @@
 """Fakes for the hardware interfaces.
 
-Every fake in this file is listed in `test/flatsat/README.md`, and
+Every fake in this file is listed in `test/digital_twin/README.md`, and
 `tools/validate-docs.sh` fails if one is not. That listing is a rule, not a
-courtesy: a reader must be able to see exactly which boundary is simulated, and
-an unlisted fake is how "it works on the flat-sat" becomes a permanent excuse.
+courtesy: a reader must be able to see exactly which boundary is simulated,
+and an unlisted fake is how "it works on the software digital twin" becomes
+a permanent excuse.
 
 Each fake is scripted, not modelled. `FakePower` does not simulate a battery
 discharge curve, because no measured curve exists and inventing one would put a
@@ -16,9 +17,9 @@ the verdict untestable, because the test then agrees with the fixture rather
 than with the code.
 
 **A fake may not describe hardware that cannot exist.** `FakeRadio` rejects a
-bearer that is linked without being present. The flat-sat's whole claim is that
-passing here means something on hardware, and a fake free to script impossible
-states voids it.
+bearer that is linked without being present. The software digital twin's
+whole claim is that passing here means something on hardware, and a fake
+free to script impossible states voids it.
 """
 
 from __future__ import annotations

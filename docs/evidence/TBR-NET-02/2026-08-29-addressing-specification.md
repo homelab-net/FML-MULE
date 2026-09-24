@@ -19,7 +19,7 @@ unresolved-recipient rule.
 Every trade owner in this repository is `TBD-SRR`, and a trade closes when a
 **named** owner accepts the evidence. And the empirical half does not exist:
 nothing anywhere exercises an EUD behind one MULE reaching an EUD behind
-another. `test/flatsat/` builds exactly one node.
+another. `test/digital_twin/` builds exactly one node.
 
 ## Finding 1: the IP plane does not need this trade for delivery
 

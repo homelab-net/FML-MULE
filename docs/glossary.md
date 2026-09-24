@@ -112,20 +112,33 @@ trade that will supply it. `TBR` is the question, `TBD` is the missing number.
 **UNVERIFIED** - nothing has been exercised. The default for a claim with no
 evidence. Used throughout this repository, deliberately and often.
 
-**SIMULATED** - exercised end to end on the flat-sat against fakes and recorded
-fixtures. The logic is correct and the user flow is coherent. **Makes no claim
-about physical behaviour.** A real result, not a weaker word for tested.
+**SIMULATED** - exercised end to end on the software digital twin against
+fakes and recorded fixtures. The logic is correct and the user flow is
+coherent. **Makes no claim about physical behaviour.** A real result, not a
+weaker word for tested.
 
 **HARDWARE-VERIFIED** - demonstrated on real hardware with evidence recorded
 under `docs/evidence/` or `test/results/`. Nothing carries this status.
 
-**Flat-sat** - borrowed from spacecraft practice, where a flatsat is the avionics
-stack laid out on a bench running real flight software with simulated
-interfaces. Here, `test/flatsat/`: the real node logic composed and run end to
-end with the hardware layer replaced by fakes behind narrow interfaces. It
-verifies the CONOPS section 82 user flow before hardware is scarce. It runs the
-same artifacts as a node, never parallel copies, because a flat-sat that has
-drifted is worse than none.
+**Software digital twin** - fakes, fixtures, and software stand-ins.
+`test/digital_twin/` composes the real node logic and runs it with the
+hardware layer replaced by fakes. A passing run is `SIMULATED` only. It
+says nothing about physical behaviour.
+
+**Flat-sat** - representative physical hardware, out of final packaging,
+including a hardware-in-the-loop bench. What that article can support is
+hardware-integration evidence. It is not this repository's software
+composition, and a result there is not `SIMULATED`.
+
+**Integrated prototype** - the physical architecture close to its final
+form. What that article can support is prototype verification.
+
+**Field article** - the equipment in a representative operational
+environment. What that article can support is field evidence.
+
+The four names above are articles, not new status words. This rename does
+not reclassify any recorded result. A software digital twin result stays
+`SIMULATED`. Nothing in the repository becomes `HARDWARE-VERIFIED`.
 
 **Trade** - short for trade study. The analysis behind a `TBR`.
 

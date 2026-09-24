@@ -14,6 +14,16 @@ this program needs them visible:
 
 ## Unreleased
 
+### Named the software composition a software digital twin
+
+`test/flatsat/` is now `test/digital_twin/`, and `FlatSatNode` is
+`DigitalTwinNode`. A software digital twin is fakes, fixtures, and software
+stand-ins. A passing run stays `SIMULATED`. A flat-sat is representative
+physical hardware out of final packaging. An integrated prototype and a
+field article are the later physical articles. No test behaviour changed,
+and no recorded evidence status was raised. Dated closure packets keep the
+command and the file list from the run that produced them.
+
 ### Compared mission-observation representations
 
 `TBR-OBS-01` has a written comparison of a CoT event, the OpenTAKServer

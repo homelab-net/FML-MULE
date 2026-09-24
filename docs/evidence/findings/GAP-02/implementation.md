@@ -27,7 +27,7 @@ both validation and generation. This increment closes those remaining paths.
 - `tools/gen-config.py`: the runtime resolver validates the catalog schema and
   applies the same fail-closed uniqueness, enablement and deployment-unit gates
   before it canonicalizes aliases into generated configuration.
-- `test/flatsat/`: the service scenarios use two explicitly synthetic stand-ins
+- `test/digital_twin/`: the service scenarios use two explicitly synthetic stand-ins
   with their own test-only catalog and existence-marker units. This exercises
   the production resolver without representing OpenTAKServer or Martin as
   deployable.
@@ -45,7 +45,7 @@ The original uncatalogued-service test failed against the pre-GAP-02 code. For
 this completion increment, the 47-test focused run against the earlier
 implementation produced 11 failures: duplicate names, ambiguous aliases,
 disabled selections, absent units, unowned units and malformed identifiers were
-all still accepted. After the change, the focused GAP-02 and flat-sat run passes
+all still accepted. After the change, the focused GAP-02 and software digital twin run passes
 251 tests. Mutations M103 through M107 independently defeat unknown-service,
 disabled-service, missing-unit, duplicate-reference and operator-preflight
 enforcement; all five are killed.
@@ -53,6 +53,6 @@ enforcement; all five are killed.
 ## Reproduce
 
 `python -m pytest test/unit/test_gen_config.py test/unit/test_service_catalog.py
-test/flatsat -q`; `python tools/validate-catalog.py`; `python
+test/digital_twin -q`; `python tools/validate-catalog.py`; `python
 tools/mutation-check.py --only M103,M104,M105,M106,M107`; and `sh tools/lint.sh`.
 The evidence is `SIMULATED` and establishes no physical behavior.

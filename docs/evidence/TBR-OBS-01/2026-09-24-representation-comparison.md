@@ -2,7 +2,7 @@
 
 **Trade:** `TBR-OBS-01`.
 **Date:** 2026-09-24.
-**Taken by:** written comparison. No node was run, no flat-sat was run, and
+**Taken by:** written comparison. No node was run, no software digital twin was run, and
 nothing here is `SIMULATED` or `HARDWARE-VERIFIED`.
 
 ## What this is

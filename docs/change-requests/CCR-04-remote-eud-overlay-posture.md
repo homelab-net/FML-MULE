@@ -21,7 +21,7 @@ This record is that request. It was accepted on 2026-09-23. CONOPS v1.1 is the
 controlling copy. `FML-ADR-082` is `SELECTED` and `FML-ADR-039` is
 `SUPERSEDED`. It does not block `FML-ADR-068`, `FML-ADR-069`, or `TBR-NET-04`.
 It does not enlarge v0.0.1, and it does not edit `mule/` or the mission schema.
-A flat-sat may now exercise the posture. Until that flat-sat exists, the
+A software digital twin may now exercise the posture. Until that software digital twin exists, the
 posture is decided and not demonstrated.
 
 The change alters `[SHALL]` statements, a section 79 criterion, and a section

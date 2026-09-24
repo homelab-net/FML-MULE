@@ -13,7 +13,7 @@ integration functions relevant to `FML-REQ-003`, `FML-REQ-008`, `FML-REQ-009`,
 server, while keeping the architecture TAK-compatible rather than
 OpenTAKServer-exclusive. This evaluation therefore does not approve deployment.
 
-The exact 1.7.13 package has already been run in the FML flat-sat. That work
+The exact 1.7.13 package has already been run in the FML software digital twin. That work
 established that the service is three console entry points, not one container
 process: `opentakserver`, `eud_handler` and `cot_parser`, with PostgreSQL and
 RabbitMQ outside them. A running PyTAK path exercised CoT through the listener,
@@ -28,7 +28,7 @@ parser required for the demonstrated path. An approvable FML artifact therefore
 includes and pins the complete three-process service rather than deploying that
 file as written.
 
-On a Debian x86-64 rootful-Podman flat-sat warmed for approximately two days,
+On a Debian x86-64 rootful-Podman software digital twin warmed for approximately two days,
 the three processes measured approximately 536 MB idle resident memory with no
 load: 178.5 MB for the API, 115.4 MB for `eud_handler` and 242.5 MB for
 `cot_parser`. These are host-specific software measurements, not target-hardware
@@ -62,7 +62,7 @@ out-of-SQL migration procedures remain open.
   native dependencies and built-image architectures still require verification.
 - Security: GitHub published no repository advisory through its advisory
   endpoint on 2026-09-10. No independent audit or repository SBOM was identified.
-- Prototype: exact release 1.7.13 passed the cited flat-sat flows. That is not
+- Prototype: exact release 1.7.13 passed the cited software digital twin flows. That is not
   owner approval, hardware verification or evidence that the upstream Dockerfile
   is deployable.
 

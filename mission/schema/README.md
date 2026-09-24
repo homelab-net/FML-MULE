@@ -14,7 +14,7 @@ closed and are marked `TBD` in the schema rather than guessed.
 ## Validation
 
 `mule/mission.py` loads this schema and enforces it before a mission package can
-enter configuration generation or the flat-sat boot path. The standalone
+enter configuration generation or the software digital twin boot path. The standalone
 repository validator uses the same implementation, and CI exercises every
 example in `mission/examples/`, both valid and deliberately invalid.
 

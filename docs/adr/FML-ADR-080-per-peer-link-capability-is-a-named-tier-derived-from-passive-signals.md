@@ -19,7 +19,7 @@ voice, or only text -- rather than making an operator read routing tables. Item
 1.9's passive floor is meant to derive that answer from signals the node already
 has: batman-adv transmit quality (TQ), the `iw station dump` PHY-rate ceiling,
 the bearer, and the hop count. The parser for those signals now exists
-(`test/flatsat/radio_parse.py`: `station_bitrates_mbps` and `originator_tqs`).
+(`test/digital_twin/radio_parse.py`: `station_bitrates_mbps` and `originator_tqs`).
 
 What does not exist is a name for the answer. The only capability ladder the
 program has is node-level and describes graceful degradation of the whole node,

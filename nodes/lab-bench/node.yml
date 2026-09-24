@@ -28,7 +28,7 @@ interfaces:
   # High-rate mesh on mac80211_hwsim -- a mesh-capable mac80211 radio, standing
   # in for the QCA6174A on M.2. The RF medium is simulated (hwsim).
   mesh: wlan0
-  # No HaLow or LoRa radio on this box; those bearers are faked on the flat-sat.
+  # No HaLow or LoRa radio on this box; those bearers are faked on the software digital twin.
   halow: none
   lora: none
 

@@ -12,7 +12,7 @@ tier is actually reachable end to end; this function never does.
 
 It is a pure function of values a caller passes in (`FML-ADR-052`): batman-adv
 transmit quality, the `iw` PHY-rate ceiling, the bearer, and the hop count. It
-reads nothing -- the radio reader stays in the flat-sat pending
+reads nothing -- the radio reader stays in the software digital twin pending
 `TBR-LINUX-01`/`TBR-RF-01`/`TBR-RF-03` -- and it invents no thresholds: the cut
 points are `TBR-RF-01`'s, handed in as `CapabilityPolicy` with no compiled-in
 defaults, the readings-versus-policy split `mule.timekeeping.assess` uses. It

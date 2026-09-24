@@ -19,8 +19,9 @@ and `TBR-RF-03`. Promoting them to production would be defining a blocked
 interface by relocating a file, which is the same act under a quieter name.
 
 They stay here until either those trades close or a consumer outside the
-flat-sat needs them. `mule/timekeeping.py` moved because the decision it makes
-is `FML-ADR-042`, which is decided; these describe boundaries that are not.
+software digital twin needs them. `mule/timekeeping.py` moved because the
+decision it makes is `FML-ADR-042`, which is decided; these describe
+boundaries that are not.
 """
 
 from __future__ import annotations

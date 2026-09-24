@@ -49,11 +49,11 @@ from mule.bearers import Bearer
 from mule.capability import CapabilityPolicy, capability_tier
 from mule.sysfs import SysfsThermalReadings, SysfsTimeReadings, ZoneMap
 
-# radio_parse is the flat-sat's tested iw/batctl parser (PR #146). test/ and
-# test/bench/ are not packages, and `test` shadows a stdlib package, so add the
-# flat-sat directory to the path and import the module directly rather than as
-# test.flatsat.radio_parse.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "flatsat"))
+# radio_parse is the software digital twin's tested iw/batctl parser
+# (PR #146). test/ and test/bench/ are not packages, and `test` shadows a
+# stdlib package, so add the software digital twin directory to the path
+# and import the module directly rather than as test.digital_twin.radio_parse.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "digital_twin"))
 import radio_parse
 
 # Interface-type substrings iw reports, mapped to the bearer they carry. This is
@@ -108,7 +108,7 @@ def _peer_capability(
 
     Bench telemetry, `SIMULATED`, and a ceiling not a guarantee (`FML-ADR-080`):
     the active probe of item 1.9 is what would confirm a tier end to end. The
-    signals come from the flat-sat's tested parser and the tier from
+    signals come from the software digital twin's tested parser and the tier from
     `mule.capability`; hops are not in `station dump`/`originators`, so `None` is
     passed and that ceiling is skipped. The signals ride alongside the tier so an
     operator, and this evidence, can see why the tier is what it is.
@@ -134,7 +134,7 @@ def _radios() -> tuple[
 
     `enumerated` is None if `iw` could not run at all -- "cannot tell what is
     present" is not "nothing is". `mesh_counts` and `peer_tiers` are bench
-    telemetry, not part of the status. Parsing is the flat-sat's tested
+    telemetry, not part of the status. Parsing is the software digital twin's tested
     `radio_parse`, not re-inlined here.
     """
     interfaces = radio_parse.interfaces(_run(["iw", "dev"]))

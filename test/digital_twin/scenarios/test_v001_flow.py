@@ -1,6 +1,7 @@
 """The v0.0.1 flow: power on, connect, reach a service.
 
-This is the flat-sat's first target, and it is deliberately the same flow as the
+This is the software digital twin's first target, and it is deliberately
+the same flow as the
 `ROADMAP.md` v0.0.1 acceptance criterion: one node, one service, reachable from
 a client.
 
@@ -8,7 +9,7 @@ a client.
 section 82 runs power on -> connect -> **authenticate** -> **authorized services
 appear** -> **operate**. There is no authentication, no authorization and no
 request/response here, because the node has none: see the "Not covered" section
-of `test/flatsat/README.md`, which names each gap and the trade blocking it.
+of `test/digital_twin/README.md`, which names each gap and the trade blocking it.
 What is covered is power on, configuration resolution, bearer bring-up, and
 whether the services a mission package enables are the services a device can
 resolve.
@@ -23,7 +24,7 @@ from ..conftest import EUD, FIXTURE_REGIONS, MISSION_MINIMAL, NodeFactory
 from ..fakes import FakeRadio
 from ..node import REPO_ROOT
 
-#: The services `test/flatsat/mission-with-services.json` enables, under the
+#: The services `test/digital_twin/mission-with-services.json` enables, under the
 #: local domain that same package names. Written here as the expected *result* of
 #: reading the package, not as configuration: if the package changes, this
 #: assertion is meant to fail.

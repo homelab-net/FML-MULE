@@ -123,7 +123,7 @@ supply the first kind only, which is what makes the second kind testable.
 
 ## Why this package exists at all
 
-An adversarial review of the flat-sat found that whether the clock could be
+An adversarial review of the software digital twin found that whether the clock could be
 trusted was being decided by a **test fake**, not by the node. The tests looked
 thorough and could not have failed, because no real code was deciding anything.
 

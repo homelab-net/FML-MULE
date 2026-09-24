@@ -84,7 +84,7 @@ written.
    has answered it, whatever its file path.
 4. **It defines no interface to hardware or to a peer** that a blocked trade
    governs. Narrow reading Protocols whose shape depends on an open trade stay
-   in `test/`, per the location note in `test/flatsat/interfaces.py`.
+   in `test/`, per the location note in `test/digital_twin/interfaces.py`.
 
 A blocked component's README **shall** name, under a heading of its own, any
 `mule/` module that reasons about its subject matter under this ADR, so that a

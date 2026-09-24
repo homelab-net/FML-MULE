@@ -39,7 +39,7 @@ evaluated commit. The stock default therefore blocks profile approval; an
 owner-approved separation and confidentiality control remains to be selected.
 The presence of encryption does not make default-channel traffic confidential.
 
-The existing FML flat-sat used digest-pinned `meshtasticd` from the 2.7.26
+The existing FML software digital twin used digest-pinned `meshtasticd` from the 2.7.26
 family on two simulated nodes. It demonstrated that `Contact.callsign` and
 `GeoChat.to` survived the software bearer. That result is `SIMULATED`: it says
 nothing about RF, range, timing, power, thermal behavior or an MCU build, and it

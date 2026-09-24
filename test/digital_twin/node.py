@@ -1,6 +1,7 @@
 """A MULE node, composed and run end to end with the hardware layer faked.
 
-This is the flat-sat's node. Its job is **assembly, not judgement**: it reads
+This is the software digital twin's node. Its job is **assembly, not
+judgement**: it reads
 the fakes, hands plain values to the decision modules in `mule/`, and reports
 what they said. Every rule it appears to apply lives somewhere else.
 
@@ -55,7 +56,7 @@ from .interfaces import LoRaPlane, RadioState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-#: Where the flat-sat's stand-in services are said to run. The real service
+#: Where the software digital twin's stand-in services are said to run. The real service
 #: plane waits on trades that have not closed; see `README.md`.
 STAND_IN_LOCATION = "local"
 
@@ -65,7 +66,8 @@ def _load_gen_config() -> ModuleType:
 
     Loaded by path because the file is a hyphenated executable script.
     Importing the real tool rather than reimplementing it is what keeps the
-    flat-sat from drifting: if region validation changes, this changes with it.
+    software digital twin from drifting: if region validation changes, this
+    changes with it.
     """
     path = REPO_ROOT / "tools" / "gen-config.py"
     spec = importlib.util.spec_from_file_location("gen_config", path)
@@ -94,19 +96,20 @@ class BootResult:
     radios_enumerated: list[str] | None
 
 
-#: The flat-sat reports admission using the decision type itself, so a scenario
-#: reads the same shape the node produced.
+#: The software digital twin reports admission using the decision type
+#: itself, so a scenario reads the same shape the node produced.
 AdmissionResult = AdmissionDecision
 
 
-class FlatSatNode:
+class DigitalTwinNode:
     """A node running against fakes.
 
     The service plane is represented by a stand-in, not by the real services.
     Three of the four MULE-original components are approved but blocked on
     trades, and `AGENTS.md` forbids implementing them to make a scenario pass.
-    The flat-sat exercises their **interfaces** with stand-ins, which is what a
-    flat-sat is for: bringing up the bus while the payload does not exist.
+    The software digital twin exercises their **interfaces** with stand-ins,
+    which is what a software digital twin is for: bringing up the bus while
+    the payload does not exist.
     """
 
     def __init__(
@@ -148,9 +151,9 @@ class FlatSatNode:
         self._power_model = power_model
         # None while TBR-THERM-01 is open. See mule/thermal.py.
         self._thermal_limits = thermal_limits
-        # The four axes a node is told rather than observes. The flat-sat runs
-        # on a bench, so LAB is the honest default; CCR-01 makes environment
-        # configuration, not observation.
+        # The four axes a node is told rather than observes. The software
+        # digital twin runs on a bench, so LAB is the honest default; CCR-01
+        # makes environment configuration, not observation.
         self._environment = environment
         self._lifecycle = lifecycle
         self._emission = emission
@@ -215,9 +218,10 @@ class FlatSatNode:
 
         original_catalog = gen_config.CATALOG_PATH
         try:
-            # The flat-sat's service plane is a named stand-in. Point the real
-            # generator at its test-only catalog for this call, then restore the
-            # production catalog even when configuration is refused.
+            # The software digital twin's service plane is a named stand-in.
+            # Point the real generator at its test-only catalog for this call,
+            # then restore the production catalog even when configuration is
+            # refused.
             gen_config.CATALOG_PATH = self._catalog_path
             self._params = gen_config.generate(
                 str(self._region_profile), self._mission_package, None

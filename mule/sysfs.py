@@ -173,10 +173,11 @@ class SysfsTimeReadings:
 
     That matters more here than anywhere else in this package.
     `FakeClock.dead_backup_cell()` is the scenario `FML-ADR-042` was written
-    for and the one the flat-sat exercises hardest, and **a real node cannot
-    detect it**. The reading is not missing because nobody wrote it; there is
-    nothing to read. A board that exposes a vendor attribute can supply one
-    through `backup_cell_probe`, the same way thermal supplies throttling.
+    for and the one the software digital twin exercises hardest, and **a
+    real node cannot detect it**. The reading is not missing because nobody
+    wrote it; there is nothing to read. A board that exposes a vendor attribute
+    can supply one through `backup_cell_probe`, the same way thermal supplies
+    throttling.
     """
 
     #: Which RTC. TBR-HW-01 selects the board; rtc0 is the class default.

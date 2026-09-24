@@ -1,4 +1,4 @@
-"""Shared fixtures for the flat-sat.
+"""Shared fixtures for the software digital twin.
 
 Everything a scenario needs to compose a node lives here, so that no scenario
 carries a literal another scenario has to match by hand.
@@ -18,15 +18,17 @@ from mule.thermal import ThermalLimits
 from mule.timekeeping import TimePolicy
 
 from .fakes import FakeClock, FakeLoRaPlane, FakePower, FakeRadio, FakeThermal
-from .node import REPO_ROOT, FlatSatNode
+from .node import REPO_ROOT, DigitalTwinNode
 
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
 GOOD_PROFILE = FIXTURE_REGIONS / "profile.yml"
 MISSION_EXAMPLES = REPO_ROOT / "mission" / "examples"
-FLATSAT_CATALOG = REPO_ROOT / "test" / "flatsat" / "catalog" / "catalog.yml"
+DIGITAL_TWIN_CATALOG = REPO_ROOT / "test" / "digital_twin" / "catalog" / "catalog.yml"
 
 #: A synthetic package that enables two stand-in services and names a domain.
-MISSION_WITH_SERVICES = REPO_ROOT / "test" / "flatsat" / "mission-with-services.json"
+MISSION_WITH_SERVICES = (
+    REPO_ROOT / "test" / "digital_twin" / "mission-with-services.json"
+)
 #: The smallest package the schema accepts. It enables no services and names no
 #: domain, which is a valid deployment and a useful negative case.
 MISSION_MINIMAL = MISSION_EXAMPLES / "valid-minimal.json"
@@ -68,7 +70,7 @@ FIXTURE_THERMAL_LIMITS = ThermalLimits(
 )
 
 #: The device identity used by scenarios that need one. Any string works today,
-#: which is itself a finding recorded in test/flatsat/README.md.
+#: which is itself a finding recorded in test/digital_twin/README.md.
 EUD = "eud-example-01"
 
 
@@ -82,7 +84,7 @@ def time_policy() -> TimePolicy:
     )
 
 
-NodeFactory = Callable[..., FlatSatNode]
+NodeFactory = Callable[..., DigitalTwinNode]
 
 
 @pytest.fixture
@@ -104,11 +106,11 @@ def build_node(time_policy: TimePolicy) -> NodeFactory:
         economy_below_minutes: int | None = None,
         wan: bool | None = None,
         peer_reachable: bool | None = None,
-    ) -> FlatSatNode:
-        return FlatSatNode(
+    ) -> DigitalTwinNode:
+        return DigitalTwinNode(
             region_profile=profile,
             mission_package=mission,
-            catalog_path=FLATSAT_CATALOG,
+            catalog_path=DIGITAL_TWIN_CATALOG,
             radio=radio if radio is not None else FakeRadio(),
             power=power if power is not None else FakePower(),
             thermal=thermal if thermal is not None else FakeThermal(),

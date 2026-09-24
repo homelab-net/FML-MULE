@@ -1,14 +1,16 @@
-# The flat-sat
+# The software digital twin
 
-A spacecraft flat-sat is the flight hardware laid out on a bench: the real
-avionics, the real harness, the real software, wired up where an engineer can
-reach every connector, with the things that cannot be brought indoors replaced
-by stimulators. It exists so that integration problems are found while they are
-cheap, and so the flight article is not the first place the system is assembled.
+This directory is the software digital twin: fakes, fixtures, and software
+stand-ins. It runs the real node logic end to end, with the hardware layer
+replaced by fakes behind the narrow interfaces in `interfaces.py`. A passing
+scenario is `SIMULATED` only.
 
-This is the software equivalent. It is the real node logic, composed and run end
-to end, with the hardware layer replaced by fakes behind the narrow interfaces
-in `interfaces.py`.
+A flat-sat is a different article. In spacecraft practice it is the flight
+hardware laid out on a bench. Here it means representative physical hardware,
+out of final packaging, including a hardware-in-the-loop bench. This directory
+is not that bench. An integrated prototype is the physical architecture close
+to its final form. A field article is the equipment in a representative
+operational environment. None of those results is produced here.
 
 ## What it covers
 
@@ -28,7 +30,7 @@ Plus the refusal paths, which are the reason the rest is worth having:
 ## What it does not cover
 
 CONOPS section 82 runs **power on -> connect -> authenticate -> authorized
-services appear -> operate**. The flat-sat covers the first two and a stub of
+services appear -> operate**. The software digital twin covers the first two and a stub of
 the third. This section exists because an earlier draft of this file claimed
 the whole flow, which was not true and would have been baselined against.
 
@@ -40,7 +42,7 @@ the whole flow, which was not true and would have been baselined against.
 
 CONOPS section 68 stacks six controls - network admission, user identity, role
 and scope, application authorization, TAK authorization, administrative
-authorization. The flat-sat exercises part of the first. Do not read a passing
+authorization. The software digital twin exercises part of the first. Do not read a passing
 run as evidence about any of the other five.
 
 Nor does a fake produce evidence about physical behaviour, at any level of
@@ -70,7 +72,7 @@ which is production code held to production standards:
 | What do we tell the operator? | `mule/status.py` |
 | Which radios matter? | `mule/bearers.py` |
 
-This split is `FML-ADR-051`, and it is the reason the flat-sat is worth
+This split is `FML-ADR-051`, and it is the reason the software digital twin is worth
 anything: the same decisions run on a real node with real drivers behind the
 same interfaces. When a decision lived in the test tree, a fake could answer it
 and no test could tell.
@@ -79,8 +81,8 @@ and no test could tell.
 
 1. **It runs the real artifacts, not parallel copies.** `node.py` loads
    `tools/gen-config.py` by path and imports every decision from `mule/`. A
-   flat-sat that has drifted from the node is worse than none, because "it
-   works on the flat-sat" becomes a permanent excuse.
+   software digital twin that has drifted from the node is worse than none, because "it
+   works on the software digital twin" becomes a permanent excuse.
 2. **Every fake is named below**, and `tools/validate-docs.sh` fails if one is
    not. An unlisted fake is a hidden assumption.
 3. **A fake reports; it does not conclude.** Anything the node has to *decide*
@@ -115,7 +117,7 @@ answers the day the trade closes.
 being present, or reporting peers while absent - by raising
 `ImpossibleHardwareState` at construction. Without that, a scenario can pass
 against a node state no hardware can produce, which voids the only claim the
-flat-sat makes.
+software digital twin makes.
 
 ### Why the fakes report rather than conclude
 
@@ -149,7 +151,7 @@ make the conclusion untestable; it can make the node state something untrue.
 A fake replaces hardware. A **stand-in** occupies the place of software not yet
 written, and there is one:
 
-- **The service plane.** `FlatSatNode` resolves the two synthetic names in
+- **The service plane.** `DigitalTwinNode` resolves the two synthetic names in
   `mission-with-services.json` through `catalog/catalog.yml` and the test-only
   `quadlets/stand-in-alpha.container` and `stand-in-beta.container` existence
   markers to a local stand-in. No production catalog entry or unit is implied.
@@ -158,7 +160,7 @@ written, and there is one:
   `services/gateways/` are approved but blocked on trades that have not closed,
   and `AGENTS.md` forbids implementing them to make a scenario pass.
 
-Exercising their **interfaces** with a stand-in is what a flat-sat is for:
+Exercising their **interfaces** with a stand-in is what a software digital twin is for:
 bringing up the bus while the payload does not exist yet.
 
 ## Checking that the tests can fail
@@ -196,7 +198,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 | --- | --- |
 | `interfaces.py` | Narrow Protocols over radio, power and thermal state. They stay here deliberately; see the location note in the file. |
 | `fakes.py` | The four fakes above, and nothing else. |
-| `node.py` | `FlatSatNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
+| `node.py` | `DigitalTwinNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
 | `test_modes.py` | Unit tests for `mule/modes.py`, the nine CONOPS section 50 axes. |
 | `test_timekeeping.py` | Unit tests for `mule/timekeeping.py`. Moves with it if it moves again. |
@@ -206,7 +208,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 ## Running it
 
 ```sh
-python -m pytest test/flatsat
+python -m pytest test/digital_twin
 tools/mutation-check.py
 ```
 

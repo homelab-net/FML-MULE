@@ -14,7 +14,7 @@
 #   8. Every patch file in os/kernel/patches/ has an entry in docs/forks/.
 #   9. No OCI image reference anywhere uses a mutable tag.
 #  10. Every open trade appears in the ITEP campaign plan.
-#  11. Every fake in the flat-sat is named in the flat-sat README.
+#  11. Every fake in the software digital twin is named in the software digital twin README.
 #  12. Every directory has a README, or is named in its parent's README.
 #  13. Nothing claims HARDWARE-VERIFIED while nothing has met hardware.
 #  14. Every decision ID cited anywhere resolves to a real ADR or trade.
@@ -44,8 +44,8 @@ TRADE_DIR=docs/trades
 FORK_DIR=docs/forks
 PATCH_DIR=os/kernel/patches
 ITEP=docs/verification/FML-MULE-ITEP-v0.1.md
-FAKES=test/flatsat/fakes.py
-FLATSAT_README=test/flatsat/README.md
+FAKES=test/digital_twin/fakes.py
+DIGITAL_TWIN_README=test/digital_twin/README.md
 
 # Third-party and generated trees, excluded from every check that walks the
 # repository. A dependency's files are not this repository's to validate, and
@@ -369,14 +369,14 @@ else
   info "no ITEP found at $ITEP; coverage not checked"
 fi
 
-# --- 11: every fake is named in the flat-sat README -------------------------
+# --- 11: every fake is named in the software digital twin README -------------------------
 #
 # AGENTS.md makes this a rule rather than a courtesy: a reader must be able to
 # see exactly which boundary is simulated, and an unlisted fake is how "it works
-# on the flat-sat" becomes a permanent excuse. A rule nothing checks is a
+# on the software digital twin" becomes a permanent excuse. A rule nothing checks is a
 # suggestion, so this checks it.
 
-if [ -f "$FAKES" ] && [ -f "$FLATSAT_README" ]; then
+if [ -f "$FAKES" ] && [ -f "$DIGITAL_TWIN_README" ]; then
   fake_count=0
   sed -n 's/^class \(Fake[A-Za-z0-9_]*\).*/\1/p' "$FAKES" >/tmp/fml-fakes.$$
   # Read from a file rather than a pipe: a while loop on the right of a pipe
@@ -384,14 +384,14 @@ if [ -f "$FAKES" ] && [ -f "$FLATSAT_README" ]; then
   while read -r name; do
     [ -n "$name" ] || continue
     fake_count=$((fake_count + 1))
-    if ! grep -q "\`$name\`" "$FLATSAT_README"; then
-      fail "$name is defined in $FAKES but not named in $FLATSAT_README."
+    if ! grep -q "\`$name\`" "$DIGITAL_TWIN_README"; then
+      fail "$name is defined in $FAKES but not named in $DIGITAL_TWIN_README."
     fi
   done </tmp/fml-fakes.$$
   rm -f /tmp/fml-fakes.$$
-  info "$fake_count flat-sat fakes checked against the README"
+  info "$fake_count software digital twin fakes checked against the README"
 else
-  info "no flat-sat fakes found; listing not checked"
+  info "no software digital twin fakes found; listing not checked"
 fi
 
 # --- 12: every directory is explained somewhere ------------------------------

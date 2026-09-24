@@ -21,7 +21,7 @@ latest maintenance release on 2026-08-27 and warns that 3.4.0 lacks subsequent
 fixes. This is why the intake does not use the older tag exposed by the GitHub
 mirror. HAProxy uses GPL-2.0-or-later for the core and LGPL-2.1-or-later for
 exported headers, with the documented OpenSSL linking exception. The exact
-artifact has not been run in the flat-sat.
+artifact has not been run in the software digital twin.
 
 Adoption here means the role already approved by `FML-ADR-031`; it does not
 approve a package version, listener address, port, backend-discovery contract
@@ -46,7 +46,7 @@ has been exercised on this exact release.
 
 Adoption does not select container images. Every image still needs an immutable
 digest, license and dependency review, least-privilege mounts and capabilities,
-declared persistent paths, an update/rollback procedure and flat-sat coverage.
+declared persistent paths, an update/rollback procedure and software digital twin coverage.
 
 ## systemd-networkd
 
@@ -66,7 +66,7 @@ listed fix, including the v261.2 fixes for the newest `systemd-homed` and
 `systemd-machined` entries. This comparison does not replace distribution
 security tracking.
 
-The exact release has not been used in the flat-sat. Existing configuration
+The exact release has not been used in the software digital twin. Existing configuration
 and simulated mesh evidence exercise the selected ownership model on other
 versions and do not qualify v261.3 or any driver behavior.
 

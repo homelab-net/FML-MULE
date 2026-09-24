@@ -66,7 +66,7 @@ a reader does not conclude the decision is unimplemented.
   class exposes no backup-cell health attribute**, confirmed on a real
   `rtc_cmos` device, so `rtc_backup_cell_ok()` returns `None` on every board
   that does not add a vendor one. `FakeClock.dead_backup_cell()` is the
-  scenario `FML-ADR-042` was written for and the flat-sat exercises hardest,
+  scenario `FML-ADR-042` was written for and the software digital twin exercises hardest,
   and a real node cannot detect it.
 
 `FML-ADR-042` binds any component that validates trust, and this one will

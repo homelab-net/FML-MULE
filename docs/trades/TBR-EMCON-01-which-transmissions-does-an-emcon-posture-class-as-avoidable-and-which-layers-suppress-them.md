@@ -30,7 +30,7 @@ SAD section 23 layers suppress them?
 
 ## Why it matters
 
-`FML-REQ-049` allocates here. Without a class list, a later flat-sat cannot
+`FML-REQ-049` allocates here. Without a class list, a later software digital twin cannot
 show that an avoidable transmission was absent, and someone can treat the mode
 as measured radio silence. Measured silence is not this trade and is not a
 mode. The Stage 10 criteria have not been run. Nothing enters `mule/`.
@@ -54,7 +54,7 @@ No claim that a transmission was observed or absent on hardware.
 
 The named owner accepts the class list and the layer map, or accepts an ADR
 for a layer the list shows is missing. Until then this trade stays `OPEN`.
-A flat-sat of what the node reports is CONOPS section 85, Stage 10, and is
+A software digital twin of what the node reports is CONOPS section 85, Stage 10, and is
 not a measurement of silence. It is not this gate.
 
 ## Dependencies

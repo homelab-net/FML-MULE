@@ -19,7 +19,7 @@ The two evaluated artifacts are the paired v2026.3 releases: batman-adv commit
 `9e098cb2bcd40e367f91f1a3c5379ea4d4e0f9da`, both dated 2026-08-31. Their
 principal license is GPL-2.0, with identified Linux-syscall-note and MIT files.
 Compatibility with the eventual MULE kernel and distribution package set is
-not established. Existing flat-sat evidence used other module versions and
+not established. Existing software digital twin evidence used other module versions and
 remains `SIMULATED`.
 
 The 2026 NVD keyword inventory returned 47 records mentioning batman-adv. Of

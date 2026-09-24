@@ -19,12 +19,12 @@ battery, or whether it stays cool in an enclosure.
 
 It does say something about whether the **software** is correct and whether the
 part of the user flow the node actually implements is coherent, because
-`test/flatsat/` exercises that end to end. That result is worth having and it
+`test/digital_twin/` exercises that end to end. That result is worth having and it
 has its own word.
 
 It does **not** cover the whole of the CONOPS section 82 flow. Authentication,
 authorization and operating a service are absent from the node, and
-`test/flatsat/README.md` names each gap and the trade blocking it. A green
+`test/digital_twin/README.md` names each gap and the trade blocking it. A green
 pipeline is not evidence about any of them.
 
 This is worth stating plainly because a green badge on a repository is read as
@@ -40,7 +40,7 @@ gate in `os/release/README.md`.
 | Directory | Contents |
 | --- | --- |
 | `unit/` | Unit tests. `bats` for shell, `pytest` for Python. Run in CI. |
-| `flatsat/` | The flat-sat: the real node logic end to end, hardware replaced by fakes. Carries `mutations.yml`, the list of defects the suite must detect. |
+| `digital twin/` | The software digital twin: the real node logic end to end, hardware replaced by fakes. Carries `mutations.yml`, the list of defects the suite must detect. |
 | `fixtures/` | Recorded output captured from real hardware, replayed against fakes. |
 | `stages/` | Qualification stage definitions. One directory per stage. |
 | `bench/` | Bench procedures and instrumentation notes. |
@@ -56,7 +56,7 @@ all be hardcoded to a healthy answer.
 
 `tools/mutation-check.py` checks the second claim directly. It breaks the node
 one specific way at a time and requires the suite to fail each time. It runs in
-CI alongside the linters, and `test/flatsat/mutations.yml` is the list of things
+CI alongside the linters, and `test/digital_twin/mutations.yml` is the list of things
 the suite is required to be able to detect.
 
 **Whenever a check is added, confirm it can fail.** A regulatory or safety check
@@ -78,7 +78,7 @@ code.
 | Status | Produced by | Supports a claim about |
 | --- | --- | --- |
 | `UNVERIFIED` | nothing | nothing |
-| `SIMULATED` | `test/flatsat/`, against fakes | software logic, integration, user flow |
+| `SIMULATED` | `test/digital_twin/`, against fakes | software logic, integration, user flow |
 | `HARDWARE-VERIFIED` | the ITEP campaigns, on real hardware | physical behaviour |
 
 **Nothing in this repository is `HARDWARE-VERIFIED`.** No node exists.
@@ -92,7 +92,7 @@ against a fake.
 
 ```sh
 tools/lint.sh          # linters and repository checks
-pytest                 # Python unit tests and flat-sat scenarios
+pytest                 # Python unit tests and software digital twin scenarios
 bats test/unit         # shell unit tests
 ```
 
@@ -137,11 +137,11 @@ about physical behaviour.
 | Mission package schema and repository rules | `tools/validate-mission.py`, and `test/unit/` |
 | Shell tooling | `bats`, in `test/unit/` |
 | Configuration resolution and region validation | `tools/gen-config.py`, and `test/unit/` |
-| End-to-end node flow and fail-closed behaviour | `test/flatsat/` |
+| End-to-end node flow and fail-closed behaviour | `test/digital_twin/` |
 | Ansible playbook syntax | `ansible-playbook --check` |
 | Secrets | `gitleaks` |
 
-The node's decision logic lives in `mule/` and is exercised by the flat-sat
+The node's decision logic lives in `mule/` and is exercised by the software digital twin
 here. There is no *service* application code: per `AGENTS.md`, build system
 before application code, and the four placeholder services must not be
 implemented until their blocking trades close.

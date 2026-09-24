@@ -219,12 +219,12 @@ Edited by the v1.2 issue, except the SAD.
 
 Every new `[SHALL]` has a stage and a method. Nothing here has been run.
 Acceptance does not make any of it `SIMULATED` or `HARDWARE-VERIFIED`.
-The EMCON rows are a flat-sat of what the node reports and sends. They are
+The EMCON rows are a software digital twin of what the node reports and sends. They are
 not a measurement of radio silence.
 
 | `[SHALL]` | Stage | Method |
 | --- | --- | --- |
-| Observation records time, source, and state | 1 | Demonstration: a flat-sat observation carries all three, and the state is one of the six named words. |
+| Observation records time, source, and state | 1 | Demonstration: a software digital twin observation carries all three, and the state is one of the six named words. |
 | Stale or expired is not presented as current | 1 | Demonstration: a stale and an expired observation are shown as such. |
 | Relay or queue does not replace the observation time | 1 | Demonstration: deliver a queued observation and compare the two times. |
 | Expiry retains history for the profile's retention | 1 | Demonstration: an expired observation is still retrievable, and a retention bound discards only past that bound. |
@@ -239,7 +239,7 @@ not a measurement of radio silence.
 | View is not task, and neither is node administration | 9 | Demonstration: a view-only principal is refused a task and an administration action. |
 | A task names sensor, duration, and team scope, ends on those conditions, and yields an observation or a recorded failure | 9 | Demonstration: expire the duration, stop it, and complete it. Each end is recorded. |
 | A permission change is recorded | 9 | Inspection: the change is in the administrative record. |
-| EMCON does not originate an avoidable transmission | 10 | Demonstration on a flat-sat: the classed transmission is absent. Not an RF measurement. |
+| EMCON does not originate an avoidable transmission | 10 | Demonstration on a software digital twin: the classed transmission is absent. Not an RF measurement. |
 | EMCON is not reported as measured radio silence | 10 | Inspection: the reported state does not say measured silence. |
 | A transmit prohibition is not reported as an inability to receive, where reception is still permitted | 10 | Demonstration: the reported receive state stays permitted. |
 

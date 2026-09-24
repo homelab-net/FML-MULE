@@ -21,7 +21,7 @@ tests:
   - name: gen-config unit tests
     command: "python -m pytest test/unit/test_gen_config.py -q"
     exit_code: 0
-  - name: unit and flat-sat suite
+  - name: unit and software digital twin suite
     command: "python -m pytest test/flatsat test/unit -q"
     exit_code: 0
 environment:

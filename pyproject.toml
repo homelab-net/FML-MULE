@@ -79,8 +79,8 @@ minversion = "7.0"
 # it is installed onto an image is left to a later implementation ADR, and
 # until then tests import it from the tree.
 pythonpath = ["."]
-# test/unit holds unit tests; test/flatsat holds the end-to-end flat-sat
+# test/unit holds unit tests; test/digital_twin holds the end-to-end software digital twin
 # scenarios. Both run in CI, and neither needs a radio.
-testpaths = ["test/unit", "test/flatsat"]
+testpaths = ["test/unit", "test/digital_twin"]
 python_files = ["test_*.py"]
 addopts = "-ra"

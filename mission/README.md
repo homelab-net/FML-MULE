@@ -50,7 +50,7 @@ fake. See `SECURITY.md`.
 ## Validation
 
 `mule/mission.py` is the canonical runtime loader for the declared Draft
-2020-12 schema. Both `tools/gen-config.py` and the flat-sat path use it, while
+2020-12 schema. Both `tools/gen-config.py` and the software digital twin path use it, while
 `tools/validate-mission.py` adds only the publication rules for files committed
 to this repository. CI exercises valid and deliberately invalid examples; a
 schema that accepts everything passes every valid example and is worthless.

@@ -401,7 +401,8 @@ implementation exposes an ambiguity in schema meaning, size limits, or runtime e
 
 1. Add one canonical mission-loading and validation function using the declared Draft 2020-12
    schema.
-2. Route the generator, flat-sat boot path, and any future runtime entry point through that
+2. Route the generator, software digital twin boot path, and any future
+   runtime entry point through that
    function.
 3. Keep repository-only example metadata checks separate from runtime mission validation.
 4. Return stable, actionable validation errors including the failing JSON path.
@@ -449,7 +450,8 @@ referential integrity is checked in CI.
 **Execution note, 2026-09-12:** the catalog schema and runtime now enforce enabled state, unique
 canonical names and aliases, exact existing Quadlet references, and ownership of every loadable
 production unit. Operator `--check` applies the same rules. OpenTAKServer and Martin remain disabled
-contracts with no unit, and the flat-sat uses explicit synthetic stand-ins. Independent verification
+contracts with no unit, and the software digital twin uses explicit
+synthetic stand-ins. Independent verification
 reproduced 251 focused tests, 5/5 focused mutations, 107/107 full mutations, 100% `mule/` coverage,
 and both duplicate-record and disabled-service CLI failures. GAP-02 is `CLOSED`; service selection
 and deployment remain GAP-09F/G work.
@@ -499,7 +501,7 @@ tests detect accidental removal of a required parameter.
 
 ### GAP-05 — Handle unknown radio enumeration safely
 
-**Baseline:** an allowed `None` result produces `TypeError` in `FlatSatNode._enumerated()`.
+**Baseline:** an allowed `None` result produces `TypeError` in `DigitalTwinNode._enumerated()`.
 
 **User gate:** approve the semantic distinction and required state transition for unknown, empty,
 and failed enumeration before production behavior changes.
@@ -519,7 +521,7 @@ leak or state corruption.
 ### GAP-06 — Define consistent operator-status semantics
 
 **Baseline:** a booted node with a missing mandatory AP reports `operational=true` and
-`state=FAULT`; unknown WAN state is collapsed to false by the flat-sat adapter.
+`state=FAULT`; unknown WAN state is collapsed to false by the software digital twin adapter.
 
 **User gate:** the agent must submit the status vocabulary and truth table as an architecture
 decision packet before changing status semantics.

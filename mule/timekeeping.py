@@ -12,8 +12,8 @@ nobody has tested. Here the platform supplies raw readings and this code decides
 what they mean, so a fake can stimulate the decision but never stand in for it.
 
 `FML-ADR-051` puts this here rather than under `test/`: a decision parked in the
-test tree is held to test standards and reads as scaffolding. The flat-sat
-imports it; it does not import the flat-sat.
+test tree is held to test standards and reads as scaffolding. The software digital twin
+imports it; it does not import the software digital twin.
 """
 
 from __future__ import annotations
@@ -63,8 +63,8 @@ class TimePolicy:
     No field has a default, deliberately. Every value here belongs to
     `TBR-TIME-01`, which has not closed, so there is no defensible default to
     offer and the caller is made to supply one rather than inherit an invented
-    number. The flat-sat supplies fixture values; a node will supply measured
-    ones once the trade closes.
+    number. The software digital twin supplies fixture values; a node will
+    supply measured ones once the trade closes.
     """
 
     #: Build time of the running image. A fact about the artifact, not a policy

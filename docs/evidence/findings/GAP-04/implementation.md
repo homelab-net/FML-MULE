@@ -43,6 +43,6 @@ tests fail:
 
 ## Reproduce
 
-`python -m pytest test/unit test/flatsat` (308 tests). SIMULATED; the `TBR-RF-*`
+`python -m pytest test/unit test/digital_twin` (308 tests). SIMULATED; the `TBR-RF-*`
 trades still owe the real channel and power values, so a real profile still
 refuses -- correctly -- until they close.

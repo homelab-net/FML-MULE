@@ -403,7 +403,7 @@ def test_a_radio_cannot_be_linked_without_being_present() -> None:
     """The fake refuses to describe hardware that cannot exist.
 
     Without this, a scenario can pass against a node state no hardware can
-    produce, which voids the flat-sat's only real claim.
+    produce, which voids the software digital twin's only real claim.
     """
     with pytest.raises(ImpossibleHardwareState):
         FakeRadio(present=["wifi_ap"], linked=["wifi_ap", "halow"])

@@ -71,7 +71,7 @@ Then, for whatever you are about to touch:
 | --- | --- |
 | Anything in `mule/` | `mule/README.md`, `FML-ADR-051`, `FML-ADR-052` |
 | Anything in `os/` | `os/README.md`, `FML-ADR-040`, `os/kernel/PINS.md` |
-| Anything in `test/` | `test/README.md`, `test/flatsat/README.md` |
+| Anything in `test/` | `test/README.md`, `test/digital_twin/README.md` |
 | A hardware reading | `docs/readings.md` before writing the interface, not after |
 | A new decision | `docs/adr/README.md`, then `tools/new-adr.sh` |
 | A new open question | `docs/trades/README.md`, then `tools/new-trade.sh` |
@@ -159,7 +159,7 @@ aimed at.
 ### Phase P1 -- prototype-ready software
 
 **The outcome.** Every plane that does not need a radio to exist is built and
-exercised end to end on the bench -- against the flat-sat fakes and the one real
+exercised end to end on the bench -- against the software digital twin fakes and the one real
 EUD -- so that when hardware arrives the first build is integration, not
 discovery.
 
@@ -182,7 +182,7 @@ discovery.
   and recovery readers (`TBR-SEC-01`, `TBR-REC-01`) still await theirs. Phase P1
   is where these get their own Track 4 and Track 1 items.
 
-**Exit gate.** The flat-sat exercises every non-physical plane end to end against
+**Exit gate.** The software digital twin exercises every non-physical plane end to end against
 fakes plus the real EUD; `v0.0.1`'s drill passes; and every remaining open trade
 on the path is, by its own `State:` line, waiting only on a hardware measurement
 or an owner's act -- not on more software design.
@@ -207,9 +207,9 @@ build itself.
 - `hardware/prototype/`: the open BOM cells (a committed SSD, the Wi-Fi board
   count) resolve once Bank C is set, and the purchase is made against a de-risked
   design.
-- Track 2, day one: the moment hardware arrives, run the existing flat-sat
+- Track 2, day one: the moment hardware arrives, run the existing software digital twin
   scenarios against real interfaces to find which fakes were lying
-  (`test/flatsat/README.md` is the day-one test plan), after which bring-up
+  (`test/digital_twin/README.md` is the day-one test plan), after which bring-up
   follows the `1.2` sequence instead of being an experiment.
 - The physical trades, now measurements on the ITEP rigs: `TBR-RF-01`,
   `TBR-RF-02`, `TBR-RF-03`, `TBR-PWR-01`, `TBR-THERM-01`, `TBR-LINUX-01`,
@@ -367,8 +367,8 @@ criticality, because what may cross this bearer is a criticality question.
    `docs/evidence/TBR-NET-02/`, and it decides that the interface addresses a
    node, with the user carried as a tag inside the payload.
 3. ~~Whatever narrow interface that justifies, with a fake, named in
-   `test/flatsat/README.md`.~~ Done. `LoRaPlane` and `FakeLoRaPlane` in
-   `test/flatsat/`, not `mule/`, because `FML-ADR-052` condition 4 keeps an
+   `test/digital_twin/README.md`.~~ Done. `LoRaPlane` and `FakeLoRaPlane` in
+   `test/digital_twin/`, not `mule/`, because `FML-ADR-052` condition 4 keeps an
    interface whose shape an open trade governs out of the production package.
 
    Building it found a defect rather than only adding surface. `mule/status.py`
@@ -397,8 +397,8 @@ criticality, because what may cross this bearer is a criticality question.
    replaces it and the template does not: that is an ADR, and it interacts with
    an image build that does not exist.
 
-**Done when:** the interface exists, the flat-sat exercises it, and
-`test/flatsat/README.md` names any fake added. All three are met. Step 1's own
+**Done when:** the interface exists, the software digital twin exercises it, and
+`test/digital_twin/README.md` names any fake added. All three are met. Step 1's own
 gate — a message asserted across in CI rather than printed — is met.
 
 **What step 3 did not do.** It encodes no member tag, no node number and no
@@ -444,7 +444,7 @@ Note two things the probe established that the units must carry:
 `routing_algo` is set **before** any interface is added to the mesh, and the
 hard interface MTU is 1560 **before** the add, not after.
 
-**Done when:** the units exist, the flat-sat exercises the sequence end to end,
+**Done when:** the units exist, the software digital twin exercises the sequence end to end,
 and a wrong order fails a test rather than producing a mesh that looks up.
 
 Two things belong here that were found elsewhere. `FML-ADR-056` gives up
@@ -732,8 +732,8 @@ none, accepted by a named owner. See the blocker in Track 3.
 
 ### 1.6 Turn `RadioState` into an implementation
 
-**State:** built. `test/flatsat/interfaces.py` holds the Protocol,
-`test/flatsat/radio_parse.py` the parse core, and `test/flatsat/radio.py` the
+**State:** built. `test/digital_twin/interfaces.py` holds the Protocol,
+`test/digital_twin/radio_parse.py` the parse core, and `test/digital_twin/radio.py` the
 real reader `CommandRadio`: it reads `iw dev` and `iw station dump` through an
 injected runner and returns `enumerated()`/`associated()`, with `None` wherever
 it cannot tell. It is built exactly as `mule.sysfs.SysfsThermalReadings` is --
@@ -743,21 +743,21 @@ Tested against `mac80211_hwsim` fixtures; mutations `M67`-`M70` hold the
 `None`-versus-real-reading line.
 
 **An earlier note here called this "blocked" on two counts and it was wrong.**
-The `T | None` fix to the Protocol is applied inside the flat-sat, which is not
+The `T | None` fix to the Protocol is applied inside the software digital twin, which is not
 the promotion the interface note prohibits, and `modes.py` consumes tuples, not
 the Protocol methods, so it was untouched. The per-board map is the same
 injected-empty pattern `SysfsThermalReadings` already ships. Both were doable and
 are done.
 
 **What actually remains, and is smaller than it looked:** the reader lives in the
-flat-sat, not `mule/`, because the interface is still held there pending
+software digital twin, not `mule/`, because the interface is still held there pending
 `TBR-LINUX-01`/`TBR-RF-01`/`TBR-RF-03`; it moves to `mule/` with the Protocol
 when a production consumer wires it to `mule/modes.py`. And the per-board map is
 empty until `TBR-HW-01` names a board, so on real hardware the reader returns
 `[]`/`None` until that map is supplied -- which is the honest state, the same one
 the thermal reader is in.
 
-**Read first:** `test/flatsat/interfaces.py`, `test/flatsat/fakes.py`, and
+**Read first:** `test/digital_twin/interfaces.py`, `test/digital_twin/fakes.py`, and
 `docs/readings.md` — **before** writing the interface, not after. Every reading
 needs a row there and CI enforces it.
 
@@ -839,7 +839,7 @@ floor: TQ, the `iw` station PHY-rate ceiling, the bearer and the hop count
 reliably rule a tier *out* and emit nothing; a light, paced, tier-sized active
 probe is what confirms a tier *in*.
 
-**One floor signal is not yet readable.** `test/flatsat/radio_parse.py` extracts
+**One floor signal is not yet readable.** `test/digital_twin/radio_parse.py` extracts
 TQ and the PHY-rate ceiling, but there is no per-peer **hop-count** reading:
 `batctl originators` gives a next hop, not a path depth, so `mule/capability.py`
 receives `None` for hops today and skips that ceiling. A hop source -- batman-adv
@@ -895,8 +895,8 @@ only one needing no hardware and the only one that can produce no hardware
 result.
 
 **When hardware arrives, the first thing to do is not to build the product.** It
-is to run the existing flat-sat scenarios against real interfaces and find out
-which fakes were lying. `test/flatsat/README.md` names every fake with what it
+is to run the existing software digital twin scenarios against real interfaces and find out
+which fakes were lying. `test/digital_twin/README.md` names every fake with what it
 does and does not simulate, and that list is the test plan for day one.
 
 ## Track 3 — analysis
@@ -1591,7 +1591,7 @@ measurement rather than a design.
   and the `RadioState` reader are software, exercisable on `hwsim` plus the real
   AP radio. Finishing them means that the day a board arrives, bring-up follows a
   known sequence instead of being an experiment, and Track 2 day one is running
-  the flat-sat against real interfaces to find which fakes were lying.
+  the software digital twin against real interfaces to find which fakes were lying.
 - **The rest of the `batman-adv` and 802.11s template (`1.7`).** Decide the mesh
   configuration in the template before radios exist, so the mesh is a
   known-good config on the prototype rather than a variable.

@@ -182,8 +182,8 @@ literal by this record.
   posture before the schema changes. Schema evolution shall keep a rollback
   path.
 - Nothing in this record enters `mule/`. Nothing here enlarges v0.0.1. Stage 6
-  is still an undefined executable stage. A flat-sat of the observation
-  lifecycle does not depend on this record being accepted, and a flat-sat of
+  is still an undefined executable stage. A software digital twin of the observation
+  lifecycle does not depend on this record being accepted, and a software digital twin of
   remote-EUD behavior does.
 - `docs/prior-art/wan-and-halow-dependencies.md` evaluated the Tailscale client
   under the absolute prohibition. That evaluation stands. The proof it asked
@@ -237,7 +237,7 @@ not exist. The stage scope is the CONOPS v1.1 list. The files under
 them has been run.
 
 The definition shall eventually prove all of the following. None of them is
-demonstrated here. Any flat-sat of them is `SIMULATED` and says nothing about
+demonstrated here. Any software digital twin of them is `SIMULATED` and says nothing about
 physical behaviour. Nothing in this record is `HARDWARE-VERIFIED`.
 
 - Posture `DISABLED`: an EUD does not join the overlay.

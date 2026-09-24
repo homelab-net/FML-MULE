@@ -31,7 +31,7 @@ files_changed:
   - docs/adr/FML-ADR-074-a-node-that-cannot-serve-users-is-reported-fault-and-not-operational.md
   - docs/adr/FML-ADR-076-the-operator-wan-answer-is-the-undetermined-capable-mode-value-not-a-boolean.md
 tests:
-  - name: unit and flat-sat suite
+  - name: unit and software digital twin suite
     command: "python -m pytest test/flatsat test/unit -q"
     exit_code: 0
   - name: mule coverage held at 100 percent
@@ -69,7 +69,7 @@ red_team_attempts:
     outcome: "Each mutation killed; 101/101 mutations caught overall."
 residual_risks:
   - >-
-    SIMULATED only: the status logic is exercised against flat-sat fakes, not
+    SIMULATED only: the status logic is exercised against software digital twin fakes, not
     real radios. RADIO_NOT_SERVING behaviour on real hardware is unverified.
 deferred_work:
   - >-
@@ -94,7 +94,7 @@ The operator status view no longer overstates a node's health or certainty. A
 node that cannot serve users -- a required bearer absent, or present but not
 serving -- is reported `FAULT` and therefore not `operational`, and an unknown
 WAN reachability is reported as undetermined rather than as `NO-WAN`. The fix is
-carried by FML-ADR-074 and FML-ADR-076, exercised end to end on the flat-sat.
+carried by FML-ADR-074 and FML-ADR-076, exercised end to end on the software digital twin.
 
 ## Closure rationale
 
