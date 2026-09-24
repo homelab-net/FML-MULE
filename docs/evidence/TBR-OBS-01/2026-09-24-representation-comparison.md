@@ -97,8 +97,8 @@ that copy.
 | Source | Pin |
 | --- | --- |
 | `Event.xsd` header: "Schema for Cursor-On-Target (CoT) Event data model (Version 2.0) 13-June-2003" | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-event-xsd-version-2.0.xsd`. Retrieved 2026-09-24 from `docjason/XmlValidate` commit `89ced733e661d14cd21f58fce5a60ed5fa60f067`, file `schemas/Event.xsd`. SHA-256 `c3416f653638cffa3354ba8556fa7855cfc9bec4ed1a4e23a0e979bded3b9365`. |
-| OpenTAKServer `opentakserver/models/CoT.py` | tag `1.7.13`, commit `67903c26d95552738d85be4bc3c3ff3321378dbe`. Same package version as the `TBR-TAK-01` inventory. |
-| Meshtastic `meshtastic/mesh.proto` | `meshtastic/protobufs` commit `8f97d66a63ce10cfb12f94203e361691647f5ad3` (2026-09-21) |
+| OpenTAKServer `opentakserver/models/CoT.py` | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-opentakserver-1.7.13-cot.py`. Tag `1.7.13`, commit `67903c26d95552738d85be4bc3c3ff3321378dbe`. GPL-3.0, not relicensed. |
+| Meshtastic `meshtastic/mesh.proto` | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-meshtastic-mesh.proto`. `meshtastic/protobufs` commit `8f97d66a63ce10cfb12f94203e361691647f5ad3` (2026-09-21). GPL-3.0, not relicensed. |
 
 The CoT copy in this directory is the file retrieved from that commit. It is
 not a download from the DISA XML registry. The header in that file is the
@@ -223,11 +223,16 @@ references `euds.uid`. It names the connected endpoint the server associated
 with the row. It is not a CoT attribute. `FML-ADR-071` classed this table as
 reconstructable: loss and regeneration are acceptable for it. The
 `TBR-TAK-01` bench found the only CoT queue, `cot_parser`, non-durable.
-`delete_old_data` in `opentakserver/blueprints/scheduled_jobs.py` at tag
-`1.7.13` executes `delete(CoT).where(CoT.timestamp <= timestamp)`. The
-default cutoff includes `OTS_DELETE_OLD_DATA_WEEKS` from the environment,
-defaulting to `1`, in `defaultconfig.py`. That deletes the row on a server
-clock. It is not a mission-profile retention, and it is deletion.
+`delete_old_data` in the archived
+`2026-09-24-opentakserver-1.7.13-scheduled-jobs.py` executes
+`delete(CoT).where(CoT.timestamp <= timestamp)`. The default cutoff includes
+`OTS_DELETE_OLD_DATA_WEEKS` from the environment, defaulting to `1`. That
+passage is archived as
+`2026-09-24-opentakserver-1.7.13-delete-old-data-default.txt`. The rest of
+`defaultconfig.py` is not archived: it contains upstream default
+credentials, which this repository does not store. The cutoff deletes the
+row on a server clock. It is not a mission-profile retention, and it is
+deletion.
 
 Meshtastic `Position.timestamp` is "Positional timestamp (actual timestamp of
 GPS solution) in integer epoch seconds". For a position fix, that documented
