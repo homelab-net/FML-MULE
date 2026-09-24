@@ -8,8 +8,11 @@ request is `SIMULATED` or `HARDWARE-VERIFIED`.
 **Target version:** CONOPS **v1.2** (issued)
 **Sections affected:** 49, 50.12, 78 Stages 1, 9 and 10, 79, 81, 85
 **Raised by:** the 2026-09-23 enhancement direction, for the part not already controlling
-**Decision:** no ADR. The open mechanism questions are `TBR-OBS-01`,
-`TBR-SENSE-01`, and `TBR-EMCON-01`. None is selected.
+**Decision:** no ADR at acceptance. The open mechanism questions are
+`TBR-OBS-01`, `TBR-SENSE-01`, and `TBR-EMCON-01`. None is selected. A
+comparison dated 2026-09-24 is evidence for `TBR-OBS-01` only. It does not
+select a representation, and the finding is not accepted. This request
+still selects no ADR.
 
 ## Statement
 
@@ -208,7 +211,7 @@ Edited by the v1.2 issue, except the SAD.
 | Section 81 | The six sensing exclusions in section 3. Not section 79 criteria. |
 | SAD | Not in this issue. SAD v0.32 remains current and does not transcribe the new clauses. |
 | `docs/verification/requirements.md` | New requirement rows, traced to the stage in section 7. Not run. |
-| Trades | `TBR-OBS-01`, `TBR-SENSE-01`, and `TBR-EMCON-01` hold the open mechanism questions. No ADR. |
+| Trades | `TBR-OBS-01`, `TBR-SENSE-01`, and `TBR-EMCON-01` hold the open mechanism questions. The `TBR-OBS-01` comparison is written and not accepted. No selected ADR. |
 | `docs/NON-GOALS.md` | Transcribes the new section 81 exclusions. The remote-PTT exclusion left with `CCR-03`. |
 | `mule/`, mission schema, `FML-ADR-082` | No change. |
 

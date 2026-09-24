@@ -163,12 +163,14 @@ One no-hardware trade from the SAD register remains open:
 - **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
   offline login against fakes.
 
-Three later trades are also open, need no hardware to choose a
-representation, and have not been started. None of the CONOPS criteria they
-own has been run:
+Three later trades are also open and need no hardware to choose a
+representation. `TBR-OBS-01` has a written comparison and no accepted
+representation. The other two have not been started. None of the CONOPS
+criteria they own has been run:
 
 - **`TBR-OBS-01`**, how a mission observation keeps its age, source, and
-  state.
+  state. The comparison is written. It does not select a representation.
+  Accepting that finding does not close the trade. The trade stays open.
 - **`TBR-SENSE-01`**, how a mission profile marks a capability, and how a
   sensor task ends.
 - **`TBR-EMCON-01`**, which transmissions an EMCON posture classes as

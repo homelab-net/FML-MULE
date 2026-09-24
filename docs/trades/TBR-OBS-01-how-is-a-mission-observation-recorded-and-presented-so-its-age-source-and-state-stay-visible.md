@@ -55,15 +55,49 @@ queue. No code, and no claim that a flat-sat was run.
 
 ## Closure gate
 
-The named owner accepts one representation, or accepts a finding that none of
-the existing representations can carry the eight sentences. An ADR records
-that choice and cites the comparison. Until then this trade stays `OPEN`.
-The Stage 1 demonstrations in CONOPS section 85 are not this gate.
+The comparison is evidence. Accepting its bounded finding does not close
+this trade and does not select a representation.
+
+The named owner closes it only by accepting how an observation is recorded
+and presented. An ADR records that choice and cites the comparison.
+
+For any behavior the reviewed definitions do not state, that ADR does not
+assign the behavior to local FML policy until it cites a reading of the
+upstream consumer that would perform it. For a CoT behavior that is the
+TAK client or the OpenTAKServer code. For a Meshtastic behavior that is
+the firmware. A schema or a message definition is not that reading. CoT
+detail schemas and other Meshtastic messages the comparison names as
+unread still have to be read before a semantic they might carry is
+assigned to local metadata.
+
+If that consumer cannot be read, the ADR records the limitation. It does
+not treat the unread consumer as proof that the behavior is absent.
+Until the choice is recorded this trade stays `OPEN`. The Stage 1
+demonstrations in CONOPS section 85 are not this gate.
+
+## Comparison
+
+Written 2026-09-24 in
+`docs/evidence/TBR-OBS-01/2026-09-24-representation-comparison.md`.
+
+None of the reviewed representations, using only the meanings their cited
+sources already define, satisfies the complete section 28A contract without
+new FML semantics. The review covers a CoT event, the OpenTAKServer 1.7.13
+`cot` row, a Meshtastic `Position`, and a Meshtastic `Neighbor`. It does not
+claim every existing representation was examined. It separates sentences that
+are data on a record from sentences that are presentation, retention,
+correlation, or queue behavior. It selects no representation and decides no
+implementation layer.
+
+**Not closed.** The named owner has not accepted how an observation is
+recorded and presented. Accepting the bounded finding would not close this
+trade. It stays `OPEN`.
 
 ## Dependencies
 
 - **Depends on:** none.
-- **Feeds:** none yet. A later ADR would cite this trade.
-- **Related decisions:** `FML-ADR-048`, `FML-ADR-050`.
+- **Feeds:** none yet.
+- **Related decisions:** `FML-ADR-048` and `FML-ADR-050`. Neither selects an
+  observation record.
 - **Validating stage:** Stage 1, after a representation exists. Not run.
 - **Requires hardware:** no. The comparison is a document.

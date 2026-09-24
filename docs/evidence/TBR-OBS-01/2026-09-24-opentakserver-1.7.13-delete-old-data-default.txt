@@ -1,0 +1,12 @@
+# Excerpt. Not the whole defaultconfig.py.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe
+# path opentakserver/defaultconfig.py
+# The whole file is not archived. It contains upstream default credentials.
+# These are lines 172-176 of that file, unchanged.
+
+    OTS_DELETE_OLD_DATA_SECONDS = int(os.getenv("OTS_DELETE_OLD_DATA_SECONDS", 0))
+    OTS_DELETE_OLD_DATA_MINUTES = int(os.getenv("OTS_DELETE_OLD_DATA_MINUTES", 0))
+    OTS_DELETE_OLD_DATA_HOURS = int(os.getenv("OTS_DELETE_OLD_DATA_HOURS", 0))
+    OTS_DELETE_OLD_DATA_DAYS = int(os.getenv("OTS_DELETE_OLD_DATA_DAYS", 0))
+    OTS_DELETE_OLD_DATA_WEEKS = int(os.getenv("OTS_DELETE_OLD_DATA_WEEKS", 1))

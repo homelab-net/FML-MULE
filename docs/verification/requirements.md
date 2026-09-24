@@ -366,7 +366,8 @@ requirement with no allocation or no validating stage.
 This is **not** the full requirement set. CONOPS v1.2 carries **185 `[SHALL]`
 markers**. SAD v0.32 section 35.1 still traces the v1.1 set. The v1.2 clauses
 are not yet transcribed into a SAD. Criteria 34-41 allocate to `TBR-OBS-01`.
-Criteria 42-45 and 47 allocate to `TBR-SENSE-01`. Criterion 49 allocates to
+A comparison dated 2026-09-24 does not move them: no representation is
+selected. Criteria 42-45 and 47 allocate to `TBR-SENSE-01`. Criterion 49 allocates to
 `TBR-EMCON-01`. Those trades are open. They are not a selected design.
 Criteria 46 and 48 allocate to `FML-ADR-037`. Criteria 50 and 51 allocate to
 `FML-ADR-046`. None of criteria 34 through 58 have been run.
