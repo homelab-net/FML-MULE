@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Read the observation consumers the comparison left unread
+
+`TBR-OBS-01` now has a reading of the OpenTAKServer 1.7.13 streaming
+writer, web map query, and Meshtastic-to-CoT builder, and of Meshtastic
+firmware `v2.8.0.47db0e3` for a neighbor send, a position timestamp copy,
+and a full receive queue. A TAK client was not read. The reading does not
+select a representation and does not close the trade. No schema, no code,
+nothing in `mule/`. Nothing was run.
+
 ### Named the software composition a software digital twin
 
 `test/flatsat/` is now `test/digital_twin/`, and `FlatSatNode` is

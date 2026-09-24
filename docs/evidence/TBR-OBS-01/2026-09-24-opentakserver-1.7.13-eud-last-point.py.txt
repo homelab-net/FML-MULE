@@ -1,0 +1,10 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+
+# path opentakserver/models/EUD.py lines 88-89.
+
+            "last_point": None,  # Setting to None for now since it can cause a huge overhead when an EUD has lots of points in the DB
+            "team": self.team.name if self.team else None,

@@ -961,9 +961,8 @@ Everything else in that table is gated on CONOPS stages 1, 2, 5, 7, 8, 9 or 13,
 which are test campaigns, and most need hardware.
 
 CONOPS v1.2 criteria 34-41 allocate to `TBR-OBS-01`. A written comparison
-dated 2026-09-24 is complete. None of the reviewed native representations
-satisfies the complete section 28A contract without new FML semantics. The
-finding does not select a representation and does not close the trade, so the
+dated 2026-09-24 is complete, and a consumer reading of the same date is
+with it. Neither selects a representation and neither closes the trade, so the
 criteria stay on the open trade. Criteria
 42-45 and 47 allocate to `TBR-SENSE-01`. Criterion 49 allocates to
 `TBR-EMCON-01`. Those trades are open mechanism questions. They are not in

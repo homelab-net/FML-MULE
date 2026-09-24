@@ -1,0 +1,21 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+
+# path opentakserver/blueprints/marti_api/cot_marti_api.py lines 24-36.
+
+@cot_marti_api.route("/Marti/api/cot/xml/<uid>")
+def get_cot(uid):
+    logger.debug(request.headers)
+    logger.debug(request.args)
+
+    cot = db.session.execute(db.session.query(CoT).filter_by(uid=uid)).first()
+    if not cot:
+        return (
+            jsonify({"success": False, "error": gettext("No CoT found for UID %(uid)s", uid=uid)}),
+            404,
+        )
+
+    return cot[0].xml

@@ -1,0 +1,42 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+
+# path opentakserver/blueprints/ots_api/api.py lines 541-574.
+
+@api_blueprint.route("/api/map_state")
+@auth_required()
+def get_map_state():
+    """Gets the latest data to be displayed on the web UI's map"""
+    try:
+        results = {"euds": [], "markers": [], "rb_lines": [], "casevacs": []}
+
+        euds = db.session.execute(db.session.query(EUD)).all()
+        for eud in euds:
+            results["euds"].append(eud[0].to_json())
+
+        markers = db.session.execute(
+            db.session.query(Marker)
+            .join(CoT)
+            .filter(CoT.stale >= datetime.datetime.now(datetime.timezone.utc))
+        ).all()
+        for marker in markers:
+            results["markers"].append(marker[0].to_json())
+
+        rb_lines = db.session.execute(
+            db.session.query(RBLine)
+            .join(CoT)
+            .filter(CoT.stale >= datetime.datetime.now(datetime.timezone.utc))
+        ).all()
+        for rb_line in rb_lines:
+            results["rb_lines"].append(rb_line[0].to_json())
+
+        casevacs = db.session.execute(
+            db.session.query(CasEvac)
+            .join(CoT)
+            .filter(CoT.stale >= datetime.datetime.now(datetime.timezone.utc))
+        ).all()
+        for casevac in casevacs:
+            results["casevacs"].append(casevac[0].to_json())

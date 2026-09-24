@@ -93,6 +93,14 @@ implementation layer.
 recorded and presented. Accepting the bounded finding would not close this
 trade. It stays `OPEN`.
 
+A later reading of the consumers the comparison left unread is
+`docs/evidence/TBR-OBS-01/2026-09-24-consumer-reading.md`. It covers the
+OpenTAKServer 1.7.13 streaming writer, the web map query, the
+Meshtastic-to-CoT builder, and Meshtastic firmware `v2.8.0.47db0e3` for
+the neighbor send, the position timestamp copy, and a full receive queue.
+It does not read a TAK client. It selects no representation. Accepting it
+would not close this trade.
+
 ## Dependencies
 
 - **Depends on:** none.

@@ -8,5 +8,5 @@ and `LICENSE-DOCS`.
 `GPL-3.0.txt` is the GNU General Public License, version 3, 29 June 2007,
 as published by the Free Software Foundation. The OpenTAKServer and
 Meshtastic snapshots under `docs/evidence/TBR-OBS-01/` that name it are
-verbatim copies under that license. Their own text is not modified, and
-they are not relicensed as CC BY 4.0.
+verbatim copies, or verbatim excerpts, under that license. Their own text
+is not modified, and they are not relicensed as CC BY 4.0.

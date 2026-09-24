@@ -1,0 +1,50 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The upstream lines below are unchanged.
+# A line that begins `# --- omitted lines` is not upstream.
+
+# path opentakserver/cot_parser/cot_parser.py
+# lines 101-133, then 1237-1242.
+
+    def insert_cot(self, soup, event, uid):
+        start = datetime_from_iso8601_string(event.attrs["start"])
+        stale = datetime_from_iso8601_string(event.attrs["stale"])
+        timestamp = datetime_from_iso8601_string(event.attrs["time"])
+
+        # Assign CoT to a data sync mission
+        dest = event.find("dest")
+        mission_name = None
+        if dest and "mission" in dest.attrs:
+            mission_name = dest.attrs["mission"]
+
+        with self.context:
+            res = self.db.session.execute(
+                insert(CoT).values(
+                    how=event.attrs["how"],
+                    type=event.attrs["type"],
+                    sender_uid=uid,
+                    timestamp=timestamp,
+                    xml=str(soup),
+                    start=start,
+                    stale=stale,
+                    mission_name=mission_name,
+                    uid=event.attrs["uid"],
+                )
+            )
+
+            try:
+                self.db.session.commit()
+                return res.inserted_primary_key[0]
+            except sqlalchemy.exc.IntegrityError:
+                # When using MySQL it will raise IntegrityError when a new EUD connects and it doesn't exist yet in the EUDs table
+                # We'll ignore this error and not insert this CoT so the EUD table can be populated
+                return None
+# --- omitted lines 134-1236 ---
+            uid = body["uid"] or event.attrs["uid"]
+            if uid == self.context.app.config["OTS_NODE_ID"]:
+                uid = None
+
+            if event:
+                cot_pk = self.insert_cot(soup, event, uid)

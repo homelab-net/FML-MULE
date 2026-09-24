@@ -1,0 +1,65 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The upstream lines below are unchanged.
+# A line that begins `# --- omitted lines` is not upstream.
+
+# path opentakserver/controllers/meshtastic_controller.py
+# lines 235-260, then 411-427, then 632-641.
+
+    def cot(self, pb, from_id, to_id, portnum, how="m-g", cot_type="a-f-G-U-C", uid=None):
+        if (
+            not uid
+            and from_id in self.meshtastic_devices
+            and self.meshtastic_devices[from_id]["uid"]
+        ):
+            uid = self.meshtastic_devices[from_id]["uid"]
+        elif not uid:
+            uid = from_id
+
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        stale = (
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        event = Element(
+            "event",
+            {
+                "how": how,
+                "type": cot_type,
+                "version": "2.0",
+                "uid": uid,
+                "start": now,
+                "time": now,
+                "stale": stale,
+            },
+# --- omitted lines 261-410 ---
+            point = Point()
+            point.uid = str(uuid.uuid4())
+            point.device_uid = from_id
+            point.latitude = self.meshtastic_devices[from_id]["last_lat"]
+            point.longitude = self.meshtastic_devices[from_id]["last_lon"]
+            point.hae = self.meshtastic_devices[from_id]["last_alt"]
+            point.course = self.meshtastic_devices[from_id]["course"]
+            point.speed = self.meshtastic_devices[from_id]["speed"]
+            point.timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
+
+            with self.context:
+                db.session.add(point)
+                db.session.commit()
+
+                socketio.emit("point", point.to_json(), namespace="/socket.io")
+
+            return self.cot(pb, from_id, to_id, portnum)
+# --- omitted lines 428-631 ---
+        if portnum == "MAP_REPORT_APP" or (portnum == "POSITION_APP" and pb.latitude_i):
+            event = self.position(pb, from_id, to_id, portnum)
+        elif portnum == "NODEINFO_APP":
+            event = self.node_info(pb, from_id, to_id, portnum)
+        elif portnum == "TEXT_MESSAGE_APP":
+            event = self.text_message(pb, from_id, to_id, portnum)
+        elif portnum == "ATAK_PLUGIN":
+            event = self.atak_plugin(pb, from_id, to_id, portnum)
+        elif portnum == "TELEMETRY_APP":
+            self.telemetry(pb, from_id, to_id, portnum)
