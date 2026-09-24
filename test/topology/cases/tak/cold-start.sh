@@ -88,6 +88,22 @@ if ! loginctl enable-linger "$account"; then
   mkdir -p /var/lib/systemd/linger
   touch "/var/lib/systemd/linger/$account"
 fi
+# This image pins XDG_* to the invoking account in /etc/environment.
+# pam_env copies that into every user manager, and Quadlet follows it
+# instead of this account's home.
+if [ -f /etc/environment ]; then
+  grep -v -E '^(XDG_CONFIG_HOME|XDG_RUNTIME_DIR|XDG_DATA_HOME|XDG_CACHE_HOME)=' \
+    /etc/environment >/etc/environment.fml || true
+  mv /etc/environment.fml /etc/environment
+fi
+mkdir -p /etc/systemd/system/user@.service.d
+cat >/etc/systemd/system/user@.service.d/account-home.conf <<'EOF'
+[Service]
+Environment=HOME=%h
+Environment=XDG_CONFIG_HOME=%h/.config
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+EOF
+systemctl daemon-reload
 account_uid=$(id -u "$account")
 systemctl start "user@${account_uid}.service"
 runtime="/run/user/${account_uid}"
