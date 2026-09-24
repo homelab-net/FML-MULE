@@ -1,0 +1,73 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
+# 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+
+# path opentakserver/eud_handler/EudHandler.py
+# lines 329-337, then 458-483, then 485-511.
+
+    def on_message(self, unused_channel, basic_deliver, properties, body):
+        try:
+            body = json.loads(body)
+            if body["uid"] != self.uid:
+                self.request.send(body["cot"].encode())
+        except BaseException as e:
+            self.logger.error(f"{self.callsign}: {e}, closing socket")
+            self.close_connection()
+            self.logger.error(traceback.format_exc())
+
+    def publish_cot(self, event):
+        if not event:
+            return
+
+        if not self.rabbit_channel or not self.rabbit_channel.is_open:
+            self.cached_messages.append(event)
+            self.logger.error("RabbitMQ channel is closed, not publishing cot")
+            return
+
+        # Route all CoTs to the firehose exchange for plugins and users that connect directly to RabbitMQ
+        self.rabbit_channel.basic_publish(
+            exchange="firehose",
+            body=json.dumps({"uid": self.uid, "cot": str(event)}),
+            routing_key="",
+            properties=pika.BasicProperties(expiration=self.app.config.get("OTS_RABBITMQ_TTL")),
+        )
+
+        # Route all cots to the cot_parser direct exchange to be processed by a pool of cot_parser processes
+        self.rabbit_channel.basic_publish(
+            exchange="cot_parser",
+            body=json.dumps(
+                {"uid": self.uid, "cot": str(event), "user_id": self.user.id if self.user else None}
+            ),
+            routing_key="cot_parser",
+            properties=pika.BasicProperties(expiration=self.app.config.get("OTS_RABBITMQ_TTL")),
+        )
+
+    def parse_device_info(self, event):
+        link = event.find("link")
+        fileshare = event.find("fileshare")
+
+        # EUDs running the Meshtastic and dmrcot plugins can relay messages from their RF networks to the server
+        # so we want to use the UID of the "off grid" EUD, not the relay EUD
+        contact = event.find("contact")
+        takv = event.find("takv")
+        if takv or contact:
+            uid = event.attrs.get("uid")
+        else:
+            return
+
+        contact = event.find("contact")
+
+        # Only assume it's an EUD if it's got a <contact> tag
+        if contact and uid and not uid.endswith("ping") and (self.user or not self.is_ssl):
+            self.uid = uid
+            device = operating_system = platform = version = None
+            if takv:
+                device = takv.attrs["device"] if "device" in takv.attrs else None
+                operating_system = takv.attrs["os"] if "os" in takv.attrs else None
+                platform = takv.attrs["platform"] if "platform" in takv.attrs else None
+                version = takv.attrs["version"] if "version" in takv.attrs else None
+
+            if "callsign" in contact.attrs:
+                self.callsign = contact.attrs["callsign"]

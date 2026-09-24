@@ -1,0 +1,20 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from meshtastic/firmware tag v2.8.0.47db0e3,
+# commit 47db0e3020a608e06fb65cce70cd2f093021bd82.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+# This commit is not the protobufs pin used by the 2026-09-24 comparison.
+
+# path src/mesh/Router.cpp lines 314-324.
+
+void Router::enqueueReceivedMessage(meshtastic_MeshPacket *p)
+{
+    // Try enqueue until successful
+    while (!fromRadioQueue.enqueue(p, 0)) {
+        meshtastic_MeshPacket *old_p;
+        old_p = fromRadioQueue.dequeuePtr(0); // Dequeue and discard the oldest packet
+        if (old_p) {
+            printPacket("fromRadioQ full, drop oldest!", old_p);
+            packetPool.release(old_p);
+        }
+    }

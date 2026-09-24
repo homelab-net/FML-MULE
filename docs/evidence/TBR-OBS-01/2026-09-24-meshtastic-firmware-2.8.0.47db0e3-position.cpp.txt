@@ -1,0 +1,11 @@
+# Excerpt. Not the whole file.
+# Retrieved 2026-09-24 from meshtastic/firmware tag v2.8.0.47db0e3,
+# commit 47db0e3020a608e06fb65cce70cd2f093021bd82.
+# GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
+# Not relicensed. The lines below are unchanged.
+# This commit is not the protobufs pin used by the 2026-09-24 comparison.
+
+# path src/modules/PositionModule.cpp lines 256-257.
+
+    if (pos_flags & meshtastic_Config_PositionConfig_PositionFlags_TIMESTAMP)
+        p.timestamp = localPosition.timestamp;
