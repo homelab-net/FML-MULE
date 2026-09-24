@@ -2,9 +2,9 @@
 ## Multi-Bearer Utility Link Equipment (MULE)
 # System Architecture Description (SAD)
 
-**Version:** 0.31  
+**Version:** 0.32  
 **Status:** DRAFT - SRR Package Candidate  
-**Date:** 2026-08-25  
+**Date:** 2026-09-23  
 **Parent:** FML/MULE CONOPS v1.1 BASELINE  
 **Parent Homelab Phase:** Phase 6 / WP-07 RF, Meshtastic & TAK Communications  
 **Document Type:** Subsystem System Architecture Description  
@@ -30,6 +30,7 @@ This document is intentionally more specific than the CONOPS and less prescripti
 | 0.2 | 2026-08-25 | Internal multidisciplinary SRR-style review. Preferred single-primary-compute Debian architecture with logical plane isolation. Added TBR closure criteria and preliminary extracted CONOPS traceability. |
 | 0.3 | 2026-08-25 | SRR package correction. Fixed architecture-decision configuration control; explicitly resolved the EUD-WLAN versus high-rate-mesh radio-role question at planning level; added kernel promotion and rollback architecture, local time architecture, data-at-rest/zeroize architecture, compute/memory sizing, hardware lifecycle control, original-software inventory, source/evidence register, storage-failure behavior, and owner/gate fields for TBRs. Replaced the machine-extracted §35 with clause-complete traceability and explicit N/A/partial status. No CONOPS requirement was removed. |
 | 0.31 | 2026-08-25 | Narrow SRR cleanup. Added power-objective change-control trigger, antenna/stream-count planning, thermal trade, service-authority/discovery ownership, time-to-HA dependency, TBR dependency graph, storage-endurance controls, hardware-in-the-loop kernel-release ownership, named-owner/date placeholders, external-practitioner review actions, and an evidence-driven post-SRR document strategy. No primary architecture decision changed. |
+| 0.32 | 2026-09-23 | Traceability correction only. Section 35.2 rows C43-02 and C43-06 now carry the full CONOPS v1.1 sentences. No architecture decision changed. v0.31 is retained unchanged. |
 
 ### 0.3 Governing Principles
 
@@ -2712,11 +2713,11 @@ This remains a preliminary SRR allocation, not the baselined Verification Matrix
 | C41-01 | 41 | Loss of WAN shall not remove:<br>* local EUD access;<br>  * local mesh;<br>  * peer ATAK;<br>  * local S0 and S1 services;<br>  * LoRa/Meshtastic degraded communications. | 1, 18, 26 | PRESENT | Stage 6 |
 | C42-01 | 42 | Any standard MULE shall be technically capable of assuming an<br>authorized local WAN-gateway role. | 18 | PRESENT | Stage 6 |
 | C43-01 | 43 | An EUD shall join that overlay only when the mission WAN policy sets remote-EUD overlay posture to ASSIGNED_MULE_ONLY and FML has authorized that EUD for remote continuity to its assigned MULE. | 18.1, 27 | PRESENT | Stage 6 |
-| C43-02 | 43 | An EUD admitted under ASSIGNED_MULE_ONLY shall be granted only the approved remote-EUD ingress of its assigned MULE. The assigned MULE shall remain the WAN security and routing boundary past that membership. | 18.1, 27 | PRESENT | Stage 6 |
+| C43-02 | 43 | An EUD admitted under ASSIGNED_MULE_ONLY shall be granted only the approved remote-EUD ingress of its assigned MULE. The assigned MULE shall remain the WAN security and routing boundary past that membership. The grant shall not extend to any other MULE, to MULE management interfaces, to peer EUDs on the overlay, or to unrelated home, private, or administrative infrastructure. | 18.1, 27 | PRESENT | Stage 6 |
 | C43-03 | 43 | Infrastructure access control and mission authorization shall remain<br>separate. Overlay authentication alone shall not grant service or data<br>authorization. | 18, 27 | PRESENT | Stage 6/9 |
 | C43-04 | 43 | Authorized MULE infrastructure shall participate in the approved FML WAN overlay when a WAN path is available. That participation shall be limited to approved FML inter-MULE resources. It shall not grant unrelated home, private, or administrative infrastructure. | 18.1, 27 | PRESENT | Stage 6 |
 | C43-05 | 43 | Under any other posture, including the default DISABLED, an EUD shall not join the overlay. | 18.1, 27 | PRESENT | Stage 6 |
-| C43-06 | 43 | The grant shall not place the EUD on the local RF mesh and shall not give the EUD a route onto that mesh. Past the assigned ingress, the MULE may reach an approved mission service for that EUD, including a service the MULE itself reaches over the local RF mesh. | 18.1 | PRESENT | Stage 6 |
+| C43-06 | 43 | The grant shall not place the EUD on the local RF mesh and shall not give the EUD a route onto that mesh. Past the assigned ingress, the MULE may reach an approved mission service for that EUD, including a service the MULE itself reaches over the local RF mesh. That reach is the MULE's. It is not membership of the mesh, and it is not an extension of the mesh across the WAN. Peer awareness, where approved, shall use a routed application service. It shall not be a mesh route the EUD holds. | 18.1 | PRESENT | Stage 6 |
 | C43-07 | 43 | The grant shall not remove or replace local EUD access through the MULE access point. | 18.1 | PRESENT | Stage 6 |
 | C43-08 | 43 | If the assigned MULE is unavailable, that EUD shall not obtain overlay ingress through another MULE. | 18.1 | PRESENT | Stage 6 |
 | C43-09 | 43 | The overlay shall not extend batman-adv or any other Layer-2 mesh across the WAN. | 18.1, 4 | PRESENT | Stage 6 |

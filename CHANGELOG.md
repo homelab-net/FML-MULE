@@ -14,6 +14,16 @@ this program needs them visible:
 
 ## Unreleased
 
+### Issued SAD v0.32 and corrected the public overlay sentences
+
+`FML-MULE-SAD-v0.31.md` is again the copy from before the in-place section 43
+edit. `FML-MULE-SAD-v0.32.md` carries that correction and no other architecture
+change. The ADR reading aid now counts the table it actually prints.
+`FML-ADR-052` and later are not in that table. The published site strings that
+said an EUD never joins the overlay, and that WAN stops at the node, were
+edited in the HTML and the bundle. There is no site generator in this
+repository. That edit is not a regeneration.
+
 ### Reconciled after the overlay acceptance
 
 Section 43 clauses `C43-02` and `C43-06` in the SAD now carry the full

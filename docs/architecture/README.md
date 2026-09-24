@@ -1,10 +1,11 @@
 # System architecture description
 
-**Status: DRAFT v0.31, SRR package candidate.**
+**Status: DRAFT v0.32, SRR package candidate.** v0.31 is retained beside it.
 
 | File | Contents |
 | --- | --- |
-| `FML-MULE-SAD-v0.31.md` | The system architecture description, transcribed verbatim. |
+| `FML-MULE-SAD-v0.32.md` | The current system architecture description. |
+| `FML-MULE-SAD-v0.31.md` | The previous copy, retained. Not edited by the v0.32 correction. |
 | `roip-voice-data-flow.md` | Data-flow note for the proposed v1.1 RoIP voice capability (`CCR-03`, `FML-ADR-064`-`067`): the scenarios and the invariants that keep them safe. |
 
 The SAD translates the baselined CONOPS into an implementable architecture. It
@@ -27,11 +28,14 @@ excludes it deliberately and records why.
 The SAD states its own counts, which gives four independent checks on this copy:
 
 ```sh
-grep -c '^| FML-ADR-0' docs/architecture/FML-MULE-SAD-v0.31.md   # 30 decisions
-grep -c '^| C[0-9]'    docs/architecture/FML-MULE-SAD-v0.31.md   # 146 traced clauses
-grep -c '^| \*\*TBR-'  docs/architecture/FML-MULE-SAD-v0.31.md   # 16 trades
-grep -c '^| SR-0'      docs/architecture/FML-MULE-SAD-v0.31.md   # 11 source entries
+grep -c '^| FML-ADR-0' docs/architecture/FML-MULE-SAD-v0.32.md   # 30 decisions
+grep -c '^| C[0-9]'    docs/architecture/FML-MULE-SAD-v0.32.md   # 146 traced clauses
+grep -c '^| \*\*TBR-'  docs/architecture/FML-MULE-SAD-v0.32.md   # 16 trades
+grep -c '^| SR-0'      docs/architecture/FML-MULE-SAD-v0.32.md   # 11 source entries
 ```
+
+The same four counts hold for the retained `FML-MULE-SAD-v0.31.md`. v0.32 did
+not add a row. It completed two existing section 35.2 sentences.
 
 All four pass. Section 35.1 states 146 traced clauses; section 0.8 lists 30
 controlling decisions; section 30.2 lists 16 trades; section 34 lists 11
@@ -93,8 +97,9 @@ own stability, not the permanence of decisions taken from it.
 Once baselined, it moves to the change-request process in
 `docs/conops/README.md`.
 
-Do not edit the transcribed document in place. A new SAD version is issued and
-the file here is replaced.
+Do not edit an issued version in place. The next version is a new file. The
+previous file stays, so the copy that was reviewed is still the copy under
+that name.
 
 ## Diagrams
 

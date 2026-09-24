@@ -3,24 +3,25 @@
 This directory is a generated reading of the repository, for GitHub Pages.
 It is not evidence. It is not a node. It does not select hardware.
 
-The pages were generated against CONOPS v1.01 and have not been regenerated
-for v1.1. The generator is not in this repository, so the bundled pages were
-not rewritten. If a sentence here disagrees with `docs/conops/` or with
+The pages were generated against CONOPS v1.01. The generator is not in this
+repository. On 2026-09-23 the overlay sentences below were edited in the
+published HTML and in the matching bundle scripts. That was not a
+regeneration. If a sentence here disagrees with `docs/conops/` or with
 `STATUS.md`, those win.
 
-Two captions on the architecture page are the stale ones:
+The sentences that were replaced, and the files that served them:
 
-- "WAN stops at the node."
-- "Cloud, past the gate: Terminates on the node. Phones do not join it."
+| Was | Now | Files |
+| --- | --- | --- |
+| WAN stops at the node. | Authorized MULEs use the WAN overlay for approved inter-MULE traffic. It does not extend the RF mesh. | `site/architecture/index.html`, `site/assets/architecture-T36uLmQZ.js` |
+| Terminates on the node. Phones do not join it. | Approved inter-MULE overlay. An EUD joins only its assigned MULE, and only if the mission selects that. | same two files |
+| EUDs do not join the overlay. | An EUD does not join the overlay unless the mission selects assigned-MULE-only. | `site/architecture/index.html`, `site/assets/index-Bx4hxf0x.js` |
+| WAN is optional and terminates on the node | WAN is optional. Authorized MULEs may use the overlay | `site/status/index.html`, `site/assets/index-Bx4hxf0x.js` |
 
-The controlling distinction, CONOPS v1.1 section 43 and `FML-ADR-082`, is:
-
-- Authorized MULEs may use the WAN overlay for approved inter-MULE traffic.
-  That is routed overlay connectivity. It does not extend the RF mesh.
-- The default is that an EUD does not join the overlay.
-- An administrator may select assigned-MULE-only remote continuity. That EUD
-  reaches only its assigned MULE's remote-EUD ingress. That is not the
-  normal path, and local operation does not require it.
+The status card's paragraph now also says the overlay does not extend the RF
+mesh, and that an admitted EUD stops at its assigned MULE. Local operation
+still does not require WAN. The wording follows CONOPS v1.1 section 43 and
+`FML-ADR-082`.
 
 ## What the pictures are
 
@@ -52,5 +53,6 @@ repository settings, and this workflow does not turn it on by itself.
 ## Regeneration
 
 The generator is not part of this repository's toolchain. Do not treat the
-bundled scripts as a source you edit by hand. Change the design record first,
-then replace this directory in a pull request that says what moved.
+bundled scripts as a source you edit by hand. The 2026-09-23 overlay sentences
+are the exception, and they are listed above. A later regeneration has to
+carry those sentences or it will put the old policy back.
