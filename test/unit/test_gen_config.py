@@ -476,6 +476,39 @@ def test_enabled_service_without_its_quadlet_is_refused(
         gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
 
 
+def test_enabled_bundle_requires_every_member(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A target with no members is not the capability the catalog named."""
+    service = _service("opentakserver", unit="opentakserver.target")
+    service["bundle"] = ["postgresql.container", "ots.network"]
+    _use_catalog(monkeypatch, tmp_path, [service])
+    quadlets = tmp_path / "services" / "quadlets"
+    (quadlets / "opentakserver.target").touch()
+    (quadlets / "ots.network").touch()
+
+    with pytest.raises(gc.ConfigError, match=r"postgresql\.container"):
+        gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
+
+
+def test_enabled_bundle_resolves_when_its_members_exist(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """The deployment root stays the target once the member files exist."""
+    service = _service("opentakserver", unit="opentakserver.target")
+    service["bundle"] = ["postgresql.container"]
+    _use_catalog(monkeypatch, tmp_path, [service])
+    quadlets = tmp_path / "services" / "quadlets"
+    (quadlets / "opentakserver.target").touch()
+    (quadlets / "postgresql.container").touch()
+    package = json.loads(MISSION_FULL.read_text(encoding="utf-8"))
+    package["services"] = ["opentakserver"]
+
+    resolved = gc.resolve(gc.load_region(str(FIXTURE_REGIONS / "profile.yml")), package)
+
+    assert resolved["mission"]["services"] == ["opentakserver"]
+
+
 @pytest.mark.parametrize(
     "name", ["Martin", "m/artin", "m\N{CYRILLIC SMALL LETTER A}rtin"]
 )

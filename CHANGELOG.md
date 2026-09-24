@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### An enabled bundle is still one capability
+
+Turning `opentakserver` on no longer requires the catalog to pretend the
+root is `opentakserver.container`. The loadable member containers belong
+to that capability. `tools/validate-catalog.py` and `tools/gen-config.py`
+both accept the `.target` plus its members, and both reject the same
+shape when a member file is missing. The committed contract stays
+disabled. No container was started.
+
 ### Checked the TAK topology, including the bundle root
 
 `opentakserver` names `opentakserver.target` as its deployment root while

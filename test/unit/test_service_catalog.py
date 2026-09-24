@@ -189,3 +189,41 @@ def test_missing_bundle_member_is_rejected(
         in error
         for error in validator.validate_repository(repository)
     )
+
+
+def _materialize(repository: Path, entry: dict[str, Any]) -> None:
+    """Drop the ``.disabled`` suffix from one capability's root and bundle."""
+    quadlets = repository / "services" / "quadlets"
+    for logical in [entry["unit"], *entry.get("bundle", [])]:
+        (quadlets / f"{logical}.disabled").rename(quadlets / logical)
+
+
+def test_enabled_bundle_keeps_its_target(
+    repository: Path, validator: ModuleType
+) -> None:
+    """Enabling the capability does not require pretending it is one container."""
+    document = _catalog(repository)
+    entry = document["services"][0]
+    assert entry["unit"] == "opentakserver.target"
+    entry["enabled"] = True
+    _write_catalog(repository, document)
+    _materialize(repository, entry)
+    _write_mission(repository, ["opentakserver"])
+
+    assert validator.validate_repository(repository) == []
+
+
+def test_enabled_bundle_without_its_files_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """``enabled`` is not a flag that can outrun the files it names."""
+    document = _catalog(repository)
+    document["services"][0]["enabled"] = True
+    _write_catalog(repository, document)
+
+    errors = validator.validate_repository(repository)
+    assert any(
+        "deployment file is absent: services/quadlets/opentakserver.target" in error
+        for error in errors
+    )
+    assert any("postgresql.container" in error for error in errors)

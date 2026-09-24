@@ -27,9 +27,11 @@ rather than in a device's local state. See `FML-ADR-029`.
   rootful, with the reason recorded in its catalog entry, not here.
 - **Images referenced by immutable digest, never by tag.** This is checked; see
   `tools/validate-docs.sh`.
-- **Every loadable unit has an enabled catalog entry.** A loadable unit with
-  no entry is a defect. A disabled internal unit is a defect unless exactly
-  one capability lists it in `bundle`.
+- **Every loadable container is claimed by one enabled capability.** A
+  single-unit service claims its `.container`. A bundle claims its member
+  containers; those members are not catalog entries. A loadable file with no
+  enabled owner is a defect. A disabled internal unit is a defect unless
+  exactly one capability lists it in `bundle`.
 - **Resource limits are set**, once `TBR-COMP-01` establishes the budget. An
   unbounded service on a shared compute element can starve the network plane
   and flap the mesh.

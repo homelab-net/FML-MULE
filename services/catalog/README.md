@@ -46,9 +46,11 @@ entry with an estimated envelope has not been evaluated.
 ## Rules
 
 - **Digest, never tag.** Anywhere in this repository. See `services/README.md`.
-- **No service is added without a catalog entry.** A loadable Quadlet with no
-  entry is a defect. An internal unit is not a second service: it is listed in
-  the owning capability's `bundle` and cannot be selected by a mission.
+- **No service is added without a catalog entry.** A loadable container with
+  no enabled owner is a defect. An internal unit is not a second service: it
+  is listed in the owning capability's `bundle` and cannot be selected by a
+  mission. Enabling a bundle keeps the `.target` root and requires each
+  member file, without the `.disabled` suffix.
   `example.container.disabled` is the convention reference and is not bundled.
 - **No disabled service is enabled by a mission.** A contract with a `TBD` unit
   is retained for planning but cannot become generated configuration.

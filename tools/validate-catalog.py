@@ -13,9 +13,10 @@ Two layers, kept apart the way tools/validate-mission.py keeps them:
 2. **Enforcement.** The mission JSON schema requires every enabled service name
    to have a catalog entry but cannot check it. This tool does: every service
    named in a ``mission/examples/*.json`` package must resolve uniquely to an
-   enabled catalog entry whose loadable Quadlet exists. It also rejects a
-   loadable Quadlet with no enabled catalog record. These are the checks the
-   schema defers to (FML-ADR-078).
+   enabled catalog entry whose loadable files exist. It also rejects a
+   loadable container that is not one enabled service's ``.container`` and
+   not a member of one enabled bundle. A bundle member is not a second
+   catalog service. These are the checks the schema defers to (FML-ADR-078).
 """
 
 from __future__ import annotations
@@ -38,6 +39,25 @@ QUADLETS_PATH = REPO_ROOT / "services" / "quadlets"
 def _load_yaml(path: Path) -> Any:  # noqa: ANN401
     with path.open(encoding="utf-8") as handle:
         return yaml.safe_load(handle)
+
+
+def _claimed_containers(entry: dict[str, Any]) -> set[str]:
+    """Container files one capability claims, as root or as bundle members.
+
+    A simple capability claims its ``.container``. A bundle claims each member
+    container, not the target and not the network. Callers use this for
+    enabled records only. A disabled contract is not allowed to have the
+    loadable files.
+    """
+    claimed: set[str] = set()
+    unit = str(entry["unit"])
+    if unit.endswith(".container"):
+        claimed.add(unit)
+    for member in entry.get("bundle", []):
+        name = str(member)
+        if name.endswith(".container"):
+            claimed.add(name)
+    return claimed
 
 
 def _disk_name(logical: str, enabled: bool) -> str:
@@ -116,7 +136,6 @@ def validate_repository(root: Path) -> list[str]:
     services = catalog.get("services", [])
     names: dict[str, list[dict[str, Any]]] = {}
     references: dict[str, list[dict[str, Any]]] = {}
-    units: dict[str, list[dict[str, Any]]] = {}
     quadlets_path = root / "services" / "quadlets"
 
     # ``uniqueItems`` distinguishes whole objects, not their identity fields.
@@ -127,8 +146,6 @@ def validate_repository(root: Path) -> list[str]:
         names.setdefault(name, []).append(entry)
         for reference in [name, *entry["aliases"]]:
             references.setdefault(reference, []).append(entry)
-        if entry["unit"] != "TBD":
-            units.setdefault(entry["unit"], []).append(entry)
 
     for name, owners in sorted(names.items()):
         if len(owners) != 1:
@@ -141,9 +158,16 @@ def validate_repository(root: Path) -> list[str]:
     for entry in services:
         owned_disk.update(_check_deployment(entry, quadlets_path, errors))
 
+    container_owners: dict[str, list[dict[str, Any]]] = {}
+    for entry in services:
+        if not entry["enabled"]:
+            continue
+        for container in _claimed_containers(entry):
+            container_owners.setdefault(container, []).append(entry)
+
     for path in sorted(quadlets_path.glob("*.container")):
-        owners = units.get(path.name, [])
-        if len(owners) != 1 or not owners[0]["enabled"]:
+        owners = container_owners.get(path.name, [])
+        if len(owners) != 1:
             errors.append(
                 f"loadable Quadlet {path.name!r} has no enabled catalog record"
             )
