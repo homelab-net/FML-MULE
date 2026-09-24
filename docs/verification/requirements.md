@@ -198,12 +198,162 @@ requirements:
     text: "The program can be maintained by more than one qualified person."
     allocation: N/A-SAD
     stage: STAGE-13
+  - id: FML-REQ-034
+    source: CONOPS 79.34
+    modal: shall
+    text: "A mission observation records the time it was observed, its source, and whether it is new, active, stale, expired, merged, or superseded."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-035
+    source: CONOPS 79.35
+    modal: shall
+    text: "A stale or expired mission observation is not presented as current."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-036
+    source: CONOPS 79.36
+    modal: shall
+    text: "Relaying or queuing does not replace the time of observation with the time of delivery."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-037
+    source: CONOPS 79.37
+    modal: shall
+    text: "An expired observation remains history for the mission profile's retention and is not treated as deleted."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-038
+    source: CONOPS 79.38
+    modal: shall
+    text: "Observations of different subjects are not merged, and a possible match is not presented as a confirmed identity."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-039
+    source: CONOPS 79.39
+    modal: shall
+    text: "A link report is not presented as proof of a usable path or as the location of an emitter."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-040
+    source: CONOPS 79.40
+    modal: shall
+    text: "A derived product identifies its source observations and does not replace them, and a model product is labeled as one."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-041
+    source: CONOPS 79.41
+    modal: shall
+    text: "A full local queue records the discard and does not by itself end local participation."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-042
+    source: CONOPS 79.42
+    modal: shall
+    text: "A mission profile can mark a capability required, optional, or off."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-043
+    source: CONOPS 79.43
+    modal: shall
+    text: "A capability marked off is not tasked."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-044
+    source: CONOPS 79.44
+    modal: shall
+    text: "Refusal, failure, or absence of an optional capability does not by itself make local mission participation unsuccessful."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-045
+    source: CONOPS 79.45
+    modal: shall
+    text: "A required capability that is absent is shown as missing."
+    allocation: N/A-CONOPS
+    stage: STAGE-01
+  - id: FML-REQ-046
+    source: CONOPS 79.46
+    modal: shall
+    text: "Authority to view a product is not authority to task a sensor, and neither is authority to administer a node."
+    allocation: FML-ADR-037
+    stage: STAGE-09
+  - id: FML-REQ-047
+    source: CONOPS 79.47
+    modal: shall
+    text: "A sensor task names the sensor, the duration, and the team scope, ends on those conditions, and yields an observation or a recorded failure."
+    allocation: N/A-CONOPS
+    stage: STAGE-09
+  - id: FML-REQ-048
+    source: CONOPS 79.48
+    modal: shall
+    text: "A change of permission on a capability is recorded."
+    allocation: N/A-CONOPS
+    stage: STAGE-09
+  - id: FML-REQ-049
+    source: CONOPS 79.49
+    modal: shall
+    text: "While EMCON is in effect the system does not originate a transmission the active posture has classed as avoidable."
+    allocation: N/A-CONOPS
+    stage: STAGE-10
+  - id: FML-REQ-050
+    source: CONOPS 79.50
+    modal: shall
+    text: "EMCON is not reported as measured radio silence."
+    allocation: N/A-CONOPS
+    stage: STAGE-10
+  - id: FML-REQ-051
+    source: CONOPS 79.51
+    modal: shall
+    text: "Where reception remains permitted, a prohibition on transmission is not reported as an inability to receive."
+    allocation: N/A-CONOPS
+    stage: STAGE-10
+  - id: FML-REQ-052
+    source: CONOPS 79.52
+    modal: shall
+    text: "Integration of the gateway radio does not remove normal local RF use."
+    allocation: FML-ADR-064
+    stage: STAGE-08
+  - id: FML-REQ-053
+    source: CONOPS 79.53
+    modal: shall
+    text: "Linked voice crosses the local IP path between MULEs."
+    allocation: FML-ADR-065
+    stage: STAGE-04
+  - id: FML-REQ-054
+    source: CONOPS 79.54
+    modal: shall
+    text: "Linked voice between authorized MULEs can cross the WAN overlay, and does not require an EUD to join that overlay."
+    allocation: FML-ADR-065
+    stage: STAGE-06
+  - id: FML-REQ-055
+    source: CONOPS 79.55
+    modal: shall
+    text: "Gateway radios are not required to use the same RF frequency."
+    allocation: FML-ADR-066
+    stage: STAGE-04
+  - id: FML-REQ-056
+    source: CONOPS 79.56
+    modal: shall
+    text: "Loss of WAN or of the linked-voice path preserves local and direct RF voice."
+    allocation: FML-ADR-067
+    stage: STAGE-06
+  - id: FML-REQ-057
+    source: CONOPS 79.57
+    modal: shall
+    text: "A linked-voice session does not persist as a loop or a stuck transmission."
+    allocation: FML-ADR-065
+    stage: STAGE-04
+  - id: FML-REQ-058
+    source: CONOPS 79.58
+    modal: shall
+    text: "The ordinary user's voice control remains that user's radio and PTT."
+    allocation: FML-ADR-067
+    stage: STAGE-08
 ---
 
 # Requirements
 
-**Generated-from-source, hand-maintained.** This file transcribes the **33
-operational success criteria of CONOPS v1.1 section 79** as structured
+**Generated-from-source, hand-maintained.** This file transcribes the **58
+operational success criteria of CONOPS v1.2 section 79** as structured
 requirements, with the validating stage taken from the **CONOPS section 85
 verification traceability matrix**.
 
@@ -213,9 +363,10 @@ requirement with no allocation or no validating stage.
 
 ## Scope, and what this file is not
 
-This is **not** the full requirement set. CONOPS v1.1 carries **151 `[SHALL]`
-markers**, of which SAD section 35.1 traces **146** as system, operational or
-policy clauses and handles 4 as document governance.
+This is **not** the full requirement set. CONOPS v1.2 carries **185 `[SHALL]`
+markers**. SAD v0.32 section 35.1 still traces the v1.1 set. The v1.2 clauses
+are not yet transcribed into a SAD. None of criteria 34 through 58 have been
+run.
 
 That clause-level decomposition lives in **SAD section 35.2** and belongs in the
 TRD. It is not duplicated here, because a second hand-maintained copy of a
@@ -226,7 +377,7 @@ What is transcribed here is the **section 79 criteria**, because:
 
 - they are the level at which CONOPS section 85 already assigns a validating
   stage, so the chain is complete without invention;
-- there are 33 of them, which is checkable by a second reviewer;
+- there are 58 of them, which is checkable by a second reviewer;
 - CONOPS section 85 makes them binding: **every criterion shall have at least
   one validating stage**, and a criterion whose stage is later removed triggers
   a change request under section 86.
@@ -234,7 +385,7 @@ What is transcribed here is the **section 79 criteria**, because:
 ## Field meanings
 
 - **`source`** - the CONOPS section 79 criterion number.
-- **`modal`** - all 33 are `shall`. Section 85 makes each one verification-bearing.
+- **`modal`** - all 58 are `shall`. Section 85 makes each one verification-bearing.
 - **`allocation`** - the architecture element that owns it. Where the SAD marks
   a clause `N/A-SAD` because it is an organizational or training obligation
   rather than a system behaviour, the allocation records that honestly rather
@@ -269,7 +420,8 @@ lost:
   testable system behaviour, verified by inspection of organizational policy.
 
 These are gaps in the criteria set, not in this transcription. They are listed
-so a reader does not assume 33 criteria means complete coverage.
+so a reader does not assume 58 criteria means complete coverage. Criteria 34
+through 58 are accepted text. None of them have been run.
 
 ## Verification status
 

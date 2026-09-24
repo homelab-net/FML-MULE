@@ -69,7 +69,7 @@ ADR entered for the chosen implementation. The gate is a comparison against the
 selection criteria in `CCR-03` section 11, not a single threshold.
 
 `CCR-03` is now approved (2026-09-15), so that precondition is met: the
-capability exists as a CONOPS v1.1 increment. The gate still requires the
+capability is issued CONOPS v1.2 text. The gate still requires the
 measured basis above (the hardware half, GATE VOICE-01), a comparison against the
 `CCR-03` section 11 criteria, and the named owner's acceptance before a selection
 is entered. The analysis half is produced:

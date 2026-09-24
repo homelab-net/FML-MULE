@@ -1,14 +1,14 @@
 # RoIP voice data flow, and the invariants that keep it safe
 
-**Status: proposed, v1.1, nothing built.** This note describes the intended
-architecture of the audio/PTT Radio-over-IP (RoIP) voice capability. That
-capability is a CONOPS v1.1 change under
-`docs/change-requests/CCR-03-integrated-rf-dm32-roip-voice.md`, and its
-decisions (`FML-ADR-064` through `FML-ADR-067`) are `PROPOSED`, not approved.
-The implementation is `TBR-VOICE-01`, `OPEN`. So every "does" and "is" below is
-a statement of design intent that no bench has yet demonstrated, not a claim
-about behaviour. Where a mechanism is required but unbuilt or unproven, the note
-says so rather than implying it works.
+**Status: CONOPS text issued in v1.2; nothing built.** This note describes the
+intended architecture of the audio/PTT Radio-over-IP (RoIP) voice capability.
+That capability is issued CONOPS text under
+`docs/change-requests/CCR-03-integrated-rf-dm32-roip-voice.md`. Its decisions
+(`FML-ADR-064` through `FML-ADR-067`) are `SELECTED`. The implementation is
+`TBR-VOICE-01`, `OPEN`. So every "does" and "is" below is a statement of
+design intent that no bench has yet demonstrated, not a claim about behaviour.
+Where a mechanism is required but unbuilt or unproven, the note says so rather
+than implying it works.
 
 This note exists because the data flow is only implicit across four ADRs and a
 change request, and it was being re-derived (and nearly gotten wrong) each time

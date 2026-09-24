@@ -17,6 +17,10 @@ From the CONOPS:
 - bulk synchronization;
 - traffic preference.
 
+CONOPS v1.2 adds, and nothing here has been run: linked voice across the
+local IP path, including gateway radios on different frequencies, without a
+persistent loop.
+
 ## Why this stage
 
 Exercises both the high-rate bearer itself and the CONOPS section 40 traffic
@@ -29,7 +33,8 @@ Stage 1.
 
 ## What it validates
 
-- **Section 79 success criteria:** 11, 15
+- **Section 79 success criteria:** 11, 15, 53, 55, 57. Criteria 53, 55, and
+  57 are CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-025`, `FML-ADR-045`
 - **Trades expected to close or advance here:** `TBR-RF-01`, `TBR-RF-03`
 

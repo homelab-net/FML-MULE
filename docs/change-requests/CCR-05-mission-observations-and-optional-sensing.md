@@ -1,8 +1,11 @@
 # CCR-05 Mission observations and optional sensing
 
 **Type:** CONOPS change request
-**Status:** `OPEN`
-**Target version:** CONOPS **v1.2**, if accepted. v1.1 is not edited by this draft.
+**Status:** `ACCEPTED`
+**Accepted:** 2026-09-23 by the Program Owner. Acceptance adopts the proposed
+requirements into CONOPS v1.2. It does not implement them. Nothing in this
+request is `SIMULATED` or `HARDWARE-VERIFIED`.
+**Target version:** CONOPS **v1.2** (issued)
 **Sections affected:** 49, 50.12, 78 Stages 1, 9 and 10, 79, 81, 85
 **Raised by:** the 2026-09-23 enhancement direction, for the part not already controlling
 **Decision:** none. This request does not open an ADR.
@@ -14,12 +17,11 @@ request drafts the rest of that direction which is still only an engineering
 handoff: how a mission observation ages, what an optional sensor is allowed to
 break, and what a derived report is not allowed to claim.
 
-It is not accepted. It has no weight. It does not reissue the CONOPS, does not
-enlarge `v0.0.1`, and does not change `mule/`, the mission schema, or section
-50's mode list. `CCR-01` stays open. `CCR-03` is `APPROVED` and is not folded
-into this draft. Its voice text was not in the v1.1 issue. A later v1.2
-reissue that accepts this request must also carry that already-approved voice
-text. This request does not draft it.
+It is accepted. The proposed sentences are in CONOPS v1.2. v1.1 is unchanged.
+Acceptance does not enlarge `v0.0.1` and does not change `mule/`. `CCR-01`
+stays open. `CCR-03` stays `APPROVED`, and its voice text is in the same v1.2
+issue. SAD transcription of the new clauses is not in this issue. SAD v0.32
+remains the current architecture description.
 
 ## Already controlling, and not redrafted here
 
@@ -49,8 +51,8 @@ below, and it does not invent a status word.
 - A new section, placed after section 28 and numbered at reissue. Section 28
   is not rewritten. TAK authority and a mission observation are different
   things.
-- Section 81, by proposing exclusions that are not in v1.1. `docs/NON-GOALS.md`
-  is not edited until acceptance, because it transcribes section 81.
+- Section 81, by adding exclusions that were not in v1.1.
+  `docs/NON-GOALS.md` transcribes them because this request is accepted.
 - Section 78 Stages 1, 9, and 10, by adding bullets. No new stage.
 - Section 79, by adding one criterion per new `[SHALL]` below. Section 85
   gains one row per criterion. The stage is the one named in section 7, not
@@ -71,8 +73,7 @@ a summary.
 
 ## 3. Proposed text
 
-The words below are the proposed `[SHALL]` text. They are not in the CONOPS
-until this request is accepted and v1.2 is issued.
+The words below are the accepted `[SHALL]` text. They are in CONOPS v1.2.
 
 ### Mission observations
 
@@ -156,9 +157,7 @@ transmission shall not by itself be reported as an inability to receive.
 
 ### Sensing that v1 does not require
 
-Added to section 81. These are not in v1.1 and they are not in
-`docs/NON-GOALS.md`. They are proposed here so acceptance would make them
-exclusions. Until then they are not prohibitions.
+Added to section 81 of CONOPS v1.2. They are exclusions as of that issue.
 
 MULE v1 shall not require, and shall not include as a baseline capability:
 
@@ -193,28 +192,28 @@ of the local mission. A summary that hides its sources cannot be checked when
 the node is disconnected, which is the normal case.
 
 The engineering handoff described those behaviors. Leaving them only in that
-file means they are not obligations. Putting them in v1.2 makes them
-obligations. Until this request is accepted, they remain the handoff.
+file means they are not obligations. They are obligations as of this
+acceptance. They are not implemented, and none of them have been run.
 
-## 6. Downstream documents, if accepted
+## 6. Downstream documents
 
-Not edited by this draft.
+Edited by the v1.2 issue, except the SAD.
 
-| Document | What acceptance would change |
+| Document | What acceptance changed |
 | --- | --- |
-| CONOPS | Reissue as v1.2, and carry the already-approved `CCR-03` voice text in that same reissue. v1.1 stays the historical copy. |
+| CONOPS | Reissued as v1.2, carrying this text and the already-approved `CCR-03` voice text. v1.1 stays the historical copy. |
 | Section 79 and section 85 | One criterion per `[SHALL]` in section 3, allocated as section 7 says. |
 | Section 78 | Bullets on Stages 1, 9, and 10 for those same behaviors. No new stage. |
 | Section 81 | The six sensing exclusions in section 3. Not section 79 criteria. |
-| SAD | Transcribe the new section. No new decision in section 0.8. |
-| `docs/verification/requirements.md` | New requirement rows, traced to the stage in section 7. |
-| `docs/NON-GOALS.md` | Transcribe the new section 81 exclusions. No removal. |
+| SAD | Not in this issue. SAD v0.32 remains current and does not transcribe the new clauses. |
+| `docs/verification/requirements.md` | New requirement rows, traced to the stage in section 7. Not run. |
+| `docs/NON-GOALS.md` | Transcribes the new section 81 exclusions. The remote-PTT exclusion left with `CCR-03`. |
 | `mule/`, mission schema, `FML-ADR-082` | No change. |
 
 ## 7. Verification impact
 
 Every new `[SHALL]` has a stage and a method. Nothing here has been run.
-Acceptance would not make any of it `SIMULATED` or `HARDWARE-VERIFIED`.
+Acceptance does not make any of it `SIMULATED` or `HARDWARE-VERIFIED`.
 The EMCON rows are a flat-sat of what the node reports and sends. They are
 not a measurement of radio silence.
 
@@ -245,4 +244,5 @@ inspection of the reissued section 81 and of `docs/NON-GOALS.md`.
 
 ## 8. Approval
 
-Not approved. Status remains `OPEN`.
+Accepted 2026-09-23 by the Program Owner. The text is in CONOPS v1.2. No run
+is claimed.

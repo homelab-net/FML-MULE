@@ -14,6 +14,14 @@ this program needs them visible:
 
 ## Unreleased
 
+### Issued CONOPS v1.2
+
+`CCR-05` is accepted. `CCR-03` stays approved, and its voice text is in the
+same issue. v1.1 is retained. The overlay sentences are unchanged. An optional
+capability that is refused does not by itself end local participation. No new
+behavior is implemented, and none of the new criteria have been run. SAD v0.32
+does not yet transcribe the new clauses.
+
 ### Issued SAD v0.32 and corrected the public overlay sentences
 
 `FML-MULE-SAD-v0.31.md` is again the copy from before the in-place section 43

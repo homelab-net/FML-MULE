@@ -17,6 +17,12 @@ From the CONOPS:
 - AAR export and retention behavior;
 - comms-out drill.
 
+CONOPS v1.2 adds, and nothing here has been run: EMCON does not originate a
+transmission the posture classes as avoidable; EMCON is not reported as
+measured radio silence; a transmit ban is not reported as an inability to
+receive when reception remains permitted. These are not a measurement of
+radio silence.
+
 ## Why this stage
 
 CONOPS section 50.13 requires exercise data to be distinguishable from live
@@ -34,7 +40,8 @@ operations.
 
 ## What it validates
 
-- **Section 79 success criteria:** 23, 24, 25, 28
+- **Section 79 success criteria:** 23, 24, 25, 28, 49, 50, 51. Criteria 49,
+  50, and 51 are CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-046`
 - **Trades expected to close or advance here:** none
 

@@ -245,13 +245,13 @@ scenarios.
   first-class Track 4 item, and the diagnostic tier (`FML-ADR-046`, CONOPS 52).
 - The recovery and update path (A/B, rollback), excluded from `v0.0.1` by design.
 
-**Not in `v1.0`.** The RF voice gateway / RoIP (`4.2`, `4.3`) is a CONOPS v1.1
-change gated on `CCR-03`, not a `v1.0` feature; it stays off `v1.0` scope for the
-same reason `docs/NON-GOALS.md` carried it. Naming it here keeps it from drifting
-back in. EUD-native voice and video (`4.8`) -- softphone and in-app video for a
+**Not in `v1.0`.** The RF voice gateway / RoIP (`4.2`, `4.3`) is issued
+CONOPS text under `CCR-03` (v1.2). It is not a `v1.0` feature, and it is not
+in `v0.0.1`. Naming it here keeps it from drifting into those milestones.
+EUD-native voice and video (`4.8`) -- softphone and in-app video for a
 user carrying no radio -- is a *later* increment still: `FML-ADR-067` places
-direct-to-headset and non-radio audio outside the v1 baseline, so it sits beyond
-even the v1.1 RoIP work and must not be conflated with it.
+direct-to-headset and non-radio audio outside the baseline, so it sits beyond
+the RoIP work and must not be conflated with it.
 
 **Exit gate.** A `v1.0` build runs the CONOPS operational scenarios across more
 than one node in a field test, with evidence under `docs/evidence/` and
@@ -955,7 +955,7 @@ of them cannot close before hardware exists anyway.
 | Finding | State |
 | --- | --- |
 | TBR schedule concentration -- named-person assignment | **Done 2026-08-31.** Every trade names an owner. |
-| Traceability integrity -- clause-complete section 35 | Not repository work. Section 35 is already clause-complete; it is `OPEN until formal RTM baseline`, and baselining an RTM is a program act. `docs/verification/requirements.md` records why this repository tracks the 33 section 79 criteria rather than duplicating a 146-row table. |
+| Traceability integrity -- clause-complete section 35 | Not repository work. Section 35 is already clause-complete; it is `OPEN until formal RTM baseline`, and baselining an RTM is a program act. `docs/verification/requirements.md` records why this repository tracks the section 79 criteria rather than duplicating the SAD clause table. v1.2 has 58 criteria. SAD v0.32 still traces the v1.1 set. |
 
 Everything else in that table is gated on CONOPS stages 1, 2, 5, 7, 8, 9 or 13,
 which are test campaigns, and most need hardware.
@@ -1093,9 +1093,8 @@ preference), section 41 (WAN independence). Decision: `FML-ADR-064` through
 `FML-ADR-067`, all `SELECTED` under `CCR-03`.
 
 **State:** `CCR-03` is approved (2026-09-15) and the four voice ADRs are
-`SELECTED`. The capability is a CONOPS v1.1 increment whose text reissue is the
-pending baselining step (section 86 stakeholder re-approval); nothing here is
-built yet, and it remains a v1.1 capability, out of v1.0. The decisions: DM-32UV
+`SELECTED`. The CONOPS text is issued in v1.2. Nothing here is built, and it
+stays out of `v0.0.1` and out of `v1.0`. The decisions: DM-32UV
 as the radio (`FML-ADR-064`), audio/PTT over IP not native DMR (`FML-ADR-065`), a
 dedicated integrated gateway radio (`FML-ADR-066`), and the single-audio-egress
 invariant (`FML-ADR-067`). With `CCR-03` approved, the `TBR-VOICE-01` gateway

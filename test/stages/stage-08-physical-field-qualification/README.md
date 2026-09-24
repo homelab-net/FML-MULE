@@ -20,6 +20,10 @@ From the CONOPS:
 - thermal behavior;
 - environmental resilience.
 
+CONOPS v1.2 adds, and nothing here has been run: a gateway radio does not
+remove direct use of the operator's own radio, and ordinary voice control
+stays that radio and its PTT.
+
 ## Why this stage
 
 The human-factors stage. CONOPS section 38 requires that incorrect RF
@@ -37,7 +41,8 @@ three-radio assumption.
 
 ## What it validates
 
-- **Section 79 success criteria:** 15, 20, 31
+- **Section 79 success criteria:** 15, 20, 31, 52, 58. Criteria 52 and 58 are
+  CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-045`
 - **Trades expected to close or advance here:** `TBR-THERM-01`, `TBR-CARRIER-01`, `TBR-RF-02`
 
