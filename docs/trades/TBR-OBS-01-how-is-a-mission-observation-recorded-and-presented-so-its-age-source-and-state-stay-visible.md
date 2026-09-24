@@ -56,14 +56,16 @@ queue. No code, and no claim that a flat-sat was run.
 ## Closure gate
 
 The comparison is evidence. Accepting its bounded finding does not close
-this trade and does not select a representation. The named owner closes it
-by accepting how an observation is recorded and presented: which native
-fields of a reviewed representation stay, and which remaining semantics are
-local metadata or local policy. An ADR records that choice and cites the
-comparison. A finding that the four reviewed representations do not each
-satisfy section 28A is not that choice. Until the choice is recorded this
-trade stays `OPEN`. The Stage 1 demonstrations in CONOPS section 85 are not
-this gate.
+this trade and does not select a representation.
+
+The named owner closes it only by accepting how an observation is recorded
+and presented. An ADR records that choice and cites the comparison. For any
+semantic that choice does not take from the four reviewed representations,
+the ADR also cites a reading of the CoT detail schemas and the other
+Meshtastic messages the comparison names as unread. If that reading is
+absent, assigning the semantic to local metadata or local policy does not
+close the trade. Until the choice is recorded this trade stays `OPEN`.
+The Stage 1 demonstrations in CONOPS section 85 are not this gate.
 
 ## Comparison
 

@@ -91,19 +91,20 @@ of every OpenTAKServer table or every local log:
 ## Sources
 
 Retrieved 2026-09-24. Short quotations below are the words the score uses.
-The schema file is MITRE's, copyright 2005, and is not copied into this
-repository.
+The CoT schema is archived beside this file. Its MITRE copyright stays on
+that copy.
 
 | Source | Pin |
 | --- | --- |
-| `Event.xsd` header: "Schema for Cursor-On-Target (CoT) Event data model (Version 2.0) 13-June-2003" | `docjason/XmlValidate` commit `89ced733e661d14cd21f58fce5a60ed5fa60f067`, file `schemas/Event.xsd` |
+| `Event.xsd` header: "Schema for Cursor-On-Target (CoT) Event data model (Version 2.0) 13-June-2003" | Archived at `docs/evidence/TBR-OBS-01/2026-09-24-event-xsd-version-2.0.xsd`. Retrieved 2026-09-24 from `docjason/XmlValidate` commit `89ced733e661d14cd21f58fce5a60ed5fa60f067`, file `schemas/Event.xsd`. SHA-256 `c3416f653638cffa3354ba8556fa7855cfc9bec4ed1a4e23a0e979bded3b9365`. |
 | OpenTAKServer `opentakserver/models/CoT.py` | tag `1.7.13`, commit `67903c26d95552738d85be4bc3c3ff3321378dbe`. Same package version as the `TBR-TAK-01` inventory. |
 | Meshtastic `meshtastic/mesh.proto` | `meshtastic/protobufs` commit `8f97d66a63ce10cfb12f94203e361691647f5ad3` (2026-09-21) |
 
-The CoT copy is a public repository's file, not a download from the DISA XML
-registry. The header in that file is the identification used here. No ATAK,
-iTAK, or WinTAK binary was run, so this file does not say how a client draws
-a marker.
+The CoT copy in this directory is the file retrieved from that commit. It is
+not a download from the DISA XML registry. The header in that file is the
+identification used here. MITRE's copyright notice stays on the file. It is
+not relicensed as CC BY 4.0. No ATAK, iTAK, or WinTAK binary was run, so this
+file does not say how a client draws a marker.
 
 ## The eight sentences
 

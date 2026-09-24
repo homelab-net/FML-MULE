@@ -5,8 +5,9 @@
 **Trade file:** `docs/trades/TBR-OBS-01-how-is-a-mission-observation-recorded-and-presented-so-its-age-source-and-state-stay-visible.md`
 
 **Current contents:** one written comparison,
-`2026-09-24-representation-comparison.md`. No flat-sat was run. Nothing in it
-is `SIMULATED` or `HARDWARE-VERIFIED`.
+`2026-09-24-representation-comparison.md`, and the CoT schema it quotes,
+`2026-09-24-event-xsd-version-2.0.xsd`, with its source note. No flat-sat
+was run. Nothing in the comparison is `SIMULATED` or `HARDWARE-VERIFIED`.
 
 The comparison finds that none of the reviewed representations, using their
 documented native semantics and without new FML semantics, satisfies the
