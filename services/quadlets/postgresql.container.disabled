@@ -7,8 +7,8 @@
 Description=PostgreSQL for the TAK capability
 Documentation=file:///usr/share/doc/fml/tak
 PartOf=opentakserver.target
-After=ots-network.service
-Requires=ots-network.service
+After=systemd-networkd-wait-online@TBD.service ots-network.service
+Requires=systemd-networkd-wait-online@TBD.service ots-network.service
 
 [Container]
 Image=docker.io/library/postgres@sha256:485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8

@@ -8,8 +8,8 @@
 Description=OpenTAKServer CoT parser
 Documentation=file:///usr/share/doc/fml/tak
 PartOf=opentakserver.target
-After=ots-network.service postgresql.service rabbitmq.service
-Requires=ots-network.service postgresql.service rabbitmq.service
+After=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
+Requires=systemd-networkd-wait-online@TBD.service ots-network.service postgresql.service rabbitmq.service
 
 [Container]
 Image=TBD
@@ -19,6 +19,7 @@ Exec=cot_parser
 Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
 Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
 Environment=OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+Environment=OTS_MEDIAMTX_ENABLE=false
 # SQLALCHEMY_DATABASE_URI host=postgresql
 # 1.7.13 has no separate SQL host setting. The URI holds the credential,
 # so EnvironmentFile supplies it and must use that host. It must not

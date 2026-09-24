@@ -1067,9 +1067,12 @@ continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
 `FML-ADR-071`). The unit texts and `services/tak/Containerfile` are in the
 tree. They are not loadable. The application image has no digest, and the
 five runtime proofs have not been run. One catalog capability owns the
-internal units, on an internal network, with no host-published backend
-port. `OpenTAKServer` is **three** console entry points, and upstream's own
-container runs only the first:
+internal units. Its root is `opentakserver.target`, including while the
+contract is disabled. Topology CI checks the graph and can walk one
+synthetic CoT into PostgreSQL. That is not a restart or a different-node
+restore, and the mesh interface is still `TBD`. `OpenTAKServer` is
+**three** console entry points, and upstream's own container runs only the
+first:
 
 - `opentakserver` -- the web application and API;
 - `eud_handler` -- the CoT listener that binds the TCP/SSL/UDP streaming ports.

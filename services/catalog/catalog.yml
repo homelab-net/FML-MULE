@@ -16,18 +16,17 @@ services:
   - name: opentakserver
     enabled: false
     aliases: []
-    # Internal units this capability owns. Not catalog services, and not
-    # mission-selectable. unit stays TBD until the built image has a digest.
-    # GAP-09F has not selected the v0.0.1 service.
+    # Deployment root is the target, including while this contract is disabled.
+    # The file on disk is opentakserver.target.disabled until enabled is true.
+    # GAP-09F has not selected the v0.0.1 service. The image is still TBD.
+    unit: opentakserver.target
     bundle:
-      - opentakserver.target.disabled
-      - ots.network.disabled
-      - postgresql.container.disabled
-      - rabbitmq.container.disabled
-      - opentakserver.container.disabled
-      - eud-handler.container.disabled
-      - cot-parser.container.disabled
-    unit: TBD
+      - ots.network
+      - postgresql.container
+      - rabbitmq.container
+      - opentakserver.container
+      - eud-handler.container
+      - cot-parser.container
     purpose: "The TAK server a phone connects to for situational awareness."
     # No complete official OCI image is published upstream; a digest-pinned
     # build must be defined before deployment. TBR-TAK-01, and see

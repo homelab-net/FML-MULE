@@ -1,0 +1,6 @@
+# Test-only client image. Not a field image and not a catalog reference.
+# Built FROM the local topology image so the install can happen before the
+# internal network, which has no route to a package index, is created.
+FROM fml-ots-topology
+RUN pip install --no-cache-dir pytak
+COPY send_cot.py /send_cot.py

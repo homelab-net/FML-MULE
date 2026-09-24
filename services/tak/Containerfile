@@ -7,6 +7,10 @@
 # Base: the Python 3.12 bookworm multi-arch index, retrieved 2026-09-24 from
 # registry-1.docker.io. The index digest is immutable. Each Quadlet sets
 # Exec to one console script. This file does not set a command.
+#
+# Upstream's Dockerfile also installs the system ffmpeg package for MediaMTX.
+# Media is outside this topology. The units set OTS_MEDIAMTX_ENABLE=false.
+# This image does not install ffmpeg, and a pass here is not a media claim.
 
 FROM docker.io/library/python@sha256:dbbe4ceb97851e2e5fa83798b239811f871cb743b259ba3563737349f6bcfaa0
 

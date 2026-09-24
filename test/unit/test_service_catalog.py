@@ -131,7 +131,7 @@ def test_enabled_service_requires_existing_named_quadlet(
     _write_mission(repository, ["martin"])
 
     assert any(
-        "enabled service 'martin' deployment unit is absent" in error
+        "service 'martin' deployment file is absent" in error
         for error in validator.validate_repository(repository)
     )
 
@@ -181,10 +181,11 @@ def test_missing_bundle_member_is_rejected(
 ) -> None:
     """A capability cannot claim an internal unit that is not in the tree."""
     document = _catalog(repository)
-    document["services"][0]["bundle"].append("missing.container.disabled")
+    document["services"][0]["bundle"].append("missing.container")
     _write_catalog(repository, document)
 
     assert any(
-        "bundle member is absent: services/quadlets/missing.container.disabled" in error
+        "deployment file is absent: services/quadlets/missing.container.disabled"
+        in error
         for error in validator.validate_repository(repository)
     )

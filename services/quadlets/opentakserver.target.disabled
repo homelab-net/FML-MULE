@@ -1,15 +1,14 @@
 # One mission capability. Not loadable: the suffix is .target.disabled.
-# A mission selects opentakserver. This target owns the internal units.
-# Those units are not catalog services.
-#
-# The mesh interface this capability waits on is still unnamed.
-# TBR-LINUX-01. Do not substitute network-online.target.
-# After=systemd-networkd-wait-online@TBD.service
-# Requires=systemd-networkd-wait-online@TBD.service
+# A mission selects opentakserver. This target is reached after its members.
+# An After= on this file does not hold the units it Wants=. The mesh gate
+# is therefore a Requires= of each member, not of this target.
+# The interface name is still TBD (TBR-LINUX-01).
 
 [Unit]
 Description=OpenTAKServer capability
 Documentation=file:///usr/share/doc/fml/tak
+After=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
+Requires=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
 Wants=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
 
 [Install]

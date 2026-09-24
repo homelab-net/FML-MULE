@@ -16,19 +16,19 @@ APP_UNITS = ("opentakserver", "eud-handler", "cot-parser")
 DEPENDENCIES = ("postgresql", "rabbitmq")
 CONTAINERS = APP_UNITS + DEPENDENCIES
 DATA = "Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z"
-DEPS = "Requires=ots-network.service postgresql.service rabbitmq.service"
+MESH = "systemd-networkd-wait-online@TBD.service"
+DEPS = f"Requires={MESH} ots-network.service postgresql.service rabbitmq.service"
 BASE = (
     "docker.io/library/python@sha256:"
     "dbbe4ceb97851e2e5fa83798b239811f871cb743b259ba3563737349f6bcfaa0"
 )
 BUNDLE = (
-    "opentakserver.target.disabled",
-    "ots.network.disabled",
-    "postgresql.container.disabled",
-    "rabbitmq.container.disabled",
-    "opentakserver.container.disabled",
-    "eud-handler.container.disabled",
-    "cot-parser.container.disabled",
+    "ots.network",
+    "postgresql.container",
+    "rabbitmq.container",
+    "opentakserver.container",
+    "eud-handler.container",
+    "cot-parser.container",
 )
 
 
@@ -52,7 +52,7 @@ def test_one_capability_owns_the_internal_units() -> None:
     assert names == ["opentakserver", "martin"]
     owned = catalog["services"][0]
     assert owned["enabled"] is False
-    assert owned["unit"] == "TBD"
+    assert owned["unit"] == "opentakserver.target"
     assert owned["image"] == "TBD"
     assert owned["bundle"] == list(BUNDLE)
     assert "bundle" not in catalog["services"][1]
@@ -65,6 +65,7 @@ def test_three_processes_share_the_data_folder() -> None:
         assert "Environment=OTS_DATA_FOLDER=/var/lib/opentakserver" in text
         assert not any(line.startswith("Restart=") for line in _assignments(text))
         assert "Image=TBD" in text
+        assert "Environment=OTS_MEDIAMTX_ENABLE=false" in text
 
 
 def test_workers_depend_on_the_database_and_the_broker_only() -> None:
@@ -105,12 +106,25 @@ def test_internal_network_names_the_endpoints() -> None:
     assert "ContainerName=rabbitmq" in _unit("rabbitmq")
 
 
-def test_mesh_interface_ordering_stays_unnamed() -> None:
-    text = _text("opentakserver.target.disabled")
-    assert "systemd-networkd-wait-online@TBD.service" in text
-    assert not any("network-online.target" in line for line in _assignments(text))
-    assert "Wants=ots-network.service postgresql.service rabbitmq.service " in text
-    assert "opentakserver.service eud-handler.service cot-parser.service" in text
+def test_mesh_gate_holds_the_members() -> None:
+    target = _text("opentakserver.target.disabled")
+    assert MESH not in target
+    assert "After=ots-network.service postgresql.service rabbitmq.service " in target
+    assert not any("network-online.target" in line for line in _assignments(target))
+    members = (
+        "ots.network.disabled",
+        "postgresql.container.disabled",
+        "rabbitmq.container.disabled",
+        "opentakserver.container.disabled",
+        "eud-handler.container.disabled",
+        "cot-parser.container.disabled",
+    )
+    for name in members:
+        assignments = _assignments(_text(name))
+        assert any(
+            line.startswith("Requires=") and MESH in line for line in assignments
+        )
+        assert any(line.startswith("After=") and MESH in line for line in assignments)
 
 
 def test_dependencies_use_the_recorded_digests() -> None:

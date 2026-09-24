@@ -122,17 +122,35 @@ def _catalog_references() -> dict[str, dict[str, Any]]:
         name = entry["name"]
         enabled = entry["enabled"]
         unit = entry["unit"]
+        bundle = entry.get("bundle") or []
+        if not isinstance(bundle, list):
+            raise ConfigError(f"catalog record {name!r} bundle is malformed")
         if enabled:
-            expected = f"{name}.container"
-            if unit != expected:
+            if bundle:
+                if not unit.endswith(".target"):
+                    raise ConfigError(
+                        f"enabled bundled service {name!r} must name a .target, "
+                        f"got {unit!r}"
+                    )
+            elif unit != f"{name}.container":
                 raise ConfigError(
                     f"enabled catalog service {name!r} must name deployment unit "
-                    f"{expected!r}"
+                    f"{name}.container, got {unit!r}"
                 )
             if not (quadlets / unit).is_file():
                 raise ConfigError(
                     f"enabled catalog service {name!r} deployment unit is absent: "
                     f"services/quadlets/{unit}"
+                )
+        elif bundle:
+            if not unit.endswith(".target"):
+                raise ConfigError(
+                    f"disabled bundled service {name!r} must name its .target root, "
+                    f"got {unit!r}"
+                )
+            if (quadlets / unit).is_file():
+                raise ConfigError(
+                    f"disabled catalog service {name!r} names loadable unit {unit!r}"
                 )
         elif unit != "TBD":
             raise ConfigError(

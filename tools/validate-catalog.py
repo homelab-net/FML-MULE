@@ -40,6 +40,60 @@ def _load_yaml(path: Path) -> Any:  # noqa: ANN401
         return yaml.safe_load(handle)
 
 
+def _disk_name(logical: str, enabled: bool) -> str:
+    """On-disk filename for a deployment name.
+
+    A disabled capability keeps the same root and bundle names the enabled
+    contract will use. The ``.disabled`` suffix is what keeps systemd from
+    loading them, not a second name.
+    """
+    return logical if enabled else f"{logical}.disabled"
+
+
+def _check_deployment(
+    entry: dict[str, Any], quadlets_path: Path, errors: list[str]
+) -> list[str]:
+    """Check one capability's root and, if it has one, its bundle."""
+    name = entry["name"]
+    unit = entry["unit"]
+    enabled = entry["enabled"]
+    bundle = entry.get("bundle", [])
+    owned: list[str] = []
+    if bundle and not str(unit).endswith(".target"):
+        errors.append(f"bundled service {name!r} unit must be a .target, got {unit!r}")
+    if enabled and not bundle and unit != f"{name}.container":
+        if unit == "TBD":
+            errors.append(f"enabled service {name!r} has no deployment unit reference")
+        else:
+            errors.append(
+                f"enabled service {name!r} unit must be {name}.container, got {unit!r}"
+            )
+    if not enabled and not bundle and unit != "TBD":
+        errors.append(
+            f"disabled service {name!r} names loadable deployment unit {unit!r}"
+        )
+    logicals: list[str] = []
+    if unit != "TBD":
+        logicals.append(unit)
+    logicals.extend(bundle)
+    for logical in logicals:
+        disk = _disk_name(logical, enabled)
+        owned.append(disk)
+        if not (quadlets_path / disk).is_file():
+            errors.append(
+                f"service {name!r} deployment file is absent: services/quadlets/{disk}"
+            )
+        if enabled and (quadlets_path / f"{logical}.disabled").is_file():
+            errors.append(
+                f"enabled service {name!r} still has disabled text {logical}.disabled"
+            )
+        if not enabled and (quadlets_path / logical).is_file():
+            errors.append(
+                f"disabled service {name!r} names loadable deployment unit {logical!r}"
+            )
+    return owned
+
+
 def validate_repository(root: Path) -> list[str]:
     """Validate the catalog and every mission example against it."""
     errors: list[str] = []
@@ -83,28 +137,9 @@ def validate_repository(root: Path) -> list[str]:
         if len(owners) != 1:
             errors.append(f"service reference {reference!r} is ambiguous")
 
+    owned_disk: set[str] = set()
     for entry in services:
-        name = entry["name"]
-        unit = entry["unit"]
-        if entry["enabled"]:
-            expected = f"{name}.container"
-            if unit == "TBD":
-                errors.append(
-                    f"enabled service {name!r} has no deployment unit reference"
-                )
-            elif unit != expected:
-                errors.append(
-                    f"enabled service {name!r} unit must be {expected!r}, got {unit!r}"
-                )
-            elif not (quadlets_path / unit).is_file():
-                errors.append(
-                    f"enabled service {name!r} deployment unit is absent: "
-                    f"services/quadlets/{unit}"
-                )
-        elif unit != "TBD":
-            errors.append(
-                f"disabled service {name!r} names loadable deployment unit {unit!r}"
-            )
+        owned_disk.update(_check_deployment(entry, quadlets_path, errors))
 
     for path in sorted(quadlets_path.glob("*.container")):
         owners = units.get(path.name, [])
@@ -113,38 +148,34 @@ def validate_repository(root: Path) -> list[str]:
                 f"loadable Quadlet {path.name!r} has no enabled catalog record"
             )
 
-    # A bundle member is an internal unit of one capability. It is not a
-    # second catalog service, and a mission cannot select it by filename.
     bundle_owners: dict[str, list[str]] = {}
     catalog_names = set(names)
     for entry in services:
         owner = entry["name"]
         for member in entry.get("bundle", []):
             bundle_owners.setdefault(member, []).append(owner)
-            if not (quadlets_path / member).is_file():
-                errors.append(
-                    f"service {owner!r} bundle member is absent: "
-                    f"services/quadlets/{member}"
-                )
             stem = member.split(".", 1)[0]
             if stem in catalog_names and stem != owner:
                 errors.append(
                     f"bundle member {member!r} collides with catalog service {stem!r}"
                 )
-    for member, owners in sorted(bundle_owners.items()):
-        if len(owners) != 1:
-            errors.append(f"bundle member {member!r} is owned by {owners}")
+    for member, member_owners in sorted(bundle_owners.items()):
+        if len(member_owners) != 1:
+            errors.append(f"bundle member {member!r} is owned by {member_owners}")
 
     internal_suffixes = (
+        ".container",
         ".container.disabled",
+        ".network",
         ".network.disabled",
+        ".target",
         ".target.disabled",
     )
     if quadlets_path.is_dir():
         for path in sorted(quadlets_path.iterdir()):
             if not path.is_file() or path.name == "example.container.disabled":
                 continue
-            if path.name.endswith(internal_suffixes) and path.name not in bundle_owners:
+            if path.name.endswith(internal_suffixes) and path.name not in owned_disk:
                 errors.append(f"internal unit {path.name!r} is not in a catalog bundle")
 
     # Enforcement: every accepted reference resolves to exactly one enabled

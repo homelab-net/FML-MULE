@@ -1,0 +1,58 @@
+---
+# Topology of the one hosted service that exists: OpenTAKServer.
+#
+# Static composition does not start a container. Quadlet dry-run asks the
+# generator to accept the units. The integration job builds the image and
+# walks one synthetic CoT through the internal network into PostgreSQL.
+#
+# A green run is not mesh readiness, not a restart, and not a different-node
+# restore. The mesh interface name is still TBR-LINUX-01. CI has no radios.
+name: Topology
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Static composition
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Check the TAK graph and its mutations
+        run: |
+          python -m pip install --disable-pip-version-check pyyaml
+          python test/topology/validate.py
+
+  quadlet:
+    name: Quadlet generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install podman
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
+      - name: Generate the units
+        run: sh test/topology/quadlet-dry-run.sh
+
+  tak:
+    name: TAK software path
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install podman
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
+      - name: Build the image and persist one CoT
+        run: sh test/topology/cases/tak/integrate.sh

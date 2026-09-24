@@ -38,9 +38,18 @@ as a deviation.
 
 Workers require the database and the broker. They do not require the API
 process. Whether the API must finish migration before a worker starts is
-not established and is not expressed as a unit dependency. No unit sets
-`Restart=`. The mesh interface these units wait on is still `TBD`
-(`TBR-LINUX-01`); `network-online.target` is not that gate.
+not a unit dependency. The integration test starts the API first because
+that process applies the schema; that order is the test, not `Requires=`.
+No unit sets `Restart=`.
+
+The mesh interface is still `TBD` (`TBR-LINUX-01`). Each member
+`Requires=` `systemd-networkd-wait-online@TBD.service`. The target does
+not. An `After=` on the target would not hold the units it `Wants=`.
+`network-online.target` is not that gate.
+
+Media is outside this topology. The units set `OTS_MEDIAMTX_ENABLE=false`.
+The image does not install the ffmpeg package upstream's Dockerfile adds
+for MediaMTX.
 
 ## What this is
 

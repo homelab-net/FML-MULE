@@ -27,8 +27,8 @@ appearing in `quadlets/`.
 | Name | Stable identifier used by the Quadlet unit and the ingress configuration. |
 | Enabled | True only when the deployment unit exists and a mission may select it. |
 | Aliases | Optional alternate mission references; every alias resolves uniquely. |
-| Unit | The exact `<name>.container` Quadlet, or `TBD` while the record is disabled. |
-| Bundle | Optional internal units the capability owns. Not mission-selectable names. |
+| Unit | Deployment root. One `.container` for a single-unit capability, or one `.target` when the capability owns a bundle. `TBD` only while that root is not chosen. A disabled contract keeps the name and stores the file with a `.disabled` suffix. |
+| Bundle | Optional internal units the capability owns, by deployment name. Not mission-selectable. |
 | Purpose | One line. Why a node runs this. |
 | Image | OCI reference **by immutable digest**, never by tag. |
 | Upstream | Project, licence, and where its source lives. |
