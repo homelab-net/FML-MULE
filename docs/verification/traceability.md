@@ -17,8 +17,8 @@ rationale; `may` creates no obligation. See `CONTRIBUTING.md`.
 
 | Metric | Count |
 | --- | --- |
-| Requirements | 33 |
-| Binding (`shall`) | 33 |
+| Requirements | 58 |
+| Binding (`shall`) | 58 |
 | Defects | 0 |
 
 ## Matrix
@@ -58,6 +58,31 @@ rationale; `may` creates no obligation. See `CONTRIBUTING.md`.
 | `FML-REQ-031` | CONOPS 79.31 | `shall` | `TBR-CARRIER-01` | `STAGE-08` | `docs/verification/requirements.md` |
 | `FML-REQ-032` | CONOPS 79.32 | `shall` | `FML-ADR-040` | `STAGE-13` | `docs/verification/requirements.md` |
 | `FML-REQ-033` | CONOPS 79.33 | `shall` | `N/A-SAD` | `STAGE-13` | `docs/verification/requirements.md` |
+| `FML-REQ-034` | CONOPS 79.34 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-035` | CONOPS 79.35 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-036` | CONOPS 79.36 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-037` | CONOPS 79.37 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-038` | CONOPS 79.38 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-039` | CONOPS 79.39 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-040` | CONOPS 79.40 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-041` | CONOPS 79.41 | `shall` | `TBR-OBS-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-042` | CONOPS 79.42 | `shall` | `TBR-SENSE-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-043` | CONOPS 79.43 | `shall` | `TBR-SENSE-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-044` | CONOPS 79.44 | `shall` | `TBR-SENSE-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-045` | CONOPS 79.45 | `shall` | `TBR-SENSE-01` | `STAGE-01` | `docs/verification/requirements.md` |
+| `FML-REQ-046` | CONOPS 79.46 | `shall` | `FML-ADR-037` | `STAGE-09` | `docs/verification/requirements.md` |
+| `FML-REQ-047` | CONOPS 79.47 | `shall` | `TBR-SENSE-01` | `STAGE-09` | `docs/verification/requirements.md` |
+| `FML-REQ-048` | CONOPS 79.48 | `shall` | `FML-ADR-037` | `STAGE-09` | `docs/verification/requirements.md` |
+| `FML-REQ-049` | CONOPS 79.49 | `shall` | `TBR-EMCON-01` | `STAGE-10` | `docs/verification/requirements.md` |
+| `FML-REQ-050` | CONOPS 79.50 | `shall` | `FML-ADR-046` | `STAGE-10` | `docs/verification/requirements.md` |
+| `FML-REQ-051` | CONOPS 79.51 | `shall` | `FML-ADR-046` | `STAGE-10` | `docs/verification/requirements.md` |
+| `FML-REQ-052` | CONOPS 79.52 | `shall` | `FML-ADR-064` | `STAGE-08` | `docs/verification/requirements.md` |
+| `FML-REQ-053` | CONOPS 79.53 | `shall` | `FML-ADR-065` | `STAGE-04` | `docs/verification/requirements.md` |
+| `FML-REQ-054` | CONOPS 79.54 | `shall` | `FML-ADR-065` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-055` | CONOPS 79.55 | `shall` | `FML-ADR-065` | `STAGE-04` | `docs/verification/requirements.md` |
+| `FML-REQ-056` | CONOPS 79.56 | `shall` | `FML-ADR-067` | `STAGE-06` | `docs/verification/requirements.md` |
+| `FML-REQ-057` | CONOPS 79.57 | `shall` | `FML-ADR-067` | `STAGE-04` | `docs/verification/requirements.md` |
+| `FML-REQ-058` | CONOPS 79.58 | `shall` | `FML-ADR-067` | `STAGE-08` | `docs/verification/requirements.md` |
 
 ---
 

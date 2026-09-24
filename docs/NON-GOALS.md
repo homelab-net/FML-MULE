@@ -2,9 +2,10 @@
 
 What this program deliberately does not do, and why.
 
-This list is transcribed from **CONOPS v1.01 section 81, "Initial baseline out of
-scope"**, which is controlling. The reasons are drawn from the CONOPS and the
-SAD; the exclusions themselves are not this repository's to invent.
+This list is transcribed from **CONOPS section 81, "Initial baseline out of
+scope"**. The controlling issue is v1.2. v1.1 is retained. The reasons are
+drawn from the CONOPS and the SAD; the exclusions themselves are not this
+repository's to invent.
 
 ## Moving an item off this list
 
@@ -15,8 +16,8 @@ That is a higher bar than an ADR. Section 86 requires a change request recording
 the section affected, the current text, the proposed text, the operational
 rationale, downstream documents affected, verification impact against section
 85, and approval. Adding, removing or altering a section 81 scope exclusion
-requires a **minor version increment** of the CONOPS (`v1.1`) and **stakeholder
-re-approval**.
+requires a **minor version increment** of the CONOPS and **stakeholder
+re-approval**. v1.2 is the current issue.
 
 An architecture decision cannot promote an item off this list on its own.
 
@@ -102,14 +103,20 @@ requirement. Vendor-specific CAT control and broad automation remain downstream
 or stretch capabilities. Each integration is a permanent maintenance commitment
 against a product line the program does not control.
 
-### No automatic remote PTT or audio bridging in v1
+### No native DMR protocol routing
 
-*Reason:* CONOPS section 45 places remote PTT and audio bridging outside v1. This
-is a v1 boundary, not a permanent refusal: `CCR-03` (approved 2026-09-15) moves
-audio/PTT Radio-over-IP into the CONOPS v1.1 baseline (`FML-ADR-064` through
-`FML-ADR-067`), with the CONOPS v1.1 text reissue as the pending baselining step.
-It remains outside v1, needs the software, QoS and test work the prototype BOM
-records as a deferred feature, and does not replace voice (see below).
+*Reason:* CONOPS v1.2 section 45 makes linked voice an audio and PTT path
+between gateway radios. CONOPS v1.2 section 81 keeps native DMR protocol
+routing out of baseline. The audio path is decided and not built.
+
+### No interception or collection outside the mission
+
+*Reason:* CONOPS v1.2 section 81. Baseline does not include interception of
+communications content not addressed to the mission, persistent tracking of a
+non-participant, raw IQ, an emitter location from a link report, credential
+collection, or a cellular identity. Section 57 still tells a member that the
+team's own participation may include location tracking. That notice is not a
+license to track a third party.
 
 ### No custom PCB unless prototype results justify it
 

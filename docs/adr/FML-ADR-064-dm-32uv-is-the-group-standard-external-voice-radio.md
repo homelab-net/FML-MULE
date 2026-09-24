@@ -17,10 +17,10 @@ and its received handoffs. CONOPS section 45, external VHF/UHF/HF integration.
 ## Context
 
 `SELECTED` under `CCR-03` (approved 2026-09-15). This ADR records the decision,
-which now carries weight; the capability targets CONOPS v1.1, whose text reissue
-is the pending baselining step. The handoff originally numbered this
-`FML-ADR-051`, which is already assigned; the deconflicted number is
-`FML-ADR-064`.
+which now carries weight. The CONOPS text is issued in v1.2. v1.1 does not
+contain it. Nothing in this decision is implemented. The handoff originally
+numbered this `FML-ADR-051`, which is already assigned; the deconflicted
+number is `FML-ADR-064`.
 
 CONOPS section 45 reserves an integration boundary for external radios and does
 not name a radio. The user group has standardised on the Baofeng DM-32UV, and
@@ -39,7 +39,7 @@ contract, not the radio, is what this program depends on.
 
 ## Status
 
-`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1.
+`SELECTED`. `CCR-03` is approved (2026-09-15). The CONOPS text is in v1.2.
 
 ## Consequences
 

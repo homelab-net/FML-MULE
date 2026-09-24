@@ -18,7 +18,7 @@ against section 85, and approval.
   section 81 scope boundary are a **point revision** (`v1.02`).
 - Adding, removing or altering a `[SHALL]`, a section 79 criterion, a section 78
   stage, or a section 81 exclusion requires a **minor version increment**
-  (`v1.1`) and **stakeholder re-approval**.
+  and stakeholder re-approval. v1.2 is that increment for `CCR-03` and `CCR-05`.
 
 **Parent-baseline change requests (`PBCR-###`).** Changes the MULE subsystem
 requires in the parent Homelab baseline. These do not block MULE work; they
@@ -30,9 +30,9 @@ block parent-system integration baseline closure.
 | --- | --- | --- |
 | `CCR-01` | CONOPS section 50 operating modes are concurrent axes, and need transition criteria | `OPEN` |
 | `CCR-02` | CONOPS section 9 does not state the service shedding order below S3 | `OPEN` |
-| `CCR-03` | Integrated RF voice is approved; the CONOPS text was not in the v1.1 issue | `APPROVED` |
+| `CCR-03` | Integrated RF voice is approved; the CONOPS text is in v1.2, not v1.1 | `APPROVED` |
 | `CCR-04` | Optional remote-EUD overlay membership ends at the assigned MULE (CONOPS v1.1) | `ACCEPTED` |
-| `CCR-05` | Mission observations and optional sensing (draft for CONOPS v1.2) | `OPEN` |
+| `CCR-05` | Mission observations and optional sensing (CONOPS v1.2) | `ACCEPTED` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |
 
 CONOPS change requests are numbered `CCR-##`. Like every identifier in this

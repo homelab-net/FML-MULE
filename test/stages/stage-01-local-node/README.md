@@ -18,6 +18,11 @@ From the CONOPS:
 - basic power;
 - user quick-reference and training materials.
 
+CONOPS v1.2 adds, and nothing here has been run: a mission observation carries
+its time, source, and state; a stale or expired observation is not shown as
+current; refusal of an optional capability does not by itself end local
+participation.
+
 ## Why this stage
 
 The first stage that can run at all. It needs one node, not a mesh, which is
@@ -25,7 +30,8 @@ why `ROADMAP.md` scopes the `v0.0.1` milestone to roughly this stage.
 
 ## What it validates
 
-- **Section 79 success criteria:** 3, 4, 22
+- **Section 79 success criteria:** 3, 4, 22, 34-45. Criteria 34-45 are
+  CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-021`, `FML-ADR-028`, `FML-ADR-029`, `FML-ADR-030`,
   `FML-ADR-035`, `FML-ADR-041`, `FML-ADR-046`
 - **Trades expected to close or advance here:** `TBR-COMP-01`, `TBR-REC-01`

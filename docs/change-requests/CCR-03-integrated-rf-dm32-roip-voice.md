@@ -4,14 +4,14 @@
 **Status:** `APPROVED`
 **Approved:** 2026-09-15 by Cameron Zobrist (Program Owner). This record adopts
 the increment: the four voice ADRs move to `SELECTED` and the section 81 scope
-exclusion is lifted (see `docs/NON-GOALS.md`). The CONOPS **v1.1 text reissue**
-integrating the sections below -- with the stakeholder re-approval section 86
-requires -- is the pending baselining step and is **not** done in this record.
+exclusion is lifted (see `docs/NON-GOALS.md`). The CONOPS text reissue was not
+done in this record. It is issued in CONOPS v1.2. v1.1 does not contain it.
 **Target version:** CONOPS **v1.1** was the target when this was approved.
 CONOPS v1.1 was issued on 2026-09-23 for `CCR-04` and does not contain this
 voice text. The approval is not withdrawn and the request is not reopened.
-The CONOPS text is still unissued. The next minor reissue that carries it is
-v1.2. That reissue is not written here.
+The CONOPS text is issued in v1.2. v1.1 is unchanged and does not contain it.
+The section 43 overlay sentences from v1.1 are kept. Linked voice does not
+require an EUD to join the overlay.
 **Sections affected:** 1, 3, 5, 8, 9, 39, 40, 41, 42, 43, 44, 45 (primary), 46,
 50, 53, 54, 78, 79, 81, 83, 85
 **Raised by:** received architecture-change handoff, 2026-08-31

@@ -38,13 +38,14 @@ one person holding all of them in their head. Recreating it by hand at a larger
 scale would fail again, later, and more expensively.
 
 **The requirement set is now populated.** `docs/verification/requirements.md`
-carries the **33 operational success criteria of CONOPS section 79** as
+carries the **58 operational success criteria of CONOPS v1.2 section 79** as
 structured requirements, with the validating stage taken from the CONOPS section
-85 verification traceability matrix. All 33 are binding, all 33 have an
+85 verification traceability matrix. All 58 are binding, all 58 have an
 allocation and a stage, and the check reports zero defects.
 
-That is not the full set. CONOPS v1.1 carries **151 `[SHALL]` markers**, of
-which SAD section 35.1 traces **146** as system, operational or policy clauses.
+That is not the full set. CONOPS v1.2 carries **185 `[SHALL]` markers**.
+SAD v0.32 section 35.1 still traces the v1.1 set of **151**. The v1.2 clauses
+are not yet in a SAD. Criteria 34 through 58 have not been run.
 That clause-level decomposition lives in **SAD section 35.2** and belongs in the
 TRD; it is deliberately not duplicated here, because a second hand-maintained
 copy of a 146-row table is exactly the drift these rules exist to prevent.

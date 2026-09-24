@@ -40,7 +40,7 @@ field-replaceable per CONOPS.
 
 ## Status
 
-`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1.
+`SELECTED`. `CCR-03` is approved (2026-09-15). The CONOPS text is in v1.2.
 
 ## Consequences
 

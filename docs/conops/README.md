@@ -4,7 +4,8 @@
 
 | File | Contents |
 | --- | --- |
-| `FML-MULE-CONOPS-v1.1.txt` | The controlling operational concept. v1.1 reissues v1.01 with the CCR-04 text. |
+| `FML-MULE-CONOPS-v1.2.txt` | The controlling operational concept. v1.1 plus approved CCR-03 and accepted CCR-05. |
+| `FML-MULE-CONOPS-v1.1.txt` | The previous issue, retained. CCR-04 only. |
 
 The CONOPS is the **controlling subsystem operational concept**. Every
 requirement in this program traces back to it, and the SAD in
@@ -23,10 +24,11 @@ the same reason.
 
 ## Transcription integrity
 
-The document carries its own audit figure: SAD section 35.1 records **151
-`[SHALL]` markers** in the source.
+The document carries its own audit figure. v1.2 has **185** `[SHALL]`
+markers. v1.1 remains **151**.
 
 ```sh
+grep -c '\[SHALL\]' docs/conops/FML-MULE-CONOPS-v1.2.txt   # expect 185
 grep -c '\[SHALL\]' docs/conops/FML-MULE-CONOPS-v1.1.txt   # expect 151
 ```
 
@@ -65,7 +67,7 @@ Binding clauses are marked inline as `[SHALL]` to support extraction.
 - Privacy, retention, and third-party data (sections 55-58).
 - Power, sustainment, and cold weather (sections 59-63).
 - The **13 qualification stages** (section 78), mirrored in `test/stages/`.
-- The **33 operational success criteria** (section 79) and the verification
+- The **58 operational success criteria** (section 79) and the verification
   traceability matrix that maps them to stages (section 85). These are
   transcribed as structured requirements in
   `docs/verification/requirements.md`.
@@ -83,10 +85,11 @@ Section 86 governs. After signature:
   scope boundary are a point revision (`v1.02`).
 - Adding, removing or altering a `[SHALL]`, a section 79 criterion, a section 78
   stage, or a section 81 exclusion requires a **minor version increment**
-  (`v1.1`) and stakeholder re-approval.
+  and stakeholder re-approval. v1.2 is that increment for `CCR-03` and `CCR-05`.
 
-Do not edit the transcribed document in place to reflect a change. A new version
-is issued, and the file here is replaced with that version.
+Do not edit an issued version in place. The next version is a new file. The
+previous file stays, so the copy that was reviewed is still the copy under
+that name.
 
 ## Known open item
 

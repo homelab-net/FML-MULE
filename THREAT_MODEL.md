@@ -81,6 +81,12 @@ Each of these is intent. None is demonstrated.
 - **Unauthorised participation**, by requiring node and participant admission
   through a program PKI and a mission trust layer, so an unadmitted device
   cannot join the operational domain and read or inject mission data.
+  Associating to the access point is not permission to sense. Refusal of an
+  optional sensor does not, by itself, end local participation. CONOPS v1.2
+  section 81 keeps interception of other people's communications, persistent
+  tracking of a non-participant, raw IQ, an emitter fix from a link report,
+  credential collection, and cellular identity collection out of baseline.
+  None of that sensing is built.
 - **Injection or spoofing of position and mission data** by an unadmitted party,
   through the same admission mechanism plus origin authentication.
 - **Trust validation against a bad clock.** A node whose time is not credible

@@ -20,6 +20,11 @@ From the CONOPS:
 - zeroize;
 - encrypted storage.
 
+CONOPS v1.2 adds, and nothing here has been run: authority to view is not
+authority to task a sensor or to administer the node; a sensor task names its
+sensor, duration, and team scope and then ends; a permission change is
+recorded.
+
 ## Why this stage
 
 **Disconnected revocation lag is a test item, not a defect.** CONOPS section
@@ -36,7 +41,8 @@ clock backup cell must refuse validation and say why.
 
 ## What it validates
 
-- **Section 79 success criteria:** 5, 6, 19, 26, 27
+- **Section 79 success criteria:** 5, 6, 19, 26, 27, 46, 47, 48. Criteria
+  46, 47, and 48 are CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-036`, `FML-ADR-038`, `FML-ADR-042`, `FML-ADR-043`, `FML-ADR-044`, `FML-ADR-047`
 - **Trades expected to close or advance here:** `TBR-SEC-01`, `TBR-TIME-01`, `TBR-ID-01`
 

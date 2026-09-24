@@ -70,6 +70,12 @@ than creating a sixth standalone daemon.
 - It is read-mostly by design, so its compromise does not grant configuration
   authority.
 - It adds to the memory and CPU budget that `TBR-COMP-01` must size.
+- CONOPS v1.2 section 50.12 constrains what the EMCON indication may claim.
+  It is not a measurement of radio silence. Where reception remains permitted,
+  a prohibition on transmission is not reported as an inability to receive.
+  `FML-REQ-050` and `FML-REQ-051` allocate here. Which transmissions the
+  posture classes as avoidable is `TBR-EMCON-01`, not this component. None of
+  that has been run.
 
 ## Accepted cost
 

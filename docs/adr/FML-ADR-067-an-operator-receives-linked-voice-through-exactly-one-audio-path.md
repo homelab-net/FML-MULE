@@ -62,10 +62,10 @@ is the acceptance.
 
 ## Status
 
-`SELECTED`. `CCR-03` is approved (2026-09-15); the capability targets CONOPS v1.1. Within the voice
-capability, the invariant is **non-optional**: a voice baseline that can deliver
-two copies to an ear is not acceptable, so if the capability is adopted this ADR
-is adopted with it.
+`SELECTED`. `CCR-03` is approved (2026-09-15). The CONOPS text is in v1.2.
+Within the voice capability, the invariant is **non-optional**: a voice baseline
+that can deliver two copies to an ear is not acceptable, so if the capability
+is adopted this ADR is adopted with it.
 
 ## Consequences
 

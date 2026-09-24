@@ -207,14 +207,16 @@ throughout, per section 1.1.
 `TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`),
 `TBR-NET-04` (no SAD register position; routing-logic half, feeds `FML-ADR-069`),
 `TBR-VOICE-01`, `TBR-VOICE-02` and `TBR-MAP-01` (no SAD register position;
-analysis halves)
+analysis halves), `TBR-OBS-01`, `TBR-SENSE-01`, and `TBR-EMCON-01` (no SAD
+register position; representation only; not run)
 
 **Rig:** R0 and R1. **Gate:** none. **Cost:** none.
 **Stages:** 5, 2, 9, 1. **Criteria:** 3, 6, 8, 9, 22, 26, 27.
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
 `TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`, `TBR-NET-04/`,
-`TBR-VOICE-01/`, `TBR-VOICE-02/`, `TBR-MAP-01/`.
+`TBR-VOICE-01/`, `TBR-VOICE-02/`, `TBR-MAP-01/`, `TBR-OBS-01/`,
+`TBR-SENSE-01/`, `TBR-EMCON-01/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -263,8 +265,8 @@ programme.
    RoIP gateway, its resident footprint and whether `FML-ADR-067`'s
    single-egress invariant can be enforced in or around it, against loopback
    and virtual peers. Latency and PTT timing wait on hardware (GATE VOICE-01)
-   and are not part of this campaign. **Gated on `CCR-03` approval**, because the
-   capability is a proposed CONOPS v1.1 change; recorded so the plan tracks it.
+   and are not part of this campaign. `CCR-03` is approved and the CONOPS text
+   is issued in v1.2. This analysis half has not been run.
 9. **`TBR-MAP-01` tile store and server, analysis half.** For each candidate,
    its resident footprint serving a representative view and the store size for a
    representative area and zoom, on Debian ARM64. The offline-render acceptance
@@ -276,11 +278,22 @@ programme.
     deployments, against virtual peers. The enforcing gateway and the membership
     credential are `TBR-VOICE-01` and `TBR-SEC-01`; this produces the
     specification they build to, and the `FML-ADR-067` single-egress invariant is
-    the comparison. **Gated on `CCR-03` approval**, a proposed CONOPS v1.1 change.
+    the comparison. `CCR-03` is approved and the CONOPS text is issued in v1.2.
+    This analysis half has not been run.
+11. **`TBR-OBS-01` observation representation.** Compare existing
+    representations against the eight CONOPS v1.2 section 28A sentences.
+    No schema, no code, and no run. The Stage 1 demonstrations are not this
+    item.
+12. **`TBR-SENSE-01` capability mark and sensor task.** How a mission profile
+    marks a capability required, optional, or off, and how a task names its
+    sensor, duration, and team scope and then ends. Not a new role. Not run.
+13. **`TBR-EMCON-01` avoidable transmissions.** Which transmissions a posture
+    classes as avoidable, mapped to the layers in SAD section 23. Not a
+    measurement of radio silence. Not run.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
-`TBR-HA-01` to select a mechanism against. The remaining five produce written
-analyses that their hardware halves can be measured against.
+`TBR-HA-01` to select a mechanism against. The other items produce written
+analyses. Items 11 through 13 have not been started.
 
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.

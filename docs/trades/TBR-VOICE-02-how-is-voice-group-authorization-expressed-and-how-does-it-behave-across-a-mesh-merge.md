@@ -111,6 +111,7 @@ because the networks merged, fails the gate.
 - **Related decisions:** `FML-ADR-061` (automatic merge), `FML-ADR-067`
   (single audio egress), `FML-ADR-070` (carrying a recipient in upstream's own
   fields, the precedent for expressing membership without a custom tag).
-- **Validating stage:** `TBD` (a v1.1 capability under `CCR-03`).
+- **Validating stage:** `TBD`. The CONOPS text is issued in v1.2 under
+  `CCR-03`. The mesh-merge case is not a section 79 criterion yet.
 - **Requires hardware:** no. The design and the merge behaviour are exercisable
   on the mesh bench once the gateway and credential exist; neither needs a radio.

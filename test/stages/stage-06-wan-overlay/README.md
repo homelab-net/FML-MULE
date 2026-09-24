@@ -3,7 +3,11 @@
 **Status: not defined.** This directory records the CONOPS scope for the
 stage. The executable stage definition does not exist.
 
-**Source:** CONOPS v1.1 section 78, Stage 6. `FML-ADR-082`.
+**Source:** CONOPS v1.1 section 78, Stage 6. `FML-ADR-082`. CONOPS v1.2 adds
+two bullets and does not remove these. Linked voice between authorized MULEs,
+when WAN exists, does not require an EUD to join the overlay. Loss of WAN
+leaves local and direct RF voice usable. Neither addition has been run. The
+overlay cases stay NOT RUN.
 
 ## Scope
 
@@ -48,7 +52,8 @@ survive it.
 
 ## What it validates
 
-- **Section 79 success criteria:** 16, 17, 18, 19
+- **Section 79 success criteria:** 16, 17, 18, 19, 54, 56. Criteria 54 and
+  56 are CONOPS v1.2 and have not been run.
 - **Decisions:** `FML-ADR-082`
 - **Trades expected to close or advance here:** none
 
