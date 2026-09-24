@@ -54,6 +54,10 @@ tar -xzf "$archive" -C "$workdir"
 src=$(find "$workdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)
 cp -a "$src/usr/." /usr/
 hash -r
+# Apt's crun rejects the OCI spec this Podman writes ("unknown version
+# specified"). The static build ships a crun that accepts it, and the
+# engine calls /usr/bin/crun ahead of /usr/local/bin/crun.
+ln -sfn /usr/local/bin/crun /usr/bin/crun
 # Ubuntu 24.04 denies a user namespace to a binary with no AppArmor
 # profile. The pinned static build has none. Apt's podman would have
 # shipped a profile and would not reach this branch. This is the
