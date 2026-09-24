@@ -177,7 +177,7 @@ only interpretable alongside the load that produced it.
 
 | Rig | Contents | Campaigns |
 | --- | --- | --- |
-| **R0 Flat-sat** | `test/flatsat/`. The real node logic composed end to end, hardware layer faked. Software only; runs in CI. | `ITEP-C01`, and regression cover for every campaign that later touches software |
+| **R0 Software digital twin** | `test/digital_twin/`. The real node logic composed end to end, hardware layer faked. Software only; runs in CI. | `ITEP-C01`, and regression cover for every campaign that later touches software |
 | **R1 Analysis** | An ordinary laptop. Fakes and recorded fixtures. A representative TAK build. No radios, no node. | `ITEP-C01` |
 | **R2 Instrumented bench** | One full node, PD source, DC power logger, thermocouples, enclosure fit article when available | `ITEP-C02`, `ITEP-C06`, `ITEP-C07` |
 | **R3 Multi-node RF** | Two full nodes plus the relay, EUD clients, traffic generator, open space | `ITEP-C03`, `ITEP-C05`, `ITEP-C09` |
@@ -303,10 +303,11 @@ and 13 have not been started.
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.
 
-**R0, the flat-sat, is the persistent half of this campaign.** Analysis outputs
-are documents; the flat-sat is executable and stays in CI, so a later change
-that breaks the user flow is caught rather than rediscovered. Results from it
-carry `SIMULATED` and never substitute for a hardware campaign.
+**R0, the software digital twin, is the persistent half of this campaign.**
+Analysis outputs are documents; the software digital twin is executable and
+stays in CI, so a later change that breaks the user flow is caught rather
+than rediscovered. A claim from it rests on fakes, so that claim is
+`SIMULATED`. It never substitutes for a hardware campaign.
 
 ---
 

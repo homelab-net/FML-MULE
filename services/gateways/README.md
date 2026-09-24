@@ -98,7 +98,7 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   `docs/evidence/TBR-NET-02/2026-08-29-addressing-specification.md` specifies it,
   and this component deliberately implements none of it.
 
-  The interface it reads through, `LoRaPlane`, is in `test/flatsat/` rather
+  The interface it reads through, `LoRaPlane`, is in `test/digital_twin/` rather
   than `mule/`, because condition 4 keeps an interface whose shape an open
   trade governs out of the production package.
 
@@ -107,7 +107,7 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   peer above text (`FML-ADR-080`). It is a pure function of the per-peer signals
   handed to it and performs **no translation** -- it reads no payload, addresses
   no recipient, and moves nothing between planes; any reading Protocol for those
-  signals stays in `test/flatsat/`, which is condition 4.
+  signals stays in `test/digital_twin/`, which is condition 4.
 
 - `mule/recipients.py` acts on `TBR-NET-02` and `FML-ADR-070`: it holds the two
   addressing rules a gateway must obey -- a composed LoRa message plus its

@@ -126,7 +126,7 @@ closes without hardware. Directions are the Owner's to accept, not decisions.
    `BUY NOW` / `BUY 1 THEN VERIFY` cells. No field decision required.
 2. **On arrival:** characterise the RF/Linux boundary and coexistence on them
    (review §5/§6; the `HW-01E/F/G/H` findings), and run the existing benches and
-   flat-sat against the real interfaces to find which fakes were lying
+   software digital twin against the real interfaces to find which fakes were lying
    (`docs/ROADMAP-DEV.md`, Track 2 day one).
 3. **Then:** make `TBR-RF-03`, `TBR-CARRIER-01` and `TBR-COMP-01` on **that**
    evidence, reconciled with Codex's `HW-01A/B/C` packets.

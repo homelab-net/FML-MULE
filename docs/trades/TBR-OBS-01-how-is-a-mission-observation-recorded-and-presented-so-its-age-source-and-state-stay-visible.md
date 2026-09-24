@@ -51,7 +51,7 @@ A written comparison under `docs/evidence/TBR-OBS-01/` of the candidate
 representations against the eight section 28A sentences. The comparison names
 what each candidate does with time, source, state, a queued delivery, an
 expired record, two subjects, a link report, a derived product, and a full
-queue. No code, and no claim that a flat-sat was run.
+queue. No code, and no claim that a software digital twin was run.
 
 ## Closure gate
 

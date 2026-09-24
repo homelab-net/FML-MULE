@@ -71,7 +71,7 @@ Quadlets, `networkd`, and the footprint questions this x86 bench cannot answer.
 | Real systemd units and boot ordering | No init, no boot | 1.2 |
 | Real `iw` and `batctl` against a live mesh | No wireless devices to read | 1.6 |
 | Meshtastic on real interfaces rather than a Docker bridge | CI has no radio and no serial | 1.1 |
-| The flat-sat, iterated in seconds | Nothing, this is convenience | all |
+| The software digital twin, iterated in seconds | Nothing, this is convenience | all |
 
 Item 1.7 is the one that matters. It is blocked in `docs/ROADMAP-DEV.md`
 specifically on "a machine with a wireless stack", and you are that machine.
@@ -286,7 +286,7 @@ stops:
 | `eud_ap` | onboard CYW43455 (integrated) | onboard `rtw89_8852be` (phy0, `wlp2s0`) | Role + integrated-radio-as-AP faithful (ADR-045). The **chip differs**, so chip-specific AP behaviour does not carry. |
 | `mesh` | QCA6174A on M.2 (`ath10k`) | `mac80211_hwsim` (`wlan0`) | 802.11s + BATMAN-IV + the `mac80211` code path are **real**. The **RF medium is simulated** — no airtime, contention, range, or desense. RF trades stay open. |
 | `wan` | Ethernet (USB-C-to-Ethernet) / Tailscale | RTL8812AU USB client (`wlx…`) — **stand-in** | Role faithful; the **medium differs** (Wi-Fi client vs wired). Rebinds to the Ethernet device with a one-line descriptor change. |
-| `halow`, `lora` | dedicated radios | **none** — faked on the flat-sat | Logic exercised against fakes; says nothing about the radios. |
+| `halow`, `lora` | dedicated radios | **none** — faked on the software digital twin | Logic exercised against fakes; says nothing about the radios. |
 | service plane | rootless Quadlet units from `services/catalog/`, arm64 digests (FML-ADR-029) | `podman start` of pre-built containers (`mule-stack-up.sh`) | Service *behaviour* carries; the *deployment mechanism* (Quadlet/rootless/digest-pinning) does not. |
 | link config | `systemd-networkd` owns links (FML-ADR-059) | NetworkManager present; bring-up uses `hostapd`/`nftables`/`dnsmasq` directly | The AP/firewall/DHCP mechanisms match the field templates (`os/config/`); full networkd link ownership is not yet mirrored on this NM-managed box. |
 

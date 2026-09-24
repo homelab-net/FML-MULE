@@ -99,7 +99,7 @@ None.
 
 `TBD`.
 
-The first half is exercisable against the flat-sat: traffic arriving from a
+The first half is exercisable against the software digital twin: traffic arriving from a
 peer can be shown to reach a resolution point. The second half is a statement
 about what is *not* required and is verified by the absence of any design that
 depends on it, which is a review obligation rather than a test.

@@ -22,6 +22,11 @@ provenance survives even though the link will not.
 
 Third-party documents keep their original licence. See `LICENSE-DOCS`.
 
+Records written before the software-composition rename use "flat-sat",
+`test/flatsat/`, and `FlatSatNode` for what is now the software digital twin.
+Those words, paths, and commands are left as they were when the record was
+written. See `docs/glossary.md`.
+
 ## Directory layout
 
 ```text

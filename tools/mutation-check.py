@@ -10,7 +10,7 @@ This tool checks the second one: it breaks the node in one specific way, runs
 the suite, and expects it to fail. A mutation the suite still passes is a
 **survivor** - a defect the tests cannot see.
 
-The mutations live in ``test/flatsat/mutations.yml``, not in this file. They are
+The mutations live in ``test/digital_twin/mutations.yml``, not in this file. They are
 the specification of what the suite must detect, so they are reviewable data
 rather than literals buried in a script.
 
@@ -40,7 +40,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MUTATIONS = REPO_ROOT / "test" / "flatsat" / "mutations.yml"
+MUTATIONS = REPO_ROOT / "test" / "digital_twin" / "mutations.yml"
 
 
 @dataclass(frozen=True)

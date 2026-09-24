@@ -112,20 +112,35 @@ trade that will supply it. `TBR` is the question, `TBD` is the missing number.
 **UNVERIFIED** - nothing has been exercised. The default for a claim with no
 evidence. Used throughout this repository, deliberately and often.
 
-**SIMULATED** - exercised end to end on the flat-sat against fakes and recorded
-fixtures. The logic is correct and the user flow is coherent. **Makes no claim
-about physical behaviour.** A real result, not a weaker word for tested.
+**SIMULATED** - a claim exercised against fakes or recorded fixtures. The
+logic under that claim is correct and the user flow is coherent. **Makes no
+claim about physical behaviour.** A real result, not a weaker word for
+tested. The article does not set this status.
 
-**HARDWARE-VERIFIED** - demonstrated on real hardware with evidence recorded
-under `docs/evidence/` or `test/results/`. Nothing carries this status.
+**HARDWARE-VERIFIED** - a claim demonstrated on the real hardware that claim
+is about, with evidence recorded under `docs/evidence/` or `test/results/`.
+Nothing carries this status.
 
-**Flat-sat** - borrowed from spacecraft practice, where a flatsat is the avionics
-stack laid out on a bench running real flight software with simulated
-interfaces. Here, `test/flatsat/`: the real node logic composed and run end to
-end with the hardware layer replaced by fakes behind narrow interfaces. It
-verifies the CONOPS section 82 user flow before hardware is scarce. It runs the
-same artifacts as a node, never parallel copies, because a flat-sat that has
-drifted is worse than none.
+**Software digital twin** - fakes, fixtures, and software stand-ins.
+`test/digital_twin/` composes the real node logic and runs it with the
+hardware layer replaced by fakes. A claim from that run rests on the fakes,
+so the claim is `SIMULATED`.
+
+**Flat-sat** - representative physical hardware, out of final packaging,
+including a hardware-in-the-loop bench. A measurement taken on that hardware
+can support a hardware claim. A part of the same run that still used a fake
+stays `SIMULATED`. The article does not decide which.
+
+**Integrated prototype** - the physical architecture close to its final
+form. The status of a result there is still the status of each claim.
+
+**Field article** - the equipment in a representative operational
+environment. The status of a result there is still the status of each claim.
+
+Records written before this rename use "flat-sat", `test/flatsat/`, and
+`FlatSatNode` for the software composition now called the software digital
+twin. In those records the words name what was run or what the command was.
+They do not name the physical bench above. Those records are left as written.
 
 **Trade** - short for trade study. The analysis behind a `TBR`.
 

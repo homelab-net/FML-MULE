@@ -53,7 +53,7 @@ Node-resident Python that **makes a decision** shall live in the top-level
 `mule/` package, and shall be held to the same lint, type and docstring
 standards as any other production code.
 
-Fakes, recorded fixtures, scenarios and flat-sat composition scaffolding shall
+Fakes, recorded fixtures, scenarios and software digital twin composition scaffolding shall
 remain under `test/`.
 
 The package shall not acquire a service daemon, a process entry point, or any
@@ -61,7 +61,7 @@ of the four placeholder components in `services/`, which remain blocked on
 their trades.
 
 Code shall be admitted to `mule/` only once it is exercised end to end by the
-flat-sat. The package is a home for demonstrated logic, not a staging area for
+software digital twin. The package is a home for demonstrated logic, not a staging area for
 intended logic.
 
 ## Status
@@ -87,8 +87,8 @@ and also immediate work: the relaxations for `test/` no longer apply to it.
 to detect defects in it. Six of the twenty-five mutations already target the
 credibility decision.
 
-The flat-sat imports the package rather than containing it, which strengthens
-rule one in `test/flatsat/README.md`: the flat-sat runs the real artifacts. It
+The software digital twin imports the package rather than containing it, which strengthens
+rule one in `test/digital_twin/README.md`: the software digital twin runs the real artifacts. It
 now does so for the time decision as well as for configuration generation.
 
 `os/` retains ownership of installation. Nothing installs `mule/` onto anything
@@ -113,12 +113,12 @@ the shape of structure-ahead-of-content the program warns against, and someone
 will reasonably argue this was premature.
 
 The bound accepted in exchange is the admission rule: only code already
-exercised end to end by the flat-sat may move in. Today that is one module. If
+exercised end to end by the software digital twin may move in. Today that is one module. If
 `mule/` accumulates modules that no scenario exercises, this decision has failed
 and the argument was right.
 
 The second cost is smaller and certain: the interface Protocols in
-`test/flatsat/interfaces.py` do **not** move, so production and test now hold
+`test/digital_twin/interfaces.py` do **not** move, so production and test now hold
 related material in two places. They stay because they overlap the radio
 abstraction that `docs/interfaces/README.md` records as blocked on
 `TBR-LINUX-01`, `TBR-RF-01` and `TBR-RF-03`, and promoting them would be
@@ -130,7 +130,7 @@ The package is one module and an import path. Collapsing it back under `test/`
 is a file move and an import rewrite, mechanical and reversible in an afternoon.
 
 The signal to take the fallback is the failure mode named in Accepted cost:
-modules arriving in `mule/` that no flat-sat scenario exercises. If that
+modules arriving in `mule/` that no software digital twin scenario exercises. If that
 happens, the package has become the staging area this decision forbids, and
 reverting is cheaper than policing it.
 
@@ -143,7 +143,7 @@ None.
 `TBD`. No qualification stage covers repository structure, and none should.
 
 What does check it: `tools/mutation-check.py` requires the test suite to detect
-deliberate defects introduced into `mule/`, and `test/flatsat/test_integrity.py`
-asserts the flat-sat loads real artifacts rather than copies. Those are
+deliberate defects introduced into `mule/`, and `test/digital_twin/test_integrity.py`
+asserts the software digital twin loads real artifacts rather than copies. Those are
 `SIMULATED` results about software, which is the correct tier for a decision
 about where software lives.

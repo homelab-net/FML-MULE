@@ -153,7 +153,7 @@ None.
 
 ## Verification dependency
 
-`TBD`. The firewall behaviour is exercisable now on the flat-sat and the bench:
+`TBD`. The firewall behaviour is exercisable now on the software digital twin and the bench:
 a packet sourced from the EUD subnet reaches the internet through the uplink,
 and the same packet is dropped when the accept rule is removed, which is the
 test that fails without the decision. Hardware confirmation and the EMCON

@@ -43,7 +43,7 @@ Concretely, as of now:
 - **No image has ever been built.** No node has ever been assembled or booted.
 - **Nothing has met hardware.** No status claim reads `HARDWARE-VERIFIED`.
   Claims are `UNVERIFIED`, or `SIMULATED` where they were exercised end to end
-  against fakes on the flat-sat; simulation says nothing about physical behaviour.
+  against fakes on the software digital twin; simulation says nothing about physical behaviour.
 - **No number in this repository is a measurement.** No endurance figure, no
   range, no throughput, no power budget, no temperature. Where a value is
   unknown it reads `TBD` and cites the trade that will decide it. Any figure you
@@ -140,14 +140,14 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 | `os/` | Image build, kernel pins, configuration templates, provisioning, release process. |
 | `services/` | Service plane structure. Four components are deliberate placeholders. |
 | `mission/` | Mission package schema, examples with fake identities, profiles. |
-| `test/` | Unit tests, the flat-sat, fixtures, the 13 qualification stages, results. |
+| `test/` | Unit tests, the software digital twin, fixtures, the 13 qualification stages, results. |
 | `tools/` | Validation, identifier allocation, and generation scripts. |
 | `site/` | Generated public front door for GitHub Pages. A reading of this repository. Not evidence, and not a node. |
 
 ## What is not in this repository
 
 - **A working node.** What exists is the repository's own tooling, the
-  configuration generator, and the flat-sat: the node logic composed end to end
+  configuration generator, and the software digital twin: the node logic composed end to end
   with radio, power, thermal and time state replaced by fakes. Everything it
   demonstrates is `SIMULATED`, which is a real result about software and no
   result at all about RF, power, thermal or timing. Nothing here is
@@ -186,7 +186,7 @@ The most useful contributions right now are not code.
 - **Run the cold start drill**: clone this, read it, and file an issue for every
   point where it did not make sense. That is a real contribution, not a
   courtesy.
-- **Add a flat-sat scenario.** `test/flatsat/` runs the real node logic
+- **Add a software digital twin scenario.** `test/digital_twin/` runs the real node logic
   against fakes on an ordinary laptop, with no radios present. A scenario that
   describes how you would actually use a node is the most useful code
   contribution available to someone with no hardware.

@@ -1,11 +1,12 @@
-"""Tests that the flat-sat is still a flat-sat.
+"""Tests that the software digital twin is still a software digital twin.
 
 The value of this directory rests on two properties that no scenario checks,
 because a scenario tests the node rather than the arrangement around it:
 
-1. It runs the **real** artifacts. A flat-sat that has quietly forked from the
-   node is worse than none, because "it works on the flat-sat" becomes a
-   permanent excuse and nobody can tell when it stopped being true.
+1. It runs the **real** artifacts. A software digital twin that has quietly
+   forked from the node is worse than none, because "it works on the
+   software digital twin" becomes a permanent excuse and nobody can tell
+   when it stopped being true.
 2. Each fake really implements the interface it claims to. A fake that has
    drifted from its Protocol is a boundary nobody is testing across.
 
@@ -46,7 +47,9 @@ def test_the_node_calls_the_real_configuration_generator() -> None:
 
 def test_the_generator_is_loaded_not_reimplemented() -> None:
     """The node must not carry its own copy of resolution or validation."""
-    source = (REPO_ROOT / "test" / "flatsat" / "node.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / "test" / "digital_twin" / "node.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "gen_config.generate(" in source
     for reimplemented in ("def resolve(", "def validate(", "def load_region("):

@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Named the software composition a software digital twin
+
+`test/flatsat/` is now `test/digital_twin/`, and `FlatSatNode` is
+`DigitalTwinNode`. A software digital twin is fakes, fixtures, and software
+stand-ins. The status belongs to the claim: a claim that rests on fakes is
+`SIMULATED`, whichever article was used. Dated records keep the names, paths,
+and commands they were written with. The synthetic mission identifiers are
+unchanged. No evidence status was raised.
+
 ### Compared mission-observation representations
 
 `TBR-OBS-01` has a written comparison of a CoT event, the OpenTAKServer

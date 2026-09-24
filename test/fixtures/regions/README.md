@@ -1,7 +1,7 @@
 # Synthetic region fixtures
 
 Region profiles with **invented numbers**, used only to exercise the
-configuration generator and the flat-sat.
+configuration generator and the software digital twin.
 
 ## Why these are not under `regions/`
 

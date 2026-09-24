@@ -13,14 +13,14 @@ Five small modules, one question each:
 - `status.py` - what do we tell the operator?
 
 `FML-ADR-051`: code that **makes a decision** the node acts on lives here and is
-held to production standards. Fakes, fixtures, scenarios and flat-sat
+held to production standards. Fakes, fixtures, scenarios and software digital twin
 composition stay under `test/`. Decisions made *about* the node beforehand, on a
 builder's machine, live in `tools/`.
 
-Nothing is admitted here until the flat-sat exercises it end to end. This is a
-home for demonstrated logic, not a staging area for intended logic, and the ADR
-records that an accumulation of unexercised modules is the signal the decision
-was wrong.
+Nothing is admitted here until the software digital twin exercises it end
+to end. This is a home for demonstrated logic, not a staging area for
+intended logic, and the ADR records that an accumulation of unexercised
+modules is the signal the decision was wrong.
 
 There is no service daemon and no process entry point here, and there will not
 be one until an implementation ADR decides how this package is installed onto an

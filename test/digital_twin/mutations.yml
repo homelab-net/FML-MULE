@@ -72,7 +72,7 @@ mutations:
     replace: "    if False:"
 
   - id: M09
-    file: test/flatsat/node.py
+    file: test/digital_twin/node.py
     describe: an unadmitted device can resolve services
     find: |
       if device_id not in self._admitted:
@@ -117,13 +117,13 @@ mutations:
     replace: '  "additionalProperties": true,'
 
   - id: M14
-    file: test/flatsat/node.py
+    file: test/digital_twin/node.py
     describe: services come from a list in the node rather than the package
     find: '                    self._params["mission"]["services"],'
     replace: '                    ["portal.field"],'
 
   - id: M15
-    file: test/flatsat/node.py
+    file: test/digital_twin/node.py
     describe: radios come up even with no lawful configuration
     find: "        if not resolved:\n            enumerated = []"
     replace: "        if False:\n            enumerated = []"
@@ -526,53 +526,53 @@ mutations:
 
   # --- fixture honesty ----------------------------------------------------
   - id: M24
-    file: test/flatsat/fakes.py
+    file: test/digital_twin/fakes.py
     describe: a fake may describe a radio linked without being present
     find: "        if absent:"
     replace: "        if False:"
 
   # --- radio_parse: the None-versus-empty distinction ---------------------
   - id: M67
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: a failed station-dump command reports zero peers instead of unknown
     find: "    if station_dump_output is None:\n        return None"
     replace: "    if station_dump_output is None:\n        return 0"
   - id: M68
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: originator count includes the header line, over-counting by one
     find: "        if line.lstrip().startswith(\"*\")"
     replace: "        if not line.lstrip().startswith(\"#\")"
 
   # --- radio_parse: per-peer passive signals (bitrate ceiling, TQ) --------
   - id: M108
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: a failed station-dump command reports no bitrates instead of unknown
     find: "        return None\n    result: dict[str, float] = {}"
     replace: "        return {}\n    result: dict[str, float] = {}"
   - id: M109
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: the station bitrate parser ignores the tx-bitrate line and reports no rate
     find: "        elif line.startswith(\"tx bitrate:\") and mac is not None:"
     replace: "        elif line.startswith(\"rx bitrate:\") and mac is not None:"
   - id: M110
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: a failed originators command reports no TQ instead of unknown
     find: "        return None\n    result: dict[str, int] = {}"
     replace: "        return {}\n    result: dict[str, int] = {}"
   - id: M111
-    file: test/flatsat/radio_parse.py
+    file: test/digital_twin/radio_parse.py
     describe: the TQ parser reads the header and legend, not only originator lines
     find: "        if not line.startswith(\"*\"):\n            continue"
     replace: "        if line.startswith(\"~\"):\n            continue"
 
   # --- CommandRadio: the reader's None discipline and semantics -----------
   - id: M69
-    file: test/flatsat/radio.py
+    file: test/digital_twin/radio.py
     describe: an unmapped bearer reports not-associated instead of unknown
     find: "        if interface is None:\n            return None"
     replace: "        if interface is None:\n            return False"
   - id: M70
-    file: test/flatsat/radio.py
+    file: test/digital_twin/radio.py
     describe: a bearer with no peer reports associated
     find: "        return count > 0"
     replace: "        return count >= 0"

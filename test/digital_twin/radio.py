@@ -7,7 +7,8 @@ implementation that reads the actual machine. It is built the same way
 fixtures and a node runs the real binaries. Nothing here shells out directly and
 nothing here is board-specific; both are injected.
 
-**Why this is in the flat-sat and not `mule/`.** The `RadioState` interface is
+**Why this is in the software digital twin and not `mule/`.** The
+`RadioState` interface is
 blocked on `TBR-LINUX-01`, `TBR-RF-01` and `TBR-RF-03` and stays here by the
 decision `interfaces.py` records. A reader beside the Protocol is not the
 promotion that note prohibits -- it does not relocate the interface into

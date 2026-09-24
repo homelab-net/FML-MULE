@@ -52,10 +52,10 @@ SELECTED.
   so the two cannot drift.
 - `NodeStatus.wan_available` changes type from `bool` to `WanReachability | None`.
   This changes a CONOPS section 67 output field's contract. No serializer or operator
-  display consumes `NodeStatus` today, so the reachable blast radius is the flat-sat
-  fixtures and one scenario assertion.
-- A contributor without hardware exercises it on the flat-sat by driving the WAN fake
-  to its unknown state.
+  display consumes `NodeStatus` today, so the reachable blast radius is the
+  software digital twin fixtures and one scenario assertion.
+- A contributor without hardware exercises it on the software digital twin
+  by driving the WAN fake to its unknown state.
 
 ## Accepted cost
 
@@ -77,5 +77,5 @@ None.
 
 ## Verification dependency
 
-The flat-sat scenario tests in `test/flatsat/`: a node whose WAN reachability is
+The software digital twin scenario tests in `test/digital_twin/`: a node whose WAN reachability is
 unknown asserts the operator WAN answer is `None`, not `"NO-WAN"`. SIMULATED.

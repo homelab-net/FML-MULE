@@ -51,7 +51,7 @@
 # mac80211_hwsim device tree under /sys, which by construction cannot name a real
 # phy. Selecting mesh radios by a name or mode match once moved a live radio into
 # a namespace on this bench host; never match radios by grep. See
-# test/flatsat/README.md and CLAUDE.md ("A bench must be configured the way the
+# test/digital_twin/README.md and CLAUDE.md ("A bench must be configured the way the
 # program decided").
 set -eu
 

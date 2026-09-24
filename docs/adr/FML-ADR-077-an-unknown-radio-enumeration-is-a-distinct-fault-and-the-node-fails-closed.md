@@ -57,7 +57,7 @@ SELECTED.
   now guards the `None` case (`missing_required`/`required_not_serving` are skipped,
   LoRa reads unavailable, the network-degraded axis reads no inter-node bearer). These
   secondary answers are moot under the resulting `FAULT` but must not crash.
-- A contributor without hardware can exercise the whole path on the flat-sat by
+- A contributor without hardware can exercise the whole path on the software digital twin by
   constructing a radio that cannot enumerate.
 - No effect on the promotion pipeline or the threat model.
 
@@ -82,6 +82,7 @@ None.
 
 ## Verification dependency
 
-The flat-sat scenario tests in `test/flatsat/`: a node whose radio cannot enumerate
+The software digital twin scenario tests in `test/digital_twin/`: a node
+whose radio cannot enumerate
 asserts `state == "FAULT"`, `operational is False`, and a `RADIO_ENUMERATION_FAILED`
 fault that is not `RADIO_ABSENT`. SIMULATED; nothing here is claimed on hardware.

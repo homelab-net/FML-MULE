@@ -104,9 +104,9 @@ wrong on a current kernel.
 
 ## Radio state (network plane)
 
-`RadioState` in `test/flatsat/interfaces.py`, read by `CommandRadio` in
-`test/flatsat/radio.py` over the parse core in `test/flatsat/radio_parse.py`.
-The reader exists; the interface stays in the flat-sat pending `TBR-LINUX-01`,
+`RadioState` in `test/digital_twin/interfaces.py`, read by `CommandRadio` in
+`test/digital_twin/radio.py` over the parse core in `test/digital_twin/radio_parse.py`.
+The reader exists; the interface stays in the software digital twin pending `TBR-LINUX-01`,
 `TBR-RF-01` and `TBR-RF-03`, and moves to `mule/` with the Protocol when a
 production consumer needs it. The interface-to-`Bearer` map is per board and
 empty until `TBR-HW-01`, injected exactly as the thermal zone map is, so on real
@@ -160,7 +160,7 @@ uplink's own ranges.
 
 ## LoRa plane
 
-`test/flatsat/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather
+`test/digital_twin/interfaces.py`, the `LoRaPlane` Protocol. It is in `test/` rather
 than `mule/` because `FML-ADR-052` keeps an interface whose shape an open trade
 governs out of the production package, and addressing on this plane is
 `TBR-NET-02`. `tools/validate-docs.sh` therefore does not require this row; it
@@ -202,7 +202,7 @@ exist; the policy values `assess` judges them against are `TBR-TIME-01`.
 ### Finding: the flagship fail-closed case may have no signal
 
 `FakeClock.dead_backup_cell()` is the scenario `FML-ADR-042` was written for,
-and the one the flat-sat exercises hardest. It depends on
+and the one the software digital twin exercises hardest. It depends on
 `rtc_backup_cell_ok`, and **the Linux RTC class defines no standard way to ask.**
 
 Consequences worth deciding rather than discovering:

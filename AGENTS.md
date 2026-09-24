@@ -124,8 +124,18 @@ when it meets real hardware. It just cannot be *known* to.
 | Status | Meaning |
 | --- | --- |
 | `UNVERIFIED` | Nothing exercised. The default for a claim with no evidence. |
-| `SIMULATED` | Exercised end to end on the flat-sat against fakes and recorded fixtures. The logic is correct and the user flow coherent. **Says nothing about physical behaviour.** |
-| `HARDWARE-VERIFIED` | Demonstrated on real hardware, evidence under `docs/evidence/` or `test/results/`. **Nothing carries this.** |
+| `SIMULATED` | A claim exercised against fakes and recorded fixtures. The logic under that claim is correct and the user flow coherent. **Says nothing about physical behaviour.** |
+| `HARDWARE-VERIFIED` | A claim demonstrated on the real hardware that claim is about, with evidence under `docs/evidence/` or `test/results/`. **Nothing carries this.** |
+
+The article is not the status. A **software digital twin** is fakes, fixtures,
+and software stand-ins (`test/digital_twin/`). A **flat-sat** is representative
+physical hardware out of final packaging, including a hardware-in-the-loop
+bench. An **integrated prototype** is the physical architecture close to its
+final form. A **field article** is a representative operational environment.
+Which article was used does not set the status. A claim that still rests on a
+fake is `SIMULATED`. A claim demonstrated on the hardware it is about can be
+hardware evidence. This vocabulary does not reclassify any recorded result,
+and it does not make anything `HARDWARE-VERIFIED`.
 
 `SIMULATED` is a real result and worth having. It is not a softer word for
 tested, and it never supports a claim about RF, power, thermal, timing under
@@ -174,9 +184,9 @@ Decided by **when the code runs**, not by what it is about.
 | `mule/` | Decisions the node makes while running, one module per question. Production standards, none of the `test/` relaxations. `FML-ADR-051`. |
 | `tools/` | Decisions made about the node beforehand on a builder's machine, and repository tooling. |
 | `os/` | The image build and configuration pipeline. Build system before application code. |
-| `test/` | Fakes, fixtures, scenarios, the flat-sat. Never a decision the node makes. |
+| `test/` | Fakes, fixtures, scenarios, the software digital twin. Never a decision the node makes. |
 
-Nothing enters `mule/` until the flat-sat exercises it end to end. It is a home
+Nothing enters `mule/` until the software digital twin exercises it end to end. It is a home
 for demonstrated logic, not a staging area for intended logic.
 
 **Everything that reads or controls radio, power, thermal or time state shall
@@ -185,7 +195,7 @@ run on an ordinary laptop with no radios present. A change nobody without
 hardware can review is the failure this prevents.
 
 Production code never imports from the test tree; the dependency runs one way.
-Every fake is named in `test/flatsat/README.md` `[CI]`, and fixtures captured
+Every fake is named in `test/digital_twin/README.md` `[CI]`, and fixtures captured
 from real hardware go in `test/fixtures/` with the node identifier, capture date
 and image build recorded alongside them. A fixture whose provenance is unknown
 is a number nobody can trace.
@@ -298,7 +308,7 @@ deliberately and record why in the config.
 
 Real, from this repository. Recognise the shape.
 
-1. **A document claimed more than the code did.** `test/flatsat/README.md` said
+1. **A document claimed more than the code did.** `test/digital_twin/README.md` said
    it verified the CONOPS section 82 user flow. There was no authentication, no
    authorization and no request path; `admit()` accepted an empty string. The
    claim was written in good faith by someone who had just built the thing.
@@ -342,7 +352,7 @@ change when a rule turns out to be wrong.
 | Subject | Document |
 | --- | --- |
 | The two-layer split, kernel and BSP, the compatibility set | `os/README.md`, `FML-ADR-040` |
-| The flat-sat, its fakes and what a scenario proves | `test/flatsat/README.md` |
+| The software digital twin, its fakes and what a scenario proves | `test/digital_twin/README.md` |
 | What CI does and does not tell you | `test/README.md` |
 | Evidence tiers and trade closure | `docs/evidence/README.md` |
 | What this program refuses to build | `docs/NON-GOALS.md` |

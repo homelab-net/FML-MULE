@@ -63,7 +63,7 @@ SELECTED.
   `FAULT`, matching what the admission path already does to arriving devices.
 - `status.py` gains a use of `required_not_serving` and of `observed.associated`;
   the two planes now share one reading of "required bearer serving".
-- A contributor without hardware can exercise the whole change on the flat-sat:
+- A contributor without hardware can exercise the whole change on the software digital twin:
   the enumerated/associated distinction is fake-driven.
 - No effect on the promotion pipeline or the threat model.
 - What becomes harder: the truth table now has a new `FAULT` trigger, so any future
@@ -93,7 +93,7 @@ None.
 
 ## Verification dependency
 
-The flat-sat scenario tests in `test/flatsat/`: a booted node with `wifi_ap`
+The software digital twin scenario tests in `test/digital_twin/`: a booted node with `wifi_ap`
 enumerated but not associated asserts `state=="FAULT"` and `operational is False`,
 and matches `admission`'s refusal for the same node. SIMULATED; nothing here is
 claimed against hardware.
