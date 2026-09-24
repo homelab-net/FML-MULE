@@ -261,6 +261,18 @@ for unit in ots-network.service postgresql.service rabbitmq.service \
   fi
 done
 
+# First prove the failure edge. The API is startup-only coupling: if its
+# healthy start fails, the workers must not start. Once they have passed that
+# gate, a later API exit must not tear them down.
+mkdir -p "$home/.config/systemd/user/opentakserver.service.d"
+cat >"$home/.config/systemd/user/opentakserver.service.d/ci-fail-start.conf" <<'EOF'
+[Service]
+ExecStartPre=/bin/false
+EOF
+chown -R "$account:$account" "$home/.config/systemd/user/opentakserver.service.d"
+chmod -R go-w "$home/.config/systemd/user/opentakserver.service.d"
+as_user systemctl --user daemon-reload
+
 set +e
 as_user systemctl --user start opentakserver.target &
 start_pid=$!
@@ -294,8 +306,40 @@ chown "$account:$account" "$home/mesh-gate-open"
 wait "$start_pid"
 status=$?
 set -e
-if [ "$status" -ne 0 ]; then
-  echo "opentakserver.target did not become active" >&2
+if [ "$status" -eq 0 ]; then
+  echo "target succeeded even though the API startup was forced to fail" >&2
+  dump
+  exit 1
+fi
+for worker in eud-handler cot-parser; do
+  if as_user systemctl --user is-active --quiet "${worker}.service"; then
+    echo "${worker} became active after API startup failure" >&2
+    dump
+    exit 1
+  fi
+  if as_user podman ps --format '{{.Names}}' | grep -qx "$worker"; then
+    echo "${worker} container ran after API startup failure" >&2
+    dump
+    exit 1
+  fi
+done
+echo "api startup failure held eud-handler and cot-parser closed"
+
+# Remove only the injected failure and start the same deployment artifacts
+# normally. Explicit stops here clean the negative test; they are not the
+# production startup path.
+as_user systemctl --user stop opentakserver.target cot-parser.service \
+  eud-handler.service opentakserver.service rabbitmq.service \
+  postgresql.service ots-network.service >/dev/null 2>&1 || true
+rm -f "$home/.config/systemd/user/opentakserver.service.d/ci-fail-start.conf"
+rmdir "$home/.config/systemd/user/opentakserver.service.d" 2>/dev/null || true
+as_user systemctl --user daemon-reload
+as_user systemctl --user reset-failed opentakserver.target cot-parser.service \
+  eud-handler.service opentakserver.service rabbitmq.service \
+  postgresql.service ots-network.service >/dev/null 2>&1 || true
+
+if ! as_user systemctl --user start opentakserver.target; then
+  echo "opentakserver.target did not become active after removing the injected failure" >&2
   dump
   exit 1
 fi
@@ -340,6 +384,23 @@ if [ "$found" -ne 1 ]; then
   dump
   exit 1
 fi
+
+# A later API loss is degraded service, not a reason to tear down the CoT
+# listener/parser. This is the runtime half of the startup-only coupling.
+as_user systemctl --user stop opentakserver.service
+for worker in eud-handler cot-parser; do
+  if ! as_user systemctl --user is-active --quiet "${worker}.service"; then
+    echo "${worker} stopped when the API stopped after successful startup" >&2
+    dump
+    exit 1
+  fi
+done
+if ! as_user systemctl --user is-active --quiet opentakserver.target; then
+  echo "capability target stopped when only the API stopped" >&2
+  dump
+  exit 1
+fi
+as_user systemctl --user start opentakserver.service
 
 as_user systemctl --user stop opentakserver.target
 as_user systemctl --user start opentakserver.target
