@@ -37,6 +37,10 @@ def test_cold_start_starts_at_the_repository_root() -> None:
     assert 'as_user "$quadlet" -user "$quadlet_out"' in script
     assert "health-scheduler-probe" in script
     assert 'socket.getaddrinfo("eud-handler", 8088)' in script
+    assert "ci-fail-start.conf" in script
+    assert "api startup failure held eud-handler and cot-parser closed" in script
+    assert "systemctl --user stop opentakserver.service" in script
+    assert "capability target stopped when only the API stopped" in script
     assert "/etc/environment" in script
     assert "account-home.conf" not in script
     assert "--user 0" not in script
