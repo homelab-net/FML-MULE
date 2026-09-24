@@ -3,10 +3,10 @@
 # This is not a mesh proof, a restart proof, or a different-node restore.
 # The host is not given 8081 or 8088.
 #
-# PostgreSQL and RabbitMQ image users are not reachable from the GitHub
-# runner's user namespace (the broker cookie is mode 400). Re-exec under
-# sudo so podman is rootful. That is a runner limit. The unit files stay
-# rootless in intent.
+# The GitHub runner user namespace does not start these image users
+# cleanly. Re-exec under sudo so podman is rootful. The broker still
+# needs uid 0 so its entrypoint can chown the cookie. That is a runner
+# limit. The unit files stay rootless in intent.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
@@ -60,7 +60,11 @@ podman run -d --name postgresql --network "$net" \
   -e POSTGRES_PASSWORD="$db_pass" \
   -e POSTGRES_DB="$db_name" \
   "$postgres" >/dev/null
-podman run -d --name rabbitmq --network "$net" \
+# The image USER is rabbitmq, so the entrypoint never reaches the chown
+# of .erlang.cookie. Podman then hits eacces. uid 0 lets that chown run,
+# then the entrypoint drops to rabbitmq. This is the test process, not
+# the Quadlet.
+podman run -d --name rabbitmq --network "$net" --user 0 \
   -e RABBITMQ_DEFAULT_USER="$db_user" \
   -e RABBITMQ_DEFAULT_PASS="$db_pass" \
   "$rabbit" >/dev/null

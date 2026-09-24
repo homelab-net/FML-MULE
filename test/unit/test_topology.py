@@ -26,6 +26,7 @@ def test_software_path_starts_at_the_repository_root() -> None:
     script = (root / "test/topology/cases/tak/integrate.sh").read_text()
     assert '"$here/../../../.."' in script
     assert "exec sudo sh" in script
+    assert "--user 0" in script
     assert "services/tak/Containerfile" in script
 
 
