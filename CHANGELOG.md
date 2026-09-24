@@ -22,8 +22,9 @@ The target waits for the members instead of pretending an `After=` on
 itself holds them. `test/topology/` checks that graph, asks Quadlet to
 generate the units, and can persist one synthetic CoT. The generator
 check reads the service names it emits. The software path is rooted at
-the repository. Media stays off. No restart and no different-node
-restore were run.
+the repository and runs podman as root on the runner, because that user
+namespace cannot start the database and broker image users. Media stays
+off. No restart and no different-node restore were run.
 
 ### Corrected the TAK unit topology
 

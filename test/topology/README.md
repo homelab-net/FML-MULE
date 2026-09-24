@@ -16,7 +16,8 @@ Three layers, and they are not the same claim:
    `Image=TBD` is replaced only in that temporary copy.
 3. **Software path** (`cases/tak/integrate.sh`). Build the image, start
    PostgreSQL, RabbitMQ, and the three OpenTAKServer processes on an
-   internal network, and persist one synthetic PyTAK position.
+   internal network, and persist one synthetic PyTAK position. The runner
+   invokes podman through sudo. That is not the field pattern.
 
 The mesh interface name is still `TBD` (`TBR-LINUX-01`). The gate unit is
 unresolved on purpose. The software path does not install it and does not

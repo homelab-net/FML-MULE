@@ -1,11 +1,24 @@
 #!/bin/sh
 # Run the TAK software topology on an internal network and persist one CoT.
 # This is not a mesh proof, a restart proof, or a different-node restore.
-# CI runs this as the runner user. The unit files stay rootless in intent.
 # The host is not given 8081 or 8088.
+#
+# PostgreSQL and RabbitMQ image users are not reachable from the GitHub
+# runner's user namespace (the broker cookie is mode 400). Re-exec under
+# sudo so podman is rootful. That is a runner limit. The unit files stay
+# rootless in intent.
 set -eu
 
-root=$(CDPATH= cd -- "$(dirname "$0")/../../../.." && pwd)
+here=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+if [ "$(id -u)" -ne 0 ]; then
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "rootful podman is required here and sudo is not available" >&2
+    exit 1
+  fi
+  exec sudo sh "$here/$(basename "$0")"
+fi
+
+root=$(CDPATH= cd -- "$here/../../../.." && pwd)
 cd "$root"
 
 if [ ! -f "$root/services/tak/Containerfile" ]; then
