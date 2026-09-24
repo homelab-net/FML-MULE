@@ -54,5 +54,12 @@ tar -xzf "$archive" -C "$workdir"
 src=$(find "$workdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)
 cp -a "$src/usr/." /usr/
 hash -r
+# Ubuntu 24.04 denies a user namespace to a binary with no AppArmor
+# profile. The pinned static build has none. Apt's podman would have
+# shipped a profile and would not reach this branch. This is the
+# runner, not a field sysctl.
+if [ -w /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+  printf '0\n' >/proc/sys/kernel/apparmor_restrict_unprivileged_userns
+fi
 podman version
 version_ok

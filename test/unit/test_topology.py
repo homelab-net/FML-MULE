@@ -47,6 +47,12 @@ def test_cold_start_starts_at_the_repository_root() -> None:
             assert name not in line
 
 
+def test_static_podman_may_create_a_user_namespace() -> None:
+    root = Path(__file__).resolve().parents[2]
+    script = (root / "test/topology/ensure-podman.sh").read_text()
+    assert "apparmor_restrict_unprivileged_userns" in script
+
+
 def test_quadlet_check_reads_generated_service_names() -> None:
     root = Path(__file__).resolve().parents[2]
     script = (root / "test/topology/quadlet-dry-run.sh").read_text()

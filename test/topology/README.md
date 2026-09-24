@@ -22,7 +22,10 @@ Three layers, and they are not the same claim:
    does not start those containers. One synthetic PyTAK position must land
    in PostgreSQL, including after the target is stopped and started again.
    The account is not a selected field user. The run is rootless. It is
-   not host root.
+   not host root. Apt on this runner is older than Podman 5, so the job
+   installs the pinned static build. That binary has no AppArmor profile,
+   and Ubuntu 24.04 would refuse its user namespace. The job allows
+   unprivileged user namespaces. That is not a field host setting.
 
 The mesh interface name is still `TBD` (`TBR-LINUX-01`). The gate unit is
 unresolved on purpose. Cold start installs a user unit of the same name
