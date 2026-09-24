@@ -40,8 +40,8 @@ The `critical-path` frontmatter field and `STATUS.md` now follow the SAD.
 2. **Filename is `TBR-<AREA>-##-slug.md`.**
 3. **The `id` in frontmatter matches the filename.**
 4. Areas in use: `PWR`, `COMP`, `THERM`, `RF`, `TIME`, `SEC`, `HW`, `LINUX`,
-   `TAK`, `HA`, `REC`, `ID`, `NET`, `CARRIER`. A new area is fine; add it here
-   in the same change.
+   `TAK`, `HA`, `REC`, `ID`, `NET`, `CARRIER`, `OBS`, `SENSE`, `EMCON`. A new
+   area is fine; add it here in the same change.
 
 Allocate one with `tools/new-trade.sh RF "Question in sentence case"`.
 
@@ -142,6 +142,9 @@ register drifts from the directory it describes.
 | `TBR-NET-03` | How do two deployments converge on one mesh | `CLOSED` | Network | Cameron Zobrist | no | `TBR-NET-01` |
 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or a framework | `OPEN` | Network | Cameron Zobrist | partly | `CCR-03` |
 | `TBR-VOICE-02` | How voice-group authorization behaves across a mesh merge | `OPEN` | Network | Cameron Zobrist | no | `TBR-SEC-01` |
+| `TBR-OBS-01` | How a mission observation keeps its age, source, and state | `OPEN` | Mission services | Cameron Zobrist | no | none |
+| `TBR-SENSE-01` | How a profile marks a capability, and how a sensor task ends | `OPEN` | Mission services | Cameron Zobrist | no | `FML-ADR-037` |
+| `TBR-EMCON-01` | Which EMCON transmissions are avoidable, and which layers suppress them | `OPEN` | RF/Spectrum | Cameron Zobrist | no | `FML-ADR-046` |
 
 ## What can be worked without hardware
 
@@ -155,10 +158,21 @@ Three of the design-and-analysis trades that needed no hardware are now
 - **`TBR-NET-03`, how two deployments converge on one mesh.** Closed; `mesh_id`
   separates deployments by construction.
 
-One no-hardware trade remains open:
+One no-hardware trade from the SAD register remains open:
 
 - **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
   offline login against fakes.
+
+Three later trades are also open, need no hardware to choose a
+representation, and have not been started. None of the CONOPS criteria they
+own has been run:
+
+- **`TBR-OBS-01`**, how a mission observation keeps its age, source, and
+  state.
+- **`TBR-SENSE-01`**, how a mission profile marks a capability, and how a
+  sensor task ends.
+- **`TBR-EMCON-01`**, which transmissions an EMCON posture classes as
+  avoidable. The class list is not a measurement of radio silence.
 
 Two more are `partly` workable without hardware: `TBR-SEC-01`, whose analysis
 against the capture scenarios is the larger half, and `TBR-COMP-01`, whose

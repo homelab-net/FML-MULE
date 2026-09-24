@@ -3011,7 +3011,7 @@ history entry.
 
 Any change that adds, removes, or alters a SHALL statement, a Section 79
 criterion, a Section 78 stage, or a Section 81 scope exclusion requires a minor
-version increment (v1.1) and stakeholder re-approval.
+version increment and stakeholder re-approval.
 
 Acceptance of this CONOPS requires a subsequent controlled Homelab integration
 change package addressing the affected TRD, ICD, SOW, Verification Matrix, ATP,
@@ -3021,11 +3021,16 @@ ADR, and BOM/CI records, per Section 2.
 87. APPROVAL
 ================================================================================
 
-v1.1 was accepted by the Program Owner on 2026-09-23 under Section 86
-(CCR-04). The signature block below is the v1.01 block and is unchanged.
-It has not been signed.
+v1.2 is the controlling issue. It incorporates:
 
-By signature below, the undersigned accept FML/MULE CONOPS v1.01 as the controlled
+  * CCR-04, previously accepted in v1.1 on 2026-09-23;
+  * CCR-03, approved 2026-09-15, whose voice text is in this issue;
+  * CCR-05, accepted by the Program Owner on 2026-09-23.
+
+The signature block below has not been signed. A signature accepts v1.2.
+It does not accept v1.01 or v1.1.
+
+By signature below, the undersigned accept FML/MULE CONOPS v1.2 as the controlled
 operational baseline for the MULE subsystem, and authorize progression to
 System Architecture and requirements development.
 
@@ -3043,5 +3048,5 @@ Where one person holds multiple roles, each role shall be signed separately and
 the compensating review control of Section 18 shall apply.
 
 ================================================================================
-END OF DOCUMENT - FML/MULE CONOPS v1.1 BASELINE
+END OF DOCUMENT - FML/MULE CONOPS v1.2 BASELINE
 ================================================================================

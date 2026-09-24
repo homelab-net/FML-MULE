@@ -146,12 +146,15 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `Cameron Zobrist` | yes |
 | 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `Cameron Zobrist` | no |
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
+| 99 | `TBR-EMCON-01` | Which transmissions does an EMCON posture class as avoidable, and which layers suppress them | `OPEN` | RF/Spectrum | `Cameron Zobrist` | no |
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
 | 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
+| 99 | `TBR-OBS-01` | How is a mission observation recorded and presented so its age, source, and state stay visible | `OPEN` | Mission services | `Cameron Zobrist` | no |
+| 99 | `TBR-SENSE-01` | How does a mission profile mark a capability required, optional, or off, and how does a sensor task end | `OPEN` | Mission services | `Cameron Zobrist` | no |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 | 99 | `TBR-VOICE-02` | How is voice-group authorization expressed and how does it behave across a mesh merge | `OPEN` | Network | `Cameron Zobrist` | no |
 
-18 open trades. 1 have no named owner.
+21 open trades. 1 have no named owner.
 
 ## Critical path
 

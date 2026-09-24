@@ -59,6 +59,11 @@ permanently into long-lived device certificates.
 - Reviewability is a stated criterion: native RBAC qualifies only if it can be
   provisioned and reviewed reproducibly, which excludes per-application GUI
   state (governing principle 12).
+- CONOPS v1.2 section 49: authority to view a product is not authority to task
+  a sensor, and neither is authority to administer the node. A change of
+  permission on a capability is a scope or mission-profile change and is
+  recorded with the other security-relevant administrative events (SAD section
+  16.6). `FML-REQ-046` and `FML-REQ-048` allocate here. Neither has been run.
 
 ## Accepted cost
 

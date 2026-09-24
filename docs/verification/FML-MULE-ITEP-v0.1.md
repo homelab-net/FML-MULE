@@ -263,8 +263,8 @@ programme.
    RoIP gateway, its resident footprint and whether `FML-ADR-067`'s
    single-egress invariant can be enforced in or around it, against loopback
    and virtual peers. Latency and PTT timing wait on hardware (GATE VOICE-01)
-   and are not part of this campaign. **Gated on `CCR-03` approval**, because the
-   capability is a proposed CONOPS v1.1 change; recorded so the plan tracks it.
+   and are not part of this campaign. `CCR-03` is approved and the CONOPS text
+   is issued in v1.2. This analysis half has not been run.
 9. **`TBR-MAP-01` tile store and server, analysis half.** For each candidate,
    its resident footprint serving a representative view and the store size for a
    representative area and zoom, on Debian ARM64. The offline-render acceptance
@@ -276,7 +276,8 @@ programme.
     deployments, against virtual peers. The enforcing gateway and the membership
     credential are `TBR-VOICE-01` and `TBR-SEC-01`; this produces the
     specification they build to, and the `FML-ADR-067` single-egress invariant is
-    the comparison. **Gated on `CCR-03` approval**, a proposed CONOPS v1.1 change.
+    the comparison. `CCR-03` is approved and the CONOPS text is issued in v1.2.
+    This analysis half has not been run.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The remaining five produce written
