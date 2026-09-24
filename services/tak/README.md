@@ -38,13 +38,16 @@ This is not host networking. The 2026-08-31 bench used that and recorded it
 as a deviation.
 
 Workers require the database and the broker. They `After=` the API and
-do not `Requires=` it. The API unit does not become active until its
-health check can open port 8081, which is this process finishing
-startup migrations. `After=` waits for that. `Requires=` would tie the
-workers' lifetime to the API, and the API is not their runtime
-dependency. No unit sets `Restart=`. A cold start stops the target and
-starts it again to show the row is still there. That is not a
-different-node restore.
+do not `Requires=` it. The capability target also `Wants=` the API instead
+of runtime-requiring it. The API unit does not become active until its
+health check can open port 8081, which is this process finishing startup
+migrations. After that ordering edge, each worker has an `ExecStartPre=`
+check that the API is active. A failed API/migration start therefore holds
+the workers closed and fails target startup, while a later API exit does
+not tear down the listener/parser. No unit sets `Restart=`. Cold-start CI
+also stops the API after a successful start and requires both workers and
+the target to remain active. A target stop/start must keep the persisted
+row. That is not a different-node restore.
 
 The mesh interface is still `TBD` (`TBR-LINUX-01`). Each member
 `Requires=` `systemd-networkd-wait-online@TBD.service`. The target does
