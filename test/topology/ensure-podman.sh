@@ -31,6 +31,8 @@ runtime_ok() {
   [ "${major:-0}" -ge 5 ] || return 1
   quadlet_path >/dev/null 2>&1 || return 1
   [ -x /usr/lib/systemd/user-generators/podman-user-generator ] || return 1
+  [ -x /usr/lib/podman/netavark ] || return 1
+  [ -x /usr/lib/podman/aardvark-dns ] || return 1
 }
 
 if ! runtime_ok; then
@@ -45,11 +47,11 @@ if ! runtime_ok; then
   # shellcheck disable=SC2086
   apt-get $apt_opts update -qq
   # shellcheck disable=SC2086
-  apt-get $apt_opts install -y -qq podman uidmap slirp4netns dbus-user-session ca-certificates
+  apt-get $apt_opts install -y -qq podman uidmap slirp4netns dbus-user-session ca-certificates netavark aardvark-dns
 fi
 
 if ! runtime_ok; then
-  echo "Podman 5 or newer is required, with systemd health scheduling and the user Quadlet generator" >&2
+  echo "Podman 5 or newer is required with systemd health scheduling, Netavark/Aardvark DNS, and the user Quadlet generator" >&2
   podman version >&2 || true
   exit 1
 fi
