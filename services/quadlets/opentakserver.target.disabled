@@ -3,12 +3,15 @@
 # An After= on this file does not hold the units it Wants=. The mesh gate
 # is therefore a Requires= of each member, not of this target.
 # The interface name is still TBD (TBR-LINUX-01).
+# The API is Wanted, not Required, so a later API exit does not tear down the
+# listener/parser. Their one-time ExecStartPre checks make initial API failure
+# fail closed after the healthy/migration ordering edge.
 
 [Unit]
 Description=OpenTAKServer capability
 Documentation=file:///usr/share/doc/fml/tak
 After=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
-Requires=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
+Requires=ots-network.service postgresql.service rabbitmq.service eud-handler.service cot-parser.service
 Wants=ots-network.service postgresql.service rabbitmq.service opentakserver.service eud-handler.service cot-parser.service
 
 [Install]
