@@ -51,12 +51,14 @@ def test_cold_start_starts_at_the_repository_root() -> None:
             assert name not in line
 
 
-def test_static_podman_may_create_a_user_namespace() -> None:
+def test_topology_requires_systemd_enabled_distro_podman() -> None:
     root = Path(__file__).resolve().parents[2]
     script = (root / "test/topology/ensure-podman.sh").read_text()
-    assert "apparmor_restrict_unprivileged_userns" in script
-    assert "ln -sfn /usr/local/bin/crun /usr/bin/crun" in script
+    assert "Podman 5 or newer is required" in script
     assert "/usr/lib/systemd/user-generators/podman-user-generator" in script
+    assert "podman-static" in script
+    assert "curl -fsSL" not in script
+    assert "apparmor_restrict_unprivileged_userns" not in script
 
 
 def test_quadlet_check_reads_generated_service_names() -> None:
