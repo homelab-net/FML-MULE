@@ -9,7 +9,9 @@
 # removed. The image entrypoint manages /var/lib/rabbitmq inside that layer.
 # Under rootless Podman, container uid 0 is the user namespace, not host root.
 # Notify=healthy holds every After= on this unit until the broker answers
-# ping. Started is not ready. No credential is in the probe.
+# ping. The probe goes through the image entrypoint so rabbitmq-diagnostics
+# runs as the rabbitmq user instead of container uid 0 and cannot create a
+# root-owned Erlang cookie. Started is not ready. No credential is in the probe.
 
 [Unit]
 Description=RabbitMQ for the TAK capability
@@ -24,7 +26,7 @@ User=0
 ContainerName=rabbitmq
 Network=ots.network
 EnvironmentFile=/run/fml/rabbitmq.env
-HealthCmd=rabbitmq-diagnostics -q ping
+HealthCmd=docker-entrypoint.sh rabbitmq-diagnostics -q ping
 HealthInterval=5s
 HealthTimeout=5s
 HealthRetries=24
