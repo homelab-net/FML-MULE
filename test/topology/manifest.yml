@@ -18,12 +18,17 @@ cases:
       - {from: eud-handler.container, to: rabbitmq.service}
       - {from: cot-parser.container, to: postgresql.service}
       - {from: cot-parser.container, to: rabbitmq.service}
+    target_wants_not_requires:
+      - opentakserver.container
     forbidden_requires:
       - {from: eud-handler.container, to: opentakserver.service}
       - {from: cot-parser.container, to: opentakserver.service}
     required_after:
       - {from: eud-handler.container, to: opentakserver.service}
       - {from: cot-parser.container, to: opentakserver.service}
+    required_start_pre:
+      - {unit: eud-handler.container, command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"}
+      - {unit: cot-parser.container, command: "/usr/bin/systemctl --user is-active --quiet opentakserver.service"}
     notify_healthy:
       - postgresql.container
       - rabbitmq.container
@@ -48,6 +53,10 @@ cases:
         unit: eud-handler.container
         replace: "postgresql.service "
         with: ""
+      - id: drop-listener-api-start-gate
+        unit: eud-handler.container
+        replace: "ExecStartPre=/usr/bin/systemctl --user is-active --quiet opentakserver.service"
+        with: "ExecStartPre=/bin/true"
       - id: drop-postgres-readiness
         unit: postgresql.container
         replace: "Notify=healthy"
