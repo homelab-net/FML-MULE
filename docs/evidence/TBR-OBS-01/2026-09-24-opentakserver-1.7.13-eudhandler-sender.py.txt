@@ -2,10 +2,11 @@
 # Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
 # 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
 # GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
-# Not relicensed. The lines below are unchanged.
+# Not relicensed. The upstream lines below are unchanged.
+# A line that begins `# --- omitted lines` is not upstream.
 
 # path opentakserver/eud_handler/EudHandler.py
-# lines 329-337, then 458-483, then 485-511.
+# lines 329-337, 449-450, 458-483, 485-511.
 
     def on_message(self, unused_channel, basic_deliver, properties, body):
         try:
@@ -16,7 +17,10 @@
             self.logger.error(f"{self.callsign}: {e}, closing socket")
             self.close_connection()
             self.logger.error(traceback.format_exc())
-
+# --- omitted lines 338-448 ---
+        if event and not self.uid:
+            self.parse_device_info(event)
+# --- omitted lines 451-457 ---
     def publish_cot(self, event):
         if not event:
             return
@@ -43,7 +47,7 @@
             routing_key="cot_parser",
             properties=pika.BasicProperties(expiration=self.app.config.get("OTS_RABBITMQ_TTL")),
         )
-
+# --- omitted lines 484-484 ---
     def parse_device_info(self, event):
         link = event.find("link")
         fileshare = event.find("fileshare")

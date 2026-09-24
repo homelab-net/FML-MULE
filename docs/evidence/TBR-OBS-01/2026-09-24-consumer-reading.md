@@ -50,14 +50,15 @@ to the `cot_parser` exchange. `CotParser.on_message` sets
 `insert_cot`. `insert_cot` writes `sender_uid=uid` and
 `uid=event.attrs["uid"]`. Those are different columns.
 
-`self.uid` is assigned in `parse_device_info`, and only when it is still
-empty. The assignment is `event.attrs["uid"]` of an event that has a
-`<contact>` tag, is not a ping, and arrives on a socket that already has a
-user or is not SSL. The comment above that assignment says a Meshtastic or
-DMR relay should use the off-grid EUD uid rather than the relay. The
-assignment is not repeated for a later event. After it, a later event on
-that socket is stored with the first uid even when `event.attrs["uid"]`
-differs. If `self.uid` is still empty, the parser uses the event uid.
+`self.uid` is assigned in `parse_device_info`. `handle_cot` calls that
+function only from `if event and not self.uid`. The assignment is
+`event.attrs["uid"]` of an event that has a `<contact>` tag, is not a ping,
+and arrives on a socket that already has a user or is not SSL. The comment
+above that assignment says a Meshtastic or DMR relay should use the off-grid
+EUD uid rather than the relay. The assignment is not repeated for a later
+event. After it, a later event on that socket is stored with the first uid
+even when `event.attrs["uid"]` differs. If `self.uid` is still empty, the
+parser uses the event uid.
 
 `insert_cot` does not write `sender_callsign`.
 
@@ -86,8 +87,9 @@ function does not filter on `stale`.
 
 ## Whether delivery replaces the observation time
 
-`route_cot` republishes `str(event)`. The excerpted streaming path does
-not replace event `time` with a delivery time.
+`CotParser.route_cot` republishes `str(event)` on every branch of the
+archived function. That function does not replace event `time` with a
+delivery time.
 
 The OpenTAKServer Meshtastic controller is a different consumer. It turns
 some protobufs into a new CoT event. `cot()` sets `time`, `start`, and

@@ -2,7 +2,8 @@
 # Retrieved 2026-09-24 from brian7704/OpenTAKServer commit
 # 67903c26d95552738d85be4bc3c3ff3321378dbe, tag 1.7.13.
 # GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
-# Not relicensed. The lines below are unchanged.
+# Not relicensed. The upstream lines below are unchanged.
+# A line that begins `# --- omitted lines` is not upstream.
 
 # path opentakserver/controllers/meshtastic_controller.py
 # lines 235-260, then 411-427, then 632-641.
@@ -33,7 +34,7 @@
                 "time": now,
                 "stale": stale,
             },
-
+# --- omitted lines 261-410 ---
             point = Point()
             point.uid = str(uuid.uuid4())
             point.device_uid = from_id
@@ -51,7 +52,7 @@
                 socketio.emit("point", point.to_json(), namespace="/socket.io")
 
             return self.cot(pb, from_id, to_id, portnum)
-
+# --- omitted lines 428-631 ---
         if portnum == "MAP_REPORT_APP" or (portnum == "POSITION_APP" and pb.latitude_i):
             event = self.position(pb, from_id, to_id, portnum)
         elif portnum == "NODEINFO_APP":

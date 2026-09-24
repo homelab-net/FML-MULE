@@ -2,8 +2,9 @@
 # Retrieved 2026-09-24 from meshtastic/firmware tag v2.8.0.47db0e3,
 # commit 47db0e3020a608e06fb65cce70cd2f093021bd82.
 # GPL-3.0-only. See docs/evidence/licenses/GPL-3.0.txt.
-# Not relicensed. The lines below are unchanged.
+# Not relicensed. The upstream lines below are unchanged.
 # This commit is not the protobufs pin used by the 2026-09-24 comparison.
+# A line that begins `# --- omitted lines` is not upstream.
 
 # path src/modules/NeighborInfoModule.cpp
 # lines 61-78, then 87-96.
@@ -26,7 +27,7 @@ uint32_t NeighborInfoModule::collectNeighborInfo(meshtastic_NeighborInfo *neighb
             // here, because we don't want to send this over the mesh
             neighborInfo->neighbors_count++;
         }
-
+# --- omitted lines 79-86 ---
 void NeighborInfoModule::cleanUpNeighbors()
 {
     uint32_t now = getTime();
