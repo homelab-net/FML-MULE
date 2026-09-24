@@ -92,7 +92,9 @@ not make that selection.
 SAD section 13.3 records that OpenTAKServer currently uses multiple Python
 processes, **RabbitMQ** for internal CoT messaging, and SQLAlchemy-backed
 storage. RabbitMQ is treated as **local transient service infrastructure**, not
-a field-wide clustered message bus. All three land on the compute budget
+a field-wide clustered message bus. Its Quadlet therefore gives `/var/lib/rabbitmq`
+a tmpfs rather than durable host state; broker state is recreated on service
+start. All three land on the compute budget
 `TBR-COMP-01` must size.
 
 ## What is already recorded, and what is not
