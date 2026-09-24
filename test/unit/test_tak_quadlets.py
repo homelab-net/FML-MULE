@@ -39,8 +39,7 @@ def test_workers_wait_for_the_api_database_and_broker() -> None:
     for name in ("eud-handler", "cot-parser"):
         text = _text(name)
         assert (
-            "Requires=postgresql.service rabbitmq.service "
-            "opentakserver.service"
+            "Requires=postgresql.service rabbitmq.service opentakserver.service"
         ) in text
 
 
@@ -56,13 +55,11 @@ def test_dependencies_use_the_recorded_digests() -> None:
     rabbit = _text("rabbitmq")
     assert (
         "docker.io/library/postgres@sha256:"
-        "485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8"
-        in postgres
+        "485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8" in postgres
     )
     assert (
         "docker.io/library/rabbitmq@sha256:"
-        "9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920"
-        in rabbit
+        "9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920" in rabbit
     )
     assert not any(line.startswith("Restart=") for line in _assignments(postgres))
     assert not any(line.startswith("Restart=") for line in _assignments(rabbit))
