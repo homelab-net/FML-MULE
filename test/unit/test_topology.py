@@ -33,7 +33,7 @@ def test_cold_start_starts_at_the_repository_root() -> None:
     assert 'XDG_CONFIG_HOME="$home/.config"' in script
     assert 'cd "$home"' in script
     assert 'chmod -R go-w "$home/.config"' in script
-    assert '/usr/libexec/podman/quadlet' in script
+    assert "/usr/libexec/podman/quadlet" in script
     assert 'as_user "$quadlet" -user "$quadlet_out"' in script
     assert "health-scheduler-probe" in script
     assert "/etc/environment" in script
