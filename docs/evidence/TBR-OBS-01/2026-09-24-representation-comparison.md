@@ -219,8 +219,11 @@ OpenTAKServer 1.7.13 `CoT` columns are `how`, `type`, `uid`,
 `sender_callsign`, `sender_device_name`, `sender_uid`, `recipients`,
 `timestamp`, `start`, `stale`, `xml`, and `mission_name`. `uid` is not
 unique. There is no state column and no retention column. `sender_uid`
-references `euds.uid`. It names the connected endpoint the server associated
-with the row. It is not a CoT attribute. `FML-ADR-071` classed this table as
+references `euds.uid`. That column is not a CoT attribute. The archived
+model declares it and the foreign key. It does not show the code that
+writes `sender_uid` or `sender_callsign`. This file did not read that
+path, so it does not establish that the value is the connected endpoint,
+or that a relay can be that value. `FML-ADR-071` classed this table as
 reconstructable: loss and regeneration are acceptable for it. The
 `TBR-TAK-01` bench found the only CoT queue, `cot_parser`, non-durable.
 `delete_old_data` in the archived
@@ -266,7 +269,7 @@ policy. It does not mean the sentence can be met only by adding a field.
 | Sentence | CoT event | OpenTAKServer `cot` row | Meshtastic `Position` | Meshtastic `Neighbor` |
 | --- | --- | --- | --- | --- |
 | Time observed | Not defined as observation time. `time` is event generation. `start` is validity start. Mapping observation time onto `time` would be a convention. | Copies those two, plus the row's `timestamp` from the event `time`. | `timestamp` is the GPS solution time, for this position only. | None. `last_rx_time` is when a message was received, and it is not sent. |
-| Source | `how` is how the coordinates were made, not who produced the observation. | `sender_uid` and `sender_callsign` name the connected endpoint. A relay can be that endpoint. | `from` is the sending node number. `location_source` is how the fix was acquired. | `NeighborInfo.node_id` is the source: the node reporting its neighbors. `Neighbor.node_id` is the subject: the neighbor reported. Those are distinct. |
+| Source | `how` is how the coordinates were made, not who produced the observation. | `sender_uid` is a foreign key to `euds.uid`. `sender_callsign` is a column. The code that writes them was not read, so this file does not establish that either value is the connected endpoint. | `from` is the sending node number. `location_source` is how the fix was acquired. | `NeighborInfo.node_id` is the source: the node reporting its neighbors. `Neighbor.node_id` is the subject: the neighbor reported. Those are distinct. |
 | Six state words | No such values. Optional `qos` uses "supersede" to mean the newer event deletes the older one. | No state column. | None. `sensor_id` names a positioning sensor. | None. |
 | Not presented as current | After `stale`, the event is outside its validity interval. One timestamp covers both "stale" and "expired", so the record cannot say which. Presentation of a past-`stale` event is not defined here. | Same timestamps. No presentation rule. | No validity end. | No validity end. |
 | Delivery must not replace observation time | No delivery-time field. A forwarded event can keep `time` and `start`. A newly generated event has a new birth time, which is what `time` means. | Stores the event times it was given. | `timestamp` is in the position. `rx_time` is reception, is not sent on the radio, and may be rewritten before a phone sees it. Using `rx_time` as the observed time would be the replacement the sentence forbids. | `last_rx_time` is reception time and is local only. |
@@ -303,9 +306,11 @@ What those sources do already define:
   observation, and it does not say the event is not an observation.
 - CoT `uid` names one piece of information. The latest event for that `uid`
   overwrites the earlier ones.
-- The OpenTAKServer row can keep more than one event for a `uid`, and its
-  sender columns name the connected endpoint the server associated with the
-  row. A relay can be that endpoint.
+- The OpenTAKServer row can keep more than one event for a `uid`.
+  `sender_uid` is a foreign key to `euds.uid`, and `sender_callsign` is a
+  column. The code that writes them was not read. This file does not
+  establish that either value is the connected endpoint, or that a relay
+  can be that value.
 
 What those sources do not define as native semantics:
 
