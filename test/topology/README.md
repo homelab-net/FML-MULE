@@ -7,10 +7,12 @@ Three layers, and they are not the same claim:
 
 1. **Static composition** (`validate.py`, `manifest.yml`). The catalog root
    is `opentakserver.target`. Members require the database, the broker, and
-   the mesh gate. The target waits for the members. An `After=` on the
+   the mesh gate. The target requires the workers and infrastructure but only
+   wants the API; worker `ExecStartPre=` checks make API startup fail closed
+   without coupling later API loss to their lifetime. An `After=` on the
    target alone is rejected, because units it `Wants=` would not wait with
-   it. Mutations that use loopback, drop the network, publish `8088`, or
-   drop the listener's database dependency must fail.
+   it. Mutations that use loopback, drop the network, publish `8088`, drop
+   the listener's database dependency, or remove its API-start gate must fail.
 2. **Quadlet generation** (`quadlet-dry-run.sh`). The generator has to
    accept the container and network files and emit their service names,
    including `--sdnotify=healthy`. `Image=TBD` is replaced only in that
@@ -19,8 +21,11 @@ Three layers, and they are not the same claim:
    subordinate UID range installs the materialized units and systemd starts
    `opentakserver.target`. `Notify=healthy` is what makes `After=` wait for
    PostgreSQL, RabbitMQ, the API migrations, and the listener. The script
-   does not start those containers. One synthetic PyTAK position must land
-   in PostgreSQL, including after the target is stopped and started again.
+   does not start those containers. It first forces API startup to fail and
+   requires both workers to stay closed. The normal start then persists one
+   synthetic PyTAK position. Afterward the API is stopped by itself and the
+   target/listener/parser must remain active. The row must also survive a
+   target stop/start.
    The account is not a selected field user. The run is rootless. It is
    not host root. The topology jobs run on Ubuntu 26.04 and use Ubuntu's
    systemd-enabled Podman 5 package. A prior static Podman fallback accepted
