@@ -111,7 +111,7 @@ while [ ! -S "$runtime/bus" ]; do
 done
 
 rm -rf /var/lib/fml /run/fml "$home/mesh-gate-open"
-mkdir -p /var/lib/fml/ots /var/lib/fml/postgresql /var/lib/fml/rabbitmq /run/fml \
+mkdir -p /var/lib/fml/ots /var/lib/fml/postgresql /run/fml \
   "$home/.config/containers/systemd" \
   "$home/.config/systemd/user"
 # The throwaway account has no delegated cgroup. cgroupfs keeps the
