@@ -21,14 +21,27 @@ def test_tak_topology_holds_and_mutations_fail() -> None:
     assert validator.main() == 0
 
 
-def test_software_path_starts_at_the_repository_root() -> None:
+def test_cold_start_starts_at_the_repository_root() -> None:
     root = Path(__file__).resolve().parents[2]
-    script = (root / "test/topology/cases/tak/integrate.sh").read_text()
+    script = (root / "test/topology/cases/tak/cold-start.sh").read_text()
     assert '"$here/../../../.."' in script
     assert "exec sudo sh" in script
-    assert "--user 0" in script
-    assert ".erlang.cookie" in script
     assert "services/tak/Containerfile" in script
+    assert 'systemctl start "user@${account_uid}.service"' in script
+    assert "systemctl --user start opentakserver.target" in script
+    assert "--user 0" not in script
+    assert ".erlang.cookie" not in script
+    run_lines = [line for line in script.splitlines() if "podman run" in line]
+    assert run_lines
+    for line in run_lines:
+        for name in (
+            "postgresql",
+            "rabbitmq",
+            "opentakserver",
+            "eud-handler",
+            "cot-parser",
+        ):
+            assert name not in line
 
 
 def test_quadlet_check_reads_generated_service_names() -> None:

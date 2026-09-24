@@ -14,7 +14,7 @@
 # That is not Restart=, and it is not a different-node restore.
 set -eu
 
-here=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+here=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
 if [ "$(id -u)" -ne 0 ]; then
   if ! command -v sudo >/dev/null 2>&1; then
     echo "cold-start provisions a rootless account and sudo is absent" >&2
@@ -23,7 +23,7 @@ if [ "$(id -u)" -ne 0 ]; then
   exec sudo sh "$here/$(basename "$0")"
 fi
 
-root=$(CDPATH= cd -- "$here/../../../.." && pwd)
+root=$(CDPATH='' cd -- "$here/../../../.." && pwd)
 cd "$root"
 sh "$root/test/topology/ensure-podman.sh"
 
@@ -77,8 +77,9 @@ if ! loginctl enable-linger "$account"; then
   mkdir -p /var/lib/systemd/linger
   touch "/var/lib/systemd/linger/$account"
 fi
-systemctl start "user-$(id -u "$account").service"
-runtime="/run/user/$(id -u "$account")"
+account_uid=$(id -u "$account")
+systemctl start "user@${account_uid}.service"
+runtime="/run/user/${account_uid}"
 i=0
 while [ ! -S "$runtime/bus" ]; do
   i=$((i + 1))
