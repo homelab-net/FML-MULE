@@ -60,14 +60,17 @@ podman run -d --name postgresql --network "$net" \
   -e POSTGRES_PASSWORD="$db_pass" \
   -e POSTGRES_DB="$db_name" \
   "$postgres" >/dev/null
-# The image USER is rabbitmq, so the entrypoint never reaches the chown
-# of .erlang.cookie. Podman then hits eacces. uid 0 lets that chown run,
-# then the entrypoint drops to rabbitmq. This is the test process, not
-# the Quadlet.
+# The image ships .erlang.cookie in a layer this podman cannot chown
+# into a readable inode (eacces after uid 0). Delete it as root so the
+# entrypoint creates a new file, then drops to the rabbitmq user. This
+# is the test process, not the Quadlet.
 podman run -d --name rabbitmq --network "$net" --user 0 \
   -e RABBITMQ_DEFAULT_USER="$db_user" \
   -e RABBITMQ_DEFAULT_PASS="$db_pass" \
-  "$rabbit" >/dev/null
+  --entrypoint /bin/bash \
+  "$rabbit" \
+  -c 'set -eu; id; ls -l /var/lib/rabbitmq/.erlang.cookie || true; rm -f /var/lib/rabbitmq/.erlang.cookie; exec /usr/local/bin/docker-entrypoint.sh rabbitmq-server' \
+  >/dev/null
 
 ready=0
 i=0
