@@ -68,14 +68,27 @@ def test_three_processes_share_the_data_folder() -> None:
         assert "Environment=OTS_MEDIAMTX_ENABLE=false" in text
 
 
-def test_workers_wait_for_a_ready_api_without_requiring_it() -> None:
+def test_workers_fail_closed_on_api_start_without_runtime_coupling() -> None:
+    gate = "/usr/bin/systemctl --user is-active --quiet opentakserver.service"
     for name in ("eud-handler", "cot-parser"):
         text = _unit(name)
         assert DEPS in text
-        requires = [line for line in _assignments(text) if line.startswith("Requires=")]
-        after = [line for line in _assignments(text) if line.startswith("After=")]
+        assignments = _assignments(text)
+        requires = [line for line in assignments if line.startswith("Requires=")]
+        after = [line for line in assignments if line.startswith("After=")]
         assert all("opentakserver.service" not in line for line in requires)
         assert any("opentakserver.service" in line for line in after)
+        assert f"ExecStartPre={gate}" in assignments
+
+
+def test_target_wants_api_but_does_not_runtime_require_it() -> None:
+    target = _assignments(_text("opentakserver.target.disabled"))
+    requires = [line for line in target if line.startswith("Requires=")]
+    wants = [line for line in target if line.startswith("Wants=")]
+    after = [line for line in target if line.startswith("After=")]
+    assert all("opentakserver.service" not in line for line in requires)
+    assert any("opentakserver.service" in line for line in wants)
+    assert any("opentakserver.service" in line for line in after)
 
 
 def test_backend_ports_stay_off_the_host() -> None:
