@@ -123,7 +123,7 @@ does not turn that message into a CoT event.
 ## A full queue
 
 `Router::enqueueReceivedMessage` drops the oldest packet when
-`fromRadioQueue` will not accept another. It logs
+`fromRadioQueue` does not accept another. It logs
 `fromRadioQ full, drop oldest!` and releases the packet. The log line is
 not an observation-discard record. The function does not mention
 participation.
