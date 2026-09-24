@@ -43,7 +43,9 @@ def repository(tmp_path: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / relative, destination)
     (tmp_path / "mission" / "examples").mkdir(parents=True)
-    (tmp_path / "services" / "quadlets").mkdir(parents=True)
+    shutil.copytree(
+        REPO_ROOT / "services" / "quadlets", tmp_path / "services" / "quadlets"
+    )
     return tmp_path
 
 
@@ -159,3 +161,30 @@ def test_enabled_alias_resolves_uniquely(
     _write_mission(repository, ["maps"])
 
     assert validator.validate_repository(repository) == []
+
+
+def test_unbundled_internal_unit_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """An internal unit cannot appear without an owning capability."""
+    stray = repository / "services" / "quadlets" / "stray.container.disabled"
+    stray.write_text("# not a catalog service\n", encoding="utf-8")
+
+    assert any(
+        "internal unit 'stray.container.disabled' is not in a catalog bundle" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_missing_bundle_member_is_rejected(
+    repository: Path, validator: ModuleType
+) -> None:
+    """A capability cannot claim an internal unit that is not in the tree."""
+    document = _catalog(repository)
+    document["services"][0]["bundle"].append("missing.container.disabled")
+    _write_catalog(repository, document)
+
+    assert any(
+        "bundle member is absent: services/quadlets/missing.container.disabled" in error
+        for error in validator.validate_repository(repository)
+    )

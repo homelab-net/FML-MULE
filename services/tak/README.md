@@ -9,15 +9,38 @@ preferred initial implementation, and the architecture remains
 the preferred library for custom CoT clients and translation gateways.
 `TBR-TAK-01` is `CLOSED` on `FML-ADR-071`.
 
-The service is three processes, one image. `services/tak/Containerfile`
-installs release `1.7.13` on a digest-pinned Python 3.12 base. The Quadlet
-texts are `services/quadlets/opentakserver.container.disabled`,
-`eud-handler.container.disabled`, and `cot-parser.container.disabled`.
-They share `/var/lib/fml/ots`. PostgreSQL and RabbitMQ are the same kind
-of disabled unit, using the digests recorded on 2026-08-31. None of these
-files is a loadable unit: the application image has no digest until that
-Containerfile is built, and no registry publishes one. A database-only
-copy is not a restore.
+The mission capability is one catalog entry, `opentakserver`. PostgreSQL,
+RabbitMQ, `eud_handler`, and `cot_parser` are internal units in that
+entry's bundle. They are not mission-selectable services.
+`services/tak/Containerfile` installs release `1.7.13` on a digest-pinned
+Python 3.12 base. Nothing in the bundle is loadable: the application image
+has no digest until that Containerfile is built, and no registry publishes
+one. A database-only copy is not a restore.
+
+The units share an internal Podman network, `ots.network`, and name each
+other on it: `postgresql` and `rabbitmq`. Release 1.7.13 defaults those
+dependencies to `127.0.0.1`, which is the container itself, so separate
+containers cannot use the defaults. The units set
+`OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq`. The SQL host is not a separate
+setting in that release: it is the host inside `SQLALCHEMY_DATABASE_URI`,
+which also holds the credential. The environment file supplies that string
+and must use host `postgresql`. It must not override the broker address.
+The broker account 1.7.13 uses by default is accepted only from the same
+network namespace, so the environment file has to supply a different
+account. No runtime proof has checked either connection.
+
+The API listens on the container interface (`OTS_LISTENER_ADDRESS=0.0.0.0`)
+and the CoT listener uses the container interface
+(`OTS_STREAMING_INTERFACE=0.0.0.0`). Neither port is published on the host.
+API `8081` and plain CoT `8088` stay on the internal network for ingress.
+This is not host networking. The 2026-08-31 bench used that and recorded it
+as a deviation.
+
+Workers require the database and the broker. They do not require the API
+process. Whether the API must finish migration before a worker starts is
+not established and is not expressed as a unit dependency. No unit sets
+`Restart=`. The mesh interface these units wait on is still `TBD`
+(`TBR-LINUX-01`); `network-online.target` is not that gate.
 
 ## What this is
 

@@ -113,6 +113,40 @@ def validate_repository(root: Path) -> list[str]:
                 f"loadable Quadlet {path.name!r} has no enabled catalog record"
             )
 
+    # A bundle member is an internal unit of one capability. It is not a
+    # second catalog service, and a mission cannot select it by filename.
+    bundle_owners: dict[str, list[str]] = {}
+    catalog_names = set(names)
+    for entry in services:
+        owner = entry["name"]
+        for member in entry.get("bundle", []):
+            bundle_owners.setdefault(member, []).append(owner)
+            if not (quadlets_path / member).is_file():
+                errors.append(
+                    f"service {owner!r} bundle member is absent: "
+                    f"services/quadlets/{member}"
+                )
+            stem = member.split(".", 1)[0]
+            if stem in catalog_names and stem != owner:
+                errors.append(
+                    f"bundle member {member!r} collides with catalog service {stem!r}"
+                )
+    for member, owners in sorted(bundle_owners.items()):
+        if len(owners) != 1:
+            errors.append(f"bundle member {member!r} is owned by {owners}")
+
+    internal_suffixes = (
+        ".container.disabled",
+        ".network.disabled",
+        ".target.disabled",
+    )
+    if quadlets_path.is_dir():
+        for path in sorted(quadlets_path.iterdir()):
+            if not path.is_file() or path.name == "example.container.disabled":
+                continue
+            if path.name.endswith(internal_suffixes) and path.name not in bundle_owners:
+                errors.append(f"internal unit {path.name!r} is not in a catalog bundle")
+
     # Enforcement: every accepted reference resolves to exactly one enabled
     # record. Invalid mission examples are expected to fail at another layer.
     for package in sorted((root / "mission" / "examples").glob("*.json")):

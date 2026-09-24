@@ -1,14 +1,20 @@
 # Local broker for CoT inside one node. Not loadable: the suffix is
-# .container.disabled. Image digest is the one recorded on 2026-08-31.
-# The broker is not a field-wide bus, and this file sets no cluster.
+# .container.disabled. Not a catalog service. Image digest is the one
+# recorded on 2026-08-31. The broker is not a field-wide bus, and this
+# file sets no cluster. Endpoint name on ots.network is the container
+# name below.
 
 [Unit]
-Description=RabbitMQ for the TAK service
+Description=RabbitMQ for the TAK capability
 Documentation=file:///usr/share/doc/fml/tak
-After=network-online.target
+PartOf=opentakserver.target
+After=ots-network.service
+Requires=ots-network.service
 
 [Container]
 Image=docker.io/library/rabbitmq@sha256:9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920
+ContainerName=rabbitmq
+Network=ots.network
 Volume=/var/lib/fml/rabbitmq:/var/lib/rabbitmq:Z
 EnvironmentFile=/run/fml/rabbitmq.env
 
@@ -16,4 +22,4 @@ EnvironmentFile=/run/fml/rabbitmq.env
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=opentakserver.target

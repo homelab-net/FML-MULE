@@ -14,6 +14,14 @@ this program needs them visible:
 
 ## Unreleased
 
+### Corrected the TAK unit topology
+
+`opentakserver` is one catalog capability. Its bundle owns the internal
+units: the API, the CoT listener, the parser, PostgreSQL, RabbitMQ, an
+internal network, and a target. Those are not mission services. The units
+do not publish the API or plain CoT port on the host, and the workers do
+not require the API process. No container was started.
+
 ### Started the TAK service unit texts
 
 Roadmap 4.1 now has a Containerfile for OpenTAKServer 1.7.13 and disabled

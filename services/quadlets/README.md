@@ -5,10 +5,11 @@ Podman Quadlet and systemd unit definitions for the mission-service plane.
 **Empty of loadable units.** The catalogued services (`services/catalog/`,
 `FML-ADR-078`) are approved as disabled contracts but not yet deployable: their
 unit references, image digests and resource envelopes are still `TBD`.
-`example.container.disabled` shows the conventions. The TAK service texts,
-also disabled, are `opentakserver`, `eud-handler`, `cot-parser`,
-`postgresql`, and `rabbitmq`. The `.disabled` suffix is what keeps systemd
-from starting them.
+`example.container.disabled` shows the conventions. The TAK capability is
+`opentakserver`; its internal units and network are disabled texts named in
+that entry's bundle. The `.disabled` suffix is what keeps systemd from
+starting them. PostgreSQL, RabbitMQ, the CoT listener, and the parser are
+not catalog services.
 
 ## What a Quadlet is
 
@@ -19,13 +20,16 @@ rather than in a device's local state. See `FML-ADR-029`.
 
 ## Conventions
 
-- **One file per service**, named for its catalog entry:
-  `<service-name>.container`.
+- **One file per catalog service**, named `<service-name>.container`, or an
+  internal unit named in that service's bundle. An internal unit is not
+  itself a catalog entry.
 - **Rootless by default.** A service that genuinely cannot run rootless may run
   rootful, with the reason recorded in its catalog entry, not here.
 - **Images referenced by immutable digest, never by tag.** This is checked; see
   `tools/validate-docs.sh`.
-- **Every unit has a catalog entry.** A unit with no entry is a defect.
+- **Every loadable unit has an enabled catalog entry.** A loadable unit with
+  no entry is a defect. A disabled internal unit is a defect unless exactly
+  one capability lists it in `bundle`.
 - **Resource limits are set**, once `TBR-COMP-01` establishes the budget. An
   unbounded service on a shared compute element can starve the network plane
   and flap the mesh.

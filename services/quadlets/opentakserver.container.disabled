@@ -1,23 +1,35 @@
 # OpenTAKServer API. Not loadable: the suffix is .container.disabled.
+# Owned by opentakserver.target. Not a separate mission service.
 # The application image has no digest until services/tak/Containerfile is
 # built. No registry publishes one. Do not replace Image with a tag.
+# No host port. Ingress on ots.network is the path to this process.
+# 1.7.13 binds the API to 127.0.0.1 unless told otherwise. 0.0.0.0 here is
+# the container interface on the internal network, not a host publish.
 
 [Unit]
 Description=OpenTAKServer web application and API
 Documentation=file:///usr/share/doc/fml/tak
-After=network-online.target postgresql.service rabbitmq.service
-Requires=postgresql.service rabbitmq.service
+PartOf=opentakserver.target
+After=ots-network.service postgresql.service rabbitmq.service
+Requires=ots-network.service postgresql.service rabbitmq.service
 
 [Container]
 Image=TBD
+ContainerName=opentakserver
+Network=ots.network
 Exec=opentakserver
 Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
 Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+Environment=OTS_LISTENER_ADDRESS=0.0.0.0
+Environment=OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+# SQLALCHEMY_DATABASE_URI host=postgresql
+# 1.7.13 has no separate SQL host setting. The URI holds the credential,
+# so EnvironmentFile supplies it and must use that host. It must not
+# override OTS_RABBITMQ_SERVER_ADDRESS.
 EnvironmentFile=/run/fml/ots.env
-PublishPort=8081:8081
 
 [Service]
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=opentakserver.target

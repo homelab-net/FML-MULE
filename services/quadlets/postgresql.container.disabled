@@ -1,14 +1,19 @@
-# SQL backend for the TAK service. Not loadable: the suffix is
-# .container.disabled. Image digest is the one recorded on 2026-08-31.
-# No credential belongs in this file.
+# SQL backend for the TAK capability. Not loadable: the suffix is
+# .container.disabled. Not a catalog service. Image digest is the one
+# recorded on 2026-08-31. No credential belongs in this file.
+# Endpoint name on ots.network is the container name below.
 
 [Unit]
-Description=PostgreSQL for the TAK service
+Description=PostgreSQL for the TAK capability
 Documentation=file:///usr/share/doc/fml/tak
-After=network-online.target
+PartOf=opentakserver.target
+After=ots-network.service
+Requires=ots-network.service
 
 [Container]
 Image=docker.io/library/postgres@sha256:485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8
+ContainerName=postgresql
+Network=ots.network
 Volume=/var/lib/fml/postgresql:/var/lib/postgresql/data:Z
 EnvironmentFile=/run/fml/postgresql.env
 
@@ -16,4 +21,4 @@ EnvironmentFile=/run/fml/postgresql.env
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=opentakserver.target

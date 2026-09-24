@@ -1,22 +1,32 @@
 # CoT parser. Not loadable: the suffix is .container.disabled.
+# Owned by opentakserver.target. Not a separate mission service.
 # It writes the rows. It shares the data folder with the other two
 # processes. FML-ADR-071: a database-only copy is not a restore.
+# The API process is not a runtime dependency.
 
 [Unit]
 Description=OpenTAKServer CoT parser
 Documentation=file:///usr/share/doc/fml/tak
-After=network-online.target postgresql.service rabbitmq.service opentakserver.service
-Requires=postgresql.service rabbitmq.service opentakserver.service
+PartOf=opentakserver.target
+After=ots-network.service postgresql.service rabbitmq.service
+Requires=ots-network.service postgresql.service rabbitmq.service
 
 [Container]
 Image=TBD
+ContainerName=cot-parser
+Network=ots.network
 Exec=cot_parser
 Volume=/var/lib/fml/ots:/var/lib/opentakserver:Z
 Environment=OTS_DATA_FOLDER=/var/lib/opentakserver
+Environment=OTS_RABBITMQ_SERVER_ADDRESS=rabbitmq
+# SQLALCHEMY_DATABASE_URI host=postgresql
+# 1.7.13 has no separate SQL host setting. The URI holds the credential,
+# so EnvironmentFile supplies it and must use that host. It must not
+# override OTS_RABBITMQ_SERVER_ADDRESS.
 EnvironmentFile=/run/fml/ots.env
 
 [Service]
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=opentakserver.target

@@ -1066,18 +1066,22 @@ continuity), section 9 (service criticality). Decision: `FML-ADR-032`,
 **State:** the state study is **done** (`TBR-TAK-01` is `CLOSED` on
 `FML-ADR-071`). The unit texts and `services/tak/Containerfile` are in the
 tree. They are not loadable. The application image has no digest, and the
-five runtime proofs have not been run. `OpenTAKServer` is **three** console
-entry points, and upstream's own container runs only the first:
+five runtime proofs have not been run. One catalog capability owns the
+internal units, on an internal network, with no host-published backend
+port. `OpenTAKServer` is **three** console entry points, and upstream's own
+container runs only the first:
 
 - `opentakserver` -- the web application and API;
 - `eud_handler` -- the CoT listener that binds the TCP/SSL/UDP streaming ports.
   **Without it the server accepts no TAK client at all;**
 - `cot_parser` -- the worker that turns received CoT into rows.
 
-**The implementation is therefore three Quadlet units, not one**, with a
-dependency order (`eud_handler` and `cot_parser` need the database and broker;
-all three share `OTS_DATA_FOLDER`), and `TBR-COMP-01` must budget three Python
-processes. See `docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md`.
+**The implementation is therefore three processes plus the database and the
+broker, owned by one catalog capability, not five mission services.**
+`eud_handler` and `cot_parser` need the database and the broker. They do
+not require the API process. All three share `OTS_DATA_FOLDER`.
+`TBR-COMP-01` must budget three Python processes. See
+`docs/evidence/TBR-TAK-01/2026-08-31-cot-end-to-end-with-pytak.md`.
 
 **Read first:** `services/tak/README.md`, `services/quadlets/README.md`,
 `FML-ADR-035` for service control, and the `TBR-TAK-01` artifacts, which

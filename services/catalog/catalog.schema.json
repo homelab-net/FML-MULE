@@ -57,6 +57,16 @@
             { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.container$" }
           ]
         },
+        "bundle": {
+          "type": "array",
+          "description": "Internal units this capability owns. Not mission-selectable services. Absent when the capability is one unit.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*\\.(container|network|target)\\.disabled$"
+          }
+        },
         "purpose": { "type": "string", "minLength": 1 },
         "image": {
           "description": "OCI reference by immutable digest, or TBD with the trade that will pin it named in a comment. A tag is never accepted.",
