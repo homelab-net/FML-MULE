@@ -5,8 +5,9 @@
 # after the broker is listening (docs/bench-service-bringup.md). Requires=
 # does not wait for that port. Notify=healthy on the broker does.
 # The API process is not a runtime dependency. After= waits until the API
-# unit is healthy, which is when its migrations have finished, and does
-# not stop this process if the API later exits.
+# unit is healthy, which is when its migrations have finished. ExecStartPre
+# makes that a successful-start gate: an API start failure prevents this worker
+# from starting, but the API is not a runtime requirement after that check.
 
 [Unit]
 Description=OpenTAKServer CoT listener
@@ -38,6 +39,7 @@ HealthStartPeriod=40s
 Notify=healthy
 
 [Service]
+ExecStartPre=/usr/bin/systemctl --user is-active --quiet opentakserver.service
 TimeoutStartSec=180
 # No Restart=. TBR-HA-01 is open.
 
