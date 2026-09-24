@@ -143,7 +143,7 @@ def test_dependencies_use_the_recorded_digests() -> None:
     )
     assert not any(line.startswith("Restart=") for line in _assignments(postgres))
     assert not any(line.startswith("Restart=") for line in _assignments(rabbit))
-    assert "Tmpfs=/var/lib/rabbitmq" in _assignments(rabbit)
+    assert "Tmpfs=/var/lib/rabbitmq:uid=999,gid=999,mode=0700" in _assignments(rabbit)
     assert "/var/lib/fml/rabbitmq" not in rabbit
 
 
