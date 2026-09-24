@@ -3,11 +3,11 @@
 # recorded on 2026-08-31. The broker is not a field-wide bus, and this
 # file sets no cluster. Endpoint name on ots.network is the container
 # name below.
-# RabbitMQ is transient service infrastructure, so its data directory is
-# tmpfs rather than durable host state. The image entrypoint starts as uid 0,
-# uses a tmpfs already owned by the image's rabbitmq uid/gid (999), then
-# drops to that user. Under
-# rootless Podman that uid 0 is the user namespace, not host root.
+# RabbitMQ is transient service infrastructure. It has no host-backed data
+# mount: the container writable layer is disposable and Quadlet generates the
+# service with --rm, so broker-local state is discarded when the container is
+# removed. The image entrypoint manages /var/lib/rabbitmq inside that layer.
+# Under rootless Podman, container uid 0 is the user namespace, not host root.
 # Notify=healthy holds every After= on this unit until the broker answers
 # ping. Started is not ready. No credential is in the probe.
 
@@ -23,7 +23,6 @@ Image=docker.io/library/rabbitmq@sha256:9cfb7e92ae7d296aec4d1ae799e431209f7ed57d
 User=0
 ContainerName=rabbitmq
 Network=ots.network
-Tmpfs=/var/lib/rabbitmq:uid=999,gid=999,mode=0700
 EnvironmentFile=/run/fml/rabbitmq.env
 HealthCmd=rabbitmq-diagnostics -q ping
 HealthInterval=5s
