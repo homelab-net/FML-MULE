@@ -49,7 +49,7 @@ if ! runtime_ok; then
 fi
 
 if ! runtime_ok; then
-  echo "systemd-enabled Podman 5+ with the user Quadlet generator is required" >&2
+  echo "Podman 5 or newer is required, with systemd health scheduling and the user Quadlet generator" >&2
   podman version >&2 || true
   exit 1
 fi
