@@ -247,6 +247,11 @@ Meshtastic `Neighbor.snr` is "SNR of last heard message". `Neighbor` has a
 time and "will not be sent out over the mesh." `NeighborInfo.node_id` is "The
 node ID of the node sending info on its neighbors."
 
+For a link-heard observation those are different roles.
+`NeighborInfo.node_id` is the source: the node reporting what it heard.
+`Neighbor.node_id` is the subject: the neighbor it reports. The message
+still has no lifecycle word, and it does not say the path can carry traffic.
+
 ## Score
 
 A behavior row that names no field means the record does not state that
@@ -255,12 +260,12 @@ policy. It does not mean the sentence can be met only by adding a field.
 | Sentence | CoT event | OpenTAKServer `cot` row | Meshtastic `Position` | Meshtastic `Neighbor` |
 | --- | --- | --- | --- | --- |
 | Time observed | Not defined as observation time. `time` is event generation. `start` is validity start. Mapping observation time onto `time` would be a convention. | Copies those two, plus the row's `timestamp` from the event `time`. | `timestamp` is the GPS solution time, for this position only. | None. `last_rx_time` is when a message was received, and it is not sent. |
-| Source | `how` is how the coordinates were made, not who produced the observation. | `sender_uid` and `sender_callsign` name the connected endpoint. A relay can be that endpoint. | `from` is the sending node number. `location_source` is how the fix was acquired. | `node_id` is the node reporting neighbors, or the neighbor. Neither is a subject separate from the radio. |
+| Source | `how` is how the coordinates were made, not who produced the observation. | `sender_uid` and `sender_callsign` name the connected endpoint. A relay can be that endpoint. | `from` is the sending node number. `location_source` is how the fix was acquired. | `NeighborInfo.node_id` is the source: the node reporting its neighbors. `Neighbor.node_id` is the subject: the neighbor reported. Those are distinct. |
 | Six state words | No such values. Optional `qos` uses "supersede" to mean the newer event deletes the older one. | No state column. | None. `sensor_id` names a positioning sensor. | None. |
 | Not presented as current | After `stale`, the event is outside its validity interval. One timestamp covers both "stale" and "expired", so the record cannot say which. Presentation of a past-`stale` event is not defined here. | Same timestamps. No presentation rule. | No validity end. | No validity end. |
 | Delivery must not replace observation time | No delivery-time field. A forwarded event can keep `time` and `start`. A newly generated event has a new birth time, which is what `time` means. | Stores the event times it was given. | `timestamp` is in the position. `rx_time` is reception, is not sent on the radio, and may be rewritten before a phone sees it. Using `rx_time` as the observed time would be the replacement the sentence forbids. | `last_rx_time` is reception time and is local only. |
 | Expiry is history, not deletion | The `uid` rule overwrites every previous event for that UID with the latest. Optional `qos` value `r` is "new event replaces (deletes) old event". | `uid` is not unique, so more than one row can exist. `delete_old_data` then deletes rows older than a server cutoff, default one week. That is not a mission-profile retention. `FML-ADR-071` does not require the table to survive. | A position is the position. No retention field. | Local only. No retention field. |
-| Two subjects; possible match is not identity | Distinct UIDs are distinct pieces of information. Nothing records "possible" versus "confirmed". `how` value `f` means fused, "corroborated from multiple sources", which is a confirmation hint, not a caution. | Same. | One sending node. No match field. | One neighbor id. No match field. |
+| Two subjects; possible match is not identity | Distinct UIDs are distinct pieces of information. Nothing records "possible" versus "confirmed". `how` value `f` means fused, "corroborated from multiple sources", which is a confirmation hint, not a caution. | Same. | One sending node. No match field. | Reporter and neighbor are already two ids. Nothing records "possible" versus "confirmed". |
 | Heard link is not a usable path or an emitter location | A point is required, so the event is a location. No field says the path can or cannot carry traffic. | A `point` row is stored with the event. | The message is a location. | SNR of the last heard message, with no coordinates. It does not say the path can carry traffic. It also does not say it cannot. |
 | Derived product names sources, does not replace them; a model is labeled and is not an observation | `detail` is outside the schema. `how` can say predicted, simulated, or fused, and the event is still an event with a point. Reusing a source UID overwrites that source. | Same stored XML. | None of these fields. | None of these fields. |
 | Full queue records the discard and does not end participation | No bound and no participation flag. Optional `qos` value `c` drops a message on congestion and does not record that drop. | The bench's `cot_parser` queue was non-durable and records no discard. | `MeshPacket` priority can keep a background position from being sent on a congested link. That comment does not say the drop is recorded, and it does not speak about participation. | None. |
@@ -281,9 +286,12 @@ What those sources do already define:
 - `Position.timestamp` is a GPS solution time, for that position only. It is
   the one reviewed field whose documented meaning is a time of observation,
   and only for that fix.
-- `Neighbor` reports a heard link and has no coordinates. It does not say
-  the path can carry traffic, and it does not say it cannot. It is not a
-  general observation, and it has no lifecycle word.
+- For a heard link, `NeighborInfo.node_id` is the source, the node
+  reporting its neighbors, and `Neighbor.node_id` is the subject, the
+  neighbor reported. Those roles are already distinct. The message has no
+  coordinates. It does not say the path can carry traffic, and it does not
+  say it cannot. It is not a general observation, and it has no lifecycle
+  word.
 - CoT `how` is a hint about how coordinates were generated, including fused,
   predicted, simulated, and relayed. It is not the producer of an
   observation, and it does not say the event is not an observation.
