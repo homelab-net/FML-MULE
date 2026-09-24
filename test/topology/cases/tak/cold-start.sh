@@ -33,18 +33,22 @@ home=/home/$account
 runtime=""
 
 as_user() {
-  # This runner's sudo keeps XDG_CONFIG_HOME on the invoking home.
-  # env -i is what points Podman and systemctl at this account.
-  sudo -u "$account" env -i \
-    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
-    HOME="$home" \
-    USER="$account" \
-    LOGNAME="$account" \
-    XDG_RUNTIME_DIR="$runtime" \
-    DBUS_SESSION_BUS_ADDRESS="unix:path=${runtime}/bus" \
-    XDG_CONFIG_HOME="$home/.config" \
-    XDG_DATA_HOME="$home/.local/share" \
-    "$@"
+  # This runner's sudo keeps XDG_CONFIG_HOME on the invoking home, and
+  # Podman refuses a cwd this account cannot enter. env -i and a home
+  # the account owns are what make the commands its own.
+  (
+    cd "$home" || exit
+    sudo -u "$account" env -i \
+      PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+      HOME="$home" \
+      USER="$account" \
+      LOGNAME="$account" \
+      XDG_RUNTIME_DIR="$runtime" \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=${runtime}/bus" \
+      XDG_CONFIG_HOME="$home/.config" \
+      XDG_DATA_HOME="$home/.local/share" \
+      "$@"
+  )
 }
 
 dump() {
@@ -130,9 +134,19 @@ EOF
 chown -R "$account:$account" /run/fml
 chmod 600 /run/fml/*.env
 
-as_user podman build -t fml-ots-topology:test -f services/tak/Containerfile services/tak
-as_user podman build -t fml-ots-client:test -f test/topology/cases/tak/Clientfile \
-  test/topology/cases/tak
+# The checkout is not traversable by this account. Build from a copy it owns.
+src="$home/src"
+rm -rf "$src"
+mkdir -p "$src/tak" "$src/client"
+cp "$root/services/tak/Containerfile" "$root/services/tak/listen_ready.py" \
+  "$src/tak/"
+cp "$root/test/topology/cases/tak/Clientfile" \
+  "$root/test/topology/cases/tak/send_cot.py" "$src/client/"
+chown -R "$account:$account" "$src"
+as_user podman build -t fml-ots-topology:test -f "$src/tak/Containerfile" \
+  "$src/tak"
+as_user podman build -t fml-ots-client:test -f "$src/client/Clientfile" \
+  "$src/client"
 postgres_image=$(sed -n 's/^Image=//p' services/quadlets/postgresql.container.disabled)
 rabbit_image=$(sed -n 's/^Image=//p' services/quadlets/rabbitmq.container.disabled)
 as_user podman pull "$postgres_image"
