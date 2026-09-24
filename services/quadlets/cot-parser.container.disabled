@@ -3,7 +3,9 @@
 # It writes the rows. It shares the data folder with the other two
 # processes. FML-ADR-071: a database-only copy is not a restore.
 # The API process is not a runtime dependency. After= waits until that
-# unit is healthy so the schema exists. This process has no listen port.
+# unit's start job finishes; ExecStartPre then requires it to be active, so a
+# failed migration/API start cannot let the parser run against an unready schema.
+# This process has no listen port.
 # A persisted row is its readiness proof, not Notify=.
 
 [Unit]
@@ -29,6 +31,7 @@ Environment=OTS_MEDIAMTX_ENABLE=false
 EnvironmentFile=/run/fml/ots.env
 
 [Service]
+ExecStartPre=/usr/bin/systemctl --user is-active --quiet opentakserver.service
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
