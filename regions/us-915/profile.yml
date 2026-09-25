@@ -47,13 +47,29 @@ lora:
 # Conventional Wi-Fi: inter-node bearer and EUD access point.
 # These are separate logical radio functions; see FML-ADR-045.
 wifi:
-  permitted_bands: []         # e.g. ["2.4GHz", "5GHz"]
-  mesh_channel: TBD           # Trade: TBR-RF-01
-  ap_channel: TBD             # Trade: TBR-RF-03
-  max_eirp_dbm: TBD
-  indoor_only_channels: []    # Channels restricted to indoor use in this region
-  dfs_required: TBD           # Whether dynamic frequency selection is required
-  source: TBD
+  # AP RF parameters set by Owner decision 2026-09-21 (TBR-RF-03 AP-params
+  # sub-decision only; the trade's radio-consolidation/hardware half stays OPEN).
+  # Baseline: dual-band permitted, 5 GHz preferred as the AP primary; migrate the
+  # AP to 2.4 GHz when achievable EIRP / coverage on 5 GHz is inadequate. That
+  # migration trigger is hardware-measured (the "too low" coverage floor is
+  # quantified on real hardware, TBR-RF-03's hardware half); both bands are
+  # permitted here so the 2.4 fallback needs no re-approval -- it is a re-point of
+  # ap_channel, not a schema change. See
+  # docs/evidence/TBR-RF-03/2026-09-21-ap-channel-and-eirp-decision-packet.md
+  permitted_bands: ["2.4GHz", "5GHz"]
+  mesh_channel: TBD           # Trade: TBR-RF-01 (not set here)
+  # 5 GHz UNII-3, non-DFS, outdoor-permitted; recommended primary. The Owner may
+  # override the specific channel.
+  ap_channel: 149
+  # Regulatory ceiling (FCC 47 CFR 15.247 P2MP), not operating power; applies to
+  # UNII-3 and the 2.4 GHz fallback. Operating EIRP is hardware-bounded, set below.
+  max_eirp_dbm: 36
+  indoor_only_channels: []    # UNII-3 (149) and 2.4 (1/6/11): not indoor-only
+  dfs_required: false         # ch 149 and 2.4 (1/6/11) are non-DFS
+  # Regulatory basis for the values above.
+  source: >-
+    FCC 47 CFR Part 15.247 (2.4 GHz + 5 GHz UNII-3) and 15.407 (5 GHz UNII);
+    Owner decision 2026-09-21
 
 # Amateur radio integration is disabled by default everywhere.
 # Enabling it requires a licensed control operator, station identification, and
