@@ -70,6 +70,21 @@ def _require_interface(interfaces: Mapping[str, str], role: str) -> str:
     return _require(interfaces.get(role), f"interface {role!r}")
 
 
+def _require_ssid(value: Any, what: str) -> str:  # noqa: ANN401
+    """Return a present SSID with no control character, or fail closed.
+
+    A hostapd directive cannot span lines, so a newline (or any control char) in
+    an SSID would inject a second directive. The mission schema forbids this at
+    load (the primary [CI] control); this is defense-in-depth for any caller that
+    bypasses the schema, e.g. a hand-built parameter document in a test.
+    """
+    ssid = _require(value, what)
+    if any(ord(ch) < 0x20 or 0x7F <= ord(ch) <= 0x9F for ch in ssid):
+        message = f"cannot render: {what} contains a control character"
+        raise RenderError(message)
+    return ssid
+
+
 def _hw_mode(channel: int) -> str:
     """Map a channel to the hostapd hw_mode for its band."""
     return "a" if channel >= _FIVE_GHZ_MIN_CHANNEL else "g"
@@ -96,7 +111,9 @@ def render_hostapd(
     region = _require(resolved.get("region"), "region parameters")
 
     ap_iface = _require_interface(interfaces, "eud_ap")
-    ssid = _require(network.get("ap_ssid"), "operational AP SSID (network.ap_ssid)")
+    ssid = _require_ssid(
+        network.get("ap_ssid"), "operational AP SSID (network.ap_ssid)"
+    )
     country = _require(region.get("country_code"), "region.country_code")
     channel = int(_require(wifi.get("ap_channel"), "wifi.ap_channel"))
     dfs_required = bool(_require(wifi.get("dfs_required"), "wifi.dfs_required"))
@@ -159,7 +176,7 @@ def _render_onboarding(
         resolved.get("network", {}).get("onboarding"),
         "network.onboarding",
     )
-    onboarding_ssid = _require(onboarding_ref.get("ssid"), "onboarding SSID")
+    onboarding_ssid = _require_ssid(onboarding_ref.get("ssid"), "onboarding SSID")
     onboarding_iface = _require_interface(interfaces, "onboarding_ap")
 
     out.extend(

@@ -1,8 +1,11 @@
 ---
 # Region profile: United States, 902-928 MHz.
 #
-# Status: UNVERIFIED. Every parameter below is TBD. Nothing here has been
-# verified against the rules, and no module or channel has been selected.
+# Status: UNVERIFIED. Most parameters below are still TBD. The Wi-Fi AP RF
+# parameters (band, channel, DFS, AP EIRP ceiling, country_code) are decided
+# (TBR-RF-03 AP-params + Owner-sourced US); the mesh, HaLow and LoRa values
+# remain TBD (TBR-RF-01/02). Nothing here is verified against hardware, and no
+# compute module has been selected.
 #
 # Consumed by configuration generation. Every value here is a regulatory or
 # planning parameter for one region. No file in os/config/ contains a
@@ -64,18 +67,36 @@ wifi:
   # docs/evidence/TBR-RF-03/2026-09-21-ap-channel-and-eirp-decision-packet.md
   permitted_bands: ["2.4GHz", "5GHz"]
   mesh_channel: TBD           # Trade: TBR-RF-01 (not set here)
+  # Mesh EIRP is TBR-RF-01's decision, distinct from the AP's. It stays TBD: the
+  # AP-params decision (TBR-RF-03) must not resolve the mesh trade.
+  mesh_max_eirp_dbm: TBD      # Trade: TBR-RF-01
   # 5 GHz UNII-3, non-DFS, outdoor-permitted; recommended primary. The Owner may
   # override the specific channel.
   ap_channel: 149
-  # Regulatory ceiling (FCC 47 CFR 15.247 P2MP), not operating power; applies to
-  # UNII-3 and the 2.4 GHz fallback. Operating EIRP is hardware-bounded, set below.
-  max_eirp_dbm: 36
+  # AP regulatory ceiling, not operating power; applies to UNII-3 and the 2.4 GHz
+  # fallback. Operating EIRP is hardware-bounded, set below. Derivation in source.
+  ap_max_eirp_dbm: 36         # Trade: TBR-RF-03
   indoor_only_channels: []    # UNII-3 (149) and 2.4 (1/6/11): not indoor-only
   dfs_required: false         # ch 149 and 2.4 (1/6/11) are non-DFS
-  # Regulatory basis for the values above.
+  # Regulatory basis. The 36 dBm AP ceiling is DERIVED from two verbatim rules
+  # (quoted, not paraphrased; retrieved from law.cornell.edu/cfr/text/47/15.247
+  # on 2026-09-25):
+  #   47 CFR 15.247(b)(3): "For systems using digital modulation in the
+  #     902-928 MHz, 2400-2483.5 MHz, and 5725-5850 MHz bands: 1 Watt."
+  #     1 W = 30 dBm conducted. Channel 149 (5745 MHz) is within 5725-5850 MHz.
+  #   47 CFR 15.247(b)(4): "The conducted output power limit ... is based on the
+  #     use of antennas with directional gains that do not exceed 6 dBi. ... if
+  #     transmitting antennas of directional gain greater than 6 dBi are used, the
+  #     conducted output power ... shall be reduced below the stated values ... by
+  #     the amount in dB that the directional gain of the antenna exceeds 6 dBi."
+  # Derivation: 30 dBm conducted + 6 dBi (no reduction) = 36 dBm EIRP; above 6 dBi
+  # the conducted power drops dB-for-dB, holding EIRP at 36 dBm. This is the EIRP
+  # ceiling, NOT the operating power (hardware-bounded, set well below). Owner
+  # decision 2026-09-21.
   source: >-
-    FCC 47 CFR Part 15.247 (2.4 GHz + 5 GHz UNII-3) and 15.407 (5 GHz UNII);
-    Owner decision 2026-09-21
+    FCC 47 CFR 15.247(b)(3) (1 W = 30 dBm conducted for 902-928/2400-2483.5/
+    5725-5850 MHz) and 15.247(b)(4) (6 dBi gain with no reduction; excess reduces
+    conducted power dB-for-dB) -> 36 dBm EIRP ceiling. Owner decision 2026-09-21.
 
 # Amateur radio integration is disabled by default everywhere.
 # Enabling it requires a licensed control operator, station identification, and

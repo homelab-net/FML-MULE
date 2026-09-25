@@ -15,7 +15,7 @@ question (whether AP and mesh share one radio), which stays open and
 ## 1. Why this is on the critical path now
 
 `tools/gen-config.py --check` refuses to resolve the region because
-`wifi.ap_channel` and `wifi.max_eirp_dbm` are `TBD` (`No region profile is
+`wifi.ap_channel` and `wifi.ap_max_eirp_dbm` are `TBD` (`No region profile is
 resolvable yet`). That refusal is deliberate -- "do not invent an RF/regulatory
 value" as code. So the whole v0.0.1 slice is blocked here: **without the AP band /
 channel / EIRP, GAP-09E cannot render the AP config, and 09G/H/I cannot follow.**
@@ -54,11 +54,31 @@ paper decision, decidable now, independent of any hardware.
   high-rate mesh band clear -- which *reduces* the AP-vs-mesh contention that the
   consolidation question is about, and is data that informs it.
 
-### EIRP (`max_eirp_dbm`)
+### EIRP (`ap_max_eirp_dbm`)
 
-**Sourced ceilings (why band and EIRP interact):** FCC Part 15.247 allows
-**36 dBm** EIRP (point-to-multipoint) on 2.4 GHz and on 5 GHz **UNII-3**
-(5725-5850 MHz); Part 15.407 caps 5 GHz **UNII-1** (5150-5250 MHz) at **30 dBm**.
+**Sourced ceilings (why band and EIRP interact).** The 36 dBm figure is
+*derived* from two verbatim rules, not a number stated in the CFR (corrected
+2026-09-25 after a review flagged the earlier paraphrase; text retrieved from
+law.cornell.edu/cfr/text/47/15.247):
+
+> 47 CFR 15.247(b)(3): "For systems using digital modulation in the 902-928 MHz,
+> 2400-2483.5 MHz, and 5725-5850 MHz bands: 1 Watt."
+
+The conducted limit combines with the antenna-gain rule:
+
+> 47 CFR 15.247(b)(4): "The conducted output power limit ... is based on the use
+> of antennas with directional gains that do not exceed 6 dBi. ... if transmitting
+> antennas of directional gain greater than 6 dBi are used, the conducted output
+> power ... shall be reduced below the stated values ... by the amount in dB that
+> the directional gain of the antenna exceeds 6 dBi."
+
+**Derivation:** 1 W = 30 dBm conducted, plus up to 6 dBi antenna gain with no
+reduction, gives **36 dBm EIRP**; above 6 dBi the conducted power drops
+dB-for-dB, holding EIRP at 36 dBm. The 6 dBi allowance is general (not
+point-to-multipoint-specific; the P2MP vs fixed-P2P distinction affects only
+gains above 6 dBi). Channel 149 (5745 MHz) is within 5725-5850 MHz, so it is
+covered by (b)(3). Part 15.407 governs the other UNII sub-bands, e.g. UNII-1
+(5150-5250 MHz) at a lower ceiling; the chosen ch 149 is UNII-3 under 15.247.
 So a UNII-3 primary matches 2.4's ceiling, and dropping to 2.4 buys **propagation**
 (more coverage per watt), not EIRP headroom -- which is exactly why "5 GHz unless
 coverage/EIRP too low, then 2.4" is sound.
@@ -118,7 +138,7 @@ no mesh, no field radios.
 ## 7. Files that change AFTER approval (not now)
 
 `regions/us-915/profile.yml`: set `wifi.permitted_bands`, `wifi.ap_channel`,
-`wifi.max_eirp_dbm`, `wifi.dfs_required`, and `wifi.source` (the regulatory basis).
+`wifi.ap_max_eirp_dbm`, `wifi.dfs_required`, and `wifi.source` (the regulatory basis).
 Then `gen-config` resolves the AP-only target and GAP-09E can render.
 
 ## 8. Sources reviewed
@@ -137,9 +157,10 @@ Written to `regions/us-915/profile.yml`:
 - `permitted_bands: ["2.4GHz", "5GHz"]` -- dual-band baseline.
 - `ap_channel: 149` -- 5 GHz UNII-3 (non-DFS, outdoor-permitted) as the preferred
   primary; the Owner may override the specific channel.
-- `max_eirp_dbm: 36` -- the FCC 47 CFR 15.247 P2MP regulatory ceiling (applies to
-  UNII-3 and the 2.4 fallback); the **regulatory maximum, not** the operating
-  power, which is hardware-bounded and set well below it.
+- `ap_max_eirp_dbm: 36` -- the regulatory ceiling derived from 47 CFR
+  15.247(b)(3)+(b)(4) (1 W conducted + 6 dBi; see the EIRP section for the quoted
+  text), applying to UNII-3 and the 2.4 fallback; the **regulatory maximum, not**
+  the operating power, which is hardware-bounded and set well below it.
 - `dfs_required: false` -- ch 149 and the 2.4 fallback (1/6/11) are non-DFS.
 
 **Result:** `gen-config --region us-915 --mission <package> --node mule-v001
@@ -155,7 +176,7 @@ shows HaLow/LoRa/mesh `TBD` (`TBR-RF-02`/`TBR-RF-01`) -- correct, because
   floor is quantified on real hardware (`TBR-RF-03`'s hardware half). Both bands
   are permitted, so the fallback is a re-point of `ap_channel`, not a re-approval.
 - The **operating EIRP** (hostapd tx power) is bounded by the AP radio + antenna
-  and confirmed on hardware; `max_eirp_dbm` here is only the regulatory cap.
+  and confirmed on hardware; `ap_max_eirp_dbm` here is only the regulatory cap.
 - The **channel pick (149)** is a recommendation, overridable by the Owner.
 
 This does **not** close `TBR-RF-03`; its radio-consolidation/hardware half remains

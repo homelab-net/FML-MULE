@@ -40,7 +40,7 @@ def _resolved_from_mission() -> dict:
             "ap_channel": 149,
             "permitted_bands": ["2.4GHz", "5GHz"],
             "dfs_required": False,
-            "max_eirp_dbm": 36,
+            "ap_max_eirp_dbm": 36,
         },
     }
 

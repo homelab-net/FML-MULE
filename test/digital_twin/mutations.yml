@@ -827,3 +827,9 @@ mutations:
     describe: the renderer invents a value instead of failing closed on TBD
     find: "    if value is None or (isinstance(value, str) and value.strip() == TBD):"
     replace: "    if False:"
+
+  - id: M129
+    file: mule/rendering.py
+    describe: an SSID with a control character is emitted, injecting hostapd config
+    find: "    if any(ord(ch) < 0x20 or 0x7F <= ord(ch) <= 0x9F for ch in ssid):"
+    replace: "    if False:"

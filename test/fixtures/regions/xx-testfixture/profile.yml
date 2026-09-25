@@ -45,7 +45,8 @@ wifi:
   permitted_bands: ["5GHz"]
   mesh_channel: 149
   ap_channel: 36
-  max_eirp_dbm: 23
+  ap_max_eirp_dbm: 23       # Trade: TBR-RF-03 (AP)
+  mesh_max_eirp_dbm: 23     # Trade: TBR-RF-01 (mesh)
   indoor_only_channels: [36]
   dfs_required: false
   source: "Synthetic fixture. No rule."

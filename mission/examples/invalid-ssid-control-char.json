@@ -1,0 +1,15 @@
+{
+  "_comment": "EXAMPLE ONLY. EVERY IDENTITY IN THIS FILE IS FAKE. This is a deliberately invalid package.",
+  "_violates": "mission schema ap_ssid pattern: an SSID with a control character (here a TERMINAL newline) is rejected. The value must be caught even though a naive `$`-anchored regex would let a trailing newline pass; the SSID is interpolated into hostapd config where a newline injects a directive.",
+  "schema_version": "0.1",
+  "mission": {
+    "id": "example-invalid-ssid-control-char",
+    "name": "Invalid fictional package with a control character in the SSID",
+    "example": true
+  },
+  "network": {
+    "mesh_id": "example-invalid-mesh",
+    "ap_ssid": "example-ap\n"
+  },
+  "profile": "exercise"
+}

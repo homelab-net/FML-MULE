@@ -44,7 +44,7 @@ def _resolved(
             "ap_channel": ap_channel,
             "permitted_bands": ["2.4GHz", "5GHz"],
             "dfs_required": dfs_required,
-            "max_eirp_dbm": 36,
+            "ap_max_eirp_dbm": 36,
         },
     }
 
@@ -173,6 +173,20 @@ def test_a_missing_ssid_fails_closed() -> None:
 def test_a_missing_country_code_fails_closed() -> None:
     with pytest.raises(r.RenderError, match="country_code"):
         r.render_hostapd(_resolved(country_code=None), IFACES, _quarantined())
+
+
+def test_a_control_char_in_the_operational_ssid_fails_closed() -> None:
+    # A newline would inject a second hostapd directive. Defense-in-depth for a
+    # caller that bypasses the mission schema (which is the primary control).
+    with pytest.raises(r.RenderError, match="control character"):
+        r.render_hostapd(_resolved(ap_ssid="bad\nssid"), IFACES, _quarantined())
+
+
+def test_a_control_char_in_the_onboarding_ssid_fails_closed() -> None:
+    with pytest.raises(r.RenderError, match="control character"):
+        r.render_hostapd(
+            _resolved(onboarding_ssid="bad\nonboard"), IFACES, _quarantined()
+        )
 
 
 def test_a_missing_onboarding_block_fails_closed_when_quarantined() -> None:
