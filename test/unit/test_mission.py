@@ -40,7 +40,7 @@ def test_schema_errors_include_stable_object_and_array_paths() -> None:
 
     issues = validate_document(mission, load_schema())
 
-    assert [issue.path for issue in issues] == ["$.network", "$.services[0]"]
+    assert [issue.path for issue in issues] == ["$.network", "$.services[1]"]
     assert all(issue.message for issue in issues)
     assert issues[0].render().startswith("$.network: ")
 

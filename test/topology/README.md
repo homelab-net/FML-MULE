@@ -1,7 +1,8 @@
 # Service topology
 
-One hosted service is checked here: the OpenTAKServer capability. The
-framework can take another case later. This directory does not invent one.
+The OpenTAKServer capability has the full static and cold-start case. The
+enabled Martin service is included in Quadlet generation; its manual runtime
+and HTTP behavior remain in `test/bench/map-server-footprint.sh`.
 
 Three layers, and they are not the same claim:
 
@@ -15,8 +16,9 @@ Three layers, and they are not the same claim:
    the listener's database dependency, or remove its API-start gate must fail.
 2. **Quadlet generation** (`quadlet-dry-run.sh`). The generator has to
    accept the container and network files and emit their service names,
-   including `--sdnotify=healthy`. `Image=TBD` is replaced only in that
-   temporary copy.
+   including `martin.service` and TAK's `--sdnotify=healthy`. TAK's `Image=TBD`
+   values are replaced only in that temporary copy; Martin retains its pinned
+   digest.
 3. **Cold start** (`cases/tak/cold-start.sh`). An unprivileged account with a
    subordinate UID range installs the materialized units and systemd starts
    `opentakserver.target`. `Notify=healthy` is what makes `After=` wait for

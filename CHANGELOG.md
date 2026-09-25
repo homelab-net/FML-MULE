@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Enabled Martin as the v0.0.1 service
+
+The Program Owner selected Martin serving one read-only per-mission MBTiles
+file. The catalog now enables a rootless Quadlet pinned to the official Martin
+1.16.1 multi-architecture image digest. The unit fails closed when the mission
+store is unreadable and publishes only on host loopback, leaving AP ingress and
+phone acceptance to GAP-09E/H/I. No restart policy, target-hardware resource
+budget, or hardware verification is claimed.
+
 ### Started the TAK capability from its units
 
 PostgreSQL, RabbitMQ, the API, and the listener notify systemd when

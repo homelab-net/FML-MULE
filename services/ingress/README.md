@@ -3,7 +3,11 @@
 Local DNS and reverse proxy configuration: how an operator's device reaches the
 services on a node.
 
-**Nothing is configured. No service exists to reach.**
+**Nothing is configured. Martin now exists, but there is no EUD-facing route.**
+Its Quadlet publishes the backend only on `127.0.0.1:3000`, preserving the
+requirement below that an application port is not directly reachable. GAP-09E
+still owns the AP/ingress path, GAP-09H the operator procedure, and GAP-09I the
+phone-over-AP acceptance.
 
 `FML-ADR-031` selects local DNS plus a lightweight TCP/HTTP proxy layer, with
 **HAProxy** as the preferred initial proxy, and prefers **TCP passthrough** for

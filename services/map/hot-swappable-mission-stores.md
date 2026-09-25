@@ -2,9 +2,9 @@
 
 Two questions this answers: does an EUD end up pointed at a USB drive that may
 not be there, and how does a node serve a different mission's maps from a
-swappable drive. It is design, not code -- the tile server itself is `TBR-MAP-01`
-and gated on a `services/catalog/` decision -- but the shape below is what that
-implementation has to satisfy.
+swappable drive. Martin and its read-only MBTiles handoff are now implemented in
+the catalog and Quadlet; the mount and operator workflow remain design. The
+shape below is what that integration has to satisfy.
 
 ## The EUD never sees the USB
 
@@ -41,10 +41,12 @@ neither the TAK service nor the node's own state.
 
 ## Hot-swap
 
-Pull mission A's drive, insert mission B's: the mount point now holds B's
-`.mbtiles`, and the tile server serves B on the next request. **No EUD change, no
-source-URL change, no service restart** for a server that reads the store at the
-mount point.
+Pull mission A's drive, insert mission B's: the stable path now holds B's
+`.mbtiles`, without changing the EUD source URL. The selected Martin profile
+opens one explicitly named file at startup, so the current unit requires an
+operator restart before it serves B. A no-restart directory-watch profile would
+be a different deployment choice and is not claimed here while `TBR-HA-01` and
+GAP-09H remain open.
 
 It is safe because the map store is **read-only**: a drive pulled mid-serve
 yields `ENOENT` for the tiles it held, which the service turns into a gray tile,
@@ -86,10 +88,11 @@ EUD's path; the map store is read-only, so a swap is safe and a missing store is
 a miss.
 
 **Open (this design surfaces, does not decide):** the mount mechanism and label
-(udev versus a systemd mount unit, in `os/`); the version-on-swap policy for the
-EUD cache; the manifest format and its tie to the mission package; and, as ever,
-the tile-store format and server, which are `TBR-MAP-01`. Nothing is built here;
-implementation waits on `TBR-MAP-01` and a `services/catalog/` decision.
+(udev versus a systemd mount unit, in `os/`); the restart/unmount sequence; the
+version-on-swap policy for the EUD cache; and the manifest format and its tie to
+the mission package. The tile-store format and server are selected and their
+fixed-path, read-only handoff is implemented; removable-media integration is
+not.
 
 See `README.md` for the service outline, `serving-across-the-mesh.md` for the
 local-mesh source order, and `filling-the-store-from-wan.md` for the WAN tier and

@@ -257,7 +257,10 @@ findings:
     owner: Claude
     evidence:
       - "docs/evidence/findings/GAP-09F/decision-packet.md"
-    user_gate: "Approve the milestone service"
+    state: IMPLEMENTED
+    user_gate: >-
+      Program Owner selected Martin with per-mission read-only MBTiles in the
+      Codex thread on 2026-09-24
 
   - <<: *open_independent
     id: GAP-09G
@@ -265,7 +268,13 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-02, GAP-09C, GAP-09F]
-    user_gate: "Approve the deployment unit and privileges"
+    owner: Codex
+    state: IMPLEMENTED
+    evidence:
+      - "docs/evidence/findings/GAP-09G/2026-09-24-implementation.md"
+    user_gate: >-
+      Program Owner approved pressing the recommended rootless Martin deployment
+      in the Codex thread on 2026-09-24
 
   - <<: *open_independent
     id: GAP-09H

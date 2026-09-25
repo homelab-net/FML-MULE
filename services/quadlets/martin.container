@@ -1,0 +1,42 @@
+# Martin local map service - FML-ADR-029, FML-ADR-073, FML-ADR-078.
+#
+# Install this as a rootless user Quadlet. Podman's manual says rootless units
+# are read from "$XDG_CONFIG_HOME/containers/systemd" or
+# "~/.config/containers/systemd". Omitting AutoUpdate leaves the immutable
+# image under operator control.
+
+[Unit]
+Description=Martin local map tile service
+Documentation=https://github.com/maplibre/martin/blob/martin-v1.16.1/docs/content/run-with-docker.md
+
+[Container]
+# podman-systemd.unit(5): "supports using :tag or digests to guarantee the
+# specific image version." The release tag was resolved to this multi-arch
+# index on 2026-09-24; the digest, not the tag, is the deployment identity.
+Image=ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca
+
+# podman-systemd.unit(5): "If host IP is not set, then it defaults to 0.0.0.0."
+# Loopback is explicit because the EUD-facing route belongs to ingress, not
+# this backend (FML-ADR-073).
+PublishPort=127.0.0.1:3000:3000
+
+# Martin's pinned Docker guide mounts local files and passes the mounted path
+# after the image. The host file is the stable mission-package handoff; both
+# the mount and the container root filesystem are read-only.
+# podman-systemd.unit(5): "Mount a volume in the container." Without Volume,
+# the host MBTiles file is absent from the container.
+Volume=/var/lib/fml/maps/mission.mbtiles:/data/mission.mbtiles:ro
+Exec=/data/mission.mbtiles
+# podman-systemd.unit(5): "If true, mount the container's root filesystem as
+# read only." The documented default is false.
+ReadOnly=true
+
+[Service]
+# systemd.service(5): ExecStartPre commands run before ExecStart, and a failed
+# command makes the unit fail. Without this line an unreadable mission store
+# would only surface as an application startup failure.
+ExecStartPre=/usr/bin/test -r /var/lib/fml/maps/mission.mbtiles
+
+# No Restart=. TBR-HA-01 is open.
+# No resource limit is asserted. TBR-COMP-01 remains open; the x86-64 software
+# bench is not a target-hardware budget.

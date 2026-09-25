@@ -3,10 +3,12 @@
 The set of services approved to run on a MULE node, and what each one is for.
 
 **Two entries: `opentakserver` and `martin`** (`catalog.yml`, `FML-ADR-078`).
-Each is approved as a *catalog contract*, but both are disabled and neither is a
-deployable build: no loadable unit exists, and their image digests and measured
-resource envelopes carry `TBD` until `TBR-COMP-01`, `TBR-MAP-01` and the
-OpenTAKServer build close. A mission cannot enable either record in this state.
+Martin is the enabled v0.0.1 service: its loadable rootless Quadlet pins the
+official Martin 1.16.1 multi-architecture image by immutable digest and mounts
+one mission MBTiles file read-only. OpenTAKServer remains a disabled contract;
+its build and image digest are not selected. Martin's target-hardware resource
+envelope remains `TBD` under `TBR-COMP-01`; enabling the already measured
+software profile does not turn the x86-64 bench into a hardware claim.
 
 ## Why a catalog exists
 
@@ -64,9 +66,9 @@ entry with an estimated envelope has not been evaluated.
 
 ## Expected entries
 
-OpenTAKServer and Martin are selected catalog contracts but are not enabled for
-deployment. Other entries below name what the plane may eventually hold, not a
-commitment:
+Martin is enabled for the v0.0.1 slice. OpenTAKServer is a selected catalog
+contract but is not enabled for deployment. Other entries below name what the
+plane may eventually hold, not a commitment:
 
 - Browser-based field services beyond the selected map service.
 - An identity and mission trust layer. See `services/identity/`.

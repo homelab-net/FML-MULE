@@ -2,14 +2,17 @@
 
 Podman Quadlet and systemd unit definitions for the mission-service plane.
 
-**Empty of loadable units.** The catalogued services (`services/catalog/`,
-`FML-ADR-078`) are approved as disabled contracts but not yet deployable: their
-unit references, image digests and resource envelopes are still `TBD`.
-`example.container.disabled` shows the conventions. The TAK capability is
-`opentakserver`; its internal units and network are disabled texts named in
-that entry's bundle. The `.disabled` suffix is what keeps systemd from
-starting them. PostgreSQL, RabbitMQ, the CoT listener, and the parser are
-not catalog services.
+**One loadable unit.** `martin.container` is the enabled v0.0.1 service. It runs
+rootless, pins Martin 1.16.1 by immutable digest, reads one mission MBTiles file
+at `/var/lib/fml/maps/mission.mbtiles`, and publishes only to host loopback for
+the future ingress layer. It deliberately sets neither restart policy nor a
+target-hardware resource limit while `TBR-HA-01` and `TBR-COMP-01` are open.
+
+`example.container.disabled` shows the general conventions. The TAK capability
+is `opentakserver`; its internal units and network remain disabled texts named
+in that entry's bundle. The `.disabled` suffix is what keeps systemd from
+starting them. PostgreSQL, RabbitMQ, the CoT listener, and the parser are not
+catalog services.
 
 ## What a Quadlet is
 
@@ -47,9 +50,11 @@ rather than in a device's local state. See `FML-ADR-029`.
 
 ## Ordering
 
-Services start after the network plane is up. The bring-up sequence is in
-`os/config/interfaces.conf.template`, and the unit-level expression of it is
-`TBD` pending `TBR-LINUX-01`.
+Network-facing services start after the network plane is up. The bring-up
+sequence is in `os/config/interfaces.conf.template`, and the unit-level
+expression for interface-bound services is `TBD` pending `TBR-LINUX-01`.
+Martin binds only to loopback in this increment, so it does not invent that
+open interface dependency.
 
 A service that starts before its interface exists fails in a way that looks
 like a service fault, and is not.

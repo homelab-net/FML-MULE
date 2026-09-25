@@ -11,7 +11,7 @@
 # an estimated envelope has not been evaluated"). Nothing had ever measured a
 # real tile server: the 2026-09-04 interface bench and the mesh bench both served
 # tiles from an ad-hoc python3 process, which sizes nothing. This measures the
-# candidate the catalog would actually pin.
+# service the catalog pins.
 #
 # WHAT IT SELECTS, AND WHY MARTIN. The criteria are FML-ADR-029 (rootless,
 # digest-pinned) and AGENTS.md rule 6 (an existing, maintained tool, not a new
@@ -59,11 +59,11 @@
 
 set -eu
 
-# Martin (MapLibre), pinned by digest -- the immutable reference a catalog entry
-# and Quadlet would carry. Resolved from the project's `latest` tag at
-# ghcr.io/maplibre/martin on 2026-09-06; re-resolve and update here when the pin
-# is advanced.
-MARTIN_DIGEST="ghcr.io/maplibre/martin@sha256:84f406ac96839aad3ea06ddaa68ef7617ed55305c21038c182d59f100e48dd6d"
+# Martin (MapLibre), pinned by digest -- the immutable reference carried by the
+# catalog and Quadlet. Resolved from the official `1.16.1` release tag at
+# ghcr.io/maplibre/martin on 2026-09-24. Re-resolve and update the catalog,
+# Quadlet, test and evidence together when the pin advances.
+MARTIN_DIGEST="ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca"
 
 NAME=fml-mapfoot
 PORT=8899

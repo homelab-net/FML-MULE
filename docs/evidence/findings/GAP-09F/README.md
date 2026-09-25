@@ -3,10 +3,11 @@
 This directory records the one-real-service selection for the v0.0.1 vertical
 slice (REMEDIATION Phase 3).
 
-State: OPEN -- decision packet prepared, `AWAITING_USER_DECISION`. The Program
-Owner selects the milestone service and content format; no option is implemented
-until that approval is recorded.
+State: IMPLEMENTED -- the Program Owner selected Martin serving one read-only
+per-mission MBTiles file in the Codex thread on 2026-09-24. The catalog and
+Quadlet implement that disposition under GAP-09G. Independent review is still
+required before this finding can close.
 
 | Artifact | What it records |
 | --- | --- |
-| `decision-packet.md` | Candidate comparison (Martin, Kiwix, OpenTAKServer, NOMAD content), selection criteria (image pinnability, `TBR-HA-01` exposure, license, resource, content format), recommendation, and requested Owner disposition. |
+| `decision-packet.md` | Candidate comparison, selection criteria, recommendation, and the Owner's Martin/MBTiles disposition. |
