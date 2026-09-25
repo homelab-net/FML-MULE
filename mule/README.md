@@ -17,6 +17,7 @@ question you can ask in plain English.
 | `sysfs.py` | Reading the machine's own sensors through the Linux kernel. |
 | `timekeeping.py` | Can the clock be trusted? |
 | `admission.py` | May this device join the network? |
+| `onboarding.py` | May an unadmitted device reach enrollment? |
 | `services.py` | What does this node offer, and what name does a user reach it by? |
 | `modes.py` | Which operating modes is the node in, and which can it not tell? |
 | `mission.py` | Is a mission package valid according to the declared runtime schema? |
@@ -70,12 +71,13 @@ The line between this directory and `tools/` is **when** the decision is made.
 - **Anything no scenario exercises.** This is a home for logic that has been
   demonstrated, not a waiting room for logic somebody intends to write.
 
-## Nothing installs this yet
+## Runtime installation
 
-`os/` owns installation, and the promotion gate in `os/release/README.md` does
-not know this package exists. How it reaches an image, how it is packaged, and
-what the node's process entry point is are left to a later implementation ADR.
-`FML-ADR-051` records that gap rather than hiding it.
+`os/` owns installation. `FML-ADR-083` selects an image-built Python
+distribution and a bounded `python -m mule` oneshot entry point for
+configuration rendering. It is native node logic, not a service-plane
+container. The implementation remains part of GAP-09D until the image installs
+and exercises that entry point.
 
 ## How to read a file here
 

@@ -16,6 +16,8 @@ Values that differ between deployments cannot live in the repository:
 - Address prefix, once `TBR-NET-01` decides the scheme.
 - Local domain and service names.
 - Mission trust material references, never the material itself.
+- A temporary onboarding SSID, absolute expiry, and protected credential
+  reference, never the credential itself (`FML-ADR-084`).
 - Which services run, and the mission profile in force.
 
 Putting any of these in a repository file makes every deployment built from it
@@ -69,4 +71,5 @@ marked `TBD` in the schema itself rather than being guessed:
 | Address family, prefix source, host allocation | `TBR-NET-01` |
 | What mission state is durable, and what a package must declare about it | `TBR-TAK-01` |
 | How trust material is referenced and supplied | `TBR-SEC-01` |
+| Who may enroll and how enrollment becomes an admission credential | `TBR-ID-01` |
 | What an EMCON profile can actually enforce | `TBR-RF-02` |

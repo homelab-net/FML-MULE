@@ -467,6 +467,10 @@ def resolve(
             # valid prefix never reached the generated configuration (GAP-03).
             "address_prefix": mission.get("network", {}).get("address_prefix"),
             "ap_ssid": mission.get("network", {}).get("ap_ssid"),
+            # FML-ADR-084: the package carries only the temporary onboarding
+            # window and a reference to protected credential material. The
+            # credential itself never enters this document.
+            "onboarding": mission.get("network", {}).get("onboarding"),
         },
         "amateur": {
             # Amateur integration is disabled by default in every region.

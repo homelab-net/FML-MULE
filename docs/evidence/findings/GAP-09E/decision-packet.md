@@ -1,11 +1,10 @@
 # GAP-09E decision packet: AP-only network rendering
 
-**State:** `AWAITING_USER_DECISION`. This packet **surfaces the unspecified AP
-semantics and decides none**. Rendering hostapd/DHCP/DNS/host-network requires
-the Owner to approve the addressing, isolation, and failure semantics
-(REMEDIATION gate -- "AP network design" and "unspecified addressing, isolation,
-or failure semantics"; register 09E user gate). **No config is rendered by this
-packet.**
+**State:** `APPROVED`; implementation remains open. On 2026-09-25 the Program
+Owner selected a temporary, broadcast-while-active onboarding BSS that remains
+isolated until admission and becomes hidden when its mission-supplied key or
+time window expires. `FML-ADR-084` records the controlling boundary. The
+operational EUD BSS remains non-isolated under `FML-ADR-057`.
 
 **Finding:** GAP-09E. **Prepared:** 2026-09-21. **Author:** Claude agent
 (redirected from Codex). **Independent verifier:** a separate agent at execution
@@ -38,15 +37,16 @@ open trade, and the Owner must resolve those before a render:
 | --- | --- | --- |
 | DHCP range, lease, options | dnsmasq | **derives from the CLOSED `TBR-NET-01`** (field address prefix) -- a render task, not a gate |
 | Local DNS: the one 09F service name | dnsmasq | `TBR-TAK-01` is **CLOSED**; the name follows the 09F choice -- a render task |
-| AP client isolation (client-to-client) | hostapd | **unspecified** security semantic |
-| SSID broadcast vs hidden (`ignore_broadcast_ssid`) | hostapd | **unspecified** (Owner has leaned "do not broadcast") |
-| **AP passphrase / credential origin** | hostapd | the "two credentials have no origin" gap (identity plane) -- **not** in the mission package schema |
-| AP-down / interface-failure behavior | networkd/hostapd | **unspecified** failure semantic |
+| Operational AP client isolation | hostapd | **decided:** off, `FML-ADR-057` |
+| Onboarding client isolation | hostapd | **decided:** on, separate BSS/domain, `FML-ADR-084` |
+| Onboarding SSID broadcast | hostapd | **decided:** broadcast while active, hidden after expiry or time failure |
+| **AP passphrase / credential origin** | hostapd | protected material remains outside the package; the package carries a reference and expiry |
+| AP-down / interface-failure behavior | networkd/hostapd | **decided:** fail closed; no open fallback |
 | Interface naming | networkd | open: `TBR-LINUX-01` |
 
 ## 4. Recommendation (the Owner decides each)
 
-Minimal, security-first v0.0.1 defaults, offered as recommendations only:
+Approved v0.0.1 semantics:
 
 - **DHCP:** a small static range inside the AP subnet derived from the closed
   `TBR-NET-01` addressing, short lease so a device moving between nodes recovers --
@@ -54,12 +54,13 @@ Minimal, security-first v0.0.1 defaults, offered as recommendations only:
 - **DNS:** resolve only the single 09F milestone service name (or IP-only if the
   Owner prefers); `TBR-TAK-01` is closed, so this follows the 09F choice; no
   upstream forwarding under EMCON.
-- **Client isolation:** **on** (EUDs reach services, not each other) unless the
-  mission needs peer-to-peer.
-- **SSID:** hidden (`ignore_broadcast_ssid`) per the Owner's stated lean.
-- **AP credential:** **flagged, not resolved** -- its origin is the open identity
-  question; the v0.0.1 AP needs a provisioned passphrase whose source the Owner
-  must name (this packet will not invent one or place one in any file).
+- **Client isolation:** on only for the separate onboarding BSS. The operational
+  BSS remains non-isolated so admitted EUDs retain peer ATAK.
+- **SSID:** broadcast while the mission-supplied onboarding window is active;
+  hidden when it expires or time cannot be trusted.
+- **AP credential:** generated and stored outside the committed package. The
+  mission package carries only its protected-material reference and absolute
+  UTC expiry. QR/profile output may carry the join material to the EUD.
 - **AP-down:** fail closed (no silent fallback to an open AP).
 - **Interface name:** deferred to `TBR-LINUX-01`.
 
@@ -69,8 +70,9 @@ Minimal, security-first v0.0.1 defaults, offered as recommendations only:
   are render tasks derived from decided records, not gate-closing acts. Naming the
   interface still touches `TBR-LINUX-01` (OPEN). This packet writes none of the
   values.
-- The AP credential must never appear in the repository (SECURITY.md); its origin
-  is an identity-plane decision, not this render.
+- The AP credential must never appear in the repository or resolved parameter
+  document (SECURITY.md). `TBR-ID-01` still owns who may enroll and how an
+  enrollment becomes a production credential.
 
 ## 6. Reversibility and smallest safe prototype
 
@@ -81,11 +83,11 @@ mesh, no field radios.
 
 ## 7. Files and acceptance criteria that change AFTER approval (not now)
 
-After approval: the resolved AP config outputs generated from the templates; any
-new addressing/isolation values recorded against their trades; evidence under
-`docs/evidence/findings/GAP-09E/`. Acceptance: a client associates to the AP and
-gets an address + the approved name resolution, with isolation and SSID behavior
-as approved.
+The remaining outputs are resolved hostapd, DHCP/DNS, firewall and host-network
+configuration plus evidence under `docs/evidence/findings/GAP-09E/`.
+Acceptance: an onboarding client gets an address and approved name resolution,
+can reach enrollment only, cannot reach peers or the operational domain, and is
+removed at expiry; an admitted client retains operational peer traffic.
 
 ## 8. Sources reviewed
 
@@ -96,7 +98,7 @@ REMEDIATION Phase 3, line 651.
 
 ## 9. Owner disposition
 
-`AWAITING_USER_DECISION` -- approve the isolation / SSID-broadcast /
-credential-origin / AP-down semantics. The DHCP range and DNS name derive from the
-closed `TBR-NET-01`/`TBR-TAK-01`; interface naming touches the open `TBR-LINUX-01`;
-the AP credential origin is the identity plane. No config is rendered until then.
+`APPROVED` -- Program Owner approval recorded 2026-09-25. `FML-ADR-084` selects
+the separate quarantined onboarding network, active-window broadcast behavior,
+credential-reference boundary and fail-closed expiry. GAP-09E remains open until
+the rendered configuration and EUD exercise evidence land.

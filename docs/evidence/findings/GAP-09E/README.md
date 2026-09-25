@@ -3,11 +3,12 @@
 This directory records the AP-only network-rendering decision (hostapd, DHCP/DNS,
 host-network) for the v0.0.1 vertical slice.
 
-State: OPEN -- decision packet prepared, `AWAITING_USER_DECISION`. The DHCP range
-and DNS name derive from the closed `TBR-NET-01`/`TBR-TAK-01`; the isolation,
-SSID-broadcast, AP-credential-origin, and AP-down semantics are unspecified and
-the Owner must approve them before any config is rendered.
+State: OPEN -- owner decision approved on 2026-09-25 and recorded in
+`FML-ADR-084`. Onboarding uses a separate isolated, enrollment-only BSS that
+broadcasts during its mission-supplied credential window and hides/fails closed
+at expiry or on untrusted time. The operational BSS remains non-isolated under
+`FML-ADR-057`. Rendering and EUD evidence remain.
 
 | Artifact | What it records |
 | --- | --- |
-| `decision-packet.md` | The values derivable from closed records versus the genuinely unspecified semantics, the recommended minimal v0.0.1 defaults, and requested Owner disposition. |
+| `decision-packet.md` | The approved two-BSS boundary, time gate, credential-reference rule, failure behavior and remaining rendering work. |

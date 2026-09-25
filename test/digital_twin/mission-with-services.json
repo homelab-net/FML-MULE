@@ -13,7 +13,12 @@
     "mesh_id": "example-flatsat-mesh",
     "local_domain": "example.invalid",
     "address_prefix": "10.83.0.0/16",
-    "ap_ssid": "example-flatsat-ap"
+    "ap_ssid": "example-flatsat-ap",
+    "onboarding": {
+      "ssid": "example-flatsat-onboard",
+      "credential_ref": "example-onboarding-reference-not-material",
+      "expires_at": "2026-01-03T00:00:00Z"
+    }
   },
   "profile": "exercise",
   "services": [

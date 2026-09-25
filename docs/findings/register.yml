@@ -235,7 +235,9 @@ findings:
     owner: Claude
     evidence:
       - "docs/evidence/findings/GAP-09D/decision-packet.md"
-    user_gate: "Approve the runtime entry point and installation model"
+    user_gate: >-
+      Native python -m mule oneshot and image installation model approved by
+      the Program Owner in the Codex thread on 2026-09-25; FML-ADR-083
 
   - <<: *open_independent
     id: GAP-09E
@@ -246,7 +248,10 @@ findings:
     owner: Claude
     evidence:
       - "docs/evidence/findings/GAP-09E/decision-packet.md"
-    user_gate: "Approve any unresolved network semantics"
+    user_gate: >-
+      Separate quarantined onboarding BSS, active-window SSID broadcast,
+      credential-reference boundary, and fail-closed expiry approved by the
+      Program Owner in the Codex thread on 2026-09-25; FML-ADR-084
 
   - <<: *open_independent
     id: GAP-09F

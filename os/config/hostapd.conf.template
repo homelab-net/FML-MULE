@@ -109,6 +109,11 @@ wpa_passphrase=TBD
 # consequence of the decision, not an argument against it.
 ap_isolate=0
 
+# FML-ADR-084 does not change this operational BSS. Unadmitted devices use a
+# separate temporary onboarding BSS and layer-2 domain with client isolation
+# enabled and only the enrollment path permitted. They are never placed on this
+# peer domain and never gain operational access through a firewall exception.
+
 # --- Notes ------------------------------------------------------------------
 # A client association storm is one of the peak conditions TBR-COMP-01 must
 # measure against. An access point that starves the network plane during a

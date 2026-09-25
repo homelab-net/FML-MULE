@@ -83,6 +83,35 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 32
+        },
+        "onboarding": {
+          "description": "FML-ADR-084 temporary onboarding access-network declaration. It carries an absolute window and a reference to protected credential material, never the credential itself. Omission means onboarding is closed.",
+          "type": "object",
+          "required": [
+            "ssid",
+            "credential_ref",
+            "expires_at"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ssid": {
+              "description": "Mission-specific onboarding SSID. It is broadcast only while the declared window is active.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "credential_ref": {
+              "description": "Reference to protected onboarding credential material supplied outside the committed package. This is not a key, password, token, or certificate.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "expires_at": {
+              "description": "Absolute UTC expiry of the onboarding credential and broadcast window. The package supplies the instant; the node invents no lifetime.",
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"
+            }
+          }
         }
       }
     },

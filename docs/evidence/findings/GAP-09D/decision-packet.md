@@ -1,11 +1,9 @@
 # GAP-09D decision packet: MULE runtime packaging
 
-**State:** `AWAITING_USER_DECISION`. This packet **recommends but decides
-nothing**. The runtime entry point and installation model are an architectural
-decision the Owner approves, and they require a new implementation ADR
-(REMEDIATION gate -- "creates an architectural decision"; register 09D user gate
--- "approve the runtime entry point and installation model"). **No code, no unit
-file, and no `Restart=` value is written by this packet.**
+**State:** `APPROVED`; implementation remains open. The Program Owner approved
+the recommended entry point, installation model and unit shape on 2026-09-25.
+`FML-ADR-083` records the controlling decision. No `Restart=` or `OnFailure=`
+policy is selected here because `TBR-HA-01` remains open.
 
 **Finding:** GAP-09D. **Prepared:** 2026-09-21. **Author:** Claude agent
 (redirected from Codex). **Independent verifier:** a separate agent at execution
@@ -60,15 +58,12 @@ time; a Debian package; or a vendored module -- each versioned against the
 (`After=`/`Wants=` the network plane), and privilege (native host service vs a
 narrowly scoped helper per SAD 9.3).
 
-## 4. Recommendation (the Owner decides; needs an ADR)
+## 4. Approved disposition
 
-Lean toward **(c) a `Type=oneshot` config-render entry via `python -m mule`**,
-installed by **pip-into-image at build time, pinned to the `FML-ADR-040` set** --
-because the node's job in the v0.0.1 slice is to render validated config and make
-admission/status decisions, not to run a long media daemon; oneshot avoids
-introducing a supervised long-running process (and its restart policy) before
-`TBR-HA-01` is decided. This is a recommendation for the **implementation ADR**,
-not an approval.
+The Owner selected **(c) a `Type=oneshot` config-render entry via
+`python -m mule`**, installed as a Python distribution in the image and bound to
+the `FML-ADR-040` compatibility set. `FML-ADR-083` records the decision and
+keeps restart policy deferred to `TBR-HA-01`.
 
 ## 5. Consequences and the gates this must NOT close
 
@@ -89,13 +84,13 @@ state). Smallest safe prototype after approval: a disposable oneshot unit on the
 x86 dev article that renders config and exits `0`, with restart behavior left
 unset pending `TBR-HA-01`.
 
-## 7. Files and acceptance criteria that change AFTER approval (not now)
+## 7. Implementation acceptance criteria
 
-After the implementation ADR is approved: a new `FML-ADR-###` (installation +
-versioning); `pyproject.toml` (if a distribution is chosen); a systemd unit
-(name/shape per the ADR, restart deferred); `os/` install wiring; evidence under
-`docs/evidence/findings/GAP-09D/`. Acceptance: the unit installs on the dev image
-and reaches its declared state without prejudging `TBR-HA-01`/`TBR-LINUX-01`.
+The remaining change is `pyproject.toml`, the bounded module entry point, a
+native oneshot with restart behavior omitted, image install wiring, and evidence
+under `docs/evidence/findings/GAP-09D/`. Acceptance: the unit installs on the dev
+image and reaches its declared state without prejudging
+`TBR-HA-01`/`TBR-LINUX-01`.
 
 ## 8. Sources reviewed
 
@@ -106,6 +101,6 @@ line 648.
 
 ## 9. Owner disposition
 
-`AWAITING_USER_DECISION` -- approve the entry-point form, installation/versioning
-model, and unit shape (via a new implementation ADR). No code, unit file, or
-restart policy is written until then.
+`APPROVED` -- Program Owner approval recorded 2026-09-25. `FML-ADR-083` selects
+the entry-point, installation/versioning model and unit shape. GAP-09D remains
+open until the image-installed oneshot is exercised and closure evidence lands.

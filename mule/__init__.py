@@ -1,6 +1,6 @@
 """The decisions a MULE node makes while it is running.
 
-Five small modules, one question each:
+Small modules, one question each:
 
 - `bearers.py` - which radios can a node have, and which does it need?
 - `power.py` - how long can the node keep running, and can it say?
@@ -9,6 +9,7 @@ Five small modules, one question each:
   that produces readings rather than judging them.
 - `timekeeping.py` - can the clock be trusted?
 - `admission.py` - may this device join the network?
+- `onboarding.py` - may an unadmitted device reach enrollment?
 - `services.py` - what does this node offer, and by what name?
 - `status.py` - what do we tell the operator?
 
@@ -22,9 +23,9 @@ to end. This is a home for demonstrated logic, not a staging area for
 intended logic, and the ADR records that an accumulation of unexercised
 modules is the signal the decision was wrong.
 
-There is no service daemon and no process entry point here, and there will not
-be one until an implementation ADR decides how this package is installed onto an
-image and versioned against the compatibility set in `FML-ADR-040`. The four
+There is no long-running service daemon. `FML-ADR-083` selects a bounded native
+oneshot entry point for configuration rendering, installed and versioned with
+the compatibility set in `FML-ADR-040`. The four
 placeholder components in `services/` remain blocked on their trades and must
 not be implemented here or anywhere else.
 

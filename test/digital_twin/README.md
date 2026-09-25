@@ -25,6 +25,8 @@ Plus the refusal paths, which are the reason the rest is worth having:
 - A profile that resolves to something the region forbids is rejected.
 - Retained local time that cannot be trusted refuses admission rather than
   failing open, per `FML-ADR-042`.
+- The temporary onboarding BSS broadcasts only inside its mission-supplied
+  window and remains isolated and enrollment-only, per `FML-ADR-084`.
 - A node that cannot serve users reports a fault rather than GREEN.
 
 ## What it does not cover
@@ -67,6 +69,7 @@ which is production code held to production standards:
 | --- | --- |
 | Can the clock be trusted? | `mule/timekeeping.py` |
 | May this device join? | `mule/admission.py` |
+| May an unadmitted device reach enrollment? | `mule/onboarding.py` |
 | What does this node offer, and by what name? | `mule/services.py` |
 | Which operating modes is the node in? | `mule/modes.py` |
 | What do we tell the operator? | `mule/status.py` |
