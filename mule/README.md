@@ -57,9 +57,9 @@ The line between this directory and `tools/` is **when** the decision is made.
   nobody watching. Whether the clock can be trusted. Whether a phone may
   connect.
 - `tools/` is what is decided **about** the node beforehand, on a builder's
-  machine. `tools/gen-config.py` works out which radio channel is lawful in a
-  region and refuses to guess when nobody has decided yet. That runs before the
-  node exists, so it lives there.
+  machine. `tools/gen-config.py` is now only a command wrapper: the node-time
+  resolution decision lives in `mule.configuration`, and both the wrapper and
+  `python -m mule` invoke that one implementation.
 
 ## What does not belong here
 
@@ -73,11 +73,17 @@ The line between this directory and `tools/` is **when** the decision is made.
 
 ## Runtime installation
 
-`os/` owns installation. `FML-ADR-083` selects an image-built Python
-distribution and a bounded `python -m mule` oneshot entry point for
-configuration rendering. It is native node logic, not a service-plane
-container. The implementation remains part of GAP-09D until the image installs
-and exercises that entry point.
+`os/` owns installation. `FML-ADR-083` selects the image-built `fml-mule`
+Python distribution and a bounded `python -m mule` oneshot entry point. The
+entry point validates explicit region, mission, node, service-catalog and
+deployed-Quadlet inputs, atomically writes `parameters.json`, and exits. The
+builder-side `tools/gen-config.py` command delegates to this same module; it is
+not a second implementation. This is native node logic, not a service-plane
+container.
+
+The distribution and static unit are wired into the development image. GAP-09D
+remains open until that installed unit is exercised under the image's systemd;
+source-tree and wheel execution are `SIMULATED`, not target evidence.
 
 ## How to read a file here
 

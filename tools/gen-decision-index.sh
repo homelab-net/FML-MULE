@@ -71,6 +71,7 @@ searchable() {
   find . -type f \( -name '*.md' -o -name '*.py' -o -name '*.sh' -o -name '*.yml' \
     -o -name '*.conf' -o -name '*.template' \) \
     -not -path './.git/*' \
+    -not -path './build/*' \
     -not -path './node_modules/*' \
     -not -path './.venv*' \
     -not -path './venv*' \

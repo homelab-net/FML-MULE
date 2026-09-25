@@ -8,6 +8,7 @@ apply to real packages loaded by a node.
 from __future__ import annotations
 
 import json
+import sysconfig
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,7 +19,16 @@ from jsonschema.exceptions import SchemaError
 
 # FML-ADR-051: runtime decision logic is importable outside the test tree.
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_SCHEMA_PATH = REPO_ROOT / "mission" / "schema" / "mission-package.schema.json"
+SOURCE_SCHEMA_PATH = REPO_ROOT / "mission" / "schema" / "mission-package.schema.json"
+INSTALLED_SCHEMA_PATH = (
+    Path(sysconfig.get_path("data"))
+    / "share"
+    / "fml-mule"
+    / "mission-package.schema.json"
+)
+DEFAULT_SCHEMA_PATH = (
+    SOURCE_SCHEMA_PATH if SOURCE_SCHEMA_PATH.is_file() else INSTALLED_SCHEMA_PATH
+)
 
 
 class MissionLoadError(Exception):

@@ -108,31 +108,31 @@ mutations:
 
   # --- configuration ------------------------------------------------------
   - id: M10
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: a channel outside the permitted band is accepted
     find: "        elif not (low <= channel <= high):"
     replace: "        elif False:"
 
   - id: M11
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: a TBD value no longer refuses generation
     find: "        raise UnresolvedValueError(message)\n\n    resolved: dict[str, Any] = {"
     replace: "        pass\n\n    resolved: dict[str, Any] = {"
 
   - id: M12
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: a bearer the region forbids still gets a channel resolved
     find: "        if permitted is not True:"
     replace: "        if False:"
 
   - id: M13
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: an unenforceable EIRP ceiling is accepted
     find: "        if not isinstance(eirp, (int, float)):"
     replace: "        if False:"
 
   - id: M71
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: configuration generation bypasses canonical mission validation
     find: "        return load_validated_mission(path)"
     replace: '        return json.loads(Path(path).read_text(encoding="utf-8"))'
@@ -376,47 +376,47 @@ mutations:
   # FML-ADR-075: an active bearer with no configuration target is a hard error,
   # and resolution emits only the active bearers' blocks.
   - id: M100
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: an unknown active bearer is silently accepted
     find: "    if unknown:"
     replace: "    if False:"
 
   - id: M101
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: an inactive bearer's block is emitted anyway
     find: "    if \"halow\" in selected:"
     replace: "    if True:"
 
   # FML-ADR-078: a mission enabling a service with no catalog entry is refused.
   - id: M103
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: a mission enabling an uncatalogued service is accepted
     find: "    unknown = [name for name in enabled if name not in references]"
     replace: "    unknown = []"
 
   - id: M104
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: a disabled catalog contract is treated as deployable
     find: '    disabled = [name for name in enabled if not references[name]["enabled"]]'
     replace: "    disabled = []"
 
   - id: M105
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: an enabled service with no deployment unit is accepted
-    find: "            if not (quadlets / unit).is_file():"
-    replace: "            if False:"
+    find: "                if not (selected_quadlets / logical).is_file():"
+    replace: "                if False:"
 
   - id: M106
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: duplicate catalog names or aliases are silently overwritten
     find: "            if reference in references:"
     replace: "            if False:"
 
   - id: M107
-    file: tools/gen-config.py
+    file: mule/configuration.py
     describe: operator check mode bypasses service catalog enforcement
-    find: '            _resolve_services(list(mission.get("services", [])))'
-    replace: "            pass"
+    find: "            _resolve_services("
+    replace: "            if False: _resolve_services("
 
   - id: M31
     file: mule/thermal.py

@@ -1,4 +1,4 @@
-"""Unit tests for tools/gen-config.py.
+"""Unit tests for the packaged configuration renderer.
 
 The tool's most important behaviour today is what it **refuses** to do. Every
 region profile in `regions/` is unresolvable, and the correct result is a
@@ -13,13 +13,13 @@ Resolution and validation are exercised against the synthetic fixture region in
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
-from types import ModuleType
 
 import pytest
 import yaml
+
+from mule import configuration as gc
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REGIONS = REPO_ROOT / "test" / "fixtures" / "regions" / "xx-testfixture"
@@ -35,20 +35,6 @@ FIXTURE_NODE_AP_ONLY = (
     REPO_ROOT / "test" / "fixtures" / "nodes" / "ap-only" / "node.yml"
 )
 US_915 = REPO_ROOT / "regions" / "us-915" / "profile.yml"
-
-
-def _load() -> ModuleType:
-    """Load the hyphenated executable script as a module."""
-    path = REPO_ROOT / "tools" / "gen-config.py"
-    spec = importlib.util.spec_from_file_location("gen_config_under_test", path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-gc = _load()
-
 
 # --- refusal on TBD ------------------------------------------------------
 
@@ -507,6 +493,118 @@ def test_enabled_bundle_resolves_when_its_members_exist(
     resolved = gc.resolve(gc.load_region(str(FIXTURE_REGIONS / "profile.yml")), package)
 
     assert resolved["mission"]["services"] == ["opentakserver"]
+
+
+@pytest.mark.parametrize(
+    ("service", "created", "fragment"),
+    [
+        (
+            _service("martin", unit="wrong.container"),
+            [],
+            "must name deployment unit",
+        ),
+        (
+            _service("martin", unit="martin.container")
+            | {"bundle": ["member.container"]},
+            [],
+            "must name a .target",
+        ),
+        (
+            _service("martin"),
+            ["martin.container", "martin.container.disabled"],
+            "still has disabled text",
+        ),
+        (
+            _service("martin", enabled=False, unit="martin.container")
+            | {"bundle": ["member.container"]},
+            [],
+            "must name its .target root",
+        ),
+        (
+            _service("martin", enabled=False, unit="martin.target")
+            | {"bundle": ["member.container"]},
+            ["martin.target"],
+            "names loadable unit",
+        ),
+        (
+            _service("martin", enabled=False, unit="martin.container"),
+            [],
+            "names loadable unit",
+        ),
+    ],
+)
+def test_catalog_unit_shape_failures_are_reachable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    service: dict[str, object],
+    created: list[str],
+    fragment: str,
+) -> None:
+    """Every catalog deployment-shape refusal shall have a failing fixture."""
+    _use_catalog(monkeypatch, tmp_path, [service])
+    quadlets = tmp_path / "services" / "quadlets"
+    for name in created:
+        (quadlets / name).touch()
+
+    with pytest.raises(gc.ConfigError, match=fragment):
+        gc.resolve(
+            gc.load_region(str(FIXTURE_REGIONS / "profile.yml")), {"services": []}
+        )
+
+
+def test_two_references_to_one_service_are_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """One canonical service cannot enter the resolved set twice."""
+    _use_catalog(monkeypatch, tmp_path, [_service("martin", aliases=["maps"])])
+    (tmp_path / "services/quadlets/martin.container").touch()
+
+    with pytest.raises(gc.ConfigError, match="multiple references"):
+        gc.resolve(
+            gc.load_region(str(FIXTURE_REGIONS / "profile.yml")),
+            {"services": ["martin", "maps"]},
+        )
+
+
+def test_unresolved_treats_an_absent_parameter_as_a_gap() -> None:
+    """An absent value shall remain unresolved rather than raising early."""
+    region = gc.load_region(str(FIXTURE_REGIONS / "profile.yml"))
+    del region["wifi"]["ap_channel"]
+
+    assert ("wifi.ap_channel", "TBR-RF-03") in gc.unresolved(region, ["wifi_ap"])
+
+
+def test_check_mode_reports_a_fully_resolved_profile(
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """The preflight success branch shall be an observed result."""
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION),
+            "--check",
+        ]
+    )
+
+    assert code == 0
+    assert "all required parameters are resolved" in capsys.readouterr().out
+
+
+def test_generation_mode_reports_input_errors(capsys: pytest.CaptureFixture) -> None:
+    """Non-check invocation shall map ordinary input defects to exit code 2."""
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            "missing-mission.json",
+        ]
+    )
+
+    assert code == 2
+    assert "ERROR:" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize(

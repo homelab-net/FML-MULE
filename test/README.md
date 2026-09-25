@@ -136,7 +136,7 @@ about physical behaviour.
 | Requirement traceability | `tools/gen-traceability.sh --check` |
 | Mission package schema and repository rules | `tools/validate-mission.py`, and `test/unit/` |
 | Shell tooling | `bats`, in `test/unit/` |
-| Configuration resolution and region validation | `tools/gen-config.py`, and `test/unit/` |
+| Configuration resolution and region validation | `mule/configuration.py`, `python -m mule`, and `test/unit/` |
 | End-to-end node flow and fail-closed behaviour | `test/digital_twin/` |
 | Ansible playbook syntax | `ansible-playbook --check` |
 | Secrets | `gitleaks` |

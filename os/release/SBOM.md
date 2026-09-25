@@ -54,6 +54,12 @@ dpkg set, requires source-package components and Debian copyright files, and
 writes a machine-readable exception for every package without a normalized
 declared licence.
 
+`FML-ADR-083` adds one source-built component outside dpkg: `fml-mule==0.0.1`.
+`tools/add-runtime-sbom.py` reads that distribution from the completed root and
+adds its installed code, metadata, schema and native-unit digest to the same
+CycloneDX document. The built-root validator recomputes the digest and rejects
+a missing, duplicate or stale runtime component.
+
 Requirements on whatever is chosen:
 
 - Reads the built image, not the manifest.

@@ -33,6 +33,9 @@ APPROVED_DIRECT_PACKAGES = {
     "dbus",
     "initramfs-tools",
     "linux-image-amd64",
+    "python3",
+    "python3-jsonschema",
+    "python3-yaml",
     "systemd",
     "systemd-boot",
     "systemd-boot-efi",
@@ -342,6 +345,7 @@ def validate_repository(root: Path) -> list[str]:
     output = _mapping(document, "output", errors)
     tools_tree = _mapping(document, "tools_tree", errors)
     package_policy = _mapping(document, "package_policy", errors)
+    mule_runtime = _mapping(document, "mule_runtime", errors)
     sbom = _mapping(document, "sbom", errors)
     runtime = _mapping(document, "runtime_verification", errors)
 
@@ -482,6 +486,14 @@ def validate_repository(root: Path) -> list[str]:
         "retain_copyright": True,
     }:
         errors.append("package_policy shall match the FML-ADR-081 target boundary")
+    if mule_runtime != {
+        "governing_decision": "FML-ADR-083",
+        "distribution": "fml-mule",
+        "distribution_version": "0.0.1",
+        "entry_point": "python3 -m mule",
+        "unit": "mule-runtime.service",
+    }:
+        errors.append("mule_runtime shall bind FML-ADR-083 version and entry point")
     if sbom != {
         "generator": "debsbom",
         "format": "cyclonedx-json",

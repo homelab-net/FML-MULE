@@ -24,6 +24,7 @@ REPRODUCIBILITY_SCRIPT = REPO_ROOT / "tools/verify-image-reproducibility.sh"
 BUILD_SCRIPT = REPO_ROOT / "tools/build-image.sh"
 BUILDER_RESOLVER = REPO_ROOT / "tools/resolve-mkosi-builder.sh"
 FINALIZE_SCRIPT = REPO_ROOT / "os/image/mkosi.finalize"
+RUNTIME_SBOM_PATH = REPO_ROOT / "tools/add-runtime-sbom.py"
 DIRECT_PACKAGES = REPO_ROOT / "os/image/manifest/direct-packages.list"
 TARGET_LOCK = REPO_ROOT / "os/image/manifest/target-lock.json"
 TOOLS_TREE_LOCK = REPO_ROOT / "os/image/manifest/tools-tree-lock.json"
@@ -37,6 +38,9 @@ APPROVED_DIRECT_PACKAGES = {
     "dbus",
     "initramfs-tools",
     "linux-image-amd64",
+    "python3",
+    "python3-jsonschema",
+    "python3-yaml",
     "systemd",
     "systemd-boot",
     "systemd-boot-efi",
@@ -84,6 +88,16 @@ def _load_cache_validator() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "validate_package_cache", CACHE_VALIDATOR_PATH
     )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_runtime_sbom() -> ModuleType:
+    """Import the runtime SBOM augmenter as a test module."""
+    spec = importlib.util.spec_from_file_location("add_runtime_sbom", RUNTIME_SBOM_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -310,6 +324,19 @@ Version: fixture-version
         ),
         encoding="utf-8",
     )
+    metadata = root / "usr/lib/python3/dist-packages/fml_mule-0.0.1.dist-info/METADATA"
+    metadata.parent.mkdir(parents=True)
+    metadata.write_text("Name: fml-mule\nVersion: 0.0.1\n", encoding="utf-8")
+    runtime_main = metadata.parent.parent / "mule/__main__.py"
+    runtime_main.parent.mkdir()
+    runtime_main.write_text("raise SystemExit(0)\n", encoding="utf-8")
+    schema = root / "usr/share/fml-mule/mission-package.schema.json"
+    schema.parent.mkdir(parents=True)
+    schema.write_text("{}\n", encoding="utf-8")
+    unit = root / "usr/lib/systemd/system/mule-runtime.service"
+    unit.parent.mkdir(parents=True)
+    unit.write_text("[Service]\nType=oneshot\n", encoding="utf-8")
+    _load_runtime_sbom().add_component(root, sbom)
     return root, lock, sbom
 
 
@@ -321,6 +348,17 @@ def test_built_root_validator_accepts_matching_installed_content(
     errors, exceptions = _load_root_validator().validate(root, lock, sbom)
     assert errors == []
     assert exceptions == []
+
+
+def test_built_root_validator_detects_runtime_sbom_drift(tmp_path: Path) -> None:
+    """The source-built distribution hash shall come from installed content."""
+    root, lock, sbom = _root_fixture(tmp_path)
+    runtime = next(root.glob("usr/lib/python*/dist-packages/mule/__main__.py"))
+    runtime.write_text("raise SystemExit(9)\n", encoding="utf-8")
+
+    errors, _exceptions = _load_root_validator().validate(root, lock, sbom)
+
+    assert "SBOM fml-mule component does not match the installed runtime" in errors
 
 
 def test_built_root_validator_detects_prohibited_and_missing_content(

@@ -1,0 +1,24 @@
+[Unit]
+Description=Render validated MULE node configuration
+
+[Service]
+# Debian trixie systemd.service(5): "Behavior of oneshot is similar to exec;
+# however, the service manager will consider the unit up after the main process
+# exits." If omitted while ExecStart= is present, Type defaults to simple.
+Type=oneshot
+# Debian trixie systemd.exec(5): "a UNIX user and group pair is allocated
+# dynamically when the unit is started, and released as soon as it is stopped."
+# The default is off; rendering needs no persistent account or host writes.
+DynamicUser=yes
+User=mule-runtime
+# Debian trixie systemd.exec(5): "If set, when the unit is started, one or more
+# directories by the specified names will be created" below /run for a system
+# unit. Omission leaves directory creation to the transient process.
+RuntimeDirectory=fml
+# Debian trixie systemd.exec(5): "Defaults to 0022 for system units." Use 0077
+# so the resolved mission parameters are not world-readable.
+UMask=0077
+# Debian trixie systemd.service(5): "Commands that are executed when this
+# service is started." A non-zero result makes this invocation fail; no restart
+# or failure target is selected while TBR-HA-01 remains open (FML-ADR-083).
+ExecStart=/usr/bin/python3 -m mule --region /etc/fml/region.yml --mission /etc/fml/mission.json --node /etc/fml/node.yml --catalog /etc/fml/catalog.yml --catalog-schema /etc/fml/catalog.schema.json --quadlets /etc/containers/systemd/users --out /run/fml

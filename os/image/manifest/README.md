@@ -4,7 +4,7 @@ Machine-readable pins for everything that goes into the image.
 
 | File | Contents |
 | --- | --- |
-| `direct-packages.list` | Eight owner-approved target package roles. |
+| `direct-packages.list` | Eleven owner-approved target package roles. |
 | `target-lock.json` | Generated exact target dependency closure and provenance. |
 | `packages.list` | Generated exact target package specifications consumed by mkosi. |
 | `tools-tree-direct-packages.list` | Package intent captured from pinned mkosi plus `debsbom` and its required CycloneDX runtime. |
@@ -17,8 +17,9 @@ a defect. The split is deliberate: `PINS.md` is what a person reads to
 understand a set, and the files here are what a build consumes.
 
 `FML-ADR-081` selects the minimum Debian 13 x86-64 development package
-foundation. The target lock contains 97 packages and the separate build-tools
-lock contains 440 packages at the `20260912T000000Z` snapshot boundary. These
+foundation. GAP-09D extends it with the approved native Python runtime. The
+target lock contains 118 packages and the separate build-tools lock contains
+454 packages at the `20260912T000000Z` snapshot boundary. These
 are resolver results, not proof that an image was built or that its installed
 set matched. Production compatibility remains `TBR-LINUX-01`.
 

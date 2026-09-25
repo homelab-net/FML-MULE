@@ -34,6 +34,12 @@ package_policy:
   remove_after_install: [apt]
   with_recommends: false
   retain_copyright: true
+mule_runtime:
+  governing_decision: FML-ADR-083
+  distribution: fml-mule
+  distribution_version: 0.0.1
+  entry_point: python3 -m mule
+  unit: mule-runtime.service
 sbom:
   generator: debsbom
   format: cyclonedx-json

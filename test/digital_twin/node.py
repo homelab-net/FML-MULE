@@ -15,8 +15,8 @@ what the node *decides*, this is the wrong file. Read:
 - `mule/status.py` - what do we tell the operator?
 - `mule/bearers.py` - which radios matter?
 
-**It runs the real artifacts.** Configuration resolution calls
-`tools/gen-config.py` itself, not a reimplementation.
+**It runs the real artifacts.** Configuration resolution calls the packaged
+``mule.configuration`` runtime itself, not a reimplementation.
 
 **What is faked** is listed in `README.md` and confined to `fakes.py`: radio,
 power and thermal state behind the interfaces in `interfaces.py`, and raw clock
@@ -30,12 +30,11 @@ never supports a claim about any of those.
 
 from __future__ import annotations
 
-import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
-from types import ModuleType
 from typing import Any
 
+from mule import configuration as gen_config
 from mule import modes, power, services, status, thermal
 from mule.admission import AdmissionDecision, decide
 from mule.bearers import Bearer
@@ -61,27 +60,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 #: Where the software digital twin's stand-in services are said to run. The real service
 #: plane waits on trades that have not closed; see `README.md`.
 STAND_IN_LOCATION = "local"
-
-
-def _load_gen_config() -> ModuleType:
-    """Load `tools/gen-config.py` as a module.
-
-    Loaded by path because the file is a hyphenated executable script.
-    Importing the real tool rather than reimplementing it is what keeps the
-    software digital twin from drifting: if region validation changes, this
-    changes with it.
-    """
-    path = REPO_ROOT / "tools" / "gen-config.py"
-    spec = importlib.util.spec_from_file_location("gen_config", path)
-    if spec is None or spec.loader is None:  # pragma: no cover - defensive
-        message = f"cannot load {path}"
-        raise RuntimeError(message)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-gen_config = _load_gen_config()
 
 
 @dataclass
