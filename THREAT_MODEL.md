@@ -93,6 +93,12 @@ Each of these is intent. None is demonstrated.
   refuses to validate credentials rather than accepting expired or
   not-yet-valid material. Fail closed, not open. See `FML-ADR-042`,
   `TBR-TIME-01`.
+- **Onboarding is not operational admission.** `FML-ADR-084` places an
+  unadmitted EUD on a separate client-isolated network that reaches enrollment
+  only. The temporary SSID is broadcast while its mission-supplied credential
+  window is active, then hidden; credential invalidation and the quarantine
+  firewall, not SSID hiding, are the controls. A QR code improves provisioning
+  usability and grants no additional access.
 - **Silent compromise of the software supply chain**, by pinning package
   manifests, referencing container images by immutable digest, promoting
   kernel, driver, firmware, and userspace as one tested set, and signing image

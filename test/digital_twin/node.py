@@ -47,6 +47,8 @@ from mule.modes import (
     ModeAssessment,
     ModeInputs,
 )
+from mule.onboarding import OnboardingDecision, parse_expiry
+from mule.onboarding import decide as decide_onboarding
 from mule.power import PowerModel, PowerReadings
 from mule.status import NodeStatus, Observations
 from mule.thermal import ThermalLimits, ThermalReadings
@@ -268,6 +270,19 @@ class DigitalTwinNode:
         )
 
     # --- admission ---------------------------------------------------------
+
+    def onboarding(self) -> OnboardingDecision:
+        """Ask whether the mission's quarantined onboarding BSS is active."""
+        network = self._params.get("network", {}) if self._params is not None else {}
+        configured = network.get("onboarding", {})
+        onboarding = configured if isinstance(configured, dict) else {}
+        return decide_onboarding(
+            booted=self._booted,
+            time=self._assess_time(),
+            now=self._clock.system_time(),
+            expires_at=parse_expiry(onboarding.get("expires_at")),
+            credential_ref=onboarding.get("credential_ref"),
+        )
 
     def admit(self, device_id: str) -> AdmissionDecision:
         """Ask `mule.admission` whether this device may join, and record it.

@@ -79,6 +79,33 @@ mutations:
                   return None
     replace: "if False:\n            return None"
 
+  # --- temporary onboarding network: FML-ADR-084 -------------------------
+  - id: M122
+    file: mule/onboarding.py
+    describe: an expired onboarding credential still opens and broadcasts the BSS
+    find: "    if now >= expires_at:"
+    replace: "    if False:"
+
+  - id: M123
+    file: mule/onboarding.py
+    describe: untrusted time no longer closes the onboarding BSS
+    find: "    if time.degraded:"
+    replace: "    if False:"
+
+  - id: M124
+    file: mule/onboarding.py
+    describe: the active onboarding BSS stops isolating clients
+    find: |
+      state=OnboardingState.QUARANTINED,
+              broadcast_ssid=True,
+              accepting_associations=True,
+              client_isolated=True,
+    replace: |
+      state=OnboardingState.QUARANTINED,
+              broadcast_ssid=True,
+              accepting_associations=True,
+              client_isolated=False,
+
   # --- configuration ------------------------------------------------------
   - id: M10
     file: tools/gen-config.py

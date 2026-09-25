@@ -1320,10 +1320,10 @@ about identity, not only time -- a pure `mule/` function under `FML-ADR-052`.
 What is **not**: building the blocked `services/mission-trust/`, and the
 credential *at rest*, which is `TBR-SEC-01`'s hardware half.
 
-**The wider admission and enrollment picture (recorded, not yet decided):** this
-item is the service-identity half of a larger network-admission layer that has
-no roadmap home of its own, recorded here in the style of `4.3` so it does not
-drift. The settled anchors, with their real status:
+**The wider admission and enrollment picture:** this item is the
+service-identity half of a larger network-admission layer. `FML-ADR-084` now
+decides the bootstrap boundary; identity issuance and authorization remain open.
+The settled anchors, with their real status:
 
 - The network-admission target is EAP-TLS (`FML-ADR-038`, `SELECTED TARGET`): a
   per-device, revocable, time-bounded credential, with a MAC address or a shared
@@ -1343,21 +1343,18 @@ drift. The settled anchors, with their real status:
   mission policy and should **not** be baked into a long-lived device
   certificate.
 
-**Proposed directions (they feed `TBR-ID-01`, some exceed its scope, and none is
-decided):**
+**Selected onboarding direction and remaining proposals:**
 
 - A **single deployment identity**, so one enrollment reaches every service by
   name through ingress (`FML-ADR-031`). This needs a **common deployment CA**,
   which cuts against the shipped OpenTAKServer default of a CA regenerated per
   node (`FML-ADR-071`); and ingress already records that a TLS certificate a
   browser accepts, offline, is genuinely unsolved.
-- A **constrained onboarding SSID** as the primary path to issue and reissue a
-  certificate -- the piece that resolves the bootstrap deadlock a cert-to-join
-  network creates (a device with no valid certificate cannot reach enrollment),
-  which `FML-ADR-038` does not address. It would be firewalled to the enrollment
-  endpoint only, and evil-twin-defended by shipping the CA pin in the per-user
-  profile so a rogue look-alike onboarding access point cannot harvest
-  credentials.
+- **Selected in `FML-ADR-084`:** a temporary onboarding BSS, separate from the
+  operational EUD BSS, is client-isolated and firewalled to enrollment only. It
+  broadcasts while a mission-supplied onboarding credential window is active,
+  then hides and fails closed at expiry or on untrusted time. Admission moves
+  the EUD to the operational BSS, where `FML-ADR-057` keeps peer ATAK available.
 - A **short certificate lifetime (on the order of a week) with silent
   auto-renewal on connectivity, and revocation by non-renewal**. No ADR sets a
   lifetime or a renewal mechanism today, and the direction fights the shipped
@@ -1365,10 +1362,9 @@ decided):**
   knob: it is both the revocation window and the longest partition a legitimate
   node can survive before it expires, and a short lifetime deepens the dependence
   on credible time (`FML-ADR-042`).
-- Package and QR onboarding: a cross-platform data package imported into ATAK
-  for the service identity, an iOS configuration profile for the EAP-TLS Wi-Fi
-  certificate (Android has no equally clean single-file path), and one-time
-  per-user enrollment tokens in preference to reusable passwords.
+- Package and QR onboarding remain implementation work: a QR code or managed
+  profile may carry temporary join information so the user need not select or
+  type the onboarding network, but it does not change the quarantine boundary.
 
 **Not this item.** `CCR-04` is accepted and `FML-ADR-082` is `SELECTED`. That
 is a mission WAN-policy posture for optional remote-EUD overlay membership. It
@@ -1399,13 +1395,12 @@ Production enrollment stays the path above.
 - **Single-identity reach is a single blast radius.** One credential reaching
   every service argues for least-privilege RBAC (`FML-ADR-037`) and for hardening
   any configuration-capable identity separately from an ordinary read-only one.
-- Open sub-decisions, named so they do not surprise later (no identifiers minted
-  here): where renewal and issuance are served (a central authority versus every
-  MULE -- the partition-resilience against issuing-key-exposure trade); whether
-  the onboarding SSID is adopted at all, and its scope and bootstrap rules; and a
-  mesh-key rotation mechanism to close the gap `FML-ADR-061` leaves open. The
-  nearest existing home is `TBR-ID-01`; the network-admission pieces exceed its
-  current workflow-analysis scope.
+- Open sub-decisions, named so they do not surprise later: where renewal and
+  issuance are served (a central authority versus every MULE -- the
+  partition-resilience against issuing-key-exposure trade); supported EUD
+  QR/profile formats; and a mesh-key rotation mechanism to close the gap
+  `FML-ADR-061` leaves open. The nearest existing home is `TBR-ID-01`; the
+  network-admission pieces exceed its current workflow-analysis scope.
 
 **Done when:** `TBR-ID-01`'s workflow analysis decides whether a common identity
 provider is warranted, its named owner accepts it, and the admission model
