@@ -14,7 +14,7 @@ evidence the closure gate demands is hardware and not produced.
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
   sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate
   to 2.4 GHz when achievable EIRP/coverage on 5 GHz is inadequate. Sets
-  `wifi.ap_channel`/`max_eirp_dbm`/`permitted_bands`/`dfs_required` in the `us-915`
+  `wifi.ap_channel`/`ap_max_eirp_dbm`/`permitted_bands`/`dfs_required` in the `us-915`
   profile, so the `mule-v001` AP-only target resolves. This settles **only** the
   AP's RF parameters; the trade's radio-consolidation/hardware half stays `OPEN`.
 

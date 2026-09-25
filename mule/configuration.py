@@ -239,11 +239,14 @@ REQUIRED: dict[str, dict[str, str]] = {
     },
     "wifi_mesh": {
         "wifi.mesh_channel": "TBR-RF-01",
-        "wifi.max_eirp_dbm": "TBR-RF-01",
+        # Separate from the AP EIRP: the mesh and AP EIRP are different decisions
+        # (TBR-RF-01 vs TBR-RF-03). A single shared field let the AP decision
+        # resolve the mesh trade, which is why they are distinct keys.
+        "wifi.mesh_max_eirp_dbm": "TBR-RF-01",
     },
     "wifi_ap": {
         "wifi.ap_channel": "TBR-RF-03",
-        "wifi.max_eirp_dbm": "TBR-RF-03",
+        "wifi.ap_max_eirp_dbm": "TBR-RF-03",
     },
 }
 
@@ -506,16 +509,17 @@ def resolve(
     wifi: dict[str, Any] = {}
     if "wifi_mesh" in selected:
         wifi["mesh_channel"] = _get(region, "wifi.mesh_channel")
+        # The mesh EIRP is TBR-RF-01's decision, distinct from the AP's.
+        wifi["mesh_max_eirp_dbm"] = _get(region, "wifi.mesh_max_eirp_dbm")
     if "wifi_ap" in selected:
         wifi["ap_channel"] = _get(region, "wifi.ap_channel")
+        wifi["ap_max_eirp_dbm"] = _get(region, "wifi.ap_max_eirp_dbm")
         # The AP hostapd radio block derives hw_mode from the band and
         # ieee80211h from DFS, so both are carried through for rendering
         # (FML-ADR-084 / GAP-09E). They are decided values in the profile, not
         # trade-gated, so their absence is a profile error, not a TBD gap.
         wifi["permitted_bands"] = _get(region, "wifi.permitted_bands")
         wifi["dfs_required"] = _get(region, "wifi.dfs_required")
-    if "wifi_mesh" in selected or "wifi_ap" in selected:
-        wifi["max_eirp_dbm"] = _get(region, "wifi.max_eirp_dbm")
     if wifi:
         resolved["wifi"] = wifi
 

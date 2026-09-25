@@ -54,7 +54,7 @@ Set and confirm the regdomain: `iw reg set US`; record `iw reg get` and the
 per-channel constraints it reports for 5 GHz. Confirm ch 149 (UNII-3) is
 permitted and non-DFS in the US domain, matching `regions/us-915/profile.yml`.
 Record the effective EIRP ceiling the domain allows against the profile's
-`max_eirp_dbm: 36`.
+`ap_max_eirp_dbm: 36`.
 
 ### Step 3 -- Does the driver do AP mode? (`TBR-LINUX-01`, one BSS)
 

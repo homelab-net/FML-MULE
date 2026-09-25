@@ -79,10 +79,11 @@
           "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])/(?:[0-9]|[12][0-9]|3[0-2])$"
         },
         "ap_ssid": {
-          "description": "EUD access point SSID. The passphrase is NOT part of this schema and never appears in a committed package; see SECURITY.md.",
+          "description": "EUD access point SSID. The passphrase is NOT part of this schema and never appears in a committed package; see SECURITY.md. Control characters are forbidden: an SSID is interpolated into hostapd config, where a newline would inject a directive.",
           "type": "string",
           "minLength": 1,
-          "maxLength": 32
+          "maxLength": 32,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
         },
         "onboarding": {
           "description": "FML-ADR-084 temporary onboarding access-network declaration. It carries an absolute window and a reference to protected credential material, never the credential itself. Omission means onboarding is closed.",
@@ -95,10 +96,11 @@
           "additionalProperties": false,
           "properties": {
             "ssid": {
-              "description": "Mission-specific onboarding SSID. It is broadcast only while the declared window is active.",
+              "description": "Mission-specific onboarding SSID. It is broadcast only while the declared window is active. Control characters are forbidden: an SSID is interpolated into hostapd config, where a newline would inject a directive.",
               "type": "string",
               "minLength": 1,
-              "maxLength": 32
+              "maxLength": 32,
+              "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
             },
             "credential_ref": {
               "description": "Reference to protected onboarding credential material supplied outside the committed package. This is not a key, password, token, or certificate.",

@@ -653,6 +653,24 @@ def test_an_ap_only_node_resolves_against_the_shipped_profile() -> None:
     assert "lora" not in params
 
 
+def test_the_ap_eirp_decision_does_not_resolve_the_mesh_trade() -> None:
+    """The AP and mesh EIRP are different decisions (TBR-RF-03 vs TBR-RF-01).
+
+    A single shared `wifi.max_eirp_dbm` field once let the AP-params decision
+    (TBR-RF-03) silently resolve the mesh EIRP too -- a plausible default becoming
+    a fielded value, the failure this program most fears. With the fields split, a
+    mesh-fielding target against us-915 still gaps on its own EIRP, named to its
+    own trade. This fails before the split (mesh EIRP resolved by the AP value).
+    """
+    region = gc.load_region(str(US_915))
+
+    gaps = dict(gc.unresolved(region, ["wifi_mesh"]))
+
+    assert gaps.get("wifi.mesh_max_eirp_dbm") == "TBR-RF-01"
+    # And the AP decision did resolve the AP's own EIRP.
+    assert "wifi.ap_max_eirp_dbm" not in dict(gc.unresolved(region, ["wifi_ap"]))
+
+
 def test_an_ap_only_node_emits_only_its_bearer_blocks() -> None:
     """A resolved AP-only node carries its AP parameters and no others.
 

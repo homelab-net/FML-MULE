@@ -15,7 +15,7 @@ question (whether AP and mesh share one radio), which stays open and
 ## 1. Why this is on the critical path now
 
 `tools/gen-config.py --check` refuses to resolve the region because
-`wifi.ap_channel` and `wifi.max_eirp_dbm` are `TBD` (`No region profile is
+`wifi.ap_channel` and `wifi.ap_max_eirp_dbm` are `TBD` (`No region profile is
 resolvable yet`). That refusal is deliberate -- "do not invent an RF/regulatory
 value" as code. So the whole v0.0.1 slice is blocked here: **without the AP band /
 channel / EIRP, GAP-09E cannot render the AP config, and 09G/H/I cannot follow.**
@@ -54,11 +54,18 @@ paper decision, decidable now, independent of any hardware.
   high-rate mesh band clear -- which *reduces* the AP-vs-mesh contention that the
   consolidation question is about, and is data that informs it.
 
-### EIRP (`max_eirp_dbm`)
+### EIRP (`ap_max_eirp_dbm`)
 
-**Sourced ceilings (why band and EIRP interact):** FCC Part 15.247 allows
-**36 dBm** EIRP (point-to-multipoint) on 2.4 GHz and on 5 GHz **UNII-3**
-(5725-5850 MHz); Part 15.407 caps 5 GHz **UNII-1** (5150-5250 MHz) at **30 dBm**.
+**Sourced ceilings (why band and EIRP interact).** The 36 dBm figure is
+*derived*, not a verbatim number in the rule (corrected 2026-09-25 after a review
+flagged the earlier paraphrase): 47 CFR **15.247(b)(3)** caps conducted output
+power at **1 W (30 dBm)** on 2.4 GHz and 5.725-5.850 GHz (UNII-3);
+**15.247(b)(4)** permits antenna gain up to **6 dBi** with no power reduction for
+point-to-multipoint systems, so 30 dBm + 6 dBi = **36 dBm EIRP** is the P2MP
+ceiling (gain above 6 dBi requires a dB-for-dB reduction, holding EIRP at 36 dBm).
+Part 15.407 governs the other UNII sub-bands, e.g. UNII-1 (5150-5250 MHz) at a
+lower ceiling; the chosen ch 149 is UNII-3 under 15.247. Verbatim quotation of the
+subsections is pending a sourced copy (ecfr.gov was unreachable at the correction).
 So a UNII-3 primary matches 2.4's ceiling, and dropping to 2.4 buys **propagation**
 (more coverage per watt), not EIRP headroom -- which is exactly why "5 GHz unless
 coverage/EIRP too low, then 2.4" is sound.
@@ -118,7 +125,7 @@ no mesh, no field radios.
 ## 7. Files that change AFTER approval (not now)
 
 `regions/us-915/profile.yml`: set `wifi.permitted_bands`, `wifi.ap_channel`,
-`wifi.max_eirp_dbm`, `wifi.dfs_required`, and `wifi.source` (the regulatory basis).
+`wifi.ap_max_eirp_dbm`, `wifi.dfs_required`, and `wifi.source` (the regulatory basis).
 Then `gen-config` resolves the AP-only target and GAP-09E can render.
 
 ## 8. Sources reviewed
@@ -137,7 +144,7 @@ Written to `regions/us-915/profile.yml`:
 - `permitted_bands: ["2.4GHz", "5GHz"]` -- dual-band baseline.
 - `ap_channel: 149` -- 5 GHz UNII-3 (non-DFS, outdoor-permitted) as the preferred
   primary; the Owner may override the specific channel.
-- `max_eirp_dbm: 36` -- the FCC 47 CFR 15.247 P2MP regulatory ceiling (applies to
+- `ap_max_eirp_dbm: 36` -- the derived FCC 47 CFR 15.247 P2MP regulatory ceiling (applies to
   UNII-3 and the 2.4 fallback); the **regulatory maximum, not** the operating
   power, which is hardware-bounded and set well below it.
 - `dfs_required: false` -- ch 149 and the 2.4 fallback (1/6/11) are non-DFS.
@@ -155,7 +162,7 @@ shows HaLow/LoRa/mesh `TBD` (`TBR-RF-02`/`TBR-RF-01`) -- correct, because
   floor is quantified on real hardware (`TBR-RF-03`'s hardware half). Both bands
   are permitted, so the fallback is a re-point of `ap_channel`, not a re-approval.
 - The **operating EIRP** (hostapd tx power) is bounded by the AP radio + antenna
-  and confirmed on hardware; `max_eirp_dbm` here is only the regulatory cap.
+  and confirmed on hardware; `ap_max_eirp_dbm` here is only the regulatory cap.
 - The **channel pick (149)** is a recommendation, overridable by the Owner.
 
 This does **not** close `TBR-RF-03`; its radio-consolidation/hardware half remains

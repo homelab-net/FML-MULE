@@ -48,7 +48,8 @@ wifi:
   permitted_bands: []         # e.g. ["2.4GHz", "5GHz"]
   mesh_channel: TBD           # Trade: TBR-RF-01
   ap_channel: TBD             # Trade: TBR-RF-03
-  max_eirp_dbm: TBD
+  ap_max_eirp_dbm: TBD       # Trade: TBR-RF-03 (AP)
+  mesh_max_eirp_dbm: TBD     # Trade: TBR-RF-01 (mesh)
   indoor_only_channels: []    # Channels restricted to indoor use in this region
   dfs_required: TBD           # Whether dynamic frequency selection is required
   source: TBD
