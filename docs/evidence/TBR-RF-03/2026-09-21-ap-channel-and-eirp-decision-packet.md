@@ -57,15 +57,28 @@ paper decision, decidable now, independent of any hardware.
 ### EIRP (`ap_max_eirp_dbm`)
 
 **Sourced ceilings (why band and EIRP interact).** The 36 dBm figure is
-*derived*, not a verbatim number in the rule (corrected 2026-09-25 after a review
-flagged the earlier paraphrase): 47 CFR **15.247(b)(3)** caps conducted output
-power at **1 W (30 dBm)** on 2.4 GHz and 5.725-5.850 GHz (UNII-3);
-**15.247(b)(4)** permits antenna gain up to **6 dBi** with no power reduction for
-point-to-multipoint systems, so 30 dBm + 6 dBi = **36 dBm EIRP** is the P2MP
-ceiling (gain above 6 dBi requires a dB-for-dB reduction, holding EIRP at 36 dBm).
-Part 15.407 governs the other UNII sub-bands, e.g. UNII-1 (5150-5250 MHz) at a
-lower ceiling; the chosen ch 149 is UNII-3 under 15.247. Verbatim quotation of the
-subsections is pending a sourced copy (ecfr.gov was unreachable at the correction).
+*derived* from two verbatim rules, not a number stated in the CFR (corrected
+2026-09-25 after a review flagged the earlier paraphrase; text retrieved from
+law.cornell.edu/cfr/text/47/15.247):
+
+> 47 CFR 15.247(b)(3): "For systems using digital modulation in the 902-928 MHz,
+> 2400-2483.5 MHz, and 5725-5850 MHz bands: 1 Watt."
+
+The conducted limit combines with the antenna-gain rule:
+
+> 47 CFR 15.247(b)(4): "The conducted output power limit ... is based on the use
+> of antennas with directional gains that do not exceed 6 dBi. ... if transmitting
+> antennas of directional gain greater than 6 dBi are used, the conducted output
+> power ... shall be reduced below the stated values ... by the amount in dB that
+> the directional gain of the antenna exceeds 6 dBi."
+
+**Derivation:** 1 W = 30 dBm conducted, plus up to 6 dBi antenna gain with no
+reduction, gives **36 dBm EIRP**; above 6 dBi the conducted power drops
+dB-for-dB, holding EIRP at 36 dBm. The 6 dBi allowance is general (not
+point-to-multipoint-specific; the P2MP vs fixed-P2P distinction affects only
+gains above 6 dBi). Channel 149 (5745 MHz) is within 5725-5850 MHz, so it is
+covered by (b)(3). Part 15.407 governs the other UNII sub-bands, e.g. UNII-1
+(5150-5250 MHz) at a lower ceiling; the chosen ch 149 is UNII-3 under 15.247.
 So a UNII-3 primary matches 2.4's ceiling, and dropping to 2.4 buys **propagation**
 (more coverage per watt), not EIRP headroom -- which is exactly why "5 GHz unless
 coverage/EIRP too low, then 2.4" is sound.
@@ -144,9 +157,10 @@ Written to `regions/us-915/profile.yml`:
 - `permitted_bands: ["2.4GHz", "5GHz"]` -- dual-band baseline.
 - `ap_channel: 149` -- 5 GHz UNII-3 (non-DFS, outdoor-permitted) as the preferred
   primary; the Owner may override the specific channel.
-- `ap_max_eirp_dbm: 36` -- the derived FCC 47 CFR 15.247 P2MP regulatory ceiling (applies to
-  UNII-3 and the 2.4 fallback); the **regulatory maximum, not** the operating
-  power, which is hardware-bounded and set well below it.
+- `ap_max_eirp_dbm: 36` -- the regulatory ceiling derived from 47 CFR
+  15.247(b)(3)+(b)(4) (1 W conducted + 6 dBi; see the EIRP section for the quoted
+  text), applying to UNII-3 and the 2.4 fallback; the **regulatory maximum, not**
+  the operating power, which is hardware-bounded and set well below it.
 - `dfs_required: false` -- ch 149 and the 2.4 fallback (1/6/11) are non-DFS.
 
 **Result:** `gen-config --region us-915 --mission <package> --node mule-v001

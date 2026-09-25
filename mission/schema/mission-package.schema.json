@@ -83,7 +83,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 32,
-          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u001f\\u007f-\\u009f])[\\s\\S]+$"
         },
         "onboarding": {
           "description": "FML-ADR-084 temporary onboarding access-network declaration. It carries an absolute window and a reference to protected credential material, never the credential itself. Omission means onboarding is closed.",
@@ -100,7 +100,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 32,
-              "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+              "pattern": "^(?![\\s\\S]*[\\u0000-\\u001f\\u007f-\\u009f])[\\s\\S]+$"
             },
             "credential_ref": {
               "description": "Reference to protected onboarding credential material supplied outside the committed package. This is not a key, password, token, or certificate.",

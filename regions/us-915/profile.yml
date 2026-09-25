@@ -78,19 +78,25 @@ wifi:
   ap_max_eirp_dbm: 36         # Trade: TBR-RF-03
   indoor_only_channels: []    # UNII-3 (149) and 2.4 (1/6/11): not indoor-only
   dfs_required: false         # ch 149 and 2.4 (1/6/11) are non-DFS
-  # Regulatory basis. The 36 dBm AP ceiling is derived, not a verbatim figure in
-  # the rule: 47 CFR 15.247(b)(3) caps conducted output power at 1 W (30 dBm) for
-  # the 2.4 GHz and 5.725-5.850 GHz (UNII-3) bands; 15.247(b)(4) permits antenna
-  # gain up to 6 dBi with no conducted-power reduction for point-to-multipoint
-  # systems, so 30 dBm + 6 dBi = 36 dBm EIRP is the P2MP ceiling (gain above 6 dBi
-  # requires a dB-for-dB power reduction, holding EIRP at 36 dBm). 15.407 governs
-  # the other UNII sub-bands (not the chosen ch 149). Verbatim quotation of the
-  # subsections is pending a sourced copy (ecfr.gov was unreachable 2026-09-25);
-  # cite the CFR before any operation. Owner decision 2026-09-21.
+  # Regulatory basis. The 36 dBm AP ceiling is DERIVED from two verbatim rules
+  # (quoted, not paraphrased; retrieved from law.cornell.edu/cfr/text/47/15.247
+  # on 2026-09-25):
+  #   47 CFR 15.247(b)(3): "For systems using digital modulation in the
+  #     902-928 MHz, 2400-2483.5 MHz, and 5725-5850 MHz bands: 1 Watt."
+  #     1 W = 30 dBm conducted. Channel 149 (5745 MHz) is within 5725-5850 MHz.
+  #   47 CFR 15.247(b)(4): "The conducted output power limit ... is based on the
+  #     use of antennas with directional gains that do not exceed 6 dBi. ... if
+  #     transmitting antennas of directional gain greater than 6 dBi are used, the
+  #     conducted output power ... shall be reduced below the stated values ... by
+  #     the amount in dB that the directional gain of the antenna exceeds 6 dBi."
+  # Derivation: 30 dBm conducted + 6 dBi (no reduction) = 36 dBm EIRP; above 6 dBi
+  # the conducted power drops dB-for-dB, holding EIRP at 36 dBm. This is the EIRP
+  # ceiling, NOT the operating power (hardware-bounded, set well below). Owner
+  # decision 2026-09-21.
   source: >-
-    FCC 47 CFR 15.247(b)(3) (1 W = 30 dBm conducted) and 15.247(b)(4) (up to
-    6 dBi antenna gain, point-to-multipoint) -> 36 dBm EIRP ceiling; 15.407 for
-    other UNII sub-bands. Owner decision 2026-09-21. Verbatim CFR quote pending.
+    FCC 47 CFR 15.247(b)(3) (1 W = 30 dBm conducted for 902-928/2400-2483.5/
+    5725-5850 MHz) and 15.247(b)(4) (6 dBi gain with no reduction; excess reduces
+    conducted power dB-for-dB) -> 36 dBm EIRP ceiling. Owner decision 2026-09-21.
 
 # Amateur radio integration is disabled by default everywhere.
 # Enabling it requires a licensed control operator, station identification, and
