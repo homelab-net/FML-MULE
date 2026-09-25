@@ -1044,12 +1044,12 @@ all `TBD`; that is no longer true, and the TAK work was done this session.
 
 ## Track 4 — the mission-service plane
 
-**State:** blocked at the gate, by design. `services/catalog/` is empty because
-no service is approved, and `services/quadlets/` holds no unit. Adding a service
-is a decision with a record, not a file appearing in `quadlets/`. What this
-track holds is the implementation work that becomes unblocked the moment a
-service is selected, and what has already been learned about each from running
-it on the bench.
+**State:** the catalog gate is open for one narrow service. The Program Owner
+selected Martin for v0.0.1 on 2026-09-24; its enabled catalog entry and loadable
+rootless Quadlet pin the official 1.16.1 image digest and one read-only mission
+MBTiles file. OpenTAKServer and every other service remain disabled. The AP,
+ingress, operator procedure, and selected-profile phone acceptance remain
+GAP-09D/E/H/I; a loadable unit is not that demonstration.
 
 The one piece of standing guidance: every service competes with the routing
 daemon for one compute element (`FML-ADR-021`). The failure mode is specific and
@@ -1188,6 +1188,12 @@ Opus) is unbuilt, so it waits on `TBR-VOICE-01`.
 maps"), and the high-rate bearer's "map packages" purpose. Decision: `FML-ADR-073`
 (`SELECTED`) selects the store and server; the selection is `TBR-MAP-01` and the
 service outline is `services/map/README.md`.
+
+**Deployment state:** Martin is now an enabled catalog service with a loadable
+rootless Quadlet. The unit pins the official 1.16.1 multi-architecture image by
+digest, reads `/var/lib/fml/maps/mission.mbtiles` read-only, and publishes only
+to loopback. This completes the GAP-09F/G selection and repository deployment,
+not the GAP-09I phone-over-AP acceptance or any hardware measurement.
 
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
 cache". Two things were being conflated. **Device-side tile caching** is an ATAK
@@ -1705,9 +1711,9 @@ Work the numbered items in Track 1 in order, skipping any whose `State:` line
 says it is waiting on something. Track 2 starts the day hardware arrives and
 takes precedence over everything, because it converts assumptions into
 measurements. Track 3's blocker item is the Program Owner's and costs five
-minutes; `TBR-TAK-01` is now `CLOSED` on `FML-ADR-071`. Track 4 is blocked at the catalog gate for the
-services and on `CCR-03` for voice, but its analysis, the TAK state study, is
-done.
+minutes; `TBR-TAK-01` is now `CLOSED` on `FML-ADR-071`. Track 4 has crossed the
+catalog gate only for Martin; AP/ingress integration and acceptance are next.
+Voice remains on `CCR-03`, and the TAK capability remains disabled.
 
 An item's number is its dependency position, not a queue ticket. Two items with
 nothing between them can be worked at once.

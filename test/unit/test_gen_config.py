@@ -134,7 +134,7 @@ def test_check_mode_rejects_a_disabled_catalog_service(
 ) -> None:
     """Operator preflight applies the same service gates as generation."""
     package = json.loads(MISSION.read_text(encoding="utf-8"))
-    package["services"] = ["martin"]
+    package["services"] = ["opentakserver"]
     mission = tmp_path / "mission.json"
     mission.write_text(json.dumps(package), encoding="utf-8")
 
@@ -243,7 +243,7 @@ def test_the_mission_package_supplies_the_service_list() -> None:
     full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
     minimal = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION)
 
-    assert full["mission"]["services"] == []
+    assert full["mission"]["services"] == ["martin"]
     assert full["network"]["local_domain"] == "example.invalid"
 
     # The minimal package enables nothing and names no domain. Both are valid.
@@ -371,7 +371,7 @@ def test_a_mission_enabling_an_uncatalogued_service_is_refused(tmp_path: Path) -
 def test_the_catalogued_services_resolve() -> None:
     """A package that enables only catalogued services resolves (FML-ADR-078)."""
     full = gc.generate(str(FIXTURE_REGIONS / "profile.yml"), MISSION_FULL)
-    assert full["mission"]["services"] == []
+    assert full["mission"]["services"] == ["martin"]
 
 
 def _use_catalog(

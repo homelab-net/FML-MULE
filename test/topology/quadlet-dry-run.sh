@@ -1,5 +1,5 @@
 #!/bin/sh
-# Ask the Podman Quadlet generator to accept the TAK units.
+# Ask the Podman Quadlet generator to accept the service units.
 # Image=TBD is replaced only in this temporary copy. The committed units
 # keep Image=TBD. This does not build or start a container.
 #
@@ -8,7 +8,7 @@
 # derived network name. Success is those generated names, plus --internal.
 set -eu
 
-root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
+root=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
 work=$(mktemp -d)
 dest="$work/units"
 
@@ -20,7 +20,8 @@ trap cleanup EXIT
 mkdir -p "$dest"
 
 base_image="docker.io/library/python@sha256:dbbe4ceb97851e2e5fa83798b239811f871cb743b259ba3563737349f6bcfaa0"
-for src in "$root"/services/quadlets/*.container.disabled \
+for src in "$root"/services/quadlets/*.container \
+  "$root"/services/quadlets/*.container.disabled \
   "$root"/services/quadlets/*.network.disabled; do
   [ -f "$src" ] || continue
   base=$(basename "$src" .disabled)
@@ -70,6 +71,7 @@ for needle in \
   opentakserver.service \
   eud-handler.service \
   cot-parser.service \
+  martin.service \
   --internal \
   --sdnotify=healthy \
   --health-cmd \
@@ -83,4 +85,4 @@ if [ -n "$missing" ]; then
   echo "quadlet dry-run output missing:$missing" >&2
   exit 1
 fi
-echo "quadlet dry-run accepted the TAK units"
+echo "quadlet dry-run accepted the service units"

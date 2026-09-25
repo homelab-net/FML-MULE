@@ -113,10 +113,10 @@ def test_disabled_service_cannot_be_enabled_by_mission(
     repository: Path, validator: ModuleType
 ) -> None:
     """A retained contract is not a deployable service until explicitly enabled."""
-    _write_mission(repository, ["martin"])
+    _write_mission(repository, ["opentakserver"])
 
     assert any(
-        "enables disabled service 'martin'" in error
+        "enables disabled service 'opentakserver'" in error
         for error in validator.validate_repository(repository)
     )
 
@@ -126,7 +126,7 @@ def test_enabled_service_requires_existing_named_quadlet(
 ) -> None:
     """An enabled entry cannot point at a missing or differently named unit."""
     document = _catalog(repository)
-    _enable(document["services"][1])
+    document["services"][1]["unit"] = "missing.container"
     _write_catalog(repository, document)
     _write_mission(repository, ["martin"])
 

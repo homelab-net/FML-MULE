@@ -10,8 +10,7 @@
 # supply the value, the same discipline region profiles use. A TBD here is an
 # honest "not measured or not selected yet", never a placeholder number. An
 # entry records an approved *catalog contract*. Only an entry with enabled=true
-# and an existing loadable unit may be selected by a mission; the current
-# contracts remain disabled while their deployment trades are open.
+# and an existing loadable unit may be selected by a mission.
 services:
   - name: opentakserver
     enabled: false
@@ -50,15 +49,13 @@ services:
     adr: FML-ADR-078
 
   - name: martin
-    enabled: false
+    enabled: true
     aliases: []
-    # No loadable unit exists. GAP-09F/G and the open image/resource trades
-    # must close before this contract can be enabled.
-    unit: TBD
+    # Owner-selected for v0.0.1 on 2026-09-24 (GAP-09F/G).
+    unit: martin.container
     purpose: "Serves the local map tiles to an EUD as z/x/y (FML-ADR-073)."
-    # A digest-pinned Martin image was exercised on the 2026-09-06 bench, but the
-    # release digest to field is not finalised. TBR-MAP-01.
-    image: TBD
+    # Official Martin 1.16.1 multi-arch image index, resolved 2026-09-24.
+    image: "ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca"
     upstream:
       project: Martin
       url: "https://github.com/maplibre/martin"

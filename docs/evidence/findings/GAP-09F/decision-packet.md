@@ -1,9 +1,8 @@
 # GAP-09F decision packet: the one real milestone service
 
-**State:** `AWAITING_USER_DECISION`. This packet **recommends but selects
-nothing**. The Program Owner selects the milestone service and content format
-(REMEDIATION mandatory gate -- "selects a service implementation"; the GAP-09
-umbrella gate requires a separate packet per child).
+**State:** `IMPLEMENTED`. The Program Owner selected **Martin serving one
+read-only per-mission MBTiles file** in the Codex thread on 2026-09-24. The
+GAP-09 umbrella gate still requires independent review before closure.
 
 **Finding:** GAP-09F. **Prepared:** 2026-09-21. **Author:** Claude agent,
 redirected from Codex by the Owner. **Independent verifier:** a separate agent,
@@ -36,7 +35,7 @@ deployment unit, 09H operator steps, and 09I acceptance -- depends on this answe
 | OpenTAKServer | TAK | GPL-3.0-or-later | **No** -- no complete official image; a 3-process build must be defined | ~536 MB (3 procs) + PostgreSQL + RabbitMQ | **durable TAK state** -> significant | CoT/TAK |
 | NOMAD content, Kolibri, ProtoMaps/PMTiles | content / map provisioning | mixed | n/a | n/a | n/a | provisioning/format references, **not** clean single-service runtime selections |
 
-## 4. Recommendation (the Owner decides)
+## 4. Recommendation accepted by the Owner
 
 **Martin, serving one read-only per-mission MBTiles file (`FML-ADR-073`), as the
 v0.0.1 milestone service.** Reasons:
@@ -81,13 +80,13 @@ The choice sets the 09G deployment unit; changing it later means redoing 09G, no
 a data migration. The smallest prototype already exists: the 2026-09-06 Martin
 read-only-tile bench; the milestone extends it to the phone-over-AP path.
 
-## 7. Files and acceptance criteria that change AFTER approval (not now)
+## 7. Files and acceptance criteria after approval
 
-Only after approval, under GAP-09G: enable the chosen entry and pin its
-image+unit in `services/catalog/catalog.yml`; add a rootless Quadlet under
-`services/quadlets/`; provision the content artifact; record evidence under
-`docs/evidence/findings/GAP-09G/`. Acceptance is 09I (a phone reaches the
-service over the AP), whose **tier is a separate Owner decision**.
+GAP-09G enables Martin, pins its image and unit in
+`services/catalog/catalog.yml`, adds a rootless Quadlet under
+`services/quadlets/`, and records the implementation under
+`docs/evidence/findings/GAP-09G/`. GAP-09I remains the separate acceptance: a
+phone reaches this selected profile over the AP.
 
 ## 8. Sources reviewed
 
@@ -98,6 +97,7 @@ service over the AP), whose **tier is a separate Owner decision**.
 
 ## 9. Owner disposition
 
-`AWAITING_USER_DECISION` -- select the milestone service and content format. No
-option is implemented, no catalog entry enabled, and no image pinned until the
-Owner's choice is approved and recorded here.
+**Approved 2026-09-24:** Martin, serving one read-only per-mission MBTiles file.
+The Owner's direction was: "Use Martin and let's press." The implementation
+pins the official Martin 1.16.1 multi-architecture image index at
+`sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca`.

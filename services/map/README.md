@@ -4,16 +4,14 @@ Deployment and design notes for the **local map/tile service** in the
 mission-service plane: the node's own source of map tiles for EUDs, so operators
 render a map with no internet and no reachable external tile server.
 
-**Nothing is deployed.** This directory is the service outline. Roadmap item 4.4
-holds its place in the plan, and `TBR-MAP-01` is the mechanism selection --
-`FML-ADR-073` (`SELECTED`) selects the store format and server -- per-mission
-MBTiles served as `z/x/y` behind ingress. The exact server binary the ADR left to
-"the catalog work" is now **selected and measured: Martin (MapLibre)**, a
-rootless, digest-pinned, single Rust binary that reads MBTiles and serves `z/x/y`
-(`docs/evidence/TBR-MAP-01/2026-09-06-martin-mbtiles-server-footprint.md`,
-`test/bench/map-server-footprint.sh`). With a measured software-half envelope, the
-catalog entry and Quadlet are now buildable rather than blocked; the trade stays
-`OPEN` for the CM4 footprint (`TBR-COMP-01`) and a USB2 read-latency check.
+**The server profile is deployed in the repository, not yet on target
+hardware.** `services/catalog/catalog.yml` enables Martin for v0.0.1 and
+`services/quadlets/martin.container` pins the official 1.16.1 image by digest,
+mounts one mission MBTiles file read-only, and binds the backend to loopback.
+This implements the software side of `FML-ADR-073`; it is not an ingress path,
+an AP demonstration, or a hardware verification. Roadmap item 4.4 and
+`TBR-MAP-01` remain open for the CM4 footprint (`TBR-COMP-01`), permitted-source
+real-imagery store, and USB2 read-latency check.
 
 The **interface** below -- the `z/x/y` endpoint and the ATAK/iTAK map-source
 definition -- has a `SIMULATED` bench demonstration under
@@ -154,8 +152,8 @@ confirmed this interface and added constraints this outline now carries:
 
 ## Done when
 
-`TBR-MAP-01` selects a store format and a tile server, a `catalog/` entry and a
-`quadlets/` unit exist with the image pinned by digest, the endpoint is reachable
-through `ingress/`, and **an EUD renders a map from the node with no external
-network**. The last is the acceptance and needs a device; the selection does
-not.
+The store format, tile server, catalog entry, and digest-pinned Quadlet now
+exist. Completion still requires the endpoint through `ingress/` and **an EUD
+rendering a map from the selected Martin profile with no external network**.
+The earlier EUD evidence proved the interface with an ad-hoc server; it did not
+exercise this deployment unit.

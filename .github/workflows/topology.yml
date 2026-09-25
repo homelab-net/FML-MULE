@@ -1,5 +1,6 @@
 ---
-# Topology of the one hosted service that exists: OpenTAKServer.
+# Service topology. OpenTAKServer has the full graph and cold-start case;
+# Quadlet generation also checks the enabled Martin unit.
 #
 # Static composition does not start a container. Quadlet dry-run asks the
 # generator to accept the units, including Notify=healthy. The cold-start
