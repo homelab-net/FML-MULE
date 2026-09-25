@@ -802,3 +802,28 @@ mutations:
             "type": "string",
             "minLength": 1
           },
+
+  # --- rendering: GAP-09E AP config (FML-ADR-084/057) ----------------------
+  - id: M125
+    file: mule/rendering.py
+    describe: a closed onboarding window still renders the BSS (fails open)
+    find: "    if onboarding.state is OnboardingState.CLOSED:"
+    replace: "    if False:"
+
+  - id: M126
+    file: mule/rendering.py
+    describe: onboarding stations are no longer isolated from one another
+    find: '            f"ap_isolate={1 if onboarding.client_isolated else 0}",'
+    replace: '            f"ap_isolate=0",'
+
+  - id: M127
+    file: mule/rendering.py
+    describe: an inactive onboarding window still broadcasts its SSID
+    find: '            f"ignore_broadcast_ssid={0 if onboarding.broadcast_ssid else 2}",'
+    replace: '            f"ignore_broadcast_ssid=0",'
+
+  - id: M128
+    file: mule/rendering.py
+    describe: the renderer invents a value instead of failing closed on TBD
+    find: "    if value is None or (isinstance(value, str) and value.strip() == TBD):"
+    replace: "    if False:"

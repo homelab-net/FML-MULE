@@ -21,6 +21,7 @@ region:
   name: "Synthetic test fixture, not a real region"
   administration: "None. This is a test fixture."
   regulator: "None. This is a test fixture."
+  country_code: "XX"          # Synthetic. Not a real country code.
   status: FIXTURE
   verified_by: "n/a, synthetic"
 
