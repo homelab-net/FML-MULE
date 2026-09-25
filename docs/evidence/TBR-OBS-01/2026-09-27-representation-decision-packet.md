@@ -53,6 +53,37 @@ behaviors OTS performs. From them:
   observations, or records a bounded-queue discard without ending participation
   (`2026-09-24-consumer-reading.md`, "What these consumers do not define").
 
+## 2a. Observed on the live OTS bench (2026-09-27, `SIMULATED`)
+
+The source reading above was confirmed at runtime against the persistent bench
+(`/home/mule1/mule/`, `mule-stack.service`): OpenTAKServer **1.7.13** (image
+`localhost/fml-bench/ots:1.7.13-py312`,
+`sha256:762ebf4346de8360d091c0795cc4d22e1f58c16abc4f91df5cf1b407b827cd4e`, the
+same 1.7.13 the archived source is pinned to), PostGIS, RabbitMQ, nginx-TLS. Only
+the running database **schema** and the OTS **scheduled-job config** were read; no
+stored mission rows were read or copied (row contents are out of scope and would be
+a capture; `SECURITY.md`). This is observed runtime state, `SIMULATED` tier; it
+selects no representation and closes nothing.
+
+- **Record shape.** The `cot` table's columns are exactly: `id, how, type,
+  sender_callsign, sender_device_name, sender_uid, recipients, timestamp, start,
+  stale, xml, mission_name, uid`. A stored observation therefore carries the CoT
+  time trio (`timestamp`/`start`/`stale`) and a producer (`sender_uid` /
+  `sender_callsign`) — the age and source of `FML-REQ-034` — plus the raw `xml`.
+  There is **no column holding any of the six state words**; the running store
+  confirms the source finding that `new/active/stale/expired/merged/superseded` is
+  not a field OTS keeps.
+- **Retention is deletion.** The running config sets `OTS_DELETE_OLD_DATA_WEEKS: 1`
+  (all finer units `0`) and registers `delete_old_data` as a scheduled job. Live
+  retention is enforced by **deletion**, confirming at runtime that OTS does not
+  "retain as history" — the divergence `FML-REQ-037` requires FML to add.
+
+This runtime read confirms the **record shape and retention** only. It does **not**
+show the dynamic stale-hiding presentation (the `get_map_state` omission) or the
+client-side (iTAK) rendering of a past-`stale` marker; observing those needs an
+authenticated API / CoT injection and a client on the AP, and is deferred (the
+client-side reading remains the limitation in §3).
+
 ## 3. The consumer reading this packet could not obtain (limitation, per the gate)
 
 The gate: "If that consumer cannot be read, the ADR records the limitation. It does
@@ -123,7 +154,9 @@ semantics before any promotion to `mule/`.
 `2026-09-24-consumer-reading.SOURCE.md` and `2026-09-24-upstream-snapshots.SOURCE.md`);
 CONOPS v1.2 section 28A; `docs/verification/requirements.md` (`FML-REQ-034`-`041`);
 the `TBR-OBS-01` trade file (closure gate); `FML-ADR-048`, `FML-ADR-050`,
-`FML-ADR-051`, `FML-ADR-052`.
+`FML-ADR-051`, `FML-ADR-052`; and the live OTS bench observation in section 2a
+(OpenTAKServer 1.7.13, `mule-stack.service`, 2026-09-27 — schema and retention
+config only).
 
 ## 8. Owner disposition
 
