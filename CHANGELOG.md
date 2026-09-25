@@ -14,6 +14,21 @@ this program needs them visible:
 
 ## Unreleased
 
+### Started the TAK capability from its units
+
+PostgreSQL, RabbitMQ, the API, and the listener notify systemd when
+their probes pass, so `After=` waits for ready rather than for process
+start. Workers wait for the API but do not runtime-require it. Their
+one-time startup checks fail closed when API startup/migrations fail; the
+target only wants the API, so a later API stop leaves the target, listener,
+and parser active. The database and broker start as uid 0 inside the
+container so the image entrypoint can drop privileges. Cold-start CI runs
+that as an unprivileged account with a subordinate UID range. The unresolved
+mesh-gate name is held closed until the members are observed waiting. One
+synthetic CoT is persisted, including after the target stops and starts. No
+`Restart=` was set. No different-node restore was run. The contract stays
+disabled.
+
 ### An enabled bundle is still one capability
 
 Turning `opentakserver` on no longer requires the catalog to pretend the

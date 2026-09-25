@@ -21,14 +21,53 @@ def test_tak_topology_holds_and_mutations_fail() -> None:
     assert validator.main() == 0
 
 
-def test_software_path_starts_at_the_repository_root() -> None:
+def test_cold_start_starts_at_the_repository_root() -> None:
     root = Path(__file__).resolve().parents[2]
-    script = (root / "test/topology/cases/tak/integrate.sh").read_text()
+    script = (root / "test/topology/cases/tak/cold-start.sh").read_text()
     assert '"$here/../../../.."' in script
     assert "exec sudo sh" in script
-    assert "--user 0" in script
-    assert ".erlang.cookie" in script
     assert "services/tak/Containerfile" in script
+    assert 'systemctl start "user@${account_uid}.service"' in script
+    assert "systemctl --user start opentakserver.target" in script
+    assert "env -i" in script
+    assert 'XDG_CONFIG_HOME="$home/.config"' in script
+    assert 'cd "$home"' in script
+    assert 'chmod -R go-w "$home/.config"' in script
+    assert "/usr/libexec/podman/quadlet" in script
+    assert 'as_user "$quadlet" -user "$quadlet_out"' in script
+    assert "health-scheduler-probe" in script
+    assert 'socket.getaddrinfo("eud-handler", 8088)' in script
+    assert "ci-fail-start.conf" in script
+    assert "api startup failure held eud-handler and cot-parser closed" in script
+    assert "systemctl --user stop opentakserver.service" in script
+    assert "capability target stopped when only the API stopped" in script
+    assert "/etc/environment" in script
+    assert "account-home.conf" not in script
+    assert "--user 0" not in script
+    assert ".erlang.cookie" not in script
+    run_lines = [line for line in script.splitlines() if "podman run" in line]
+    assert run_lines
+    for line in run_lines:
+        for name in (
+            "postgresql",
+            "rabbitmq",
+            "opentakserver",
+            "eud-handler",
+            "cot-parser",
+        ):
+            assert name not in line
+
+
+def test_topology_requires_systemd_enabled_distro_podman() -> None:
+    root = Path(__file__).resolve().parents[2]
+    script = (root / "test/topology/ensure-podman.sh").read_text()
+    assert "Podman 5 or newer is required" in script
+    assert "/usr/lib/systemd/user-generators/podman-user-generator" in script
+    assert "/usr/lib/podman/netavark" in script
+    assert "/usr/lib/podman/aardvark-dns" in script
+    assert "podman-static" in script
+    assert "curl -fsSL" not in script
+    assert "apparmor_restrict_unprivileged_userns" not in script
 
 
 def test_quadlet_check_reads_generated_service_names() -> None:

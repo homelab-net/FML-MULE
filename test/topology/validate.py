@@ -63,6 +63,14 @@ def _after(text: str) -> set[str]:
     return found
 
 
+def _wants(text: str) -> set[str]:
+    found: set[str] = set()
+    for line in _assignments(text):
+        if line.startswith("Wants="):
+            found.update(line.split("=", 1)[1].split())
+    return found
+
+
 def _keys(text: str, key: str) -> list[str]:
     prefix = f"{key}="
     return [
@@ -104,11 +112,23 @@ def check_case(
                     f"{case['id']}: mesh gate is on the target; that does not "
                     "hold the members it Wants="
                 )
+            wants = _wants(text)
+            startup_only = set(case.get("target_wants_not_requires", []))
             for member in bundle:
                 service = _systemd_name(member)
-                if service not in requires or service not in after:
+                if service not in wants or service not in after:
                     errors.append(
-                        f"{case['id']}: target does not wait for member {service}"
+                        f"{case['id']}: target does not want/wait for member {service}"
+                    )
+                if member in startup_only:
+                    if service in requires:
+                        errors.append(
+                            f"{case['id']}: target runtime-requires "
+                            f"startup-only member {service}"
+                        )
+                elif service not in requires:
+                    errors.append(
+                        f"{case['id']}: target does not require member {service}"
                     )
             continue
         if mesh_gate not in requires or mesh_gate not in after:
@@ -141,6 +161,22 @@ def check_case(
         requires = _requires(texts[edge["from"]])
         if edge["to"] not in requires:
             errors.append(f"{case['id']}: {edge['from']} does not require {edge['to']}")
+    for edge in case.get("required_after", []):
+        if edge["to"] not in _after(texts[edge["from"]]):
+            errors.append(
+                f"{case['id']}: {edge['from']} does not order after {edge['to']}"
+            )
+    for gate in case.get("required_start_pre", []):
+        commands = _keys(texts[gate["unit"]], "ExecStartPre")
+        if gate["command"] not in commands:
+            errors.append(
+                f"{case['id']}: {gate['unit']} does not fail closed on API startup"
+            )
+    for logical in case.get("notify_healthy", []):
+        if "Notify=healthy" not in _assignments(texts[logical]):
+            errors.append(f"{case['id']}: {logical} does not notify when healthy")
+        if not _keys(texts[logical], "HealthCmd"):
+            errors.append(f"{case['id']}: {logical} has no health command")
     for edge in case["forbidden_requires"]:
         if edge["to"] in _requires(texts[edge["from"]]):
             errors.append(

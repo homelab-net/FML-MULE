@@ -5,6 +5,9 @@
 # No host port. Ingress on ots.network is the path to this process.
 # 1.7.13 binds the API to 127.0.0.1 unless told otherwise. 0.0.0.0 here is
 # the container interface on the internal network, not a host publish.
+# 8081 accepting a connection is this process's own signal that startup
+# migrations have finished. Notify=healthy is what makes After= on this
+# unit mean that, rather than "the process was spawned".
 
 [Unit]
 Description=OpenTAKServer web application and API
@@ -28,8 +31,15 @@ Environment=OTS_MEDIAMTX_ENABLE=false
 # so EnvironmentFile supplies it and must use that host. It must not
 # override OTS_RABBITMQ_SERVER_ADDRESS.
 EnvironmentFile=/run/fml/ots.env
+HealthCmd=python /usr/local/bin/fml-listen-ready.py 8081
+HealthInterval=5s
+HealthTimeout=5s
+HealthRetries=36
+HealthStartPeriod=60s
+Notify=healthy
 
 [Service]
+TimeoutStartSec=300
 # No Restart=. TBR-HA-01 is open.
 
 [Install]
