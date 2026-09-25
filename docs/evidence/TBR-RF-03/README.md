@@ -11,6 +11,13 @@
 option 1. This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
 
+- `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
+  sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate
+  to 2.4 GHz when achievable EIRP/coverage on 5 GHz is inadequate. Sets
+  `wifi.ap_channel`/`max_eirp_dbm`/`permitted_bands`/`dfs_required` in the `us-915`
+  profile, so the `mule-v001` AP-only target resolves. This settles **only** the
+  AP's RF parameters; the trade's radio-consolidation/hardware half stays `OPEN`.
+
 - `2026-09-06-consolidation-to-free-the-m2-slot.md` -- analysis (`UNVERIFIED`):
   whether AP-plus-mesh consolidation can free the M.2 slot for a storage SSD. It
   separates `TBR-RF-03` from `TBR-CARRIER-01` and finds that consolidation frees

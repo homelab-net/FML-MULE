@@ -74,7 +74,10 @@ def test_unresolved_reports_every_gap_with_its_trade() -> None:
     assert gaps
     assert all(trade.startswith("TBR-") for _, trade in gaps)
     dotted = {path for path, _ in gaps}
-    assert "wifi.ap_channel" in dotted
+    # The AP band/channel/EIRP were set by the TBR-RF-03 AP-params decision
+    # (Owner, 2026-09-21), so the AP channel is no longer an unresolved gap.
+    assert "wifi.ap_channel" not in dotted
+    # The mesh, HaLow and LoRa values remain legitimately TBD (TBR-RF-01/02).
     assert "lora.default_channel" in dotted
 
 
@@ -631,23 +634,23 @@ def test_the_v001_node_declares_only_the_access_point() -> None:
     assert gc.active_targets(node) == ["wifi_ap"]
 
 
-def test_an_ap_only_node_refuses_only_on_the_trade_for_its_own_bearer() -> None:
+def test_an_ap_only_node_resolves_against_the_shipped_profile() -> None:
     """Scoping is what unblocks the first-milestone node.
 
-    us-915 has every value TBD. An AP-only node is still refused -- its own AP
-    channel is TBD (TBR-RF-03) -- but only on that, not on the HaLow/LoRa trade
-    for bearers it does not field. Without target-awareness the refusal named
-    every bearer's trade, which is what the absence assertions below catch.
+    us-915 leaves the mesh, HaLow and LoRa values TBD, but the Owner set the AP
+    band/channel/EIRP (TBR-RF-03 AP-params, 2026-09-21). An AP-only node fields
+    only wifi_ap, so it resolves -- it is not refused on the HaLow/LoRa trade
+    for bearers it does not field. Without target-awareness this call would
+    still raise on TBR-RF-02, so a resolved AP-only node is itself the proof
+    that the refusal stays scoped to the node's own bearers. Before the
+    decision this same call refused on TBR-RF-03.
     """
-    with pytest.raises(gc.UnresolvedValueError) as excinfo:
-        gc.generate(str(US_915), MISSION, node_ref=NODE_V001)
+    params = gc.generate(str(US_915), MISSION, node_ref=NODE_V001)
 
-    message = str(excinfo.value)
-    assert "wifi.ap_channel" in message
-    assert "TBR-RF-03" in message
-    assert "halow" not in message
-    assert "lora" not in message
-    assert "TBR-RF-02" not in message
+    assert "ap_channel" in params["wifi"]
+    assert "mesh_channel" not in params["wifi"]
+    assert "halow" not in params
+    assert "lora" not in params
 
 
 def test_an_ap_only_node_emits_only_its_bearer_blocks() -> None:
@@ -689,7 +692,13 @@ def test_a_node_with_no_active_bearers_is_a_hard_error() -> None:
 def test_check_mode_with_a_node_scopes_to_its_bearers(
     capsys: pytest.CaptureFixture,
 ) -> None:
-    """`--node` narrows even the --check report to the node's own trades."""
+    """`--node` narrows even the --check report to the node's own trades.
+
+    mule-v001 fields only wifi_ap, whose parameters the Owner set (TBR-RF-03
+    AP-params, 2026-09-21), so its scoped check now resolves -- and never drags
+    in the HaLow/LoRa trade (TBR-RF-02) for bearers it does not field. Before
+    the decision this scoped check named TBR-RF-03 as still TBD.
+    """
     code = gc.main(
         [
             "--region",
@@ -704,7 +713,7 @@ def test_check_mode_with_a_node_scopes_to_its_bearers(
 
     assert code == 0
     out = capsys.readouterr().out
-    assert "TBR-RF-03" in out
+    assert "all required parameters are resolved" in out
     assert "TBR-RF-02" not in out
 
 
