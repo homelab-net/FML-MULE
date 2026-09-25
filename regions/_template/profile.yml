@@ -16,6 +16,7 @@ region:
   name: TBD                   # Human-readable, e.g. "United States, 902-928 MHz"
   administration: TBD         # e.g. "United States"
   regulator: TBD              # e.g. "FCC"
+  country_code: TBD           # ISO 3166-1 alpha-2, e.g. "US". Used with ieee80211d=1
   status: UNVERIFIED          # UNVERIFIED until someone who operates here confirms it
   verified_by: TBD            # Who confirmed this profile, and when
 

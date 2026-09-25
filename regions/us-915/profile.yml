@@ -19,6 +19,12 @@ region:
   name: "United States, 902-928 MHz"
   administration: "United States"
   regulator: "FCC"
+  # ISO 3166-1 alpha-2, the form hostapd/cfg80211 require for the regulatory
+  # domain. Owner-sourced 2026-09-25: the region is the United States. hostapd(8)
+  # country_code: "The country_code and ieee80211d settings ... enable the AP to
+  # advertise the country and comply with local regulatory rules." Set with
+  # ieee80211d=1 so 5 GHz (ch 149, UNII-3) is permitted.
+  country_code: "US"
   status: UNVERIFIED          # UNVERIFIED until someone who operates here confirms it
   verified_by: TBD            # Who confirmed this profile, and when
 

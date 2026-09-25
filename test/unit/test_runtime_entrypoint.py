@@ -68,8 +68,13 @@ def test_python_module_entrypoint_renders_then_exits(tmp_path: Path) -> None:
     assert rendered["mission"]["id"] == mission["mission"]["id"]
     assert rendered["wifi"] == {
         "ap_channel": region["wifi"]["ap_channel"],
+        # Carried through for the AP hostapd radio block (GAP-09E rendering):
+        # hw_mode derives from the band, ieee80211h from DFS.
+        "permitted_bands": region["wifi"]["permitted_bands"],
+        "dfs_required": region["wifi"]["dfs_required"],
         "max_eirp_dbm": region["wifi"]["max_eirp_dbm"],
     }
+    assert rendered["region"]["country_code"] == region["region"]["country_code"]
     assert "SIMULATED" in result.stdout
 
 

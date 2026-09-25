@@ -21,6 +21,7 @@ question you can ask in plain English.
 | `services.py` | What does this node offer, and what name does a user reach it by? |
 | `modes.py` | Which operating modes is the node in, and which can it not tell? |
 | `mission.py` | Is a mission package valid according to the declared runtime schema? |
+| `rendering.py` | What concrete access-point configuration does the decided, sourced surface produce right now? |
 | `status.py` | What do we tell the operator? |
 
 That is the whole package. If another file appears, it should be because there

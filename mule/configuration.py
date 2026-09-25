@@ -251,6 +251,10 @@ REQUIRED: dict[str, dict[str, str]] = {
 REGION_IDENTITY: dict[str, str] = {
     "region.id": "n/a",
     "region.regulator": "n/a",
+    # ISO 3166-1 alpha-2. hostapd/cfg80211 need it for the regulatory domain, and
+    # a 5 GHz AP will not come up without a valid one. Region identity, not a
+    # trade-supplied value: a profile that cannot name its country cannot render.
+    "region.country_code": "n/a",
 }
 
 
@@ -442,6 +446,9 @@ def resolve(
         "region": {
             "id": _get(region, "region.id"),
             "regulator": _get(region, "region.regulator"),
+            # ISO 3166-1 alpha-2 for the regulatory domain (REGION_IDENTITY).
+            # The AP radio block cannot render without it.
+            "country_code": _get(region, "region.country_code"),
             "status": region.get("region", {}).get("status", "UNVERIFIED"),
         },
         "mission": {
@@ -501,6 +508,12 @@ def resolve(
         wifi["mesh_channel"] = _get(region, "wifi.mesh_channel")
     if "wifi_ap" in selected:
         wifi["ap_channel"] = _get(region, "wifi.ap_channel")
+        # The AP hostapd radio block derives hw_mode from the band and
+        # ieee80211h from DFS, so both are carried through for rendering
+        # (FML-ADR-084 / GAP-09E). They are decided values in the profile, not
+        # trade-gated, so their absence is a profile error, not a TBD gap.
+        wifi["permitted_bands"] = _get(region, "wifi.permitted_bands")
+        wifi["dfs_required"] = _get(region, "wifi.dfs_required")
     if "wifi_mesh" in selected or "wifi_ap" in selected:
         wifi["max_eirp_dbm"] = _get(region, "wifi.max_eirp_dbm")
     if wifi:
