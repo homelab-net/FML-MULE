@@ -6,6 +6,9 @@
 dbus                  # System bus required by the selected boot userspace.
 initramfs-tools       # Explicit initramfs implementation for the Debian kernel.
 linux-image-amd64     # Debian 13 x86-64 development kernel meta-package.
+python3               # FML-ADR-083 runtime interpreter.
+python3-jsonschema    # Canonical mission and service-catalog validation.
+python3-yaml          # Region, node, and service-catalog input loader.
 systemd               # Selected service manager and boot userspace.
 systemd-boot          # systemd-boot integration used by mkosi.
 systemd-boot-efi      # UEFI binary payload for the selected bootloader.

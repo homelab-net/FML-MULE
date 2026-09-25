@@ -82,8 +82,8 @@ and no test could tell.
 
 ## The four rules
 
-1. **It runs the real artifacts, not parallel copies.** `node.py` loads
-   `tools/gen-config.py` by path and imports every decision from `mule/`. A
+1. **It runs the real artifacts, not parallel copies.** `node.py` imports the
+   same `mule.configuration` module invoked by `python -m mule`. A
    software digital twin that has drifted from the node is worse than none, because "it
    works on the software digital twin" becomes a permanent excuse.
 2. **Every fake is named below**, and `tools/validate-docs.sh` fails if one is

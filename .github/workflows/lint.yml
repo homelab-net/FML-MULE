@@ -1,9 +1,9 @@
 ---
 # Lint and document validation.
 #
-# THERE IS NO BUILD OR TEST WORKFLOW, because there is nothing to build. The
-# first functional code in this repository is the image build pipeline, and it
-# does not exist yet. See AGENTS.md: build system before application code.
+# The Python job builds and invokes the FML-ADR-083 distribution. The complete
+# raw-image and QEMU acceptance path remains an explicit image-build activity;
+# hosted lint CI does not silently substitute for it.
 #
 # WHAT A GREEN RUN MEANS
 #
@@ -146,6 +146,21 @@ jobs:
         run: |
           tools/install-deps.sh --only python
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Build and invoke the MULE runtime distribution
+        run: |
+          python -m pip wheel --no-deps --wheel-dir /tmp/mule-wheel .
+          python -m pip install --no-deps /tmp/mule-wheel/fml_mule-0.0.1-py3-none-any.whl
+          cd /tmp
+          python -m mule \
+            --region "$GITHUB_WORKSPACE/test/fixtures/regions/xx-testfixture/profile.yml" \
+            --mission "$GITHUB_WORKSPACE/mission/examples/valid-minimal.json" \
+            --node "$GITHUB_WORKSPACE/test/fixtures/nodes/ap-only/node.yml" \
+            --catalog "$GITHUB_WORKSPACE/services/catalog/catalog.yml" \
+            --catalog-schema "$GITHUB_WORKSPACE/services/catalog/catalog.schema.json" \
+            --quadlets "$GITHUB_WORKSPACE/services/quadlets" \
+            --out /tmp/mule-runtime
+          test -s /tmp/mule-runtime/parameters.json
 
       - name: ruff lint
         run: ruff check .

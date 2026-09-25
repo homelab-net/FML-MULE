@@ -9,6 +9,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from email.parser import Parser
 from pathlib import Path
@@ -18,6 +19,9 @@ from urllib.parse import parse_qs, unquote
 from license_expression import ExpressionError, get_spdx_licensing
 
 SPDX_LICENSING = get_spdx_licensing()
+RUNTIME_NAME = "fml-mule"  # FML-ADR-083
+RUNTIME_VERSION = "0.0.1"  # FML-ADR-083
+RUNTIME_PURL = f"pkg:pypi/{RUNTIME_NAME}@{RUNTIME_VERSION}"
 
 
 def _read_json(path: Path, label: str, errors: list[str]) -> dict[str, Any]:
@@ -93,6 +97,76 @@ def _sbom_components(
         if identity is not None:
             components[identity] = component
     return components
+
+
+def _runtime_digest(root: Path, errors: list[str]) -> str | None:
+    """Hash the one complete installed FML-ADR-083 runtime distribution."""
+    metadata_paths = sorted(
+        path
+        for pattern in (
+            "usr/lib/python*/dist-packages/fml_mule-*.dist-info/METADATA",
+            "usr/lib/python*/site-packages/fml_mule-*.dist-info/METADATA",
+        )
+        for path in root.glob(pattern)
+    )
+    if len(metadata_paths) != 1:
+        errors.append(
+            "target shall contain exactly one fml-mule distribution metadata file"
+        )
+        return None
+    metadata = metadata_paths[0]
+    record = Parser().parsestr(metadata.read_text(encoding="utf-8"), headersonly=True)
+    if record.get("Name") != RUNTIME_NAME or record.get("Version") != RUNTIME_VERSION:
+        errors.append("installed MULE distribution identity does not match FML-ADR-083")
+        return None
+    package = metadata.parent.parent / "mule"
+    required = [
+        metadata,
+        root / "usr/share/fml-mule/mission-package.schema.json",
+        root / "usr/lib/systemd/system/mule-runtime.service",
+    ]
+    sources = sorted(package.rglob("*.py")) if package.is_dir() else []
+    files = [*sources, *required]
+    if not sources or any(not path.is_file() for path in required):
+        errors.append("installed MULE distribution is incomplete")
+        return None
+    digest = hashlib.sha256()
+    for path in sorted(files):
+        digest.update(path.relative_to(root).as_posix().encode())
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _validate_runtime_component(
+    root: Path, document: dict[str, Any], errors: list[str]
+) -> None:
+    """Require the source-built runtime beside the Debian SBOM components."""
+    digest = _runtime_digest(root, errors)
+    raw_components = document.get("components")
+    if not isinstance(raw_components, list):
+        return
+    matches = [
+        component
+        for component in raw_components
+        if isinstance(component, dict) and component.get("purl") == RUNTIME_PURL
+    ]
+    if len(matches) != 1:
+        errors.append("SBOM shall contain fml-mule exactly once")
+        return
+    component = matches[0]
+    expected_hashes = [{"alg": "SHA-256", "content": digest}]
+    if (
+        component.get("type") != "application"
+        or component.get("name") != RUNTIME_NAME
+        or component.get("version") != RUNTIME_VERSION
+        or component.get("hashes") != expected_hashes
+        or component.get("licenses") != [{"license": {"id": "Apache-2.0"}}]
+        or component.get("properties")
+        != [{"name": "fml:governing-decision", "value": "FML-ADR-083"}]
+    ):
+        errors.append("SBOM fml-mule component does not match the installed runtime")
 
 
 def _valid_spdx_expression(value: object) -> bool:
@@ -172,6 +246,7 @@ def validate(
         errors.append("target contains an APT repository file")
 
     components = _sbom_components(sbom, errors)
+    _validate_runtime_component(root, sbom, errors)
     source_names = {
         str(package.get("source")) for package in packages if isinstance(package, dict)
     }

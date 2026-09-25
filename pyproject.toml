@@ -1,13 +1,16 @@
 # Python project configuration for the FERAL MULE repository.
 #
-# This file does not build a distributable package. It pins the minimum
-# interpreter version and configures ruff for the Python that the node runs
-# (mule/) and the repository tooling (tools/, test/).
+# FML-ADR-083 makes mule/ an image-built Python distribution. Repository tools
+# and tests share its environment but are not included in that distribution.
+
+[build-system]
+requires = ["setuptools==78.1.1"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "fml-mule-tools"
-version = "0.0.0"
-description = "Repository tooling for Program FERAL MULE"
+name = "fml-mule"
+version = "0.0.1"
+description = "Bounded node decision and configuration runtime for FERAL MULE"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 # 3.11 is the floor. Chosen because it is what current Debian-family stable
@@ -15,20 +18,31 @@ license = { text = "Apache-2.0" }
 # would mean requiring a Python a builder's own distribution does not ship.
 requires-python = ">=3.11"
 dependencies = [
-  "jsonschema==4.26.0",
-  # FML-ADR-081: validate CycloneDX licence choices against SPDX's symbol set.
-  "license-expression==30.4.1",
+  # The image installs these from the exact Debian package lock. The lower
+  # bounds describe the runtime API contract, not an alternate resolver.
+  "jsonschema>=4.19",
+  "PyYAML>=6.0",
 ]
 
 [project.optional-dependencies]
 # Installed by CI and by anyone running the full check set locally.
 dev = [
   "coverage>=7.0",
-  "PyYAML>=6.0",
+  # FML-ADR-081: validate CycloneDX licence choices against SPDX's symbol set.
+  "license-expression==30.4.1",
   "pytest>=7.0",
   "yamllint>=1.30",
   "ansible-lint>=6.0",
 ]
+
+[tool.setuptools]
+packages = ["mule"]
+
+[tool.setuptools.data-files]
+# FML-ADR-083: pip installs both the canonical mission schema and the static
+# native unit from the same versioned distribution as the runtime code.
+"share/fml-mule" = ["mission/schema/mission-package.schema.json"]
+"lib/systemd/system" = ["os/systemd/mule-runtime.service"]
 
 [tool.ruff]
 line-length = 88

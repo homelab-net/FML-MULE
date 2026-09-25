@@ -28,20 +28,20 @@ from .fakes import FakePower, FakeRadio, FakeThermal
 from .interfaces import RadioState
 from .node import REPO_ROOT
 
-REAL_GENERATOR = REPO_ROOT / "tools" / "gen-config.py"
+REAL_GENERATOR = REPO_ROOT / "mule" / "configuration.py"
 
 
 def test_the_node_calls_the_real_configuration_generator() -> None:
     """Rule 1: the real artifact, not a copy of it.
 
-    `node.py` loads `tools/gen-config.py` by path. If someone replaces that
+    `node.py` imports `mule.configuration`. If someone replaces that
     with a local reimplementation to make a scenario easier, every region and
     regulatory assertion in this directory silently stops testing the tool a
     node would actually run.
     """
-    loaded = Path(node.gen_config.__file__ or "")
+    loaded = Path(node.gen_config.__file__ or "").resolve()
 
-    assert loaded == REAL_GENERATOR
+    assert loaded == REAL_GENERATOR.resolve()
     assert loaded.is_file()
 
 

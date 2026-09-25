@@ -31,6 +31,10 @@ debsbom generate \
   --root "$BUILDROOT" \
   --out "$sbom_base"
 
+python3 "$SRCDIR/tools/add-runtime-sbom.py" \
+  --root "$BUILDROOT" \
+  --sbom "$sbom"
+
 python3 "$SRCDIR/tools/validate-image-root.py" \
   --root "$BUILDROOT" \
   --lock "$SRCDIR/os/image/manifest/target-lock.json" \

@@ -8,8 +8,40 @@
 set -eu
 
 : "${BUILDROOT:?mkosi did not provide BUILDROOT}"
+: "${SRCDIR:?mkosi did not provide SRCDIR}"
 if [ "$BUILDROOT" = / ] || [ ! -d "$BUILDROOT/var/lib/dpkg" ]; then
   printf '%s\n' 'Refusing to alter an invalid build root.' >&2
+  exit 1
+fi
+
+# pip install documentation: --root says "Install everything relative to this
+# alternate root directory"; --prefix says "Installation prefix where lib, bin
+# and other top-level folders are placed."
+# Without them, this would alter the governed tools tree instead of the target.
+# --no-build-isolation means "Build dependencies specified by PEP 518 must be
+# already installed"; they are exact packages in the separately locked tools
+# tree. --no-deps means "Don't install package dependencies"; the target lock
+# supplies them. --no-compile says "Do not compile Python source files to
+# bytecode"; without it pip compiles the installed source during this build.
+python3 -m pip install \
+  --no-build-isolation \
+  --no-compile \
+  --no-deps \
+  --prefix /usr \
+  --root "$BUILDROOT" \
+  "$SRCDIR"
+
+runtime_main=$(find "$BUILDROOT/usr/lib" -path '*/mule/__main__.py' -print)
+if [ "$(printf '%s\n' "$runtime_main" | sed '/^$/d' | wc -l)" -ne 1 ]; then
+  printf '%s\n' 'The target shall contain exactly one MULE runtime entry point.' >&2
+  exit 1
+fi
+if [ ! -f "$BUILDROOT/usr/lib/systemd/system/mule-runtime.service" ]; then
+  printf '%s\n' 'The MULE runtime unit was not installed into the target.' >&2
+  exit 1
+fi
+if [ ! -f "$BUILDROOT/usr/share/fml-mule/mission-package.schema.json" ]; then
+  printf '%s\n' 'The canonical mission schema was not installed into the target.' >&2
   exit 1
 fi
 

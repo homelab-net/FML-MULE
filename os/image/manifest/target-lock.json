@@ -419,6 +419,15 @@
       "sha256": "38abe0e710a07688e9c149d74536e67cfee0364bdb64dd6d644c32a1cfad389f"
     },
     {
+      "name": "libffi8",
+      "version": "3.4.8-2",
+      "architecture": "amd64",
+      "source": "libffi",
+      "suite": "trixie",
+      "filename": "pool/main/libf/libffi/libffi8_3.4.8-2_amd64.deb",
+      "sha256": "0ebdc340de33333639c3c63874cd4b15ac2e83dfa1ef3053b7eefaf4919f4f68"
+    },
+    {
       "name": "libgcc-s1",
       "version": "14.2.0-19",
       "architecture": "amd64",
@@ -509,6 +518,15 @@
       "sha256": "6d00f45f2e80e078e906e3eedecd3ba6913e39fef49bff361ee583f17f00ec05"
     },
     {
+      "name": "libncursesw6",
+      "version": "6.5+20250216-2",
+      "architecture": "amd64",
+      "source": "ncurses",
+      "suite": "trixie",
+      "filename": "pool/main/n/ncurses/libncursesw6_6.5+20250216-2_amd64.deb",
+      "sha256": "47baa2e11579583654583a066b69bd5a5d2f22423081f707ed6c0c3ba6d538b7"
+    },
+    {
       "name": "libnettle8t64",
       "version": "3.10.1-1",
       "architecture": "amd64",
@@ -561,6 +579,42 @@
       "suite": "trixie",
       "filename": "pool/main/p/pcre2/libpcre2-8-0_10.46-1~deb13u1_amd64.deb",
       "sha256": "6aa452af6a07e34498bf8e734e8789c9dd602fb34f12572e62dc1bba4889a60e"
+    },
+    {
+      "name": "libpython3-stdlib",
+      "version": "3.13.5-1",
+      "architecture": "amd64",
+      "source": "python3-defaults",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3-defaults/libpython3-stdlib_3.13.5-1_amd64.deb",
+      "sha256": "7e142ed64a81ccdd39714f213467bd365736ef341adb2be11be981f638b9175f"
+    },
+    {
+      "name": "libpython3.13-minimal",
+      "version": "3.13.5-2+deb13u3",
+      "architecture": "amd64",
+      "source": "python3.13",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3.13/libpython3.13-minimal_3.13.5-2+deb13u3_amd64.deb",
+      "sha256": "9be9a4e59d43ad6e237349befbd0d131e0cf79812323b5ac6427051cee7e7ca9"
+    },
+    {
+      "name": "libpython3.13-stdlib",
+      "version": "3.13.5-2+deb13u3",
+      "architecture": "amd64",
+      "source": "python3.13",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3.13/libpython3.13-stdlib_3.13.5-2+deb13u3_amd64.deb",
+      "sha256": "f4e759dbac49db16c4f1c3601684a9211a2af3211a3f7bdc04fff263af08a5eb"
+    },
+    {
+      "name": "libreadline8t64",
+      "version": "8.2-6",
+      "architecture": "amd64",
+      "source": "readline",
+      "suite": "trixie",
+      "filename": "pool/main/r/readline/libreadline8t64_8.2-6_amd64.deb",
+      "sha256": "eeadf2b5e755c9f183883feea2d9b5b28560284275d5f54d3e55d0923b1d0967"
     },
     {
       "name": "libseccomp2",
@@ -671,6 +725,15 @@
       "sha256": "81da7064d56fc044f5db4bb3c1e80ff50a4986dcbbf80d958eeca565b44c157f"
     },
     {
+      "name": "libyaml-0-2",
+      "version": "0.2.5-2",
+      "architecture": "amd64",
+      "source": "libyaml",
+      "suite": "trixie",
+      "filename": "pool/main/liby/libyaml/libyaml-0-2_0.2.5-2_amd64.deb",
+      "sha256": "8a5475402801de445a17887bb72d03613565a6a84b216b4b606d1462c613eeb2"
+    },
+    {
       "name": "libzstd1",
       "version": "1.5.7+dfsg-1",
       "architecture": "amd64",
@@ -725,6 +788,15 @@
       "sha256": "ade14470c4dff8921bca6ca8b1ea20eadc0f2178b48caff3c74534b17a633292"
     },
     {
+      "name": "media-types",
+      "version": "13.0.0",
+      "architecture": "all",
+      "source": "media-types",
+      "suite": "trixie",
+      "filename": "pool/main/m/media-types/media-types_13.0.0_all.deb",
+      "sha256": "0788e4b0b72db1bcf74a19cb24c3511e7770ad0b341f0f30e361701c3072f53e"
+    },
+    {
       "name": "mount",
       "version": "2.41.5-0+deb13u1",
       "architecture": "amd64",
@@ -752,6 +824,15 @@
       "sha256": "40a525f4761e9ed4b8adcd1783cb9a6467ff8008215ae99b3597825bdefc61e4"
     },
     {
+      "name": "netbase",
+      "version": "6.5",
+      "architecture": "all",
+      "source": "netbase",
+      "suite": "trixie",
+      "filename": "pool/main/n/netbase/netbase_6.5_all.deb",
+      "sha256": "76bafa92947ebd37b0a6f9ec6570412041f56edebc1c66d323731216d318471e"
+    },
+    {
       "name": "openssl-provider-legacy",
       "version": "3.5.7-1~deb13u2",
       "architecture": "amd64",
@@ -768,6 +849,105 @@
       "suite": "trixie",
       "filename": "pool/main/p/perl/perl-base_5.40.1-6_amd64.deb",
       "sha256": "94f1060613a666dc569026a8344bee202ba3b29ec124dc6ef30bfc72e735c78b"
+    },
+    {
+      "name": "python3",
+      "version": "3.13.5-1",
+      "architecture": "amd64",
+      "source": "python3-defaults",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3-defaults/python3_3.13.5-1_amd64.deb",
+      "sha256": "c1388174dc7140e6c19a6dd39f8a0dcb38a835cd66c65644e0dded43d5223cb0"
+    },
+    {
+      "name": "python3-attr",
+      "version": "25.3.0-1",
+      "architecture": "all",
+      "source": "python-attrs",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-attrs/python3-attr_25.3.0-1_all.deb",
+      "sha256": "72cee7fff9e57e8410956e3071ffe910d9de14ddedf14d598a616319428b369c"
+    },
+    {
+      "name": "python3-jsonschema",
+      "version": "4.19.2-6",
+      "architecture": "all",
+      "source": "python-jsonschema",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-jsonschema/python3-jsonschema_4.19.2-6_all.deb",
+      "sha256": "e826c2777771ca3852bf3ea4c5df11d8bec99648375c849225eb557411d1b694"
+    },
+    {
+      "name": "python3-jsonschema-specifications",
+      "version": "2023.12.1-2",
+      "architecture": "all",
+      "source": "python-jsonschema-specifications",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-jsonschema-specifications/python3-jsonschema-specifications_2023.12.1-2_all.deb",
+      "sha256": "1057cbd1dbb47ca26400c4f96fff24249ef1a3d8300390740051d09b1488dac8"
+    },
+    {
+      "name": "python3-minimal",
+      "version": "3.13.5-1",
+      "architecture": "amd64",
+      "source": "python3-defaults",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3-defaults/python3-minimal_3.13.5-1_amd64.deb",
+      "sha256": "a5d2371bebf3689f676e3f3bae800371bcc4392a8a51269e23d528249b399615"
+    },
+    {
+      "name": "python3-referencing",
+      "version": "0.36.2-1",
+      "architecture": "all",
+      "source": "referencing",
+      "suite": "trixie",
+      "filename": "pool/main/r/referencing/python3-referencing_0.36.2-1_all.deb",
+      "sha256": "225df288973a2930418f95d71f6ab075c0f0a1fbb5f42c44f53330738de9d89b"
+    },
+    {
+      "name": "python3-rpds-py",
+      "version": "0.21.0-2+b1",
+      "architecture": "amd64",
+      "source": "rpds-py",
+      "suite": "trixie",
+      "filename": "pool/main/r/rpds-py/python3-rpds-py_0.21.0-2+b1_amd64.deb",
+      "sha256": "dd015869b0ba0663a8f252995329c2c630e11bd588f0018b63075a54b6c0a9f0"
+    },
+    {
+      "name": "python3-yaml",
+      "version": "6.0.2-1+b2",
+      "architecture": "amd64",
+      "source": "pyyaml",
+      "suite": "trixie",
+      "filename": "pool/main/p/pyyaml/python3-yaml_6.0.2-1+b2_amd64.deb",
+      "sha256": "0019c4e7848c83a0d6bcb78cca902b5cdb1714aa6370ba01955b1fed6f667056"
+    },
+    {
+      "name": "python3.13",
+      "version": "3.13.5-2+deb13u3",
+      "architecture": "amd64",
+      "source": "python3.13",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3.13/python3.13_3.13.5-2+deb13u3_amd64.deb",
+      "sha256": "669335986fd641d6f6c538f558fc752a20c1d8168856f90b7e34a7615484dcd2"
+    },
+    {
+      "name": "python3.13-minimal",
+      "version": "3.13.5-2+deb13u3",
+      "architecture": "amd64",
+      "source": "python3.13",
+      "suite": "trixie",
+      "filename": "pool/main/p/python3.13/python3.13-minimal_3.13.5-2+deb13u3_amd64.deb",
+      "sha256": "3bafb1bf1674a6c8fc52296e1b17b54b666400fc46f6b1d0ef4c24baebc883bb"
+    },
+    {
+      "name": "readline-common",
+      "version": "8.2-6",
+      "architecture": "all",
+      "source": "readline",
+      "suite": "trixie",
+      "filename": "pool/main/r/readline/readline-common_8.2-6_all.deb",
+      "sha256": "f77e8aa0bf0de618f11cb0b21658a4ed60f177d63b3cf26d7fc3706b6d0eaaa9"
     },
     {
       "name": "sed",
@@ -849,6 +1029,15 @@
       "suite": "trixie",
       "filename": "pool/main/t/tar/tar_1.35+dfsg-3.1_amd64.deb",
       "sha256": "214c02e1aa291076a3147b8a4c4cae02fadf4c67df629186e3e313726faef1de"
+    },
+    {
+      "name": "tzdata",
+      "version": "2026b-0+deb13u1",
+      "architecture": "all",
+      "source": "tzdata",
+      "suite": "trixie",
+      "filename": "pool/main/t/tzdata/tzdata_2026b-0+deb13u1_all.deb",
+      "sha256": "306013b77311e875620e89f43c447765a6c72b7b398e0baa8e5721bcbbdf66cf"
     },
     {
       "name": "udev",

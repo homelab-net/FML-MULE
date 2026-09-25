@@ -373,6 +373,15 @@ SH
   [ "$status" -eq 0 ]
 }
 
+@test "gen-decision-index ignores local build artifacts" {
+  make_sandbox
+  mkdir -p "$SANDBOX/build/lib/mule"
+  printf '%s\n' '# FML-ADR-083' >"$SANDBOX/build/lib/mule/generated.py"
+
+  run sh -c "cd '$SANDBOX' && sh tools/gen-decision-index.sh --check"
+  [ "$status" -eq 0 ]
+}
+
 @test "gen-decision-index includes decision citations from conf files" {
   make_sandbox
   generated="$SANDBOX/decision-index-conf-test.md"

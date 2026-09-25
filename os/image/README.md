@@ -10,13 +10,21 @@ boundary. `build-inputs.yml` governs the builder, snapshot, package, and SBOM
 policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
-The exact resolver inputs contain a 97-package target closure and a separate
-440-package mkosi tools-tree closure. GAP-09C exercised those inputs in two
-clean networked builds and one externally isolated cache-only build; all three
+The exact resolver inputs contain a 118-package target closure and a separate
+454-package mkosi tools-tree closure. GAP-09C exercised the earlier 97/440
+foundation in two clean networked builds and one externally isolated
+cache-only build; all three
 raw images, SBOMs, and licence-exception reports were byte-identical, and the
 isolated artifact reached `multi-user.target` under QEMU with no guest network.
 The production kernel and board-support path remain open under `TBR-LINUX-01`
 and `TBR-HW-01`.
+
+GAP-09D adds the exact Debian Python, JSON Schema and YAML runtime closure.
+The separately locked tools tree builds `fml-mule==0.0.1` without build
+isolation or dependency resolution, installs its static native oneshot and
+canonical mission schema, and extends the completed-root CycloneDX inventory
+with a hash of those installed files. This 118/454 candidate has not yet earned
+the GAP-09C byte-identical image result; it requires a new image execution.
 
 ## Intended pipeline
 

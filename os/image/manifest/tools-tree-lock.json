@@ -3191,6 +3191,15 @@
       "sha256": "c1388174dc7140e6c19a6dd39f8a0dcb38a835cd66c65644e0dded43d5223cb0"
     },
     {
+      "name": "python3-autocommand",
+      "version": "2.2.2-3",
+      "architecture": "all",
+      "source": "python-autocommand",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-autocommand/python3-autocommand_2.2.2-3_all.deb",
+      "sha256": "1e62ac22ff83466228c051c6c2402a40f521646e15b5aa54cf2391206a848bad"
+    },
+    {
       "name": "python3-bcrypt",
       "version": "4.2.0-2.1+b1",
       "architecture": "amd64",
@@ -3308,6 +3317,42 @@
       "sha256": "7f6c49804f85cfbe94dcb51d1c34e64795a475e69ab8f4c33bb6100e8c37fc6f"
     },
     {
+      "name": "python3-inflect",
+      "version": "7.3.1-2",
+      "architecture": "all",
+      "source": "python-inflect",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-inflect/python3-inflect_7.3.1-2_all.deb",
+      "sha256": "6c10dca4d4aa0eb0b4e16e8b62b74a073a8d22be8809c3f61c56b06fdd1451f8"
+    },
+    {
+      "name": "python3-jaraco.context",
+      "version": "6.0.1-1+deb13u1",
+      "architecture": "all",
+      "source": "jaraco.context",
+      "suite": "trixie",
+      "filename": "pool/main/j/jaraco.context/python3-jaraco.context_6.0.1-1+deb13u1_all.deb",
+      "sha256": "f909ec7b00dd96a1905322acba7cdd2df09747ceddeef6e426a97b33ab227f80"
+    },
+    {
+      "name": "python3-jaraco.functools",
+      "version": "4.1.0-1",
+      "architecture": "all",
+      "source": "python-jaraco.functools",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-jaraco.functools/python3-jaraco.functools_4.1.0-1_all.deb",
+      "sha256": "f5ac3e5f79b6394191d76ea7cde9255d8bae98f639886cb981444128f6545796"
+    },
+    {
+      "name": "python3-jaraco.text",
+      "version": "4.0.0-1",
+      "architecture": "all",
+      "source": "jaraco.text",
+      "suite": "trixie",
+      "filename": "pool/main/j/jaraco.text/python3-jaraco.text_4.0.0-1_all.deb",
+      "sha256": "d5e060c9ba9d5206b53670cf2473681b45030cc6a55d18a8c6d87419a924e502"
+    },
+    {
       "name": "python3-libcomps",
       "version": "0.1.21-1+b3",
       "architecture": "amd64",
@@ -3344,6 +3389,15 @@
       "sha256": "a5d2371bebf3689f676e3f3bae800371bcc4392a8a51269e23d528249b399615"
     },
     {
+      "name": "python3-more-itertools",
+      "version": "10.7.0-1",
+      "architecture": "all",
+      "source": "more-itertools",
+      "suite": "trixie",
+      "filename": "pool/main/m/more-itertools/python3-more-itertools_10.7.0-1_all.deb",
+      "sha256": "385d785fa84261838732ec97627b4e95ec7399fc449d8a2aaaef66fb5f961c25"
+    },
+    {
       "name": "python3-packageurl",
       "version": "0.16.0-2",
       "architecture": "all",
@@ -3353,6 +3407,15 @@
       "sha256": "a8e48a925dbc0dc37410a7b6014bf3e66f7b06e4063b0067fbc45274772b0a8f"
     },
     {
+      "name": "python3-packaging",
+      "version": "25.0-1",
+      "architecture": "all",
+      "source": "python-packaging",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-packaging/python3-packaging_25.0-1_all.deb",
+      "sha256": "d70c8469f6e9c6105e1ebcd3ebdc963f11dadbeddd89d2d1a2a3cb1c97d2ecbc"
+    },
+    {
       "name": "python3-pefile",
       "version": "2024.8.26-2.1",
       "architecture": "all",
@@ -3360,6 +3423,24 @@
       "suite": "trixie",
       "filename": "pool/main/p/python-pefile/python3-pefile_2024.8.26-2.1_all.deb",
       "sha256": "2100cbd75b5dfd8a8ed5a8fe6ee7adf174e78b34004dcbb5885661834d2f972e"
+    },
+    {
+      "name": "python3-pip",
+      "version": "25.1.1+dfsg-1",
+      "architecture": "all",
+      "source": "python-pip",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-pip/python3-pip_25.1.1+dfsg-1_all.deb",
+      "sha256": "065695050e5fe10f162201a5bbe8759837427c76c95b5fe57b0701bcd6070c56"
+    },
+    {
+      "name": "python3-pkg-resources",
+      "version": "78.1.1-0.1",
+      "architecture": "all",
+      "source": "setuptools",
+      "suite": "trixie",
+      "filename": "pool/main/s/setuptools/python3-pkg-resources_78.1.1-0.1_all.deb",
+      "sha256": "cf8749251172abc945216cf878367f614cf91d3d9a1043ba3bacc5a74e8cc1a8"
     },
     {
       "name": "python3-py-serializable",
@@ -3380,6 +3461,15 @@
       "sha256": "aebc79bb97275d296c00323868401d337849ab0be9cbb072fa566fe06054fedc"
     },
     {
+      "name": "python3-setuptools",
+      "version": "78.1.1-0.1",
+      "architecture": "all",
+      "source": "setuptools",
+      "suite": "trixie",
+      "filename": "pool/main/s/setuptools/python3-setuptools_78.1.1-0.1_all.deb",
+      "sha256": "90c4bc8e311873e5b571b407ce6b1fd38195dff77f9de056301a0f950e6df5a5"
+    },
+    {
       "name": "python3-sortedcontainers",
       "version": "2.4.0-2",
       "architecture": "all",
@@ -3389,6 +3479,24 @@
       "sha256": "b00fd22e4fd50d8ba44442607fc3c737186082b16648d3995b2e4fca642f53e1"
     },
     {
+      "name": "python3-typeguard",
+      "version": "4.4.2-1",
+      "architecture": "all",
+      "source": "python-typeguard",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-typeguard/python3-typeguard_4.4.2-1_all.deb",
+      "sha256": "81e512101d7ab94e73646b9a8e4fb9b948836e3172dc5719ad3acbcde65bca01"
+    },
+    {
+      "name": "python3-typing-extensions",
+      "version": "4.13.2-1",
+      "architecture": "all",
+      "source": "python-typing-extensions",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-typing-extensions/python3-typing-extensions_4.13.2-1_all.deb",
+      "sha256": "b67662f211c35c17c74a0725bc7c8ffc3b126c650e2a2525593adee06f2bbf69"
+    },
+    {
       "name": "python3-virt-firmware",
       "version": "24.11-2",
       "architecture": "all",
@@ -3396,6 +3504,24 @@
       "suite": "trixie",
       "filename": "pool/main/v/virt-firmware/python3-virt-firmware_24.11-2_all.deb",
       "sha256": "901e419486774412a093bc8b2e735c2e3ecebe060813a52c751d1b4c4e361320"
+    },
+    {
+      "name": "python3-wheel",
+      "version": "0.46.1-2",
+      "architecture": "all",
+      "source": "wheel",
+      "suite": "trixie",
+      "filename": "pool/main/w/wheel/python3-wheel_0.46.1-2_all.deb",
+      "sha256": "17b788ad15f8231e5058ed386cd6841d42b31937075b56caf4cf63263910e992"
+    },
+    {
+      "name": "python3-zipp",
+      "version": "3.21.0-1",
+      "architecture": "all",
+      "source": "python-zipp",
+      "suite": "trixie",
+      "filename": "pool/main/p/python-zipp/python3-zipp_3.21.0-1_all.deb",
+      "sha256": "6cd0f768a5e5c574c7ae4b9d56603f8399b31de732167007e42fc17decc5cc6a"
     },
     {
       "name": "python3-zstandard",
