@@ -79,6 +79,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-062` | The HaLow bearer must present a standard mesh-capable mac80211 interface | TBR-LINUX-01, TBR-RF-01, TBR-RF-03, TBR-HW-01 |
 | `FML-ADR-072` | WAN tile-fetch is guarded enrichment of the local map store, not a provisioning path | TBR-MAP-01, TBR-SEC-01 |
 | `FML-ADR-080` | Per-peer link capability is a named tier derived from passive signals | TBR-RF-01 |
+| `FML-ADR-085` | Mission observations are recorded and presented upstream-first on CoT where a CoT path already carries the meaning | TBR-OBS-01 |
 
 ### SELECTED TARGET
 

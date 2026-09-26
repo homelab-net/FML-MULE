@@ -11,7 +11,7 @@ depends-on: []
 feeds: []
 requires-hardware: no
 evidence: docs/evidence/TBR-OBS-01/
-adr: [FML-ADR-048, FML-ADR-050]
+adr: [FML-ADR-048, FML-ADR-050, FML-ADR-085]
 target-date: 2026-09-30
 ---
 
@@ -20,6 +20,16 @@ target-date: 2026-09-30
 **Source:** CONOPS v1.2 section 28A, accepted with `CCR-05`. No ADR selects a
 store, a schema, or an encoding. `FML-ADR-048` says prefer an existing
 representation. `FML-ADR-050` bounds writes. This trade does not select either.
+
+**Frame accepted (2026-09-27), still `OPEN`.** `FML-ADR-085` (`SELECTED
+PRINCIPLE`) records the Owner's acceptance of an upstream-first frame -- CoT as the
+carrier where a CoT path already carries the meaning, FML supplying the section 28A
+semantics CoT lacks -- from the decision packet
+`docs/evidence/TBR-OBS-01/2026-09-27-representation-decision-packet.md`. That ADR
+fixes only the frame. Closure still needs the owed readings its Decision names (the
+CoT `detail` schemas and a TAK client's handling of a past-`stale` event and of
+unknown `detail`), the metadata carrier, and the state-model thresholds, in a later
+implementation ADR. The trade stays `OPEN`.
 
 ## Question
 

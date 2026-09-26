@@ -1,12 +1,17 @@
 # TBR-OBS-01 decision packet: how a mission observation is recorded and presented
 
 **Trade:** `TBR-OBS-01`. **Prepared:** 2026-09-27. **Author:** Claude agent.
-**Disposition:** `AWAITING_USER_DECISION`. This packet **selects no
-representation** and closes nothing. It recommends a direction for the named
-Owner to accept or reject; on acceptance a new ADR is created with
-`tools/new-adr.sh` and cites the 2026-09-24 comparison, per the closure gate. The
-trade stays `OPEN`. Nothing here is written into `mule/`, `regions/`, a schema, or
-a mission package. Analysis tier: not `SIMULATED`, not `HARDWARE-VERIFIED`.
+**Disposition:** `ACCEPTED (frame)` -- Owner, 2026-09-27, recorded in
+`FML-ADR-085`. The Owner accepted this packet's **frame** (upstream-first; CoT as
+carrier where a CoT path already carries the meaning) after an independent
+red-team, **not section 4 as written**: the metadata carrier, the state-model
+thresholds, the retention-as-history bound, and the assignment of
+`FML-REQ-034`/`035`/`037`/`038`/`040` to local policy are deferred to a later
+**implementation ADR** gated on the owed CoT-`detail` and TAK-client readings (see
+section 4a). `TBR-OBS-01` **stays `OPEN`**; this packet selects no representation,
+freezes no field names, and writes nothing into `mule/`, `regions/`, or a schema.
+Analysis tier: not `SIMULATED` (except the section 2a bench read), not
+`HARDWARE-VERIFIED`.
 
 ## 1. What this decides, and why it is the critical path
 
@@ -58,8 +63,11 @@ behaviors OTS performs. From them:
 The source reading above was confirmed at runtime against the persistent bench
 (`/home/mule1/mule/`, `mule-stack.service`): OpenTAKServer **1.7.13** (image
 `localhost/fml-bench/ots:1.7.13-py312`,
-`sha256:762ebf4346de8360d091c0795cc4d22e1f58c16abc4f91df5cf1b407b827cd4e`, the
-same 1.7.13 the archived source is pinned to), PostGIS, RabbitMQ, nginx-TLS. Only
+`sha256:762ebf4346de8360d091c0795cc4d22e1f58c16abc4f91df5cf1b407b827cd4e`, whose
+version string is 1.7.13, believed to correspond to the git tag the archived source
+is pinned to -- an image and a tag/commit are different artifacts, so the
+correspondence is asserted from the version string, not verified byte-for-byte),
+PostGIS, RabbitMQ, nginx-TLS. Only
 the running database **schema** and the OTS **scheduled-job config** were read; no
 stored mission rows were read or copied (row contents are out of scope and would be
 a capture; `SECURITY.md`). This is observed runtime state, `SIMULATED` tier; it
@@ -125,6 +133,42 @@ by capability (the `stale`/TTL source, the retention duration) is mission/profil
 data with no compiled-in default, following the `TimePolicy`/`CapabilityPolicy`
 discipline — not fixed in this packet.
 
+## 4a. Acceptance, and what was NOT accepted (2026-09-27, after red-team)
+
+An independent read-only red-team judged section 4 sound as a **frame** but reading
+as *decided* on points the closure gate and CONOPS do not yet license. The Owner
+accepted accordingly. `FML-ADR-085` records the accepted frame; it is authoritative
+where it and section 4 differ.
+
+**Accepted (the frame):** observations are upstream-first; CoT is the carrier for
+every meaning an upstream CoT path already carries; the observed time is preserved
+through relay (`FML-REQ-036`, the one behavior a read consumer performs); and the
+deliberate divergence from OTS `delete_old_data` (deletion) toward retain-as-history
+for `FML-REQ-037` is correctly identified.
+
+**Not accepted as decided -- deferred to the implementation ADR, gated on the owed
+readings:**
+
+- **The carrier for the FML-added semantics** (the six state words, provenance,
+  correlation) is a **candidate, not a selection.** Whether they ride CoT `detail`
+  turns on whether the TAK clients this program uses preserve and forward unknown
+  `detail` on round-trip -- the closure gate bars assigning a semantic to `detail`
+  until that schema and a client path are read, and neither is. State kept
+  node-local only would be invisible across the COP, so "node-local metadata" is not
+  a sufficient answer on its own.
+- **The state model** (the stale/expired thresholds and the retention-as-history
+  duration) is a **candidate.** The implementation ADR derives the thresholds from
+  `FML-REQ-037` and bounds the history, reconciled with `FML-ADR-050` (retention is
+  the bound; "not deleted" must not mean "kept forever"). `new`/`merged`/
+  `superseded` have no design yet.
+- **`FML-REQ-034`/`035`/`037`/`038`/`040`** are **not assigned to local FML policy
+  here**; only `FML-REQ-036` has a read consumer today. The rest wait on the owed
+  readings per the closure gate.
+- **Mesh-only observations** (a link-heard report, `FML-REQ-039`) have **no upstream
+  CoT path** -- the read consumer does not convert them -- so CoT-carrier is right
+  *where a CoT path exists*, and this sub-case is handled by conversion glue
+  (`FML-ADR-048`) in the implementation ADR, not by assuming CoT.
+
 ## 5. Consequences and what this must NOT do
 
 - Accepting this **frames** the representation; it does not by itself satisfy any
@@ -160,6 +204,9 @@ config only).
 
 ## 8. Owner disposition
 
-`AWAITING_USER_DECISION`. Accept, reject, or amend the section 4 direction. On
-acceptance, the representation ADR is written and this trade moves toward closure;
-until then it stays `OPEN`.
+`ACCEPTED (frame)` -- Owner, 2026-09-27, recorded in `FML-ADR-085`
+(`SELECTED PRINCIPLE`). An independent red-team found section 4 sound as a
+**frame** but over-stated as a selection on three points, so the acceptance is of
+the frame with those points deferred to the implementation ADR (section 4a).
+`TBR-OBS-01` stays `OPEN`: the frame is decided, closure still needs the owed
+readings and the carrier decision.
