@@ -15,7 +15,12 @@ limitation. After an independent red-team the Owner accepted its **frame** on
 the state-model thresholds, and the assignment of the section 28A behaviors to local
 policy are deferred to a later implementation ADR gated on the owed CoT-`detail` and
 TAK-client readings. The trade stays `OPEN`. The packet adds no upstream excerpts of
-its own. The upstream files the readings quote are
+its own. `2026-09-26-cot-detail-roundtrip-on-ots.md` is a `SIMULATED` runtime
+reading: it injected one synthetic CoT event into the live OTS bench and observed
+that OpenTAKServer preserves an unknown CoT `detail` child verbatim through store
+and re-serve, that the time trio maps to the record, and that a past-`stale` row is
+retained (not deleted) -- answering the OpenTAKServer half of `FML-ADR-085`'s owed
+carrier reading. The TAK-client half stays owed. The upstream files the readings quote are
 archived beside them. The CoT schema, the OpenTAKServer `CoT` model,
 `scheduled_jobs.py`, and Meshtastic `mesh.proto` are archived beside the
 comparison. The consumer reading archives excerpts of the OpenTAKServer
