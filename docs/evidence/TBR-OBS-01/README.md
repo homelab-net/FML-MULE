@@ -8,10 +8,14 @@
 is `2026-09-24-representation-comparison.md`. The consumer reading is
 `2026-09-24-consumer-reading.md`. The decision packet is
 `2026-09-27-representation-decision-packet.md`: it builds on the two readings to
-recommend a representation direction (CoT as carrier plus a named FML metadata
-layer for the behaviors no read consumer performs), records the TAK-client reading
-as a limitation, and ends at `AWAITING_USER_DECISION`. It selects nothing and adds
-no upstream excerpts of its own. The upstream files the readings quote are
+recommend a representation direction (CoT as carrier plus an FML metadata layer for
+the behaviors no read consumer performs) and records the TAK-client reading as a
+limitation. After an independent red-team the Owner accepted its **frame** on
+2026-09-26, recorded in `FML-ADR-085` (`SELECTED PRINCIPLE`); the metadata carrier,
+the state-model thresholds, and the assignment of the section 28A behaviors to local
+policy are deferred to a later implementation ADR gated on the owed CoT-`detail` and
+TAK-client readings. The trade stays `OPEN`. The packet adds no upstream excerpts of
+its own. The upstream files the readings quote are
 archived beside them. The CoT schema, the OpenTAKServer `CoT` model,
 `scheduled_jobs.py`, and Meshtastic `mesh.proto` are archived beside the
 comparison. The consumer reading archives excerpts of the OpenTAKServer
