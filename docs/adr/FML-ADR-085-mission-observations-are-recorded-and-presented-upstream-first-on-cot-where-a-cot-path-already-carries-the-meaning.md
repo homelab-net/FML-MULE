@@ -2,7 +2,7 @@
 id: FML-ADR-085
 title: Mission observations are recorded and presented upstream-first on CoT where a CoT path already carries the meaning
 status: SELECTED PRINCIPLE
-date: 2026-09-27
+date: 2026-09-26
 supersedes: none
 superseded-by: none
 trades: [TBR-OBS-01]
@@ -107,13 +107,16 @@ they are done this ADR has deliberately fixed no carrier.
 ## Fallback
 
 If the owed readings show the target TAK clients do not preserve unknown CoT
-`detail`, the implementation ADR carries the FML-added semantics as node-local
-state plus mission-profile data, and the shared COP shows only what CoT natively
-carries between nodes -- accepting a thinner cross-node picture rather than a
-custom wire tag. If CoT proves the wrong carrier entirely, this ADR is superseded
-by one selecting a different representation; because nothing was written into
-`mule/` or a schema here, that reversal supersedes a principle and rewrites no
-code.
+`detail`, the implementation ADR selects the carrier for the FML-added semantics
+from the remaining options it must then weigh -- for example a different CoT
+carriage, a node-local plus mission-profile store, or another representation --
+against the constraint the packet records, that state kept node-local only is
+invisible across the COP. This ADR does **not** pick that fallback carrier; doing
+so here would pre-decide the very question it defers, and would risk an
+implementation that loses the cross-node state and provenance section 28A requires.
+If CoT proves the wrong carrier entirely, this ADR is superseded by one selecting a
+different representation; because nothing was written into `mule/` or a schema here,
+that reversal supersedes a principle and rewrites no code.
 
 ## Superseded by
 

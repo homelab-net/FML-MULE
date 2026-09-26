@@ -962,12 +962,15 @@ which are test campaigns, and most need hardware.
 
 CONOPS v1.2 criteria 34-41 allocate to `TBR-OBS-01`. A written comparison
 dated 2026-09-24 is complete, and a consumer reading of the same date is
-with it. Neither selects a representation and neither closes the trade, so the
-criteria stay on the open trade. Criteria
-42-45 and 47 allocate to `TBR-SENSE-01`. Criterion 49 allocates to
+with it. `FML-ADR-085` (`SELECTED PRINCIPLE`, 2026-09-26) then accepted a frame
+from the 2026-09-26 decision packet -- observations are upstream-first, CoT-carried
+where a CoT path already carries the meaning -- but selected no representation,
+assigned nothing to `mule/`, and left the carrier and the state model to a later
+implementation ADR gated on owed readings. So the criteria stay on the open trade.
+Criteria 42-45 and 47 allocate to `TBR-SENSE-01`. Criterion 49 allocates to
 `TBR-EMCON-01`. Those trades are open mechanism questions. They are not in
-`v0.0.1`. Nothing is selected, and nothing has been run. SAD v0.33 is not
-issued.
+`v0.0.1`. Beyond that accepted `TBR-OBS-01` frame no representation is selected,
+and nothing has been run. SAD v0.33 is not issued.
 
 ### The remaining SRR item, target dates, is set
 

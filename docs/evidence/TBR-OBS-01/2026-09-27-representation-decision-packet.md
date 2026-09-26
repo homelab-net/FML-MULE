@@ -1,7 +1,7 @@
 # TBR-OBS-01 decision packet: how a mission observation is recorded and presented
 
-**Trade:** `TBR-OBS-01`. **Prepared:** 2026-09-27. **Author:** Claude agent.
-**Disposition:** `ACCEPTED (frame)` -- Owner, 2026-09-27, recorded in
+**Trade:** `TBR-OBS-01`. **Prepared:** 2026-09-26. **Author:** Claude agent.
+**Disposition:** `ACCEPTED (frame)` -- Owner, 2026-09-26, recorded in
 `FML-ADR-085`. The Owner accepted this packet's **frame** (upstream-first; CoT as
 carrier where a CoT path already carries the meaning) after an independent
 red-team, **not section 4 as written**: the metadata carrier, the state-model
@@ -58,7 +58,7 @@ behaviors OTS performs. From them:
   observations, or records a bounded-queue discard without ending participation
   (`2026-09-24-consumer-reading.md`, "What these consumers do not define").
 
-## 2a. Observed on the live OTS bench (2026-09-27, `SIMULATED`)
+## 2a. Observed on the live OTS bench (2026-09-26, `SIMULATED`)
 
 The source reading above was confirmed at runtime against the persistent bench
 (`/home/mule1/mule/`, `mule-stack.service`): OpenTAKServer **1.7.13** (image
@@ -133,7 +133,7 @@ by capability (the `stale`/TTL source, the retention duration) is mission/profil
 data with no compiled-in default, following the `TimePolicy`/`CapabilityPolicy`
 discipline — not fixed in this packet.
 
-## 4a. Acceptance, and what was NOT accepted (2026-09-27, after red-team)
+## 4a. Acceptance, and what was NOT accepted (2026-09-26, after red-team)
 
 An independent read-only red-team judged section 4 sound as a **frame** but reading
 as *decided* on points the closure gate and CONOPS do not yet license. The Owner
@@ -199,12 +199,12 @@ semantics before any promotion to `mule/`.
 CONOPS v1.2 section 28A; `docs/verification/requirements.md` (`FML-REQ-034`-`041`);
 the `TBR-OBS-01` trade file (closure gate); `FML-ADR-048`, `FML-ADR-050`,
 `FML-ADR-051`, `FML-ADR-052`; and the live OTS bench observation in section 2a
-(OpenTAKServer 1.7.13, `mule-stack.service`, 2026-09-27 — schema and retention
+(OpenTAKServer 1.7.13, `mule-stack.service`, 2026-09-26 — schema and retention
 config only).
 
 ## 8. Owner disposition
 
-`ACCEPTED (frame)` -- Owner, 2026-09-27, recorded in `FML-ADR-085`
+`ACCEPTED (frame)` -- Owner, 2026-09-26, recorded in `FML-ADR-085`
 (`SELECTED PRINCIPLE`). An independent red-team found section 4 sound as a
 **frame** but over-stated as a selection on three points, so the acceptance is of
 the frame with those points deferred to the implementation ADR (section 4a).

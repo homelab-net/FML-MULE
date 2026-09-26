@@ -11,7 +11,7 @@ is `2026-09-24-representation-comparison.md`. The consumer reading is
 recommend a representation direction (CoT as carrier plus an FML metadata layer for
 the behaviors no read consumer performs) and records the TAK-client reading as a
 limitation. After an independent red-team the Owner accepted its **frame** on
-2026-09-27, recorded in `FML-ADR-085` (`SELECTED PRINCIPLE`); the metadata carrier,
+2026-09-26, recorded in `FML-ADR-085` (`SELECTED PRINCIPLE`); the metadata carrier,
 the state-model thresholds, and the assignment of the section 28A behaviors to local
 policy are deferred to a later implementation ADR gated on the owed CoT-`detail` and
 TAK-client readings. The trade stays `OPEN`. The packet adds no upstream excerpts of

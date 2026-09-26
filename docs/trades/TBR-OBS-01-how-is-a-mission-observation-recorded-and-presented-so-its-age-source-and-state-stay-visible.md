@@ -21,7 +21,7 @@ target-date: 2026-09-30
 store, a schema, or an encoding. `FML-ADR-048` says prefer an existing
 representation. `FML-ADR-050` bounds writes. This trade does not select either.
 
-**Frame accepted (2026-09-27), still `OPEN`.** `FML-ADR-085` (`SELECTED
+**Frame accepted (2026-09-26), still `OPEN`.** `FML-ADR-085` (`SELECTED
 PRINCIPLE`) records the Owner's acceptance of an upstream-first frame -- CoT as the
 carrier where a CoT path already carries the meaning, FML supplying the section 28A
 semantics CoT lacks -- from the decision packet
@@ -116,6 +116,8 @@ would not close this trade.
 - **Depends on:** none.
 - **Feeds:** none yet.
 - **Related decisions:** `FML-ADR-048` and `FML-ADR-050`. Neither selects an
-  observation record.
+  observation record. `FML-ADR-085` (`SELECTED PRINCIPLE`) accepts the
+  upstream-first frame but selects no representation and leaves the carrier and
+  state model to a later implementation ADR; this trade stays `OPEN`.
 - **Validating stage:** Stage 1, after a representation exists. Not run.
 - **Requires hardware:** no. The comparison is a document.
