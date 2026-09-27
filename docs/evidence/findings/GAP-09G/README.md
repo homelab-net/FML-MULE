@@ -12,3 +12,4 @@ phone acceptance remain GAP-09E, GAP-09H, and GAP-09I.
 | Artifact | What it records |
 | --- | --- |
 | `2026-09-24-implementation.md` | Image resolution, deployment contract, failing-first test, and the limits of the evidence. |
+| `2026-09-27-martin-instantiation.md` | First run of the pinned image on x86 (`SIMULATED`): serves `z/x/y`, fails closed on an absent store, the Quadlet unit generates. Notes the rootless-gate caveat and that the image install (G8) is still owed. |
