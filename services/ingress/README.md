@@ -9,6 +9,19 @@ requirement below that an application port is not directly reachable. GAP-09E
 still owns the AP/ingress path, GAP-09H the operator procedure, and GAP-09I the
 phone-over-AP acceptance.
 
+**Forward-path template drafted (2026-09-27, `SIMULATED`).**
+`os/config/haproxy.conf.template` is the `FML-ADR-031` HAProxy forward config: an
+HTTP frontend on the EUD AP interface routing by host name to Martin's loopback
+backend. A bench exercise on x86 (HAProxy `lts` in front of the running Martin)
+confirmed the routing: a request with the matching `Host` reached Martin
+(`/catalog` and a `z/x/y` tile, HTTP 200), and a non-matching `Host` got **503**
+(no default backend -- fail closed). Still owed, and marked `TBD` in the template:
+the frontend bind address and the DNS name resolve onto the **EUD AP subnet**,
+which is undecided and now owned by **`TBR-NET-05`** (raised because `TBR-NET-01`
+closed only the mesh prefix); **TLS** (deferred for v0.0.1 per GAP-09H, an accepted
+residual risk on a WPA2 AP, not threat-model compliance); and the reverse-proxy
+authentication (`X-Ssl-Cert`, `TBR-ID-01`) below.
+
 `FML-ADR-031` selects local DNS plus a lightweight TCP/HTTP proxy layer, with
 **HAProxy** as the preferred initial proxy, and prefers **TCP passthrough** for
 end-to-end protected protocols so the proxy is not a decryption point. Each
