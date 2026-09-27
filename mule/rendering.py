@@ -25,7 +25,10 @@ omission in the output with the trade that gates it:
 Because the security block is intentionally absent, **the rendered file is not a
 bootable hostapd configuration**; it is a `SIMULATED` partial render of the
 decided surface, exercised by the digital twin and by the Pi bring-up execution
-card, and is not wired into the boot oneshot. Interface names come from the node
+card. The boot oneshot (`mule.configuration`, `FML-ADR-083`) calls this when the
+node fields an access point: a render it cannot complete **fails the oneshot**
+(`FML-ADR-083` makes a configuration failure a failed oneshot), and the
+`SIMULATED` partial it writes is not flashed. Interface names come from the node
 descriptor; a name that is still `TBD` fails closed rather than being invented
 (`TBR-LINUX-01`).
 """

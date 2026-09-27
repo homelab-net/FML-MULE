@@ -16,7 +16,12 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_REGION = REPO_ROOT / "test/fixtures/regions/xx-testfixture/profile.yml"
 FIXTURE_NODE = REPO_ROOT / "test/fixtures/nodes/ap-only/node.yml"
+# Same fixture with concrete interface names, so the partial hostapd render
+# reaches its success path instead of the fail-closed skip (FML-ADR-083).
+WIRED_NODE = REPO_ROOT / "test/fixtures/nodes/ap-wired/node.yml"
 MISSION = REPO_ROOT / "mission/examples/valid-minimal.json"
+# valid-full carries network.ap_ssid, which the operational hostapd block needs.
+MISSION_WITH_AP = REPO_ROOT / "mission/examples/valid-full.json"
 INVALID_MISSION = REPO_ROOT / "mission/examples/invalid-unknown-field.json"
 CATALOG = REPO_ROOT / "services/catalog/catalog.yml"
 CATALOG_SCHEMA = REPO_ROOT / "services/catalog/catalog.schema.json"
@@ -24,7 +29,7 @@ QUADLETS = REPO_ROOT / "services/quadlets"
 UNIT = REPO_ROOT / "os/systemd/mule-runtime.service"
 
 
-def _command(mission: Path, output: Path) -> list[str]:
+def _command(mission: Path, output: Path, node: Path = FIXTURE_NODE) -> list[str]:
     """Return one complete runtime invocation using only explicit inputs."""
     return [
         sys.executable,
@@ -35,7 +40,7 @@ def _command(mission: Path, output: Path) -> list[str]:
         "--mission",
         str(mission),
         "--node",
-        str(FIXTURE_NODE),
+        str(node),
         "--catalog",
         str(CATALOG),
         "--catalog-schema",
@@ -48,11 +53,16 @@ def _command(mission: Path, output: Path) -> list[str]:
 
 
 def test_python_module_entrypoint_renders_then_exits(tmp_path: Path) -> None:
-    """The installed-form command shall do bounded real work and terminate."""
+    """The installed-form command shall do bounded real work and terminate.
+
+    A fully renderable node (concrete interfaces) and a mission with an ap_ssid,
+    so the AP render completes and the oneshot exits zero (FML-ADR-083); a node
+    that cannot render is covered by the refusal test below.
+    """
     output = tmp_path / "runtime"
 
     result = subprocess.run(  # noqa: S603
-        _command(MISSION, output),
+        _command(MISSION_WITH_AP, output, node=WIRED_NODE),
         cwd=REPO_ROOT,
         check=False,
         capture_output=True,
@@ -62,7 +72,7 @@ def test_python_module_entrypoint_renders_then_exits(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     rendered = json.loads((output / "parameters.json").read_text(encoding="utf-8"))
-    mission = json.loads(MISSION.read_text(encoding="utf-8"))
+    mission = json.loads(MISSION_WITH_AP.read_text(encoding="utf-8"))
     region = yaml.safe_load(FIXTURE_REGION.read_text(encoding="utf-8"))
     assert rendered["region"]["id"] == region["region"]["id"]
     assert rendered["mission"]["id"] == mission["mission"]["id"]
@@ -75,7 +85,82 @@ def test_python_module_entrypoint_renders_then_exits(tmp_path: Path) -> None:
         "ap_max_eirp_dbm": region["wifi"]["ap_max_eirp_dbm"],
     }
     assert rendered["region"]["country_code"] == region["region"]["country_code"]
+    assert (output / "hostapd.partial.conf").exists()
     assert "SIMULATED" in result.stdout
+
+
+def test_partial_hostapd_render_refuses_when_an_interface_is_tbd(
+    tmp_path: Path,
+) -> None:
+    """A render that cannot complete fails the oneshot (FML-ADR-083).
+
+    The ap-only fixture fields wifi_ap but has no interface map, exactly as
+    nodes/mule-v001 leaves eud_ap TBD (TBR-LINUX-01). Configuration failure is a
+    failed oneshot: the run exits non-zero, names the missing role on stderr, and
+    emits no hostapd file rather than inventing an interface name.
+    """
+    output = tmp_path / "runtime"
+
+    result = subprocess.run(  # noqa: S603
+        _command(MISSION, output, node=FIXTURE_NODE),
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+    assert result.returncode != 0
+    assert not (output / "hostapd.partial.conf").exists()
+    node = yaml.safe_load(FIXTURE_NODE.read_text(encoding="utf-8"))
+    # The refusal names the role that could not be resolved, not a guessed name.
+    assert node.get("interfaces") is None
+    assert "eud_ap" in result.stderr
+
+
+def test_partial_hostapd_render_writes_the_decided_surface_for_a_wired_node(
+    tmp_path: Path,
+) -> None:
+    """With concrete interfaces the oneshot writes the decided AP surface.
+
+    The rendered file is a SIMULATED partial: the operational radio block from
+    the region profile and the mission SSID, no secret, and the onboarding BSS
+    marked closed because the boot oneshot does not evaluate the live FML-ADR-084
+    window. Values are asserted against the fixture inputs, never a literal the
+    renderer also hardcodes.
+    """
+    output = tmp_path / "runtime"
+
+    result = subprocess.run(  # noqa: S603
+        _command(MISSION_WITH_AP, output, node=WIRED_NODE),
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    conf = (output / "hostapd.partial.conf").read_text(encoding="utf-8")
+
+    node = yaml.safe_load(WIRED_NODE.read_text(encoding="utf-8"))
+    region = yaml.safe_load(FIXTURE_REGION.read_text(encoding="utf-8"))
+    mission = json.loads(MISSION_WITH_AP.read_text(encoding="utf-8"))
+
+    assert f"interface={node['interfaces']['eud_ap']}" in conf
+    assert f"ssid={mission['network']['ap_ssid']}" in conf
+    assert f"country_code={region['region']['country_code']}" in conf
+    assert f"channel={region['wifi']['ap_channel']}" in conf
+    assert "ap_isolate=0" in conf  # operational BSS, FML-ADR-057
+
+    # The partial is explicitly not bootable and carries no secret.
+    assert "NOT A BOOTABLE CONFIG" in conf
+    assert "wpa_passphrase" not in conf.lower()
+    assert "TBR-SEC-01" in conf
+
+    # Onboarding is deferred, rendered closed, not broadcast.
+    assert "bss=" not in conf
+    assert "FML-ADR-084" in conf
 
 
 def test_python_module_entrypoint_refuses_invalid_input_without_output(
