@@ -105,12 +105,14 @@ a limitation, not as absence. **Before the ADR assigns client-side stale
 presentation to local FML policy, a TAK-client reading is required** (or the ADR
 records that OTS server-side omission is the accepted consumer for that behavior).
 
-**Update (2026-09-26):** the *server* half of the carrier question is now observed
--- `2026-09-26-cot-detail-roundtrip-on-ots.md` shows OpenTAKServer preserves an
-unknown CoT `detail` child verbatim through store and re-serve, so FML's added
-semantics can ride `detail` through the server. The remaining owed reading is the
-**TAK client** (whether iTAK/ATAK preserve, forward, and render an unknown `detail`,
-and how they draw a past-`stale` event), which needs a client on the AP.
+**Update (2026-09-26):** part of the carrier question is now observed --
+`2026-09-26-cot-detail-storage-on-ots.md` shows OpenTAKServer preserves an unknown
+CoT `detail` child verbatim **in storage**, a datum that the `detail` carrier is at
+least storage-viable on the server. Still owed: the server's **outbound emission**
+of unknown `detail` to a subscribed client (a bare socket attach observed nothing --
+a limitation, not proof), and the **TAK client** (whether iTAK/ATAK preserve,
+forward, and render an unknown `detail`, and how they draw a past-`stale` event),
+which needs a client on the AP.
 
 ## 4. Recommendation (the Owner decides each)
 
