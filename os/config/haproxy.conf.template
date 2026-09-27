@@ -39,11 +39,12 @@ defaults
     # (TAK, later) uses a separate `mode tcp` passthrough section, not this one.
     mode http
     # config manual "timeout connect/client/server": maximum inactivity times.
-    # Values are conservative placeholders for a local browser service, not a
-    # measured budget (TBR-COMP-01).
-    timeout connect 5s
-    timeout client 30s
-    timeout server 30s
+    # TBD: no measurement selects these durations. They are operative once
+    # rendered, so they stay TBD rather than an invented number (TBR-COMP-01
+    # supplies the budget on measured hardware).
+    timeout connect TBD
+    timeout client TBD
+    timeout server TBD
 
 frontend eud_ingress
     # config manual "bind [<address>]:<port>": "Define one or several listening
