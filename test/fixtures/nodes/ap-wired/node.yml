@@ -1,0 +1,15 @@
+---
+# Synthetic fixture: an access-point-only node whose interface names are
+# concrete, unlike nodes/mule-v001 (TBD until the prototype is assembled) and
+# test/fixtures/nodes/ap-only (no interface map at all). Test use only: it lets
+# the runtime-entrypoint test exercise the FML-ADR-083 partial hostapd render
+# reaching its success path rather than the fail-closed skip. The device name is
+# a stand-in, not a claim about any real board.
+node:
+  id: xx-ap-wired-fixture
+
+active_bearers:
+  - wifi_ap
+
+interfaces:
+  eud_ap: wlan0

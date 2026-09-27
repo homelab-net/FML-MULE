@@ -19,12 +19,21 @@ What this tool does today, in order:
    own permitted set and limits. A generated channel outside the permitted set
    is a regulatory problem, not a bug.
 4. **Emit.** A resolved parameter document that template rendering consumes.
+5. **Render (partial).** When the node fields an access point, also render the
+   decided EUD access-point surface via ``mule.rendering`` and write
+   ``hostapd.partial.conf`` beside ``parameters.json`` (``FML-ADR-083``). A render
+   that cannot complete -- an interface still ``TBD`` on ``nodes/mule-v001``
+   (``TBR-LINUX-01``), a mission with no ap_ssid -- **fails the oneshot** (exit 5),
+   the same fail-closed refusal step 2 makes on a ``TBD`` value; it never reports
+   success without the AP configuration. The file is ``SIMULATED`` and not
+   bootable: the WPA block is gated (``TBR-SEC-01``) and the live onboarding
+   window (``FML-ADR-084``) is deferred.
 
 What it deliberately does not do yet: render the ``os/config/*.template`` files.
 Those carry no substitution placeholders, because every value they need is
 currently ``TBD``. Adding placeholder syntax to templates whose values do not
-exist would be adding structure ahead of content. Rendering is the next
-increment and consumes this tool's output unchanged.
+exist would be adding structure ahead of content. Only the decided hostapd
+surface, whose values exist, is rendered today.
 
 Status: SIMULATED against the synthetic fixture region in
 ``test/fixtures/regions/``. No region profile in ``regions/`` is resolvable
@@ -47,6 +56,8 @@ from jsonschema import Draft202012Validator
 
 from mule.mission import MissionLoadError, MissionValidationError
 from mule.mission import load_mission as load_validated_mission
+from mule.onboarding import OnboardingDecision, OnboardingState
+from mule.rendering import RenderError, render_hostapd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REGIONS_DIR = REPO_ROOT / "regions"
@@ -634,6 +645,58 @@ def generate(
     return resolved_params
 
 
+def _boot_onboarding_posture() -> OnboardingDecision:
+    """Return the onboarding posture the boot oneshot renders: deferred, fail-closed.
+
+    ``FML-ADR-083`` makes the runtime a ``Type=oneshot`` with no timer and no
+    ``Restart``. It runs once at boot, so it cannot express the ``FML-ADR-084``
+    live onboarding window, which broadcasts the SSID while the credential is
+    valid and hides it at expiry -- that is a time-varying decision a single
+    boot render cannot hold. So the oneshot renders the operational surface only
+    and marks the onboarding BSS closed, exactly as the WPA and DHCP blocks are
+    gated and unrendered. This is a deliberate deferral rendered fail-closed
+    (``mule.onboarding.decide()`` fails closed the same way), not a decision that
+    onboarding is disabled; the live window render is owed to a later increment.
+    """
+    return OnboardingDecision(
+        state=OnboardingState.CLOSED,
+        broadcast_ssid=False,
+        accepting_associations=False,
+        client_isolated=True,
+        enrollment_only=True,
+        reason=(
+            "boot oneshot does not evaluate the live onboarding window (FML-ADR-084)"
+        ),
+    )
+
+
+def _render_ap_config(params: dict[str, Any], node_ref: str, out_dir: Path) -> None:
+    """Write the FML-ADR-083 partial hostapd render for a node that fields an AP.
+
+    The render surface is only what the program has decided and sourced
+    (``mule/rendering.py``): the operational radio block and client isolation.
+    A ``RenderError`` -- an interface still ``TBD`` on ``nodes/mule-v001``
+    (``TBR-LINUX-01``), a missing SSID -- is **raised, not swallowed**. The
+    caller turns it into a failed oneshot, because ``FML-ADR-083`` makes a
+    configuration failure a failed oneshot, and inventing an interface name is
+    precisely the failure the renderer refuses. The file is a ``SIMULATED``
+    partial and is not bootable (the WPA block is gated on ``TBR-SEC-01``).
+
+    Any render from a previous run is removed **before** this one is attempted,
+    so a run that cannot complete never leaves a stale ``hostapd.partial.conf``
+    beside a freshly written ``parameters.json``.
+    """
+    interfaces = load_node(node_ref).get("interfaces") or {}
+    target = out_dir / "hostapd.partial.conf"
+    target.unlink(missing_ok=True)
+    text = render_hostapd(params, interfaces, _boot_onboarding_posture())
+    pending = out_dir / ".hostapd.partial.conf.pending"
+    with pending.open("w", encoding="utf-8") as handle:
+        handle.write(text)
+    pending.replace(target)
+    print(f"  hostapd partial (SIMULATED, not bootable) -> {target}")
+
+
 def main(argv: list[str]) -> int:
     """Resolve configuration parameters, or explain why they cannot be."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -736,4 +799,21 @@ def main(argv: list[str]) -> int:
     print(f"Resolved configuration for region {params['region']['id']!r}{where}")
     print(f"  region status: {params['region']['status']}")
     print("  SIMULATED. Not validated on hardware.")
+
+    # FML-ADR-083: the same oneshot renders the decided AP surface for a node that
+    # fields an access point (a resolved ap_channel marks that). A render it cannot
+    # complete -- an interface still TBD (TBR-LINUX-01), a mission with no ap_ssid
+    # -- is a configuration failure, hence a failed oneshot, the same fail-closed
+    # refusal the resolver makes on a TBD value. It never reports success without
+    # the AP configuration it was asked to produce.
+    if (
+        args.out is not None
+        and args.node is not None
+        and "ap_channel" in params.get("wifi", {})
+    ):
+        try:
+            _render_ap_config(params, args.node, args.out)
+        except RenderError as exc:
+            print(f"REFUSED: cannot render AP configuration: {exc}", file=sys.stderr)
+            return 5
     return 0

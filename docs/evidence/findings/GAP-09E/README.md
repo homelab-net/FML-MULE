@@ -14,10 +14,14 @@ decided, sourced surface -- client isolation, onboarding broadcast/hidden
 posture, the mission SSID, and the hostapd radio block (`country_code: US` plus
 the `us-915` band/channel/DFS). DHCP/addressing (`TBR-NET-01`), credentials
 (`TBR-SEC-01`) and multi-BSS/interface names (`TBR-LINUX-01`) stay gated and are
-not rendered. The renderer is not wired into the boot oneshot. Multi-BSS on the
-real radio is proven only by the Stage-9 Pi exercise (execution card below).
+not rendered. The renderer is now wired into the boot oneshot (`FML-ADR-083`),
+fail-closed: for a node that fields an AP, a render it cannot complete fails the
+oneshot (exit 5) rather than reporting success without the AP configuration
+(2026-09-27 note below). Multi-BSS on the real radio is proven only by the
+Stage-9 Pi exercise (execution card below).
 
 | Artifact | What it records |
 | --- | --- |
 | `decision-packet.md` | The approved two-BSS boundary, time gate, credential-reference rule, failure behavior and remaining rendering work. |
 | `2026-09-27-pi-ap-bringup-execution-card.md` | The Pi bring-up checklist: the M1 dry run that captures the AP-mode / regdomain / multi-BSS evidence gating the render. |
+| `2026-09-27-hostapd-render-wired-and-wpa-gate.md` | The render wired into the oneshot (G3, fail-closed, `SIMULATED`), and the WPA security block's gated design surface (G4, `TBR-SEC-01`). |

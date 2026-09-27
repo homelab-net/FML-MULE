@@ -34,6 +34,11 @@ NODE_V001 = "mule-v001"
 FIXTURE_NODE_AP_ONLY = (
     REPO_ROOT / "test" / "fixtures" / "nodes" / "ap-only" / "node.yml"
 )
+#: The same fixture with concrete interface names, so the partial hostapd render
+#: reaches its success path rather than the fail-closed skip (FML-ADR-083).
+FIXTURE_NODE_AP_WIRED = (
+    REPO_ROOT / "test" / "fixtures" / "nodes" / "ap-wired" / "node.yml"
+)
 US_915 = REPO_ROOT / "regions" / "us-915" / "profile.yml"
 
 # --- refusal on TBD ------------------------------------------------------
@@ -171,6 +176,118 @@ def test_generation_writes_a_parameter_document(tmp_path: Path) -> None:
     written = json.loads((tmp_path / "parameters.json").read_text(encoding="utf-8"))
     assert written["region"]["id"] == "xx-testfixture"
     assert written["mission"]["example"] is True
+
+
+def test_oneshot_writes_the_partial_hostapd_render_for_a_wired_node(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    """FML-ADR-083: the oneshot renders the decided AP surface beside parameters.
+
+    In-process (so the render lines are covered), with concrete interfaces so the
+    render reaches its success path. Values are asserted against the fixture
+    inputs, never a literal the renderer also hardcodes.
+    """
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION_FULL),
+            "--node",
+            str(FIXTURE_NODE_AP_WIRED),
+            "--out",
+            str(tmp_path),
+        ]
+    )
+
+    assert code == 0
+    conf = (tmp_path / "hostapd.partial.conf").read_text(encoding="utf-8")
+
+    node = yaml.safe_load(FIXTURE_NODE_AP_WIRED.read_text(encoding="utf-8"))
+    region = yaml.safe_load(
+        (FIXTURE_REGIONS / "profile.yml").read_text(encoding="utf-8")
+    )
+    mission = json.loads(MISSION_FULL.read_text(encoding="utf-8"))
+
+    assert f"interface={node['interfaces']['eud_ap']}" in conf
+    assert f"ssid={mission['network']['ap_ssid']}" in conf
+    assert f"country_code={region['region']['country_code']}" in conf
+    assert f"channel={region['wifi']['ap_channel']}" in conf
+    # Not bootable, no secret, onboarding deferred (rendered closed).
+    assert "NOT A BOOTABLE CONFIG" in conf
+    assert "wpa_passphrase" not in conf.lower()
+    assert "bss=" not in conf
+    assert "FML-ADR-084" in conf
+    assert "hostapd partial (SIMULATED" in capsys.readouterr().out
+
+
+def test_oneshot_refuses_when_the_ap_render_cannot_complete(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    """A render that cannot complete fails the oneshot (FML-ADR-083).
+
+    The ap-only fixture fields wifi_ap but has no interface map, exactly as
+    nodes/mule-v001 leaves eud_ap TBD (TBR-LINUX-01). Configuration failure is a
+    failed oneshot, so the run exits non-zero, names the missing role, and never
+    invents an interface name -- the same fail-closed refusal the resolver makes
+    on a TBD value.
+    """
+    code = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION),
+            "--node",
+            str(FIXTURE_NODE_AP_ONLY),
+            "--out",
+            str(tmp_path),
+        ]
+    )
+
+    assert code == 5
+    assert not (tmp_path / "hostapd.partial.conf").exists()
+    assert "eud_ap" in capsys.readouterr().err
+
+
+def test_a_stale_ap_render_is_removed_when_a_later_run_cannot_complete(
+    tmp_path: Path,
+) -> None:
+    """A refusal never leaves a previous run's hostapd file in place.
+
+    A first run with concrete interfaces writes hostapd.partial.conf; a second run
+    into the same directory whose node has no interface map must fail and remove
+    the stale file rather than leave last run's interface and SSID looking current.
+    """
+    ok = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION_FULL),
+            "--node",
+            str(FIXTURE_NODE_AP_WIRED),
+            "--out",
+            str(tmp_path),
+        ]
+    )
+    assert ok == 0
+    assert (tmp_path / "hostapd.partial.conf").exists()
+
+    refused = gc.main(
+        [
+            "--region",
+            str(FIXTURE_REGIONS / "profile.yml"),
+            "--mission",
+            str(MISSION_FULL),
+            "--node",
+            str(FIXTURE_NODE_AP_ONLY),
+            "--out",
+            str(tmp_path),
+        ]
+    )
+    assert refused == 5
+    assert not (tmp_path / "hostapd.partial.conf").exists()
 
 
 def test_the_fixture_region_is_not_loadable_by_identifier() -> None:
