@@ -287,6 +287,8 @@ findings:
     severity: P1
     parent: GAP-09
     dependencies: [GAP-09D, GAP-09E, GAP-09G]
+    evidence:
+      - "docs/evidence/findings/GAP-09H/2026-09-26-operator-procedure.md"
     user_gate: null
 
   - <<: *open_independent

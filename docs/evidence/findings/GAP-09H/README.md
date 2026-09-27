@@ -1,0 +1,21 @@
+# GAP-09H evidence
+
+This directory records the operator procedure for the v0.0.1 milestone: the
+build-and-bring-up steps a person who did not write the documentation follows to
+reach one node, one service (Martin map tiles), reachable from a phone.
+
+State: OPEN -- a `DRAFT` procedure exists. It assembles the ready steps and names
+the gaps that still block a clean end-to-end run (arm64 image, interface naming,
+rendering wired into the oneshot, AP credential, ingress/TLS, DHCP addressing).
+v0.0.1 is accepted only when the cold-start drill in `docs/verification/README.md`
+runs on real hardware and its issues are resolved; that is not done, and nothing
+here is `HARDWARE-VERIFIED`. Independent review is required before this finding can
+close.
+
+| Artifact | What it records |
+| --- | --- |
+| `2026-09-26-operator-procedure.md` | The v0.0.1 build/bring-up procedure, the cold-start acceptance drill, and the register of gaps that block a hands-free run. |
+
+Naming and recording rules are in `docs/evidence/README.md`. Nothing real: no
+deployment location, member identity, callsign, credential, or operational
+capture. See `SECURITY.md`.
