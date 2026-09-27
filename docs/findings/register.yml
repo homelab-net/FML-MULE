@@ -277,6 +277,7 @@ findings:
     state: IMPLEMENTED
     evidence:
       - "docs/evidence/findings/GAP-09G/2026-09-24-implementation.md"
+      - "docs/evidence/findings/GAP-09G/2026-09-27-martin-instantiation.md"
     user_gate: >-
       Program Owner approved pressing the recommended rootless Martin deployment
       in the Codex thread on 2026-09-24
