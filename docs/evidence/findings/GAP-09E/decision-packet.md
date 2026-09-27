@@ -35,7 +35,7 @@ an open trade, and the Owner must resolve those before a render:
 
 | Item | Template | Status |
 | --- | --- | --- |
-| DHCP range, lease, options | dnsmasq | **GATED on the OPEN `TBR-NET-01`** (field address prefix / address family). Corrected 2026-09-25: `docs/evidence/TBR-NET-01/README.md` records the trade as `OPEN` with the decision not made, so the DHCP range is not a render task. `address_prefix` is also the *mesh* prefix (`FML-ADR-063`), and `mule-v001` fields no mesh -- there is no defined AP subnet to derive from |
+| DHCP range, lease, options | dnsmasq | **UNDECIDED and unowned.** Corrected 2026-09-26: `TBR-NET-01` is `CLOSED` (`FML-ADR-063`, 2026-09-04) but decided only the per-deployment *field (mesh)* prefix, not the AP subnet/DHCP; and `mule-v001` fields no mesh. So the AP DHCP range is neither a render task nor gated on `TBR-NET-01` -- it is an open AP-addressing question owned by no trade yet. (An earlier version, and a 2026-09-25 edit trusting a stale `TBR-NET-01` README, both got this wrong.) |
 | Local DNS: the one 09F service name | dnsmasq | `TBR-TAK-01` is **CLOSED** (`FML-ADR-071`, 2026-09-06); the name follows the 09F choice -- a render task |
 | Operational AP client isolation | hostapd | **decided:** off, `FML-ADR-057` |
 | Onboarding client isolation | hostapd | **decided:** on, separate BSS/domain, `FML-ADR-084` |
@@ -49,9 +49,10 @@ an open trade, and the Owner must resolve those before a render:
 Approved v0.0.1 semantics:
 
 - **DHCP:** a small static range inside the AP subnet, short lease so a device
-  moving between nodes recovers. **Gated, not a render detail (corrected
-  2026-09-25):** `TBR-NET-01` is OPEN, so the addressing this derives from is
-  undecided; the AP subnet itself is undefined for an AP-only node whose only
+  moving between nodes recovers. **Undecided and unowned (corrected 2026-09-26):**
+  `TBR-NET-01` is `CLOSED` but decided only the mesh field prefix, not the AP
+  subnet; no trade owns AP addressing yet, and the AP subnet is undefined for an
+  AP-only node whose only
   addressed prefix is the (absent) mesh (`FML-ADR-063`). This waits on the trade.
 - **DNS:** resolve only the single 09F milestone service name (or IP-only if the
   Owner prefers); `TBR-TAK-01` is closed, so this follows the 09F choice; no
@@ -68,14 +69,17 @@ Approved v0.0.1 semantics:
 
 ## 5. Consequences and gates this must NOT close
 
-- **Corrected 2026-09-25.** An earlier version of this packet called both
-  `TBR-NET-01` and `TBR-TAK-01` CLOSED. Only `TBR-TAK-01` is CLOSED (`FML-ADR-071`);
-  `TBR-NET-01` is **OPEN** (`docs/evidence/TBR-NET-01/README.md`). So the DNS name
-  is a render task, but the **DHCP range / addressing is gated** on `TBR-NET-01`,
-  not a render task. Naming the interface still touches `TBR-LINUX-01` (OPEN). This
-  packet writes none of the values.
-- **What rendering is gated on (not invented here):** DHCP/addressing/family
-  (`TBR-NET-01`); AP and onboarding credentials + the auth mechanism (`TBR-SEC-01`,
+- **Corrected 2026-09-26.** Both `TBR-NET-01` and `TBR-TAK-01` are `CLOSED`
+  (`FML-ADR-063` 2026-09-04; `FML-ADR-071`). An earlier version said both closed
+  and treated DHCP as a render task; a 2026-09-25 edit then over-corrected to call
+  `TBR-NET-01` OPEN, trusting a stale `TBR-NET-01` README (now fixed). Both were
+  wrong: `TBR-NET-01` closed on the *mesh field prefix* only, so the DNS name is a
+  render task (`TBR-TAK-01`), but the **AP subnet / DHCP is undecided and owned by
+  no trade** -- not a render task and not gated on `TBR-NET-01`. Naming the
+  interface still touches `TBR-LINUX-01` (OPEN). This packet writes none of the
+  values.
+- **What rendering is gated on (not invented here):** AP addressing/DHCP (undecided,
+  no owning trade); AP and onboarding credentials + the auth mechanism (`TBR-SEC-01`,
   with `FML-ADR-038` EAP-TLS as target); multi-BSS shape and interface names
   (`TBR-LINUX-01`). What is decided and renderable now: client isolation
   (`FML-ADR-057`/`FML-ADR-084`), onboarding broadcast/hidden posture, the SSID from

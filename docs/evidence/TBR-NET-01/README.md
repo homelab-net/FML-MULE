@@ -7,8 +7,12 @@
 **Priority:** 15 of 16 (SAD v0.31 section 30.2). **Function owner:** Network.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** three artifacts. The trade is still `OPEN`: one of its
-three closure-evidence items is supplied, and the decision itself is not made.
+**Current contents:** three artifacts. This trade is **`CLOSED`** (2026-09-04, on
+the named owner's acceptance; the decision is `FML-ADR-063`). This README was stale
+and is corrected 2026-09-26: the trade file frontmatter is the authoritative status.
+`FML-ADR-063` decided the **field (mesh) prefix** is per-deployment; it does **not**
+decide the EUD access-point subnet, DHCP range, or lease -- that AP-addressing
+question is undecided and is owned by no trade yet.
 
 - `2026-08-30-loop-detected-on-the-bench.md`
 - `2026-08-30-collision-exercise.md` -- two deployments sharing
@@ -46,12 +50,12 @@ three closure-evidence items is supplied, and the decision itself is not made.
   the README says does not block MULE work. **Deciding question, untested:**
   whether the applications work over IPv6.
 
-**All three closure-evidence items now exist.** The trade is still `OPEN`: it
-closes when a named owner accepts the evidence and the resulting decision is
-entered in the ADR register, and no decision has been made. The schema question
-is reported rather than answered, and the third artifact argues that the
+**All three closure-evidence items exist, and the trade `CLOSED` 2026-09-04**
+(`FML-ADR-063`, owner acceptance). It decided the per-deployment field (mesh)
+prefix. The schema question was reported, and the third artifact argued the
 trade's question as written cannot be answered in a way that removes the risk
-it is about.
+it is about; the owner accepted on that basis. The AP-subnet/DHCP question this
+trade is sometimes assumed to cover is **not** what it decided.
 
 **Read them in that order.** The collision is not what happens when two
 deployments meet; it is what happens once they deliberately converge on one
