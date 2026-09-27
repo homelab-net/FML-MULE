@@ -45,6 +45,7 @@ generation mapping rather than restructuring every file.
 | `batman-adv.conf.template` | Layer 2 mesh routing | `TBR-RF-01`, `TBR-NET-01` |
 | `nftables.conf.template` | Firewall and forwarding policy | `TBR-NET-01` |
 | `interfaces.conf.template` | Interface bring-up and addressing | `TBR-NET-01` |
+| `haproxy.conf.template` | EUD service ingress: reach a browser service by name via a reverse proxy in front of loopback backends | `FML-ADR-031`, `TBR-NET-05`, `TBR-ID-01` |
 | `chrony.conf.template` | Local time discipline | `TBR-TIME-01` |
 | `dnsmasq.conf.template` | Local DNS and DHCP | `TBR-NET-01` |
 

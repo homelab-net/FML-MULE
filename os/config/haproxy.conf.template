@@ -1,0 +1,67 @@
+# HAProxy ingress configuration template - MULE
+#
+# Fronts the node's browser-based EUD services behind one stable local identity,
+# so a phone on the EUD access point reaches a service BY NAME rather than by a
+# backend port. FML-ADR-031 selects local DNS plus a lightweight TCP/HTTP proxy
+# and names HAProxy the preferred initial proxy.
+#
+# STATUS: TEMPLATE. Every value marked TBD is undecided or per-deployment. This
+# file is an input to configuration generation, not a file to be edited on a
+# node.
+#
+# Trades / decisions:
+#   FML-ADR-031  local DNS + HAProxy/TCP ingress for logical service identities
+#   FML-ADR-073  Martin serves one read-only per-mission MBTiles
+#   TBR-NET-05   the EUD AP subnet/DHCP the frontend binds and DNS resolves onto
+#                (OPEN, unowned until this trade closes)
+#   TBR-ID-01 / services/ingress/  the reverse proxy as the authenticating
+#                component, and the X-Ssl-Cert path -- NOT rendered here
+#
+# WHAT IS DEFERRED FOR v0.0.1 (GAP-09H, conscious deferral, Owner to confirm):
+#   TLS. FML-ADR-031 prefers TCP passthrough for end-to-end-protected backends so
+#   the proxy is not a decryption point. Martin carries no secret and, for
+#   v0.0.1, is served over HTTP by name; this is an accepted residual risk, not
+#   THREAT_MODEL compliance (THREAT_MODEL.md requires TLS for browser services
+#   separately from WPA2 for the AP). A WPA2 AP is assumed; an open AP is a defect.
+
+global
+    # haproxy-configuration(5): "daemon: Makes the process fork into background."
+    # Omitted: the node runs HAProxy under a systemd service, not self-daemonized.
+    # haproxy(1)/config: run under a dedicated unprivileged identity (FML-ADR-031,
+    # "runs under a dedicated unprivileged service identity"). User/group are set
+    # by the unit, not compiled here.
+    log stdout format raw local0
+
+defaults
+    # config manual "mode { tcp|http }": "the instances running in HTTP mode ...
+    # analyse and possibly modify the contents of requests and responses." HTTP
+    # mode is used for the Martin browser service; a TLS-terminating backend
+    # (TAK, later) uses a separate `mode tcp` passthrough section, not this one.
+    mode http
+    # config manual "timeout connect/client/server": maximum inactivity times.
+    # TBD: no measurement selects these durations. They are operative once
+    # rendered, so they stay TBD rather than an invented number (TBR-COMP-01
+    # supplies the budget on measured hardware).
+    timeout connect TBD
+    timeout client TBD
+    timeout server TBD
+
+frontend eud_ingress
+    # config manual "bind [<address>]:<port>": "Define one or several listening
+    # addresses and/or ports in a frontend." Bind the EUD access-point address
+    # only, never the mesh or an uplink. The address is per-deployment and is the
+    # subject of TBR-NET-05; it is TBD until that trade closes.
+    bind TBD:80                       # <ap-address>:80  (TBR-NET-05; TLS deferred, GAP-09H)
+
+    # config manual "use_backend <backend> if <condition>": route by the
+    # requested host name to the logical service. The service name comes from the
+    # mission package's local domain (services/ingress/), never a literal here.
+    # hdr(host) matches the HTTP Host header.
+    use_backend martin_backend if { hdr(host) -i TBD }   # <service-name>.<local-domain>
+
+backend martin_backend
+    # config manual "server <name> <address>[:port] [param*]": declare the
+    # backend. Martin publishes on loopback only (martin.container
+    # PublishPort=127.0.0.1:3000:3000); the EUD-facing route is this proxy, not
+    # the backend (FML-ADR-073).
+    server martin 127.0.0.1:3000

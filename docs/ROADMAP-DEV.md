@@ -1196,7 +1196,13 @@ service outline is `services/map/README.md`.
 rootless Quadlet. The unit pins the official 1.16.1 multi-architecture image by
 digest, reads `/var/lib/fml/maps/mission.mbtiles` read-only, and publishes only
 to loopback. This completes the GAP-09F/G selection and repository deployment,
-not the GAP-09I phone-over-AP acceptance or any hardware measurement.
+not the GAP-09I phone-over-AP acceptance or any hardware measurement. The
+EUD-facing reach-by-name path is `FML-ADR-031` ingress (a reverse proxy in front
+of the loopback backend; forward config `os/config/haproxy.conf.template`,
+exercised `SIMULATED` by `test/bench/ingress-name-routing.sh`), whose frontend
+bind and DNS resolve onto the EUD AP subnet -- undecided and owned by the new
+**`TBR-NET-05`** (`TBR-NET-01` closed only the mesh prefix). TLS stays a
+GAP-09H-recorded v0.0.1 deferral pending the Owner's disposition.
 
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
 cache". Two things were being conflated. **Device-side tile caching** is an ATAK

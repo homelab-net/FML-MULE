@@ -9,6 +9,22 @@ requirement below that an application port is not directly reachable. GAP-09E
 still owns the AP/ingress path, GAP-09H the operator procedure, and GAP-09I the
 phone-over-AP acceptance.
 
+**Forward-path template drafted (2026-09-27, `SIMULATED`).**
+`os/config/haproxy.conf.template` is the `FML-ADR-031` HAProxy forward config: an
+HTTP frontend on the EUD AP interface routing by host name to Martin's loopback
+backend. The reproducible bench script `test/bench/ingress-name-routing.sh` (`SIMULATED`,
+x86) runs HAProxy `lts` in front of the Martin container and asserts the routing:
+a request with the matching `Host` reaches Martin (`/catalog` and a `z/x/y` tile,
+HTTP 200), and a non-matching `Host` gets **503** (no default backend -- fail
+closed). Still owed, and marked `TBD` in the template: the frontend bind address
+and the DNS name resolve onto the **EUD AP subnet**, which is undecided and now
+owned by **`TBR-NET-05`** (raised because `TBR-NET-01` closed only the mesh
+prefix); **TLS**, which stays a **recommended v0.0.1 deferral pending the Owner's
+recorded disposition** (GAP-09H G5b; `THREAT_MODEL.md` requires browser traffic
+leaving a MULE to be encrypted, so plaintext ingress is not deployed until the
+Owner accepts the deferral or TLS is built); and the reverse-proxy authentication
+(`X-Ssl-Cert`, `TBR-ID-01`) below.
+
 `FML-ADR-031` selects local DNS plus a lightweight TCP/HTTP proxy layer, with
 **HAProxy** as the preferred initial proxy, and prefers **TCP passthrough** for
 end-to-end protected protocols so the proxy is not a decryption point. Each
