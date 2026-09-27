@@ -21,6 +21,10 @@ that OpenTAKServer preserves an unknown CoT `detail` child verbatim **in storage
 that the time trio maps to the record, and that OTS does not implement the
 `FML-REQ-037` retention semantic (it deletes on a fixed 1-week timer). The server's
 outbound emission of unknown `detail` and the whole TAK-client side stay owed.
+`2026-09-27-tak-client-detail-reading-execution-card.md` is the procedure (not a
+result) for that owed TAK-client reading: run iTAK on the AP and observe whether it
+preserves/forwards an unknown `detail` and how it draws a past-`stale` event. It is
+pending the phone-on-AP step.
 
 The upstream files the readings quote are
 archived beside them. The CoT schema, the OpenTAKServer `CoT` model,
