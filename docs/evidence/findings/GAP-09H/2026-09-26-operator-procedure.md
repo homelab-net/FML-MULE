@@ -68,6 +68,11 @@ to end, the **gap** that blocks it (collected in the register below).
    even on x86 (`GAP-09G/2026-09-24-implementation.md`). Running it here is its first
    instantiation. It mounts one read-only per-mission MBTiles at
    `/var/lib/fml/maps/mission.mbtiles` and fails closed if that file is unreadable.
+   **Gap G8 (runtime + unit not on the image):** the current `os/image` closure
+   installs no Podman, and the build does not place `martin.container` or its
+   catalog into the runtime-consumed paths, so on the fresh image this step cannot
+   be followed as written. The image must ship Podman and install the Quadlet unit
+   + catalog before the service can start.
 
 6. **Provision the map tiles.** Place the mission MBTiles at
    `/var/lib/fml/maps/mission.mbtiles`, sourced per `FML-ADR-073` (one read-only
@@ -85,14 +90,17 @@ to end, the **gap** that blocks it (collected in the register below).
    (TLS):** undecided; `ROADMAP.md` makes this the step that confronts or
    consciously defers it. **Recommended conscious deferral for v0.0.1 (Owner +
    `services/ingress/` to confirm):** serve Martin over **HTTP by name via the
-   reverse proxy on the AP subnet**, deferring TLS to post-v0.0.1. This is only
-   defensible if the AP link is **WPA2**: `THREAT_MODEL.md` (edge-of-node in the
-   clear is a defect) is satisfied over the air by link encryption, not transport
-   TLS -- and that link encryption is itself **G3/G4** (no WPA block rendered yet,
-   credential mechanism undecided, `TBR-SEC-01`). An **open** AP plus HTTP would be
-   a `THREAT_MODEL` defect; the deferral holds only for a WPA2 AP. **Gap G6 (DHCP
-   range, `TBR-NET-01`):** the AP subnet/DHCP is not decided, so addressing is set by
-   hand for the drill.
+   reverse proxy on the AP subnet**, deferring TLS to post-v0.0.1. Frame this as an
+   **accepted security deviation / residual risk, not threat-model compliance**:
+   `THREAT_MODEL.md` names WPA2 for the AP **and, separately**, TLS for browser/API
+   services (`services/ingress/`, which explicitly requires TLS), so WPA2 does
+   **not** substitute for service TLS. The deferral accepts plain-HTTP tiles as a
+   recorded residual risk for v0.0.1; it assumes at least a **WPA2** AP (itself
+   gated -- G3/G4, no WPA block rendered, `TBR-SEC-01`), and an **open** AP plus
+   HTTP would compound the deviation. **Gap G6 (AP subnet / DHCP -- undecided and
+   unowned):** `TBR-NET-01` is `CLOSED` but decided only the mesh field prefix
+   (`FML-ADR-063`); no trade owns AP addressing. Set the AP subnet by hand for the
+   drill; a decision (or a new trade) is needed before it is hands-free.
 
 8. **The phone.** Join the AP (SSID from the mission; credential from step 4), open
    the map URL by name, confirm tiles load. Needs a phone on the AP (the bookmarked
@@ -117,8 +125,9 @@ the drill; issues are read afterward. A skipped drill is recorded as skipped in
 | G4 AP credential (`TBR-SEC-01`) | AP security (and the WPA2 link the HTTP deferral rests on) | the credential-supply mechanism is decided |
 | G5a reverse proxy / port exposure (`FML-ADR-031`, `services/ingress/`) | reach-by-name (Martin is loopback-only) | the ingress reverse-proxy mechanism is built |
 | G5b ingress TLS (`services/ingress/`) | encrypted reach-by-name | the Owner confirms the WPA2-contingent HTTP deferral, or TLS is built |
-| G6 DHCP/addressing (`TBR-NET-01`) | phone gets an address | the addressing trade closes |
+| G6 AP subnet / DHCP -- undecided, **unowned** | phone gets an address | a decision (or a new trade) for AP addressing exists; `TBR-NET-01` is CLOSED and covers only the mesh field prefix |
 | G7 map-tile provisioning (`FML-ADR-073`/`FML-ADR-072`) | Martin serves tiles (step 8) | the mission MBTiles is sourced and placed |
+| G8 runtime + unit not on the image | starting Martin from the image | the image ships Podman and installs the Quadlet unit + catalog |
 
 Until these close, the drill can be **rehearsed by hand** on the Pi (steps 4-7
 manual, per the GAP-09E bring-up card) but not completed hands-free from the image
