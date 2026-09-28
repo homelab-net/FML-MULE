@@ -74,12 +74,16 @@ stand.
   `TBR-NET-02` feeds. Until it exists, a long message plus identity can exceed
   the usable payload and fail to arrive, which the measurement showed happens at
   232 bytes.
-- **`GeoChat.to`'s contents are not yet established.** Whether it holds a
-  callsign, a CoT UID, or something else was not determined because the server
-  was not run (`2026-08-30-opentakserver-meshtastic-path.md` records this). The
-  recipient-resolution step cannot be implemented until a follow-up establishes
-  it; that follow-up is verification below, not a reason to defer the encoding
-  decision.
+- **`GeoChat.to`'s contents are established (2026-09-28).** Driving a real GeoChat
+  through OpenTAKServer's own encoder shows `GeoChat.to` holds the recipient's
+  identifier and is **not uniformly a callsign**: a direct message carries the
+  recipient's **id** (the `<__chat id>`, an EUD UID for a real ATAK client); a room
+  carries the **room name** (`2026-09-28-real-geochat-encoding-through-ots.md`). So
+  the recipient-resolution step's parser must branch (DM-id vs room-name), and the
+  human-readable callsign-to-id binding lives in the contact list -- the roster.
+  What remains open is *resolution* (that `GeoChat.to` resolves to an EUD the node
+  can name), i.e. where that roster comes from, raised in
+  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`.
 - **No custom gateway code and no fork against `FML-ADR-048`.** The gateway
   keeps upstream's format, which is less to maintain for volunteers and removes
   a standing divergence from upstream.
@@ -120,3 +124,9 @@ None.
 character limit holds a message plus identity within the 231-byte usable
 payload. Both belong to stage 3 (LoRa continuity); neither needs a radio to
 start.
+
+Progress (2026-09-28): the server run was done
+(`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`),
+establishing what `GeoChat.to` *contains* (a DM's recipient id, a room's name).
+The remaining half of the first check -- that the contents *resolve* to a named
+EUD -- is the roster, raised in `CCR-06`. The composition-limit check is unchanged.

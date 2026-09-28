@@ -22,10 +22,18 @@ left for later are **not** done here and are passed in rather than derived:
 
 - The **roster** (callsign/member -> device) is a `Mapping` argument. The mission
   package has no roster field today; adding one is a schema change `TBR-NET-02`
-  named and declined, and `TBR-ID-01` later governs the identity half. Until then
-  the caller supplies whatever mapping exists (empty is fine, and fails closed).
-- Parsing `GeoChat.to` into a `recipient_key` is upstream's job, not this module's;
-  its exact contents were not established when `FML-ADR-070` was written.
+  named and declined. Where the roster comes from -- a mission-package field, a
+  signed enrollment/role state from the Mission Trust Service, or a
+  gateway-maintained registry for mesh EUDs -- is the open decision raised in
+  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` (which carries the
+  decision citations). Until it closes the caller supplies whatever mapping exists
+  (empty is fine, and fails closed).
+- Parsing `GeoChat.to` into a `recipient_key` is upstream's job, not this module's.
+  Its contents were established on 2026-09-28
+  (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`):
+  `GeoChat.to` is not uniformly a callsign -- a direct message carries the
+  recipient's id, a room carries the room name -- so that upstream parser branches,
+  and the callsign-to-id binding it needs is what the roster (above) seeds.
 
 It lives in `mule/` because it is a decision the node makes while running
 (`FML-ADR-051`); the blocked `services/gateways/` component names it per
