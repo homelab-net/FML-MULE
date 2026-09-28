@@ -74,15 +74,15 @@ stand.
   `TBR-NET-02` feeds. Until it exists, a long message plus identity can exceed
   the usable payload and fail to arrive, which the measurement showed happens at
   232 bytes.
-- **`GeoChat.to`'s contents are established (2026-09-28).** Driving a real GeoChat
-  through OpenTAKServer's own encoder shows `GeoChat.to` holds the recipient's
-  identifier and is **not uniformly a callsign**: a direct message carries the
-  recipient's **id** (the `<__chat id>`, an EUD UID for a real ATAK client); a room
-  carries the **room name** (`2026-09-28-real-geochat-encoding-through-ots.md`). So
-  the recipient-resolution step's parser must branch (DM-id vs room-name), and the
-  human-readable callsign-to-id binding lives in the contact list -- the roster.
-  What remains open is *resolution* (that `GeoChat.to` resolves to an EUD the node
-  can name), i.e. where that roster comes from, raised in
+- **`GeoChat.to`'s contents are grounded, not fully closed (2026-09-28).** Driving a
+  GeoChat through OpenTAKServer's own encoder shows it copies the client-supplied
+  `<__chat id>` verbatim into `GeoChat.to` and that the value is **not a callsign**: a
+  direct message carries an **id** (a UID by ATAK convention), a room carries the
+  **room name** (`2026-09-28-real-geochat-encoding-through-ots.md`). So the
+  recipient-resolution parser must branch (DM-id vs room-name). Two things stay open:
+  what a *live* ATAK/iTAK client places in `<__chat id>` (owed a live-client DM; the
+  run injected the id), and *resolution* -- where the id->device roster comes from
+  and the separate callsign->id binding -- raised in
   `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`.
 - **No custom gateway code and no fork against `FML-ADR-048`.** The gateway
   keeps upstream's format, which is less to maintain for volunteers and removes

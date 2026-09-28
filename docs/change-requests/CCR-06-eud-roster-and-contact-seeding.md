@@ -31,10 +31,13 @@ they must be decided separately because they have very different cost.
 
 The grounding
 (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`) showed a
-DM transmits the recipient's **UID**, not its callsign (the recipient callsign is
-absent from the wire). So "DM the callsign, not the radio" needs **two distinct
-bindings**, not one -- and conflating them into a single `callsign -> device` map
-would leave a normal DM unresolved:
+DM's `GeoChat.to` carries the client's `<__chat id>` (an **id**/UID by ATAK
+convention), not the recipient callsign (which is absent from the wire). One caveat
+that scopes this decision: the run injected the id, so it proved the encoder's copy,
+not that a *live* client places the UID there -- a live-client DM is owed before the
+`callsign -> UID` binding is assumed exact. So "DM the callsign, not the radio" needs
+**two distinct bindings**, not one -- and conflating them into a single
+`callsign -> device` map would leave a normal DM unresolved:
 
 1. **Client contact seeding: `callsign -> UID`.** So an operator picks a person by
    callsign and the client addresses that person's UID on the wire. This is the
@@ -42,7 +45,11 @@ would leave a normal DM unresolved:
 2. **Node/gateway delivery resolution: `UID -> delivery device`** (an EUD, or a mesh
    node for an EUD behind the gateway). This is `mule/recipients.py`'s roster, and it
    must be **keyed by the UID** (the `recipient_key` parsed from `GeoChat.to`), not
-   by callsign -- `decide_delivery` does an exact `roster.get(recipient_key)`.
+   by callsign -- `decide_delivery` does an exact `roster.get(recipient_key)`. This
+   is the **direct-message** path only: a **room** `GeoChat.to` names a group, so room
+   delivery is separate **group fan-out**, not this single-device map -- room-name
+   scope is analyzed on its own (see uniqueness below), not routed through
+   `decide_delivery`.
 
 Both are configuration with near-zero emission cost. Owner to choose the **source of
 truth** for these bindings:

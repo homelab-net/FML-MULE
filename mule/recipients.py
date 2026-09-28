@@ -20,20 +20,26 @@ These are pure functions of values a caller passes in (`FML-ADR-052`): they read
 nothing, hold no state, and invent no numbers. Two things `TBR-NET-02` deliberately
 left for later are **not** done here and are passed in rather than derived:
 
-- The **roster** (callsign/member -> device) is a `Mapping` argument. The mission
-  package has no roster field today; adding one is a schema change `TBR-NET-02`
-  named and declined. Where the roster comes from -- a mission-package field, a
-  signed enrollment/role state from the Mission Trust Service, or a
+- The **roster** (recipient key -> device) is a `Mapping` argument keyed by the
+  identifier the bearer actually carries -- for a direct message the recipient's
+  UID (see below), not a callsign; the callsign -> UID step is a separate client
+  binding, and room fan-out is separate group routing this map does not do. The
+  mission package has no roster field today; adding one is a schema change
+  `TBR-NET-02` named and declined. Where the roster comes from -- a mission-package
+  field, a signed enrollment/role state from the Mission Trust Service, or a
   gateway-maintained registry for mesh EUDs -- is the open decision raised in
   `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` (which carries the
   decision citations). Until it closes the caller supplies whatever mapping exists
   (empty is fine, and fails closed).
 - Parsing `GeoChat.to` into a `recipient_key` is upstream's job, not this module's.
-  Its contents were established on 2026-09-28
+  What the encoder copies into it was grounded on 2026-09-28
   (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`):
-  `GeoChat.to` is not uniformly a callsign -- a direct message carries the
-  recipient's id, a room carries the room name -- so that upstream parser branches,
-  and the callsign-to-id binding it needs is what the roster (above) seeds.
+  the encoder copies the client-supplied `<__chat id>` verbatim (a DM's is a UID,
+  a room's is the room name), so `GeoChat.to` is not uniformly a callsign and the
+  parser must branch. What a live ATAK/iTAK client actually *places* in `<__chat
+  id>` on a DM (a UID by ATAK convention) still needs a live-client capture to
+  confirm; the callsign-to-id binding the parser then needs is what the roster
+  (above) seeds.
 
 It lives in `mule/` because it is a decision the node makes while running
 (`FML-ADR-051`); the blocked `services/gateways/` component names it per
@@ -115,12 +121,14 @@ def decide_delivery(
 ) -> DeliveryDecision:
     """Decide delivery for a named recipient, failing closed on the unresolved.
 
-    `recipient_key` is what upstream parsed from `GeoChat.to`: grounded 2026-09-28
-    as the recipient's **UID** on a direct message (not the callsign) or the room
-    name (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`),
-    so `roster` maps that **UID (or room name) to a device** -- the callsign-to-UID
-    step is a separate client binding, not this map. Where the roster comes from is
-    the open decision in `CCR-06`; the mission package carries none yet, so an empty
+    This resolves a **direct message** to a single device. `recipient_key` is the
+    recipient's **UID** as carried on a DM's `GeoChat.to` (grounded 2026-09-28,
+    `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`), so
+    `roster` maps **UID -> device**; the callsign-to-UID step is a separate client
+    binding, not this map. A **room** `GeoChat.to` names a group, not one device, so
+    room fan-out is separate group routing and does **not** go through here -- passing
+    a room name would collapse it to a single EUD. Where the roster comes from is the
+    open decision in `CCR-06`; the mission package carries none yet, so an empty
     mapping is expected and simply fails closed. A resolved key delivers; an
     unresolved key redirects to a configured default (marked redirected) or refuses.
     It **never** delivers to everyone -- the CONOPS section 23 rule this holds.

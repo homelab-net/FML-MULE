@@ -19,7 +19,8 @@ client on the bench.
 established… the recipient-resolution step cannot be implemented until a follow-up
 establishes it."* `mule/recipients.py.decide_delivery` is blocked on it: its
 `recipient_key` is *"whatever a future upstream step parsed from `GeoChat.to`, not
-decided here."* This establishes those contents.
+decided here."* This grounds what the encoder puts there (and rules out the
+callsign), advancing that item; the live-client half is called out below.
 
 ## Method
 
@@ -70,28 +71,37 @@ chat.message          = "fml-room-distinct"
 matching the synthetic run's sender encoding. The real callsign, UID and position
 are redacted (see scrub note).
 
-## What this establishes
+## What this establishes (and the one thing it does not)
 
-- **For a direct message, `GeoChat.to` (the `TAKPacket` `chat.to`) holds the
-  recipient's UID, not its callsign** -- demonstrated by setting the two different:
-  `chat.to` came back the UID (`UID-CHARLIE-9999`), and the callsign (`CHARLIE-CS`)
-  was absent from the packet. For a **room**, `chat.to` holds the **room name**. So
-  it is **not uniformly a callsign, and never the recipient callsign** on a DM. The
-  sender rides in `contact.callsign` (callsign) and `contact.device_callsign`
-  (sender UID).
+- **The encoder copies the client-supplied `<__chat id>` verbatim into `chat.to`,
+  and it is not the recipient callsign.** With the DM's `<__chat id>` set to
+  `UID-CHARLIE-9999` and the recipient callsign to `CHARLIE-CS`, `chat.to` came back
+  `UID-CHARLIE-9999` and `CHARLIE-CS` was **absent** from the packet. For a **room**,
+  `chat.to` is the **room name**. So the field is not uniformly a callsign, and a DM
+  never carries the recipient callsign.
+- **Not established here:** that a *live ATAK/iTAK client* places the recipient's
+  **UID** in `<__chat id>` when an operator picks a contact. This run injected the
+  `<__chat id>` synthetically, so it proves the **encoder faithfully copies whatever
+  the client sends** -- not the client's selection logic. By ATAK convention the DM
+  `<__chat id>` is the destination UID, but confirming that needs a **live-client DM
+  capture** (owed; a live iTAK DM to a known contact). The roster design must not
+  assume the stronger conclusion until then.
 - Consequence for `mule/recipients.py`: the upstream parser that produces
-  `recipient_key` from `GeoChat.to` **must branch** (DM: the recipient UID; room:
-  the room name). Since the wire carries the **UID**, `decide_delivery`'s roster is
-  keyed by that UID (`UID -> delivery device`); the human-readable
-  **callsign -> UID** binding is a **separate** step that lives in the client
-  contact list. "DM the callsign" therefore needs two bindings, not one: the client
-  maps callsign to UID, and the node/gateway maps UID to device. This closes
-  `FML-ADR-070`'s "contents" open item; it does **not** close the *resolution* half
-  (that `GeoChat.to` resolves to an EUD the node can name), the roster question
-  raised in `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`.
+  `recipient_key` from `GeoChat.to` **must branch** -- a DM key is the id the client
+  put in `<__chat id>` (a UID by convention), a room key is the room name. For a DM,
+  `decide_delivery`'s roster is keyed by that id (`id -> delivery device`), and the
+  human-readable **callsign -> id** binding is a **separate** client-side step. A
+  **room** names a **group**, not one device, so room fan-out is separate group
+  routing, not `decide_delivery`. This **advances** `FML-ADR-070`'s "contents" item
+  (the encoder/field behavior); the client-side field population and the *resolution*
+  half (where the roster comes from) remain open -- the roster question is
+  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`.
 
 ## What this does not establish
 
+- **What a live client places in `<__chat id>`** -- the `<__chat id>` was injected
+  here, so this shows the encoder's copy, not the client's selection. A live iTAK DM
+  to a known contact (owed) would confirm the ATAK convention that it is the UID.
 - **RF delivery** -- captured at the encoder's MQTT output, nothing transmitted;
   the real hop is the 2026-09-27 note.
 - **The roster / recipient resolution** -- `CCR-06` (source, uniqueness, presence).
