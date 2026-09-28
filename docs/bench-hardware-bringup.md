@@ -81,9 +81,24 @@ decided `batman-adv` config (`bridge_loop_avoidance`, `batctl interface add`).
    (the Waveshare SX1262 DTU may hold `ttyACM0`; it is test equipment, not a
    node). `meshtastic --port <dev> --info` -- confirm firmware, `hwModel`, region;
    set region US if unset.
-2. **Single step:** put the RAK on the same channel as the partner node and assert
-   one text message crosses **both ways**. Do not proceed until it does.
-3. **Grounding:** attach the RAK to the live OTS bench, send a GeoChat DM and a
+2. Put the RAK on the same channel/preset/region as the partner (if the partner is
+   off the default public channel, match its channel URL/PSK -- bench-only, never
+   committed). A stock node holds the compiled-in public LongFast channel for its
+   region.
+3. **Wait for the NodeInfo exchange before any direct message.** A PKI **direct**
+   message NAKs `NO_CHANNEL` until the sender holds the recipient's public key,
+   which arrives in a `NODEINFO_APP` packet -- so confirm the partner appears in
+   `meshtastic --port <dev> --nodes` **with a public key** first (a broadcast from
+   the RAK, or from the partner, seeds this; it can take minutes). Broadcast and
+   channel-addressed traffic do **not** need it and work immediately; only the PKI
+   DM does. (Evidence:
+   `docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md`.)
+4. **Single step:** assert one text message crosses **both ways** -- a broadcast
+   the partner receives, and a direct message that returns a delivery ACK once the
+   key exchange (step 3) is done. Note: opening the RAK's USB serial port resets
+   the nRF52840, so leave it undisturbed while the partner replies. Do not proceed
+   until one message crosses each way.
+5. **Grounding:** attach the RAK to the live OTS bench, send a GeoChat DM and a
    group message, and capture how `GeoChat.to` (recipient) and `Contact.callsign`
    (sender) ride the wire -- the real encoding `mule/recipients.py` and
    `FML-ADR-070` are waiting on. **Evidence:** `docs/evidence/TBR-NET-02/`.
