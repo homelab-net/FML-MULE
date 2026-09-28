@@ -19,8 +19,9 @@ client on the bench.
 established… the recipient-resolution step cannot be implemented until a follow-up
 establishes it."* `mule/recipients.py.decide_delivery` is blocked on it: its
 `recipient_key` is *"whatever a future upstream step parsed from `GeoChat.to`, not
-decided here."* This grounds what the encoder puts there (and rules out the
-callsign), advancing that item; the live-client half is called out below.
+decided here."* This grounds what the encoder copies there (it substitutes no callsign of its own),
+advancing that item; what a live client places in `<__chat id>` is the owed half,
+called out below.
 
 ## Method
 

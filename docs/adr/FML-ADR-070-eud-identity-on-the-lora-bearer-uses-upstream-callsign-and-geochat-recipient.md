@@ -127,6 +127,8 @@ start.
 
 Progress (2026-09-28): the server run was done
 (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`),
-establishing what `GeoChat.to` *contains* (a DM's recipient id, a room's name).
-The remaining half of the first check -- that the contents *resolve* to a named
-EUD -- is the roster, raised in `CCR-06`. The composition-limit check is unchanged.
+establishing that the encoder copies `<__chat id>` into `GeoChat.to` verbatim (in-run
+a DM's injected id, a room's name); what a *live* client places in `<__chat id>` (a
+UID by convention) is still owed a capture. The remaining half of the first check --
+that the contents *resolve* to a named EUD -- is the roster, raised in `CCR-06`. The
+composition-limit check is unchanged.

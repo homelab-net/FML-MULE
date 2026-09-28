@@ -21,9 +21,11 @@ nothing, hold no state, and invent no numbers. Two things `TBR-NET-02` deliberat
 left for later are **not** done here and are passed in rather than derived:
 
 - The **roster** (recipient key -> device) is a `Mapping` argument keyed by the
-  identifier the bearer actually carries -- for a direct message the recipient's
-  UID (see below), not a callsign; the callsign -> UID step is a separate client
-  binding, and room fan-out is separate group routing this map does not do. The
+  identifier the bearer actually carries -- for a direct message whatever the client
+  placed in `<__chat id>` (a UID by ATAK convention, but unconfirmed until the owed
+  live-client capture -- see below), not necessarily a callsign; the callsign -> key
+  step is a separate client binding, and room fan-out is separate group routing this
+  map does not do. The
   mission package has no roster field today; adding one is a schema change
   `TBR-NET-02` named and declined. Where the roster comes from -- a mission-package
   field, a signed enrollment/role state from the Mission Trust Service, or a
@@ -123,11 +125,14 @@ def decide_delivery(
 ) -> DeliveryDecision:
     """Decide delivery for a named recipient, failing closed on the unresolved.
 
-    This resolves a **direct message** to a single device. `recipient_key` is the
-    recipient's **UID** as carried on a DM's `GeoChat.to` (grounded 2026-09-28,
-    `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`), so
-    `roster` maps **UID -> device**; the callsign-to-UID step is a separate client
-    binding, not this map. A **room** `GeoChat.to` names a group, not one device, so
+    This resolves a **direct message** to a single device. `recipient_key` is
+    whatever the client placed in a DM's `<__chat id>` (`GeoChat.to`) -- a UID by ATAK
+    convention, but not yet confirmed for a live client (grounded 2026-09-28 only that
+    the encoder copies it verbatim,
+    `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`; the
+    owed capture decides UID vs callsign). `roster` is keyed by that `recipient_key`
+    whatever its shape; the callsign-to-key step is a separate client binding, not
+    this map. A **room** `GeoChat.to` names a group, not one device, so
     room fan-out is separate group routing and does **not** go through here -- passing
     a room name would collapse it to a single EUD. Where the roster comes from is the
     open decision in `CCR-06`; the mission package carries none yet, so an empty
