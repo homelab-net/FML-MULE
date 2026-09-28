@@ -77,8 +77,10 @@ are redacted (see scrub note).
   and it is not the recipient callsign.** With the DM's `<__chat id>` set to
   `UID-CHARLIE-9999` and the recipient callsign to `CHARLIE-CS`, `chat.to` came back
   `UID-CHARLIE-9999` and `CHARLIE-CS` was **absent** from the packet. For a **room**,
-  `chat.to` is the **room name**. So the field is not uniformly a callsign, and a DM
-  never carries the recipient callsign.
+  `chat.to` is the **room name**. So the field is not uniformly a callsign, and in
+  this run the encoder placed the supplied id -- not the recipient callsign -- in the
+  DM. Whether a *live* client ever places a callsign in `<__chat id>` is not decided
+  here (the id was injected); that is the owed live-client capture below.
 - **Not established here:** that a *live ATAK/iTAK client* places the recipient's
   **UID** in `<__chat id>` when an operator picks a contact. This run injected the
   `<__chat id>` synthetically, so it proves the **encoder faithfully copies whatever

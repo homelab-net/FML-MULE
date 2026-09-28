@@ -38,8 +38,10 @@ left for later are **not** done here and are passed in rather than derived:
   a room's is the room name), so `GeoChat.to` is not uniformly a callsign and the
   parser must branch. What a live ATAK/iTAK client actually *places* in `<__chat
   id>` on a DM (a UID by ATAK convention) still needs a live-client capture to
-  confirm; the callsign-to-id binding the parser then needs is what the roster
-  (above) seeds.
+  confirm. The parser needs **no** callsign-to-id binding of its own -- the client
+  already put the id in `<__chat id>`; the human-readable callsign-to-UID binding is
+  client-side contact seeding, separate from this module's UID-to-device roster
+  (above).
 
 It lives in `mule/` because it is a decision the node makes while running
 (`FML-ADR-051`); the blocked `services/gateways/` component names it per
