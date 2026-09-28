@@ -29,7 +29,7 @@ kept current*.
 This request holds that the proposal is **two decisions with two owners**, and that
 they must be decided separately because they have very different cost.
 
-## Part A -- the addressing bindings (callsign -> UID -> device), cheap and recommended
+## Part A -- the addressing bindings (callsign -> key -> device), cheap and recommended
 
 The grounding
 (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`) showed a
@@ -65,19 +65,21 @@ truth** for these bindings:
    the closest existing mechanism; it already distributes signed role and scope
    policy from an authorized mission or enrollment function.
 3. A **gateway-maintained registry** for mesh EUDs that never connect to OTS (the
-   `FML-ADR-048` gateway holds the UID<->node), fed by (1) or (2).
+   `FML-ADR-048` gateway holds the recipient-key<->node), fed by (1) or (2).
 
 Constraints to carry into whichever is chosen:
 
-- **Uniqueness is a UID and room-name concern, not a callsign one.** The wire
-  carries the UID (DM) or the room name (room), so those are the identifiers that
-  must be unambiguous to every node that can hear them. The
-  `the-eud-code-must-be-unique-to-everyone-who-can-hear-it` evidence is about the
-  *retired one-byte index* -- an **invisible** cross-deployment collision -- and
-  explicitly contrasts that with duplicate callsign **strings**, which are
-  operator-visible. Do not carry that citation into a global callsign-uniqueness
-  rule; analyze **UID** and **room-name** scope separately. (A duplicate callsign is
-  a resolvable UX/contact-list issue, not the invisible-misdelivery failure.)
+- **Uniqueness is a wire-identifier and room-name concern, not a callsign one.** The
+  wire carries whatever the client places in `<__chat id>` for a DM (a UID by
+  convention, pending the owed capture) or the room name for a room, so that
+  identifier -- whatever it turns out to be -- must be unambiguous to every node that
+  can hear it. The `the-eud-code-must-be-unique-to-everyone-who-can-hear-it` evidence
+  is about the *retired one-byte index* -- an **invisible** cross-deployment collision
+  -- and explicitly contrasts that with duplicate callsign **strings**, which are
+  operator-visible. Do not carry that citation into a global callsign-uniqueness rule;
+  analyze the **wire identifier** and **room-name** scope separately. (A duplicate
+  callsign is a resolvable UX/contact-list issue, not the invisible-misdelivery
+  failure.)
 - **Fail closed.** An unresolved `recipient_key` must not broadcast; it redirects to
   a configured default (marked redirected) or refuses -- already `recipients.py`.
 
