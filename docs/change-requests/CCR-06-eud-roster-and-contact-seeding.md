@@ -27,14 +27,32 @@ kept current*.
 This request holds that the proposal is **two decisions with two owners**, and that
 they must be decided separately because they have very different cost.
 
-## Part A -- the addressing roster (callsign -> device), cheap and recommended
+## Part A -- the addressing bindings (callsign -> UID -> device), cheap and recommended
 
-A static mapping from a member callsign to a delivery device (an EUD UID, or a mesh
-node for an EUD behind the gateway). This is what makes "DM the callsign, not the
-radio" work, and it has near-zero emission cost -- it is configuration, not a
-transmission.
+The grounding
+(`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`) showed a
+DM's `GeoChat.to` carries the client's `<__chat id>` (an **id**/UID by ATAK
+convention), not the recipient callsign (which is absent from the wire). One caveat
+that scopes this decision: the run injected the id, so it proved the encoder's copy,
+not that a *live* client places the UID there -- a live-client DM is owed before the
+`callsign -> UID` binding is assumed exact. So "DM the callsign, not the radio" needs
+**two distinct bindings**, not one -- and conflating them into a single
+`callsign -> device` map would leave a normal DM unresolved:
 
-Owner to choose the **source of truth**:
+1. **Client contact seeding: `callsign -> UID`.** So an operator picks a person by
+   callsign and the client addresses that person's UID on the wire. This is the
+   "publish as a contact" half the Owner is asking for.
+2. **Node/gateway delivery resolution: `UID -> delivery device`** (an EUD, or a mesh
+   node for an EUD behind the gateway). This is `mule/recipients.py`'s roster, and it
+   must be **keyed by the UID** (the `recipient_key` parsed from `GeoChat.to`), not
+   by callsign -- `decide_delivery` does an exact `roster.get(recipient_key)`. This
+   is the **direct-message** path only: a **room** `GeoChat.to` names a group, so room
+   delivery is separate **group fan-out**, not this single-device map -- room-name
+   scope is analyzed on its own (see uniqueness below), not routed through
+   `decide_delivery`.
+
+Both are configuration with near-zero emission cost. Owner to choose the **source of
+truth** for these bindings:
 
 1. A **mission-package roster field** (none exists today; `TBR-NET-02` named and
    declined it). Simple, static, per-deployment.
@@ -42,16 +60,21 @@ Owner to choose the **source of truth**:
    the closest existing mechanism; it already distributes signed role and scope
    policy from an authorized mission or enrollment function.
 3. A **gateway-maintained registry** for mesh EUDs that never connect to OTS (the
-   `FML-ADR-048` gateway holds callsign<->node), fed by (1) or (2).
+   `FML-ADR-048` gateway holds the UID<->node), fed by (1) or (2).
 
 Constraints to carry into whichever is chosen:
 
-- **Callsign uniqueness.** LoRa has no per-deployment boundary by default, so two
-  deployments' identical callsigns collide and misdeliver
-  (`docs/evidence/TBR-NET-02/2026-08-30-the-eud-code-must-be-unique-to-everyone-who-can-hear-it.md`).
-  Uniqueness is enforced where the roster is issued (enrollment).
-- **Fail closed.** An unresolved callsign must not broadcast; it redirects to a
-  configured default (marked redirected) or refuses -- already `recipients.py`.
+- **Uniqueness is a UID and room-name concern, not a callsign one.** The wire
+  carries the UID (DM) or the room name (room), so those are the identifiers that
+  must be unambiguous to every node that can hear them. The
+  `the-eud-code-must-be-unique-to-everyone-who-can-hear-it` evidence is about the
+  *retired one-byte index* -- an **invisible** cross-deployment collision -- and
+  explicitly contrasts that with duplicate callsign **strings**, which are
+  operator-visible. Do not carry that citation into a global callsign-uniqueness
+  rule; analyze **UID** and **room-name** scope separately. (A duplicate callsign is
+  a resolvable UX/contact-list issue, not the invisible-misdelivery failure.)
+- **Fail closed.** An unresolved `recipient_key` must not broadcast; it redirects to
+  a configured default (marked redirected) or refuses -- already `recipients.py`.
 
 ## Part B -- presence self-publish at enrollment, which carries a conflict to raise
 
