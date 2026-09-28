@@ -114,10 +114,11 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   identity fields must fit the 231-byte payload, and an unresolved recipient must
   fail closed rather than broadcast (CONOPS section 23). Both are pure functions
   of values handed in; the roster and the `GeoChat.to` parser are passed as
-  arguments or deferred. `GeoChat.to`'s contents were grounded 2026-09-28 (a DM's
-  recipient UID, a room's name;
-  `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`), and
-  where the UID->device roster comes from is the open decision in `CCR-06` (not
+  arguments or deferred. `GeoChat.to`'s contents were grounded 2026-09-28 -- the
+  encoder copies the client's `<__chat id>` verbatim (in-run a DM's injected id, a
+  room's name; what a live client places there, a UID by convention, is owed a
+  capture; `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`)
+  -- and where the id->device roster comes from is the open decision in `CCR-06` (not
   `TBR-ID-01`, which is the browser-service IdP). So it performs **no translation**
   and this component still implements none of it.
 
