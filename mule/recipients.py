@@ -115,13 +115,15 @@ def decide_delivery(
 ) -> DeliveryDecision:
     """Decide delivery for a named recipient, failing closed on the unresolved.
 
-    `recipient_key` is whatever a future upstream step parsed from `GeoChat.to`
-    (not decided here). `roster` maps a recipient key to a device; the mission
-    package carries no roster yet (`TBR-NET-02`/`TBR-ID-01`), so an empty mapping
-    is expected and simply fails closed. A resolved key delivers; an unresolved
-    key redirects to a configured default (marked redirected) or refuses. It
-    **never** delivers to everyone -- that is the CONOPS section 23 rule this
-    exists to hold.
+    `recipient_key` is what upstream parsed from `GeoChat.to`: grounded 2026-09-28
+    as the recipient's **UID** on a direct message (not the callsign) or the room
+    name (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`),
+    so `roster` maps that **UID (or room name) to a device** -- the callsign-to-UID
+    step is a separate client binding, not this map. Where the roster comes from is
+    the open decision in `CCR-06`; the mission package carries none yet, so an empty
+    mapping is expected and simply fails closed. A resolved key delivers; an
+    unresolved key redirects to a configured default (marked redirected) or refuses.
+    It **never** delivers to everyone -- the CONOPS section 23 rule this holds.
     """
     target = roster.get(recipient_key)
     if target is not None:
