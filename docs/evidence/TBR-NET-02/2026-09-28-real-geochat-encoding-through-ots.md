@@ -19,8 +19,9 @@ client on the bench.
 established… the recipient-resolution step cannot be implemented until a follow-up
 establishes it."* `mule/recipients.py.decide_delivery` is blocked on it: its
 `recipient_key` is *"whatever a future upstream step parsed from `GeoChat.to`, not
-decided here."* This grounds what the encoder puts there (and rules out the
-callsign), advancing that item; the live-client half is called out below.
+decided here."* This grounds what the encoder copies there (it substitutes no callsign of its own),
+advancing that item; what a live client places in `<__chat id>` is the owed half,
+called out below.
 
 ## Method
 
@@ -77,8 +78,10 @@ are redacted (see scrub note).
   and it is not the recipient callsign.** With the DM's `<__chat id>` set to
   `UID-CHARLIE-9999` and the recipient callsign to `CHARLIE-CS`, `chat.to` came back
   `UID-CHARLIE-9999` and `CHARLIE-CS` was **absent** from the packet. For a **room**,
-  `chat.to` is the **room name**. So the field is not uniformly a callsign, and a DM
-  never carries the recipient callsign.
+  `chat.to` is the **room name**. So the field is not uniformly a callsign, and in
+  this run the encoder placed the supplied id -- not the recipient callsign -- in the
+  DM. Whether a *live* client ever places a callsign in `<__chat id>` is not decided
+  here (the id was injected); that is the owed live-client capture below.
 - **Not established here:** that a *live ATAK/iTAK client* places the recipient's
   **UID** in `<__chat id>` when an operator picks a contact. This run injected the
   `<__chat id>` synthetically, so it proves the **encoder faithfully copies whatever

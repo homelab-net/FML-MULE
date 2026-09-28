@@ -17,9 +17,11 @@ knowing whether -- or to whom -- it was delivered. The Owner proposes that **eve
 EUD enlist and publish itself as a callsign-addressed contact at enrollment**, so
 the contact list / roster is pre-seeded.
 
-The grounding this follows established that `GeoChat.to` carries the recipient's
-**id** (a DM's recipient id, a room's name), not uniformly a callsign, and that the
-callsign-to-id binding lives in the contact list. `mule/recipients.py.decide_delivery`
+The grounding this follows established that the encoder copies the client's `<__chat
+id>` into `GeoChat.to` verbatim (in-run a DM's id, a room's name), substituting no
+callsign of its own; what a live client places in `<__chat id>` -- a UID by
+convention -- is owed a capture, and the callsign-to-id binding lives in the contact
+list. `mule/recipients.py.decide_delivery`
 already resolves a recipient key against a roster and **fails closed** on the
 unresolved -- so the missing piece is *where the roster comes from and how it is
 kept current*.
@@ -27,7 +29,7 @@ kept current*.
 This request holds that the proposal is **two decisions with two owners**, and that
 they must be decided separately because they have very different cost.
 
-## Part A -- the addressing bindings (callsign -> UID -> device), cheap and recommended
+## Part A -- the addressing bindings (callsign -> key -> device), cheap and recommended
 
 The grounding
 (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`) showed a
@@ -39,13 +41,16 @@ not that a *live* client places the UID there -- a live-client DM is owed before
 **two distinct bindings**, not one -- and conflating them into a single
 `callsign -> device` map would leave a normal DM unresolved:
 
-1. **Client contact seeding: `callsign -> UID`.** So an operator picks a person by
-   callsign and the client addresses that person's UID on the wire. This is the
+1. **Client contact seeding: `callsign -> key`.** So an operator picks a person by
+   callsign and the client addresses that person on the wire by the id it places in
+   `<__chat id>` (a UID by convention, pending the owed capture). This is the
    "publish as a contact" half the Owner is asking for.
-2. **Node/gateway delivery resolution: `UID -> delivery device`** (an EUD, or a mesh
-   node for an EUD behind the gateway). This is `mule/recipients.py`'s roster, and it
-   must be **keyed by the UID** (the `recipient_key` parsed from `GeoChat.to`), not
-   by callsign -- `decide_delivery` does an exact `roster.get(recipient_key)`. This
+2. **Node/gateway delivery resolution: `recipient_key -> delivery device`** (an EUD, or
+   a mesh node for an EUD behind the gateway). This is `mule/recipients.py`'s roster,
+   keyed by the `recipient_key` parsed from `<__chat id>` in `GeoChat.to` -- a UID by
+   convention, but the key's shape stays conditional until the owed live-client capture
+   (if a client writes a callsign there, the roster keys by that) -- `decide_delivery`
+   does an exact `roster.get(recipient_key)`. This
    is the **direct-message** path only: a **room** `GeoChat.to` names a group, so room
    delivery is separate **group fan-out**, not this single-device map -- room-name
    scope is analyzed on its own (see uniqueness below), not routed through
@@ -60,19 +65,21 @@ truth** for these bindings:
    the closest existing mechanism; it already distributes signed role and scope
    policy from an authorized mission or enrollment function.
 3. A **gateway-maintained registry** for mesh EUDs that never connect to OTS (the
-   `FML-ADR-048` gateway holds the UID<->node), fed by (1) or (2).
+   `FML-ADR-048` gateway holds the recipient-key<->node), fed by (1) or (2).
 
 Constraints to carry into whichever is chosen:
 
-- **Uniqueness is a UID and room-name concern, not a callsign one.** The wire
-  carries the UID (DM) or the room name (room), so those are the identifiers that
-  must be unambiguous to every node that can hear them. The
-  `the-eud-code-must-be-unique-to-everyone-who-can-hear-it` evidence is about the
-  *retired one-byte index* -- an **invisible** cross-deployment collision -- and
-  explicitly contrasts that with duplicate callsign **strings**, which are
-  operator-visible. Do not carry that citation into a global callsign-uniqueness
-  rule; analyze **UID** and **room-name** scope separately. (A duplicate callsign is
-  a resolvable UX/contact-list issue, not the invisible-misdelivery failure.)
+- **Uniqueness is a wire-identifier and room-name concern, not a callsign one.** The
+  wire carries whatever the client places in `<__chat id>` for a DM (a UID by
+  convention, pending the owed capture) or the room name for a room, so that
+  identifier -- whatever it turns out to be -- must be unambiguous to every node that
+  can hear it. The `the-eud-code-must-be-unique-to-everyone-who-can-hear-it` evidence
+  is about the *retired one-byte index* -- an **invisible** cross-deployment collision
+  -- and explicitly contrasts that with duplicate callsign **strings**, which are
+  operator-visible. Do not carry that citation into a global callsign-uniqueness rule;
+  analyze the **wire identifier** and **room-name** scope separately. (A duplicate
+  callsign is a resolvable UX/contact-list issue, not the invisible-misdelivery
+  failure.)
 - **Fail closed.** An unresolved `recipient_key` must not broadcast; it redirects to
   a configured default (marked redirected) or refuses -- already `recipients.py`.
 

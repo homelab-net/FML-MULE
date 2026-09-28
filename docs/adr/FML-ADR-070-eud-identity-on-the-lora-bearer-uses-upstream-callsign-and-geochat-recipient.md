@@ -76,9 +76,9 @@ stand.
   232 bytes.
 - **`GeoChat.to`'s contents are grounded, not fully closed (2026-09-28).** Driving a
   GeoChat through OpenTAKServer's own encoder shows it copies the client-supplied
-  `<__chat id>` verbatim into `GeoChat.to` and that the value is **not a callsign**: a
-  direct message carries an **id** (a UID by ATAK convention), a room carries the
-  **room name** (`2026-09-28-real-geochat-encoding-through-ots.md`). So the
+  `<__chat id>` verbatim into `GeoChat.to`, substituting no callsign of its own: in
+  the run a direct message carried the injected **id** (a UID by ATAK convention) and
+  a room carried the **room name** (`2026-09-28-real-geochat-encoding-through-ots.md`). So the
   recipient-resolution parser must branch (DM-id vs room-name). Two things stay open:
   what a *live* ATAK/iTAK client places in `<__chat id>` (owed a live-client DM; the
   run injected the id), and *resolution* -- where the id->device roster comes from
@@ -127,6 +127,8 @@ start.
 
 Progress (2026-09-28): the server run was done
 (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`),
-establishing what `GeoChat.to` *contains* (a DM's recipient id, a room's name).
-The remaining half of the first check -- that the contents *resolve* to a named
-EUD -- is the roster, raised in `CCR-06`. The composition-limit check is unchanged.
+establishing that the encoder copies `<__chat id>` into `GeoChat.to` verbatim (in-run
+a DM's injected id, a room's name); what a *live* client places in `<__chat id>` (a
+UID by convention) is still owed a capture. The remaining half of the first check --
+that the contents *resolve* to a named EUD -- is the roster, raised in `CCR-06`. The
+composition-limit check is unchanged.
