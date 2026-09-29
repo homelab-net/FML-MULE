@@ -5,14 +5,13 @@
 // per-node config; unlike the other files here it is parameterized by the MISSION
 // package, not by a region profile.
 //
-// STATUS: TEMPLATE, and it IMPLEMENTS A PROPOSED DECISION. The grant mechanism is
-// FML-ADR-086 (PROPOSED): deny-by-default grants, remote-EUD ingress scoped to the
-// ASSIGNED MULE's own identity (never the shared tag:mule), and the autoApprovers rule
-// below. It is not loadable as written -- the `TBD` tokens are placeholders, like
-// nftables.conf.template -- and it shall not be treated as decided config until
-// FML-ADR-086 is accepted.
+// STATUS: TEMPLATE. It implements the grant mechanism decided by FML-ADR-086
+// (SELECTED, accepted 2026-09-29): deny-by-default grants, remote-EUD ingress scoped to
+// the ASSIGNED MULE's own identity (never the shared tag:mule), and the autoApprovers
+// rule below. It is not loadable as written -- the `TBD` tokens are placeholders, like
+// nftables.conf.template; the deferred values (below) stay TBD until their owners decide.
 //
-// Decisions: FML-ADR-086 (PROPOSED; the grant mechanism this file implements),
+// Decisions: FML-ADR-086 (SELECTED; the grant mechanism this file implements),
 //            FML-ADR-082 (SELECTED; the remote-EUD posture it serves), superseding
 //            FML-ADR-039; CCR-04 (ACCEPTED).
 // Deferred, NOT decided here (FML-ADR-086 leaves these to their owners; do not invent

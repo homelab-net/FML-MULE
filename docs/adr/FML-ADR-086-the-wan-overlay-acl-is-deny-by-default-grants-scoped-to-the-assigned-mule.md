@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-086
 title: The WAN overlay ACL is deny-by-default grants scoped to the assigned MULE
-status: PROPOSED
+status: SELECTED
 date: 2026-09-29
 supersedes: none
 superseded-by: none
@@ -69,11 +69,12 @@ owner, the corresponding grant **shall** be left as a named `TBD`, not rendered.
 
 ## Status
 
-`PROPOSED`. This is a `SELECTED PRINCIPLE`-shaped proposal awaiting the Program Owner's
-decision: it fixes the grant mechanism (deny-by-default, per-assigned-MULE scoping,
-the autoApprovers rule) and deliberately leaves the ingress service and the admin path
-to later implementation ADRs or their owning trades. It refines `FML-ADR-082` and
-supersedes nothing.
+`SELECTED`. Accepted by the Program Owner (Cameron Zobrist) on 2026-09-29. It fixes the
+grant mechanism (deny-by-default, per-assigned-MULE scoping, the autoApprovers rule) and
+deliberately leaves the ingress service and the admin path to their owning trades and
+later implementation ADRs -- those are downstream values and interfaces, not this ADR's
+mechanism, so naming them later does not supersede this record. It refines `FML-ADR-082`
+and supersedes nothing.
 
 ## Consequences
 
