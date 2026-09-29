@@ -36,8 +36,9 @@ It **closes neither**: the live dataplane connection, `assigned-mule-lost-no-rea
 and RF all stay owed, so those `*-not-run.md` stay not-run.
 
 `2026-09-29-assigned-mule-lost-two-mule.md` adds a **second MULE** (`tag:mule-bench2`, a
-userspace `tailscaled` node) and confirms on the coordination server that the EUD has no
-grant to it on any port -- the `assigned-mule-lost-no-reattach` negative at the **policy
+userspace `tailscaled` node, tag read back from the device API) and confirms on the
+coordination server that the applied policy has **no** EUD grant to it (the tested ports
+`:8089`/`:22` are denied) -- the `assigned-mule-lost-no-reattach` negative at the **policy
 layer**, structural (the grant targets the assigned MULE's identity, not the shared
 class) rather than stateful. Still owed and not-run: the live dataplane with the assigned
 MULE taken down (not run, to avoid interrupting the Owner's own overlay access to that
