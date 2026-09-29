@@ -48,15 +48,20 @@ The apply returned `200` -- every assertion holds, including the two new denies 
 
 ## What this establishes
 
-- **`assigned-mule-lost-no-reattach` (policy layer):** the EUD tag has **no grant** to
-  the second MULE on any tested port. Its only ingress grant is to its assigned MULE
-  (`tag:mule-bench`). Because the grant targets the assigned MULE's own identity and not
-  the shared `tag:mule` class, there is nothing for the EUD to fall back to when its
-  assigned MULE is down -- the "no reattach through another MULE" property is structural,
-  not stateful.
-- A real second MULE (`mule-bench2`) is present on the overlay while this holds, so the
-  denial is against an actually-reachable-by-admin node, not a name with nothing behind
-  it.
+- **`assigned-mule-lost-no-reattach` (policy layer):** the applied policy contains **no
+  grant** from the EUD tag to the second MULE, and the coordination server's ACL tests
+  confirm the EUD is denied `tag:mule-bench2` on the **tested ports** (`:8089` and `:22`;
+  Tailscale ACL tests reject `*` and port-range addresses, so "every port" is not
+  asserted here -- it rests on the absence of any EUD->`tag:mule-bench2` grant in the
+  applied policy). The EUD's only ingress grant is to its assigned MULE (`tag:mule-bench`).
+  Because the grant targets the assigned MULE's own identity and not the shared
+  `tag:mule` class, there is nothing for the EUD to fall back to when its assigned MULE
+  is down -- the "no reattach through another MULE" property is structural, not stateful.
+- A real second MULE (`mule-bench2`) **holds the tag** while this holds, read back from
+  the device API: `tags=["tag:mule-bench2"]`, address `100.96.112.51`, last seen live. So
+  the denial is against a node that actually carries `tag:mule-bench2`, not a name with
+  nothing behind it. (`mule-bench2` is a userspace `tailscaled` with no listening
+  service, so this is the tag readback, not a service-reachability check.)
 
 ## What this does not establish
 
