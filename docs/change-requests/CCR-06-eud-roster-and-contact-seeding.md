@@ -1,13 +1,38 @@
 # CCR-06 EUD roster and contact seeding
 
 **Type:** CONOPS change request
-**Status:** `OPEN` -- proposed; awaiting the Program Owner's decision.
+**Status:** `ACCEPTED` (2026-09-29) -- see Decision below.
 **Target version:** CONOPS (increment TBD on acceptance)
 **Raised by:** the 2026-09-28 Owner question, following the GeoChat-encoding
 grounding (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`).
-**Decision:** no ADR proposed here. The mechanism questions route to existing
-owners: `FML-ADR-047` (Mission Trust Service) and a mission-package field for the
-roster; `TBR-EMCON-01` for presence. This request selects nothing.
+**Accepted by:** Program Owner (Cameron Zobrist), 2026-09-29.
+**Decision:** no ADR proposed here; the mechanism questions route to existing owners.
+The Owner selected **`FML-ADR-047` Mission Trust Service** as the roster source
+(Part A) and confirmed **presence self-publish is decided separately** under
+`TBR-EMCON-01` + CONOPS section 11 (Part B). See Decision below.
+
+## Decision (2026-09-29)
+
+The Program Owner decided:
+
+1. **Part A -- roster source: `FML-ADR-047` Mission Trust Service.** The
+   callsign -> key -> device roster is issued as signed enrollment/role state by the
+   MTS -- the closest existing mechanism, which already distributes signed role and
+   scope policy from an authorized mission/enrollment function. Not a new
+   mission-package field, and not (initially) a gateway registry; a gateway registry
+   for mesh-only EUDs, if needed later, is fed from the MTS state. This reuses a
+   decided component and adds no schema field. The MTS component (`services/mission-trust/`)
+   remains blocked; this decision names it as the roster's owner, it does not unblock it.
+2. **Part B -- presence self-publish: decided separately under `TBR-EMCON-01` +
+   CONOPS section 11.** Auto-broadcasting an EUD's presence is a transmission class the
+   EMCON trade must be able to suppress (CONOPS section 11: service activation shall not
+   reveal leadership presence or command structure). It is **not** bundled into the
+   addressing roster. The roster (Part A) does not depend on it.
+
+Still owed, unchanged by this decision: the **live-client `<__chat id>` capture** (a
+UID by convention, not yet confirmed for a live client), which the roster's
+`callsign -> key` binding assumes -- see
+`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`.
 
 ## Statement
 

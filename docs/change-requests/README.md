@@ -33,7 +33,7 @@ block parent-system integration baseline closure.
 | `CCR-03` | Integrated RF voice is approved; the CONOPS text is in v1.2, not v1.1 | `APPROVED` |
 | `CCR-04` | Optional remote-EUD overlay membership ends at the assigned MULE (CONOPS v1.1) | `ACCEPTED` |
 | `CCR-05` | Mission observations and optional sensing (CONOPS v1.2) | `ACCEPTED` |
-| `CCR-06` | EUD roster and contact seeding: address a person by callsign, not a mesh radio | `OPEN` |
+| `CCR-06` | EUD roster and contact seeding: address a person by callsign, not a mesh radio | `ACCEPTED` |
 | `PBCR-01` | TAK and communications-gateway allocation moves from NOMAD-only to the controlled Field Service Plane | `OPEN` |
 
 CONOPS change requests are numbered `CCR-##`. Like every identifier in this
