@@ -48,7 +48,7 @@ generation mapping rather than restructuring every file.
 | `haproxy.conf.template` | EUD service ingress: reach a browser service by name via a reverse proxy in front of loopback backends | `FML-ADR-031`, `TBR-NET-05`, `TBR-ID-01` |
 | `chrony.conf.template` | Local time discipline | `TBR-TIME-01` |
 | `dnsmasq.conf.template` | Local DNS and DHCP | `TBR-NET-01` |
-| `tailscale-acl.hujson.template` | WAN overlay tailnet policy: deny-by-default, `tag:mule` infra participation, and the `ASSIGNED_MULE_ONLY` remote-EUD ingress. Mission-parameterized, not region. | `FML-ADR-082`, `TBR-TAK-01` |
+| `tailscale-acl.hujson.template` | WAN overlay tailnet policy: deny-by-default grants, `tag:mule` infra participation, and the `ASSIGNED_MULE_ONLY` remote-EUD ingress scoped to the assigned MULE. Mission-parameterized, not region. | `FML-ADR-086`, `FML-ADR-082` |
 
 ## Bring-up ordering
 
