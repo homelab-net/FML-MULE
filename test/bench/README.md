@@ -54,6 +54,18 @@ which gateway its equal-TQ tie-break picks is not a real-radio result, and
 `busybox` as well as `iw` and `batctl`, and like the others it does not run in
 CI.
 
+`wan-overlay-posture.sh` exercises the WAN overlay boundary (`FML-ADR-082`,
+`FML-ADR-068`) in `netns` with the concrete form of the commented rules in
+`os/config/nftables.conf.template`. One namespace is the MULE with an access point,
+an RF mesh (a plain-veth stand-in), a WAN uplink and an overlay interface; it proves
+the boundary **fires** by opening the cross-plane paths in a baseline first, then
+showing the rules drop overlay-to-AP, overlay-to-mesh and overlay-to-WAN while
+admitting only the ingress port on the overlay interface. It is `SIMULATED` and covers
+only the **firewall-boundary half**: *which* tailnet peer is the assigned MULE is the
+Tailscale policy (`os/config/tailscale-acl.hujson.template`), run on a real tailnet, not
+this bench. Evidence: `docs/evidence/stage-06-wan-overlay/2026-09-29-firewall-boundary-flat-sat.md`.
+It needs `nft` and `python3`, and does not run in CI.
+
 `map-server-mesh.sh` is the map analog of the gateway bench. A storage node
 serves its `z/x/y` tile store over the mesh; a storage-less node fetches a tile
 across `batman-adv` and it is byte-identical to the store's copy -- the
