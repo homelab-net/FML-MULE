@@ -14,7 +14,8 @@
 #
 # Decisions: FML-ADR-068 (an EUD access-point device reaches the general WAN uplink)
 #            FML-ADR-082 (the WAN overlay terminates on MULE infrastructure; it is
-#                         not bridged to the EUD access point or the RF mesh)
+#                         not bridged to the EUD access point or the RF mesh; the
+#                         assigned-ingress grant mechanism is left open)
 #
 # THE BOUNDARY THIS FILE DEFENDS
 #
@@ -59,20 +60,19 @@ table inet filter {
     #      which interface, is an open question with THREAT_MODEL.md
     #      consequences: an administrative path is a capture-time asset.
     #
-    # DECIDED: the WAN overlay terminates on this node (FML-ADR-082), so the approved
-    #          remote-EUD ingress and any admin management arrive on the overlay
-    #          interface as INPUT, never forwarded. This firewall exposes only the
-    #          approved ports on that interface; WHICH tailnet peer may reach them --
-    #          admin versus an ASSIGNED_MULE_ONLY EUD tag -- is the tailnet policy
-    #          (os/config/tailscale-acl.hujson.template), not this file. The
-    #          remote-EUD ingress port is TBR-TAK-01 (the approved mission service);
-    #          the overlay interface name is TBR-LINUX-01.
-    #   iifname $OVERLAY_IFACE tcp dport $REMOTE_EUD_INGRESS_PORT ct state new accept
-    #   iifname $OVERLAY_IFACE tcp dport $ADMIN_SSH_PORT          ct state new accept
-    #          FML-ADR-082: the EUD tag "shall not admit SSH, database, or
-    #          management-plane access". That restriction is enforced by the tailnet
-    #          grant, because at this layer admin and EUD both arrive on
-    #          $OVERLAY_IFACE and the firewall cannot tell them apart.
+    # TBD: the WAN overlay terminates on this node (FML-ADR-082), so an approved
+    #      remote-EUD ingress would arrive on the overlay interface as INPUT, never
+    #      forwarded. No accept is written here yet, on purpose. What service and port
+    #      that ingress is, and whether any administrative path exists on the overlay at
+    #      all, are NOT decided: FML-ADR-082 leaves the assigned-ingress grant mechanism
+    #      open, the ingress service belongs to the field-service plane (PBCR-01, roadmap
+    #      item 4.6), and the admin path is the THREAT_MODEL.md open question above
+    #      (interface TBR-LINUX-01). Writing an
+    #      accept now would anticipate a security-sensitive interface with no owning
+    #      decision -- the exact thing DEFAULT DENY exists to avoid. Add the accept only
+    #      when a named decision selects the port and its deny policy. WHICH tailnet peer
+    #      could reach an eventual ingress is the tailnet policy
+    #      (os/config/tailscale-acl.hujson.template), not this file.
   }
 
   chain forward {
