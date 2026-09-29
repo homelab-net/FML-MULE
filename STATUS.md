@@ -64,6 +64,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-082` | Optional remote-EUD overlay membership ends at the assigned MULE | none |
 | `FML-ADR-083` | MULE runtime is a native oneshot configuration renderer | TBR-HA-01, TBR-COMP-01, TBR-LINUX-01 |
 | `FML-ADR-084` | Onboarding EUDs use a temporary isolated access network | TBR-ID-01, TBR-TIME-01, TBR-SEC-01, TBR-LINUX-01 |
+| `FML-ADR-086` | The WAN overlay ACL is deny-by-default grants scoped to the assigned MULE | none |
 
 ### SELECTED PRINCIPLE
 
@@ -109,12 +110,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
-
-### PROPOSED
-
-| ID | Decision | Open trades it depends on |
-| --- | --- | --- |
-| `FML-ADR-086` | The WAN overlay ACL is deny-by-default grants scoped to the assigned MULE | none |
 
 ### SUPERSEDED
 
