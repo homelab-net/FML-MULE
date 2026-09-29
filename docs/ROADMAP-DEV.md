@@ -579,9 +579,9 @@ is `FML-ADR-070`.
 budget a message plus its identity fields must fit (`FML-ADR-070`), and the
 fail-closed delivery decision -- deliver, redirect to a configured default, or
 refuse, and **never** broadcast. Still deferred and passed in rather than derived:
-the participant **roster** (an `id -> device` map; its source -- mission-schema
-field, Mission Trust Service, or gateway registry -- is the open decision in
-`CCR-06`, not `TBR-ID-01`) and the `GeoChat.to` parser that yields a recipient key
+the participant **roster** (an `id -> device` map; its source is the Mission Trust
+Service, decided in `CCR-06` and recorded in `FML-ADR-087` -- not a mission-schema
+field and not `TBR-ID-01`) and the `GeoChat.to` parser that yields a recipient key
 (the encoder's copy of `<__chat id>` was grounded 2026-09-28; a live-client DM is
 still owed).
 

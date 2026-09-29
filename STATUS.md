@@ -65,6 +65,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-083` | MULE runtime is a native oneshot configuration renderer | TBR-HA-01, TBR-COMP-01, TBR-LINUX-01 |
 | `FML-ADR-084` | Onboarding EUDs use a temporary isolated access network | TBR-ID-01, TBR-TIME-01, TBR-SEC-01, TBR-LINUX-01 |
 | `FML-ADR-086` | The WAN overlay ACL is deny-by-default grants scoped to the assigned MULE | none |
+| `FML-ADR-087` | The EUD addressing roster is signed enrollment state carried by the Mission Trust Service | none |
 
 ### SELECTED PRINCIPLE
 

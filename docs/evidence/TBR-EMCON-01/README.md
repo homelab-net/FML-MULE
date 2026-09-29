@@ -5,7 +5,9 @@
 **Trade file:** `docs/trades/TBR-EMCON-01-which-transmissions-does-an-emcon-posture-class-as-avoidable-and-which-layers-suppress-them.md`
 
 **Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+produced. `CCR-06` (`ACCEPTED` 2026-09-29) routed **EUD presence self-publish**
+here as one avoidable transmission class the eventual class list shall include
+(CONOPS section 11); see the trade's Closure evidence section.
 
 Read the **Closure evidence** and **Closure gate** sections of the trade file
 named above. Those sections are authoritative; this file does not restate them,

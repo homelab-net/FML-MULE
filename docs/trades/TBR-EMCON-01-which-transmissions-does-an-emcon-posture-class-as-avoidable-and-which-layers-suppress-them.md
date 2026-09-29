@@ -50,6 +50,12 @@ A written class list under `docs/evidence/TBR-EMCON-01/`, each class mapped to
 one or more SAD section 23 layers, or to a named gap. No radio measurement.
 No claim that a transmission was observed or absent on hardware.
 
+The class list **shall include EUD presence self-publish** -- periodic
+situational-awareness broadcast of an EUD as an online contact -- which `CCR-06`
+(`ACCEPTED` 2026-09-29) routed here under CONOPS section 11, deciding it separately
+from the addressing roster (`FML-ADR-087`). A posture shall be able to suppress it,
+so the closure gate below shall not close on a class list that omits it.
+
 ## Closure gate
 
 The named owner accepts the class list and the layer map, or accepts an ADR

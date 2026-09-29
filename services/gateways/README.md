@@ -118,8 +118,9 @@ written. `FML-ADR-052` sets out the four conditions that permit it.
   encoder copies the client's `<__chat id>` verbatim (in-run a DM's injected id, a
   room's name; what a live client places there, a UID by convention, is owed a
   capture; `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`)
-  -- and where the id->device roster comes from is the open decision in `CCR-06` (not
-  `TBR-ID-01`, which is the browser-service IdP). So it performs **no translation**
+  -- and where the id->device roster comes from was decided in `CCR-06`/`FML-ADR-087`
+  (signed enrollment state distributed by the Mission Trust Service; not `TBR-ID-01`,
+  which is the browser-service IdP). So it performs **no translation**
   and this component still implements none of it.
 
 ## What can be done now

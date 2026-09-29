@@ -83,7 +83,9 @@ stand.
   what a *live* ATAK/iTAK client places in `<__chat id>` (owed a live-client DM; the
   run injected the id), and *resolution* -- where the id->device roster comes from
   and the separate callsign->id binding -- raised in
-  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`.
+  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` and since decided
+  there (the roster is signed enrollment state distributed by the Mission Trust
+  Service, `FML-ADR-087`); the live-client `<__chat id>` capture remains owed.
 - **No custom gateway code and no fork against `FML-ADR-048`.** The gateway
   keeps upstream's format, which is less to maintain for volunteers and removes
   a standing divergence from upstream.
@@ -130,5 +132,6 @@ Progress (2026-09-28): the server run was done
 establishing that the encoder copies `<__chat id>` into `GeoChat.to` verbatim (in-run
 a DM's injected id, a room's name); what a *live* client places in `<__chat id>` (a
 UID by convention) is still owed a capture. The remaining half of the first check --
-that the contents *resolve* to a named EUD -- is the roster, raised in `CCR-06`. The
-composition-limit check is unchanged.
+that the contents *resolve* to a named EUD -- is the roster, raised and decided in
+`CCR-06` (source: the Mission Trust Service, `FML-ADR-087`). The composition-limit
+check is unchanged.
