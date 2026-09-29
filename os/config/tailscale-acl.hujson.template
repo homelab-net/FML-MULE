@@ -1,0 +1,78 @@
+// Tailscale WAN overlay policy template - MULE
+//
+// Configures the tailnet (coordination-server) policy for the WAN overlay: which nodes
+// exist as which identity, and who may reach whom. This is tailnet-scope policy, not
+// per-node config; unlike the other files here it is parameterized by the MISSION
+// package, not by a region profile.
+//
+// STATUS: TEMPLATE, and it IMPLEMENTS A PROPOSED DECISION. The grant mechanism is
+// FML-ADR-086 (PROPOSED): deny-by-default grants, remote-EUD ingress scoped to the
+// ASSIGNED MULE's own identity (never the shared tag:mule), and the autoApprovers rule
+// below. It is not loadable as written -- the `TBD` tokens are placeholders, like
+// nftables.conf.template -- and it shall not be treated as decided config until
+// FML-ADR-086 is accepted.
+//
+// Decisions: FML-ADR-086 (PROPOSED; the grant mechanism this file implements),
+//            FML-ADR-082 (SELECTED; the remote-EUD posture it serves), superseding
+//            FML-ADR-039; CCR-04 (ACCEPTED).
+// Deferred, NOT decided here (FML-ADR-086 leaves these to their owners; do not invent
+// them): the approved remote-EUD ingress service/port/transport (field-service plane;
+// PBCR-01, roadmap item 4.6), and whether/how an admin path reaches a MULE over the
+// overlay (THREAT_MODEL.md open question; interface TBR-LINUX-01). Their grants stay TBD.
+//
+// SHALL statements transcribed verbatim from FML-ADR-082 (quote, do not paraphrase):
+//   "Overlay policy shall remain deny-by-default."
+//   "A grant from that [EUD] tag shall reach only the assigned MULE's approved
+//    remote-EUD ingress. The tagged EUD shall not be a subnet router or an exit node,
+//    and the tag shall not admit SSH, database, or management-plane access."
+//   "When the posture is ASSIGNED_MULE_ONLY, the Tailscale identity of an admitted EUD
+//    shall be one managed tag [naming] the mission and the assigned team ... One tag is
+//    the whole infrastructure grant. The program shall not compose that grant from
+//    several broad tags."
+{
+  // Tags are infrastructure/service identity, never operational roles (FML-ADR-039
+  // clause carried forward by FML-ADR-082).
+  //   tag:mule                     -- MULE infrastructure, for INTER-MULE participation.
+  //   tag:mule-<assigned-mule-id>  -- the PER-MULE identity FML-ADR-086 requires so a
+  //                                   remote-EUD grant can name ONE assigned MULE. The
+  //                                   <assigned-mule-id> is rendered per MULE; TBD.
+  //   tag:eud-mission-<m>-team-<t> -- the admitted EUD's single mission-and-team tag
+  //                                   (spelling not frozen; FML-ADR-082). One tag only.
+  "tagOwners": {
+    "tag:mule":                        ["autogroup:admin"],
+    "tag:mule-TBD":                    ["autogroup:admin"],
+    "tag:eud-mission-TBD-team-TBD":    ["autogroup:admin"],
+  },
+
+  // Deny-by-default: a grant allows only what it lists; nothing else is reachable.
+  "grants": [
+    // Authorized MULEs participate in the inter-MULE fabric. The port set is the
+    // approved inter-MULE services and is TBD (field-service plane; PBCR-01); "TBD" is
+    // not "all".
+    { "src": ["tag:mule"], "dst": ["tag:mule"], "ip": ["tcp:TBD"] },
+
+    // ASSIGNED_MULE_ONLY remote-EUD ingress (FML-ADR-086): the grant destination is the
+    // ASSIGNED MULE's PER-MULE identity, NOT the shared tag:mule -- a shared-tag
+    // destination would reach every MULE and defeat "only the assigned MULE". The
+    // ingress service/port is TBD (deferred above). Deny-by-default covers everything
+    // else: no other MULE, no management interface, no peer EUD, no home infrastructure.
+    { "src": ["tag:eud-mission-TBD-team-TBD"], "dst": ["tag:mule-TBD"], "ip": ["tcp:TBD"] },
+
+    // NOTE: no admin/SSH grant is written here. Whether a MULE exposes an administrative
+    // path over the overlay is not decided (FML-ADR-086 defers it; THREAT_MODEL.md open
+    // question). An admin grant shall be added only when a named decision selects the
+    // path and its deny policy -- it is not anticipated here.
+  ],
+
+  // No Tailscale-SSH grants at all (the EUD admits no SSH; no admin SSH is decided).
+  "ssh": [],
+
+  // autoApprovers empty. Per FML-ADR-086: this prevents only AUTOMATIC approval --
+  // Tailscale defines this section as approving actions "without further approval from
+  // the admin console"
+  // (https://tailscale.com/docs/reference/syntax/policy-file#autoapprovers), and
+  // omitting it defaults to no auto-approval. It does NOT prevent an administrator from
+  // manually approving an EUD-tagged node as a subnet router or exit node; that
+  // prohibition (FML-ADR-082) is ALSO an operational rule: an administrator shall not.
+  "autoApprovers": {},
+}
