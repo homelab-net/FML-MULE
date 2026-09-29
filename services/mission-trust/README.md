@@ -24,6 +24,9 @@ Local enforcement and distribution of signed mission authorization state:
 - credential-expiry policy;
 - signed revocation records;
 - signed role and scope policy data where used;
+- the EUD addressing roster (`callsign -> key -> device`) where used, distributed as
+  signed enrollment/role state issued by an authorized enrollment function
+  (`FML-ADR-087`; `CCR-06`); the MTS distributes it and does not issue it;
 - node revocation data;
 - trust-state status for administrators;
 - propagation over available approved IP paths.
@@ -68,6 +71,16 @@ a reader does not conclude the decision is unimplemented.
   that does not add a vendor one. `FakeClock.dead_backup_cell()` is the
   scenario `FML-ADR-042` was written for and the software digital twin exercises hardest,
   and a real node cannot detect it.
+
+One further module acts on the roster this component distributes, not on
+`FML-ADR-042`, and is named here for the same reason:
+
+- `mule/recipients.py` acts on `FML-ADR-087` (and the `FML-ADR-047` distribution
+  path it names): it resolves a message recipient against the addressing roster
+  this service will distribute, and **fails closed** on an unresolved recipient.
+  It holds no roster of its own and decides nothing about trust or distribution;
+  until the Mission Trust Service exists it runs on whatever mapping a caller
+  supplies (empty is fine, and fails closed).
 
 `FML-ADR-042` binds any component that validates trust, and this one will
 inherit those functions rather than repeat them: a second implementation of

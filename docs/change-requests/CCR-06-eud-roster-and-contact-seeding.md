@@ -92,9 +92,12 @@ that were on the table:
 
 1. A **mission-package roster field** (none exists today; `TBR-NET-02` named and
    declined it). Simple, static, per-deployment.
-2. **`FML-ADR-047` Mission Trust Service** issuing signed enrollment/role state --
-   the closest existing mechanism; it already distributes signed role and scope
-   policy from an authorized mission or enrollment function.
+2. **`FML-ADR-047` Mission Trust Service** *distributing* signed enrollment/role
+   state issued by an authorized enrollment function -- the closest existing
+   mechanism; it already distributes signed role and scope policy from an authorized
+   mission or enrollment function, and `FML-ADR-047` forbids it from becoming a
+   second certificate authority. The selected form of this option is recorded in
+   `FML-ADR-087`: the MTS **distributes** the roster, it does **not** issue it.
 3. A **gateway-maintained registry** for mesh EUDs that never connect to OTS (the
    `FML-ADR-048` gateway holds the recipient-key<->node), fed by (1) or (2).
 

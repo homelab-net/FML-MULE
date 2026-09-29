@@ -27,11 +27,11 @@ left for later are **not** done here and are passed in rather than derived:
   step is a separate client binding, and room fan-out is separate group routing this
   map does not do. The
   mission package has no roster field today; adding one is a schema change
-  `TBR-NET-02` named and declined. Where the roster comes from -- a mission-package
-  field, a signed enrollment/role state from the Mission Trust Service, or a
-  gateway-maintained registry for mesh EUDs -- is the open decision raised in
-  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` (which carries the
-  decision citations). Until it closes the caller supplies whatever mapping exists
+  `TBR-NET-02` named and declined. Where the roster comes from was decided in
+  `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` (`ACCEPTED`
+  2026-09-29) and recorded in `FML-ADR-087`: signed enrollment/role state
+  distributed by the `FML-ADR-047` Mission Trust Service. The MTS is itself unbuilt
+  and blocked, so until it exists the caller supplies whatever mapping exists
   (empty is fine, and fails closed).
 - Parsing `GeoChat.to` into a `recipient_key` is upstream's job, not this module's.
   What the encoder copies into it was grounded on 2026-09-28
@@ -134,9 +134,10 @@ def decide_delivery(
     whatever its shape; the callsign-to-key step is a separate client binding, not
     this map. A **room** `GeoChat.to` names a group, not one device, so
     room fan-out is separate group routing and does **not** go through here -- passing
-    a room name would collapse it to a single EUD. Where the roster comes from is the
-    open decision in `CCR-06`; the mission package carries none yet, so an empty
-    mapping is expected and simply fails closed. A resolved key delivers; an
+    a room name would collapse it to a single EUD. Where the roster comes from was
+    decided in `CCR-06`/`FML-ADR-087` (the Mission Trust Service distributes it), but
+    the MTS is unbuilt, so an empty mapping is expected and simply fails closed.
+    A resolved key delivers; an
     unresolved key redirects to a configured default (marked redirected) or refuses.
     It **never** delivers to everyone -- the CONOPS section 23 rule this holds.
     """
