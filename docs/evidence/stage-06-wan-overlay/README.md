@@ -26,4 +26,13 @@ stays not-run. It says nothing about *which* peer is the assigned MULE; that ide
 half is the Tailscale policy (`os/config/tailscale-acl.hujson.template`), run on a real
 tailnet, not the firewall.
 
-No file here supports a claim about RF, Tailscale, or a fielded EUD.
+`2026-09-29-assigned-ingress-only-real-tailnet.md` is a `SIMULATED` run on the **real
+coordination server** with a **real tagged EUD** (the Owner's iOS device). It
+**advances** the *identity half* of `assigned-ingress-only` and `one-mission-team-tag`:
+the server's own ACL tests confirm the EUD tag reaches only `tag:mule-bench:8089` and is
+denied the admin port, a non-ingress port, and the shared `tag:mule` (the per-MULE-scoping
+proof from `FML-ADR-086`), and the EUD device carries exactly one mission-and-team tag.
+It **closes neither**: the live dataplane connection, `assigned-mule-lost-no-reattach`
+(needs a second MULE), and RF all stay owed, so those `*-not-run.md` stay not-run.
+
+No file here supports a claim about RF or a fielded EUD on the selected hardware.
