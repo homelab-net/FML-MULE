@@ -1,0 +1,80 @@
+// Tailscale WAN overlay policy template - MULE
+//
+// Configures the tailnet (coordination-server) policy for the WAN overlay: which
+// nodes exist as which identity, and who may reach whom. This is tailnet-scope
+// policy, not per-node config; unlike the other files here it is parameterized by
+// the MISSION package, not by a region profile.
+//
+// STATUS: TEMPLATE. Deployment-specific values are TBD (mission/team tag spelling,
+// the approved remote-EUD ingress port, the inter-MULE service ports, and the
+// per-MULE identity that "assigned MULE only" needs). It is not loadable as
+// written -- the `TBD` tokens are placeholders, like nftables.conf.template.
+//
+// Decisions: FML-ADR-082 (SELECTED; optional remote-EUD overlay membership ends at
+//            the assigned MULE), superseding FML-ADR-039; CCR-04 (ACCEPTED).
+// Trades:    TBR-TAK-01 (what the mission-service plane exposes, hence the approved
+//            remote-EUD ingress and inter-MULE ports); roadmap item 4.6 (admission).
+//
+// SHALL statements transcribed verbatim from FML-ADR-082 (quote, do not paraphrase):
+//   "Overlay policy shall remain deny-by-default."
+//   "Authorized MULEs shall participate in the approved FML WAN overlay when their
+//    WAN paths are available, and shall exchange the inter-MULE traffic that overlay
+//    is for."
+//   "A grant from that [EUD] tag shall reach only the assigned MULE's approved
+//    remote-EUD ingress. The tagged EUD shall not be a subnet router or an exit
+//    node, and the tag shall not admit SSH, database, or management-plane access."
+//   "When the posture is ASSIGNED_MULE_ONLY, the Tailscale identity of an admitted
+//    EUD shall be one managed tag. That tag shall name the mission and the assigned
+//    team, and it shall not name an operational role. One tag is the whole
+//    infrastructure grant. The program shall not compose that grant from several
+//    broad tags."
+//   "The overlay shall not extend batman-adv or any other Layer-2 mesh across the
+//    WAN."
+{
+  // Tags are infrastructure/service identity, never operational roles (FML-ADR-039
+  // clause carried forward by FML-ADR-082). tag:mule = MULE infrastructure. The EUD
+  // tag names the mission and the assigned team; the spelling is illustrative
+  // (FML-ADR-082: "The spelling is not frozen here."). It is ONE tag, never composed
+  // from several broad tags (an EUD tag + a mission tag + a team tag was rejected).
+  "tagOwners": {
+    "tag:mule":                        ["autogroup:admin"],
+    // Illustrative single mission-and-team tag; real spelling per mission package:
+    "tag:eud-mission-TBD-team-TBD":    ["autogroup:admin"],
+  },
+
+  // Deny-by-default: a Tailscale grant allows only what it lists; nothing else is
+  // reachable. There is no default-allow grant.
+  "grants": [
+    // Admin manages MULE INFRASTRUCTURE over the overlay (SSH). This is an admin
+    // grant, not an EUD grant -- the EUD tag below admits no SSH/management.
+    { "src": ["autogroup:admin"], "dst": ["tag:mule"], "ip": ["tcp:22"] },
+
+    // Authorized MULEs participate in the inter-MULE fabric. The port set is the
+    // approved inter-MULE services and is TBD (TBR-TAK-01); do not read "TBD" as
+    // "all".
+    { "src": ["tag:mule"], "dst": ["tag:mule"], "ip": ["tcp:TBD"] },
+
+    // ASSIGNED_MULE_ONLY remote-EUD ingress. The admitted EUD reaches ONLY the
+    // assigned MULE's approved remote-EUD ingress; deny-by-default covers everything
+    // else (no other MULE, no management interface, no peer EUD, no home/private
+    // infrastructure). The ingress port is TBD (the approved remote-EUD ingress;
+    // TBR-TAK-01 / roadmap 4.6).
+    //
+    // OPEN (FML-ADR-082: "the grant syntax that enforces 'assigned ingress only'
+    // ... is not [decided]"): a single tag:mule shared by every MULE makes this grant
+    // reach ALL MULEs, not only the assigned one. Enforcing "assigned only" needs
+    // per-MULE identity (a per-MULE tag or an explicit host target) and is TBD. On a
+    // single-MULE deployment this reduces to the one MULE; the multi-MULE negative
+    // ("not through another MULE") is a separate case that needs a second MULE.
+    { "src": ["tag:eud-mission-TBD-team-TBD"], "dst": ["tag:mule"], "ip": ["tcp:TBD"] },
+  ],
+
+  // No Tailscale-SSH grants for the EUD tag: the EUD admits no SSH (FML-ADR-082).
+  // The EUD tag is neither an exit node nor a subnet router -- enforced by the
+  // ABSENCE of any autoApprovers/exit-node entry for it (there is none here).
+  "ssh": [],
+
+  // No autoApprovers: no tag auto-approves subnet routes or exit-node advertisement
+  // (FML-ADR-082: the tagged EUD "shall not be a subnet router or an exit node").
+  "autoApprovers": {},
+}
