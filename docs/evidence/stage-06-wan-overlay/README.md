@@ -32,7 +32,15 @@ coordination server** with a **real tagged EUD** (the Owner's iOS device). It
 the server's own ACL tests confirm the EUD tag reaches only `tag:mule-bench:8089` and is
 denied the admin port, a non-ingress port, and the shared `tag:mule` (the per-MULE-scoping
 proof from `FML-ADR-086`), and the EUD device carries exactly one mission-and-team tag.
-It **closes neither**: the live dataplane connection, `assigned-mule-lost-no-reattach`
-(needs a second MULE), and RF all stay owed, so those `*-not-run.md` stay not-run.
+It **closes neither**: the live dataplane connection, `assigned-mule-lost-no-reattach`,
+and RF all stay owed, so those `*-not-run.md` stay not-run.
+
+`2026-09-29-assigned-mule-lost-two-mule.md` adds a **second MULE** (`tag:mule-bench2`, a
+userspace `tailscaled` node) and confirms on the coordination server that the EUD has no
+grant to it on any port -- the `assigned-mule-lost-no-reattach` negative at the **policy
+layer**, structural (the grant targets the assigned MULE's identity, not the shared
+class) rather than stateful. Still owed and not-run: the live dataplane with the assigned
+MULE taken down (not run, to avoid interrupting the Owner's own overlay access to that
+MULE), `three-mules-no-layer2-extension` (the sim nodes carry no mesh), and RF.
 
 No file here supports a claim about RF or a fielded EUD on the selected hardware.
