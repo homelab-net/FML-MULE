@@ -12,6 +12,10 @@
 #         TBR-TAK-01 (what the mission-service plane exposes and to whom)
 #         TBR-RF-03 (whether AP and mesh share an interface)
 #
+# Decisions: FML-ADR-068 (an EUD access-point device reaches the general WAN uplink)
+#            FML-ADR-082 (the WAN overlay terminates on MULE infrastructure; it is
+#                         not bridged to the EUD access point or the RF mesh)
+#
 # THE BOUNDARY THIS FILE DEFENDS
 #
 # The EUD access point admits end user devices that are outside the node's
@@ -54,6 +58,21 @@ table inet filter {
     # TBD: administrative access. Whether any exists on a field node, and over
     #      which interface, is an open question with THREAT_MODEL.md
     #      consequences: an administrative path is a capture-time asset.
+    #
+    # DECIDED: the WAN overlay terminates on this node (FML-ADR-082), so the approved
+    #          remote-EUD ingress and any admin management arrive on the overlay
+    #          interface as INPUT, never forwarded. This firewall exposes only the
+    #          approved ports on that interface; WHICH tailnet peer may reach them --
+    #          admin versus an ASSIGNED_MULE_ONLY EUD tag -- is the tailnet policy
+    #          (os/config/tailscale-acl.hujson.template), not this file. The
+    #          remote-EUD ingress port is TBR-TAK-01 (the approved mission service);
+    #          the overlay interface name is TBR-LINUX-01.
+    #   iifname $OVERLAY_IFACE tcp dport $REMOTE_EUD_INGRESS_PORT ct state new accept
+    #   iifname $OVERLAY_IFACE tcp dport $ADMIN_SSH_PORT          ct state new accept
+    #          FML-ADR-082: the EUD tag "shall not admit SSH, database, or
+    #          management-plane access". That restriction is enforced by the tailnet
+    #          grant, because at this layer admin and EUD both arrive on
+    #          $OVERLAY_IFACE and the firewall cannot tell them apart.
   }
 
   chain forward {
@@ -82,6 +101,24 @@ table inet filter {
     # TBD: mesh to mesh forwarding. Note that batman-adv routes at layer 2,
     #      so much inter-node traffic does not traverse this chain at all.
     #      Do not assume this chain sees the mesh.
+    #
+    # DECIDED: the WAN overlay (Tailscale) terminates on MULE infrastructure and is
+    #          NOT bridged to the EUD access point or the RF mesh. FML-ADR-082:
+    #          "The overlay shall not extend batman-adv or any other Layer-2 mesh
+    #          across the WAN." FML-ADR-068: an EUD's traffic goes to the general WAN
+    #          uplink and "The node shall not route that traffic into the secure
+    #          overlay." The forward policy is already drop, so these planes cannot
+    #          cross by default; the explicit drops below make the prohibition
+    #          auditable line by line (DEFAULT DENY, above). The overlay interface
+    #          name is TBR-LINUX-01.
+    #   iifname $AP_IFACE      oifname $OVERLAY_IFACE drop
+    #   iifname $OVERLAY_IFACE oifname $AP_IFACE      drop
+    #   iifname $MESH_IFACE    oifname $OVERLAY_IFACE drop
+    #   iifname $OVERLAY_IFACE oifname $MESH_IFACE    drop
+    #          A remote EUD reaches an approved mission service by INPUT to this node
+    #          on the overlay (see the input chain), never by being forwarded onto the
+    #          mesh: FML-ADR-082 grants "only the assigned MULE's approved remote-EUD
+    #          ingress" and "shall not place the EUD on the local RF mesh".
   }
 
   chain output {
