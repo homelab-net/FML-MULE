@@ -89,6 +89,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-084` | SELECTED | `mule/configuration.py`, `mule/onboarding.py`, `mule/rendering.py`, `os/config/hostapd.conf.template`, `test/digital_twin/mutations.yml`, `test/digital_twin/scenarios/test_ap_render.py`, `test/unit/test_gen_config.py`, `test/unit/test_runtime_entrypoint.py` | `THREAT_MODEL.md`, `docs/ROADMAP-DEV.md`, `docs/evidence/findings/GAP-09E/2026-09-27-hostapd-render-wired-and-wpa-gate.md`, `docs/evidence/findings/GAP-09E/2026-09-27-pi-ap-bringup-execution-card.md`, `docs/evidence/findings/GAP-09E/README.md`, `docs/evidence/findings/GAP-09E/decision-packet.md`, `docs/findings/register.yml`, `mission/README.md`, `test/digital_twin/README.md` |
 | `FML-ADR-085` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md`, `docs/evidence/TBR-OBS-01/2026-09-26-cot-detail-storage-on-ots.md`, `docs/evidence/TBR-OBS-01/2026-09-27-representation-decision-packet.md`, `docs/evidence/TBR-OBS-01/2026-09-27-tak-client-detail-reading-execution-card.md`, `docs/evidence/TBR-OBS-01/README.md` |
 | `FML-ADR-086` | SELECTED | `os/config/tailscale-acl.hujson.template` | `docs/evidence/stage-06-wan-overlay/2026-09-29-assigned-ingress-only-real-tailnet.md`, `docs/evidence/stage-06-wan-overlay/2026-09-29-assigned-mule-lost-two-mule.md`, `docs/evidence/stage-06-wan-overlay/README.md`, `os/config/README.md` |
+| `FML-ADR-087` | SELECTED | *not yet* | `docs/ROADMAP-DEV.md`, `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`, `docs/evidence/TBR-NET-02/README.md` |
 
 ## Trades
 

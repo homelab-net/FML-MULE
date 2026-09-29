@@ -2,27 +2,32 @@
 
 **Type:** CONOPS change request
 **Status:** `ACCEPTED` (2026-09-29) -- see Decision below.
-**Target version:** CONOPS (increment TBD on acceptance)
+**Target version:** CONOPS -- no CONOPS text change is required by this acceptance;
+the roster-source decision is recorded in `FML-ADR-087`, and any CONOPS clause is
+drafted only if a later increment needs one.
 **Raised by:** the 2026-09-28 Owner question, following the GeoChat-encoding
 grounding (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`).
 **Accepted by:** Program Owner (Cameron Zobrist), 2026-09-29.
-**Decision:** no ADR proposed here; the mechanism questions route to existing owners.
-The Owner selected **`FML-ADR-047` Mission Trust Service** as the roster source
-(Part A) and confirmed **presence self-publish is decided separately** under
-`TBR-EMCON-01` + CONOPS section 11 (Part B). See Decision below.
+**Decision:** the roster-source choice is recorded in a new ADR, **`FML-ADR-087`**
+(`SELECTED`): the addressing roster is signed enrollment state issued by an authorized
+function and distributed by the `FML-ADR-047` Mission Trust Service. Presence
+self-publish is routed to `TBR-EMCON-01` + CONOPS section 11, decided separately. See
+Decision below.
 
 ## Decision (2026-09-29)
 
 The Program Owner decided:
 
-1. **Part A -- roster source: `FML-ADR-047` Mission Trust Service.** The
-   callsign -> key -> device roster is issued as signed enrollment/role state by the
-   MTS -- the closest existing mechanism, which already distributes signed role and
-   scope policy from an authorized mission/enrollment function. Not a new
-   mission-package field, and not (initially) a gateway registry; a gateway registry
-   for mesh-only EUDs, if needed later, is fed from the MTS state. This reuses a
-   decided component and adds no schema field. The MTS component (`services/mission-trust/`)
-   remains blocked; this decision names it as the roster's owner, it does not unblock it.
+1. **Part A -- roster source: the Mission Trust Service, recorded in `FML-ADR-087`.**
+   The callsign -> key -> device roster is **signed enrollment/role state**, issued by
+   an authorized mission/enrollment function and **distributed** by the `FML-ADR-047`
+   MTS. Assigning the roster is a new responsibility `FML-ADR-047` does not itself
+   carry, so it is recorded as a distinct decision -- **`FML-ADR-087` (`SELECTED`)** --
+   rather than folded into `FML-ADR-047`. Not a new mission-package field, and not
+   (initially) a gateway registry (a gateway registry for mesh-only EUDs is fed from
+   this signed state). The MTS component (`services/mission-trust/`) remains blocked;
+   `FML-ADR-087` names the roster as one of the signed states it will carry, it does
+   not unblock it.
 2. **Part B -- presence self-publish: decided separately under `TBR-EMCON-01` +
    CONOPS section 11.** Auto-broadcasting an EUD's presence is a transmission class the
    EMCON trade must be able to suppress (CONOPS section 11: service activation shall not
@@ -81,8 +86,9 @@ not that a *live* client places the UID there -- a live-client DM is owed before
    scope is analyzed on its own (see uniqueness below), not routed through
    `decide_delivery`.
 
-Both are configuration with near-zero emission cost. Owner to choose the **source of
-truth** for these bindings:
+Both are configuration with near-zero emission cost. **The Owner chose option 2 (the
+Mission Trust Service), recorded in `FML-ADR-087`.** The **source of truth** options
+that were on the table:
 
 1. A **mission-package roster field** (none exists today; `TBR-NET-02` named and
    declined it). Simple, static, per-deployment.
@@ -134,12 +140,17 @@ not bundle presence into the addressing decision.
 
 ## The decision this request asks for
 
+**Answered 2026-09-29 (see Decision, above): (1) roster source = the Mission Trust
+Service, recorded in `FML-ADR-087`; (2) presence routed to `TBR-EMCON-01`.** The
+original request:
+
 1. Accept that the **addressing roster** is worth adding, and pick its source
-   (Part A option 1/2/3).
+   (Part A option 1/2/3). -- *Accepted; option 2, `FML-ADR-087`.*
 2. Confirm **presence self-publish** is decided separately under `TBR-EMCON-01` +
-   CONOPS section 11, not as part of addressing.
+   CONOPS section 11, not as part of addressing. -- *Confirmed.*
 3. On acceptance, the roster's mechanism (schema field and/or MTS issuance) and any
-   CONOPS clause are drafted; nothing is built here.
+   CONOPS clause are drafted; nothing is built here. -- *`FML-ADR-087` records the
+   mechanism; no CONOPS clause needed yet.*
 
 Acceptance would not enlarge `v0.0.1` or change `mule/` beyond what a roster source
 later requires. `TBR-NET-02` stays CLOSED; `FML-ADR-070` is unchanged (its
