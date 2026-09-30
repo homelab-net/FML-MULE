@@ -1384,7 +1384,11 @@ does not add an onboarding architecture, and it does not move the bootstrap
 deadlock out of this item. The admitted EUD's tag may name the mission and
 the assigned team. That names the ingress grant. It is not the identity
 provider this item is deciding, and it does not put a role in the tag.
-Production enrollment stays the path above.
+Production enrollment stays the path above. A related but distinct gap -- how a
+remote EUD **resolves** the one stable name (`FML-ADR-031`) to its **assigned**
+MULE across multiple MULEs, given tailnet-global split-DNS -- is now owned by
+**`TBR-NET-06`** (analysis under `docs/evidence/TBR-NET-06/`; it closes on a real
+two-MULE tailnet observation, not on this item).
 
 **Residual risks and open sub-decisions (documented, not solved):**
 

@@ -155,12 +155,13 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
 | 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
 | 99 | `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | `TBD-SRR` | no |
+| 99 | `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | `TBD-SRR` | partly |
 | 99 | `TBR-OBS-01` | How is a mission observation recorded and presented so its age, source, and state stay visible | `OPEN` | Mission services | `Cameron Zobrist` | no |
 | 99 | `TBR-SENSE-01` | How does a mission profile mark a capability required, optional, or off, and how does a sensor task end | `OPEN` | Mission services | `Cameron Zobrist` | no |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 | 99 | `TBR-VOICE-02` | How is voice-group authorization expressed and how does it behave across a mesh merge | `OPEN` | Network | `Cameron Zobrist` | no |
 
-22 open trades. 2 have no named owner.
+23 open trades. 3 have no named owner.
 
 ## Critical path
 

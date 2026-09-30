@@ -207,7 +207,9 @@ throughout, per section 1.1.
 `TBR-NET-03` (no SAD register position; feeds `TBR-NET-01`),
 `TBR-NET-04` (no SAD register position; routing-logic half, feeds `FML-ADR-069`),
 `TBR-NET-05` (no SAD register position; EUD AP subnet/DHCP, design only, feeds
-GAP-09E/H), `TBR-VOICE-01`, `TBR-VOICE-02` and `TBR-MAP-01` (no SAD register
+GAP-09E/H), `TBR-NET-06` (no SAD register position; remote name resolution across
+MULEs, analysis half only; closure observation is on a real two-MULE tailnet),
+`TBR-VOICE-01`, `TBR-VOICE-02` and `TBR-MAP-01` (no SAD register
 position; analysis halves), `TBR-OBS-01`, `TBR-SENSE-01`, and `TBR-EMCON-01` (no
 SAD register position; representation only; not run)
 
@@ -216,8 +218,8 @@ SAD register position; representation only; not run)
 **Function owners:** TAK + SRE; Network; Security/Identity; Platform + TAK.
 **Evidence:** `docs/evidence/TBR-TAK-01/`, `TBR-NET-01/`, `TBR-ID-01/`,
 `TBR-SEC-01/`, `TBR-COMP-01/`, `TBR-NET-02/`, `TBR-NET-03/`, `TBR-NET-04/`,
-`TBR-VOICE-01/`, `TBR-VOICE-02/`, `TBR-MAP-01/`, `TBR-NET-05/`, `TBR-OBS-01/`,
-`TBR-SENSE-01/`, `TBR-EMCON-01/`.
+`TBR-VOICE-01/`, `TBR-VOICE-02/`, `TBR-MAP-01/`, `TBR-NET-05/`, `TBR-NET-06/`,
+`TBR-OBS-01/`, `TBR-SENSE-01/`, `TBR-EMCON-01/`.
 
 **Why this campaign is first.** It requires no purchase, no hardware and no
 gate. `TBR-TAK-01` alone gates `TBR-HA-01`, the `FML-ADR-034` database
@@ -295,6 +297,12 @@ programme.
 13. **`TBR-EMCON-01` avoidable transmissions.** Which transmissions a posture
     classes as avoidable, mapped to the layers in SAD section 23. Not a
     measurement of radio silence. Not run.
+14. **`TBR-NET-06` remote name resolution across MULEs.** Why tailnet-global
+    split-DNS cannot resolve one stable name to different assigned MULEs, the
+    options scored against the four locked constraints (`FML-ADR-031`/`082`/`086`,
+    local-first), and a contingent recommended direction. Analysis is written
+    (`docs/evidence/TBR-NET-06/2026-09-29-remote-name-resolution-analysis.md`); it
+    selects nothing and closes on a real two-MULE tailnet observation, not here.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The other items produce written
