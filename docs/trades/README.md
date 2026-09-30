@@ -141,6 +141,7 @@ register drifts from the directory it describes.
 | `TBR-NET-02` | How does a node address the EUDs behind it | `CLOSED` | Network | Cameron Zobrist | no | `TBR-ID-01` |
 | `TBR-NET-03` | How do two deployments converge on one mesh | `CLOSED` | Network | Cameron Zobrist | no | `TBR-NET-01` |
 | `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | `TBD-SRR` | no | GAP-09E/H |
+| `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | `TBD-SRR` | partly | none |
 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or a framework | `OPEN` | Network | Cameron Zobrist | partly | `CCR-03` |
 | `TBR-VOICE-02` | How voice-group authorization behaves across a mesh merge | `OPEN` | Network | Cameron Zobrist | no | `TBR-SEC-01` |
 | `TBR-OBS-01` | How a mission observation keeps its age, source, and state | `OPEN` | Mission services | Cameron Zobrist | no | none |
