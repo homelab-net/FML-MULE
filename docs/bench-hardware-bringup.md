@@ -103,6 +103,34 @@ decided `batman-adv` config (`bridge_loop_avoidance`, `batctl interface add`).
    (sender) ride the wire -- the real encoding `mule/recipients.py` and
    `FML-ADR-070` are waiting on. **Evidence:** `docs/evidence/TBR-NET-02/`.
 
+### Current lab result and next repeat
+
+The [October three-node record][lab-carriers] completed an addressed real LoRa
+hop to the phone through Wi-Fi and bench TAK, and received the actual phone reply
+back over RF while the synthetic sender stayed connected. This used private
+controlled-fixture instrumentation and desktop coordination; it does not
+complete the persistent upstream gateway part of Step 3 or its group/unknown
+recipient controls. Antenna geometry and ambient conditions were not recorded,
+so the radio-reported RSSI/SNR from that run are **not published** as
+measurements.
+
+For the next repeat, keep the intended EUD identity in native GeoChat.to,
+correlate a unique reply with source/destination UID and received RF bytes, and
+keep clients live through the reply. Record configuration differences from main
+and interventions before assigning a result. **Record the measurement
+configuration before the first packet**, not after: antenna model, orientation,
+separation and ambient conditions, alongside the LoRa settings. Orientation,
+separation and ambient are the values a later pass cannot reconstruct -- an
+independent qualifier refuted every derivation route for the October run, and
+they are now obtainable only as a dated operator attestation, which is why that
+run's signal-strength figures are unpublished. Antenna model is the exception:
+it is a datasheet or inspection fact, not a per-run measurement. The next
+autonomous demonstration is
+boot-to-gateway plus radio reconnect and intended-only/unknown-recipient RF
+controls, using the selected upstream integration rather than a new protocol.
+
+[lab-carriers]: evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
 ## Step 4 -- compute and service plane under load (`TBR-COMP-01`, hardware half)
 
 The size half is banked (~650 MB idle,

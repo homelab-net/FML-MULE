@@ -693,3 +693,39 @@ REQ
   [[ "$output" == *"contradicts a trade record"* || "$output" == *"but its record is"* ]]
   [[ "$output" == *"TBR-TAK-01"* ]]
 }
+
+@test "validate-docs catches a signal figure published without its configuration" {
+  make_sandbox
+  # The 2026-10-02 defect: the three-node observation record published RSSI and
+  # SNR while the same file said the antenna, orientation and separation were
+  # "Not recorded" and the ambient conditions "Not measured". Put the figures
+  # back and the check must fire. A token check for the word "antenna" would
+  # NOT catch this, because the broken file contained it inside the disclaimer.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-observations.json"
+  grep -q '"antenna_model_orientation_separation": "Not recorded"' "$target"
+  sed -i 's/"mqtt_on_observed_rf_packets": false,/"mqtt_on_observed_rf_packets": false,\n    "outward_rssi_dbm": -18,\n    "outward_snr_db": 10.75,/' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"publishes a received-signal figure and disclaims the configuration"* ]]
+  [[ "$output" == *"2026-10-02-three-node-lab-observations.json"* ]]
+}
+
+@test "validate-docs allows a signal figure whose configuration is recorded" {
+  make_sandbox
+  # The other half, and the one that keeps the check honest: the September radio
+  # record publishes RSSI and SNR and states the antenna, separation,
+  # orientation and ambient conditions, so it must pass. Remove only the antenna
+  # and the same figures must then fail, which proves the check sees them rather
+  # than passing the file because it never found a figure at all.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md"
+  grep -q 'RSSI approx' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -eq 0 ]
+
+  sed -i 's/\*\*stock antenna\*\*, vertical\./antenna model not recorded./' "$target"
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"one-lora-hop-to-a-partner-node.md"* ]]
+}

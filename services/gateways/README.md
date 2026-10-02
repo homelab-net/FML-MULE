@@ -5,6 +5,15 @@
 
 Two distinct functions sit here, and they have different statuses.
 
+The [three-node lab][lab] exercised upstream ATAK fields and native TAK routing
+through a private controlled-fixture bridge. Desktop payload handoff, a
+synthetic roster and codec fixture were explicit interventions. No persistent
+gateway is installed by this directory or its templates. An independent source
+review found the upstream host MQTT client-proxy route over BLE/serial; it is
+an integration path to demonstrate, not an implementation delivered here.
+
+[lab]: ../../docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
 ## Gateway translation - `FML-ADR-048`, SELECTED RULE
 
 **Source:** SAD v0.31 sections 29.5, 7.3 and 24.
@@ -49,10 +58,20 @@ program knows what it can actually command rather than what it wishes it could.
 
 ## What must close before implementation starts
 
-| Question | Trade | Priority |
-| --- | --- | ---: |
-| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | 9, `CRITICAL` |
-| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | 11 |
+| Question | Trade | Current gate |
+| --- | --- | --- |
+| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | **Closed** on `FML-ADR-071` (2026-09-06). No longer an outstanding translation gate |
+| What "failed" and "given up" mean for a service the gateway depends on | `TBR-HA-01` | **Open.** The mechanism the state boundary constrains |
+| Whether this gateway is admitted to `services/catalog/`, with an image pinned by digest and a start order | Catalog decision, the owner's | **Open** |
+| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | **Open.** Needs hardware; the physical coexistence decision is still owed |
+
+`TBR-TAK-01` closing did **not** make translation implementable. What unblocks
+this directory next is `TBR-HA-01` and the catalog decision, per
+`docs/ROADMAP-DEV.md`, and for the coexistence half `TBR-RF-02` remains the
+real blocker. The selected translation rule permits the upstream integration
+experiment above; it does not mean a persistent gateway is packaged or deployed
+by current main. The lab record identifies that implementation gap separately
+from the trade whose state classification is already accepted.
 
 ## Why not build either anyway
 

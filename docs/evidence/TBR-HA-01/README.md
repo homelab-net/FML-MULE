@@ -16,6 +16,12 @@ A [later startup observation][startup] records the native SSL container
 listening after a bench reboot, a subsequent suspend/resume interruption,
 and DNS/sleep repairs. EUD SSL returned; fresh marker UI confirmation was pending.
 
+A [three-node supervision follow-up][supervision] records automatic recovery
+after worker/broker faults and one Pi 1 reboot, after private policy installation.
+It separates that result from the assisted mixed-carrier chat and from a fresh
+main checkout, which does not install the tested policy. The trade stays open.
+
+[supervision]: 2026-10-02-supervised-recovery-three-nodes.md
 [startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md
 
 [trial]: 2026-10-01-routed-marker-streaming-host.md

@@ -3,8 +3,19 @@
 Deployment and state notes for the TAK-compatible situational-awareness service
 in the mission-service plane.
 
-**Nothing is loadable yet.** `FML-ADR-032` makes **OpenTAKServer** the
-preferred initial implementation, and the architecture remains
+**The catalog bundle is not a qualified release deployment.** Local candidate
+images run on the [three-node lab][lab], with private supervision and the
+connection-state candidate from PR #208. A clean MULE checkout at main does not
+reproduce that complete deployment. The [recovery observations][recovery]
+measure automatic recovery after local configuration, not a selected mechanism
+installed by these units; their checked-in restart behavior remains as described
+below.
+
+[lab]: ../../docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+[recovery]: ../../docs/evidence/TBR-HA-01/2026-10-02-supervised-recovery-three-nodes.md
+
+`FML-ADR-032` makes **OpenTAKServer** the preferred initial
+implementation, and the architecture remains
 **TAK-compatible, not OpenTAKServer-exclusive**. `FML-ADR-033` makes PyTAK
 the preferred library for custom CoT clients and translation gateways.
 `TBR-TAK-01` is `CLOSED` on `FML-ADR-071`.

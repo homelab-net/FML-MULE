@@ -29,8 +29,8 @@ repository.**
 The program is **pre-PDR**. The operational concept is **baselined**
 (CONOPS v1.2, CCR-03 and CCR-05; the section 87 signature block is still
 unsigned). The architecture is **drafted**
-(SAD v0.32, an SRR package candidate; v0.31 is retained). **Almost nothing is built, and nothing at
-all has been measured.**
+(SAD v0.32, an SRR package candidate; v0.31 is retained). Lab integration has
+produced bounded measurements; production qualification remains outstanding.
 
 Both controlling documents are in this repository, transcribed verbatim. That is
 the substantive change from the initial scaffold: the design record is no longer
@@ -38,19 +38,23 @@ a set of placeholders.
 
 Concretely, as of now:
 
-- **No hardware has been selected.** Not the compute module, not the enclosure,
-  not the battery, not the antennas. No bill of material exists.
-- **No image has ever been built.** No node has ever been assembled or booted.
-- **Nothing has met hardware.** No status claim reads `HARDWARE-VERIFIED`.
-  Claims are `UNVERIFIED`, or `SIMULATED` where they were exercised end to end
-  against fakes on the software digital twin; simulation says nothing about physical behaviour.
-- **No number in this repository is a measurement.** No endurance figure, no
-  range, no throughput, no power budget, no temperature. Where a value is
-  unknown it reads `TBD` and cites the trade that will decide it. Any figure you
-  encounter elsewhere claiming to be a MULE specification did not come from this
-  program.
+- **Production hardware and physical trades remain open.** A prototype/test
+  BOM exists in `hardware/prototype/`; it is not a qualified field article.
+- **Existing Debian lab nodes have booted and carried messages.** The
+  [three-node record][lab-observations] identifies measured paths, candidate
+  images, manual intervention and fresh-checkout limits. These trials do not
+  establish a qualified MULE release image or unattended mixed-bearer gateway.
+- **The formal hardware evidence-tier promotion is still held.** Software
+  simulation proves logic against fakes, not physical performance. Actual lab
+  observations are recorded separately without converting them into release
+  qualification or owner acceptance.
+- **Bench measurements are bounded observations, not MULE specifications.**
+  Range, endurance, power and thermal envelopes remain for their open trades.
+  Unknown specification values remain `TBD`.
 - **The repository carries no badges**, deliberately. A green CI run here means
   the files parse and the documents are consistent. CI has no radios.
+
+[lab-observations]: docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 
 If you came looking for something to build this weekend, this is not that. If
 you came to see how a small program tries to do this honestly, or to help decide
@@ -117,10 +121,10 @@ hardware selection everything else waits on.
 | 3 | `TBR-THERM-01` | Can it run across the field thermal envelope without unacceptable throttling? | yes |
 | 9 | `TBR-TAK-01` | Which TAK state is mission-critical, and where is it stored? | **no** |
 
-**`TBR-TAK-01` needs no hardware and can proceed today.** It gates the HA
-mechanism, the database decision and three of the four placeholder service
-components. It is the highest-value work available to a contributor who owns no
-node.
+**`TBR-TAK-01` is closed on `FML-ADR-071`.** Its accepted state boundary
+feeds the open HA mechanism and catalog work. The three-node lab adds bounded
+recovery observations; it does not close `TBR-HA-01` or supply the persistent
+gateway described in the architecture.
 
 `TBR-HW-01`, the hardware block selection, is a **convergence decision** sitting
 behind six other trades. Selecting hardware before they close is how a program
@@ -146,17 +150,17 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 
 ## What is not in this repository
 
-- **A working node.** What exists is the repository's own tooling, the
-  configuration generator, and the software digital twin: the node logic composed end to end
-  with radio, power, thermal and time state replaced by fakes. Everything it
-  demonstrates is `SIMULATED`, which is a real result about software and no
-  result at all about RF, power, thermal or timing. Nothing here is
-  `HARDWARE-VERIFIED`; see [`test/README.md`](test/README.md).
+- **A turnkey qualified node.** The repository carries tooling, configuration
+  generation and a software digital twin. Existing lab nodes additionally run
+  candidate integrations; their [observations][lab-observations] name what was
+  measured and assisted. A fresh main checkout does not reproduce the complete
+  lab deployment. See [`test/README.md`](test/README.md).
 - **A production bill of material**, a build guide, or a wiring diagram. A
   **prototype and test BOM** exists in `hardware/prototype/`; it answers what
   must be bought to make the architecture decisions, not what a node is.
-- **Any measurement**, of anything. The power figures in the prototype BOM's
-  reasoning are engineering estimates superseded by `TBR-PWR-01`.
+- **Qualified performance envelopes.** The lab measurements do not establish
+  endurance, range, throughput guarantees or mission availability. The power
+  figures in the prototype BOM remain engineering estimates for `TBR-PWR-01`.
 - **Four service components**: the status aggregator, mission trust, service
   controller, and gateways. Three are now **approved** original software, and
   each still holds a README and nothing else, because the trades that define
@@ -174,8 +178,9 @@ The most useful contributions right now are not code.
 
 **If you have no hardware** — which is almost everyone:
 
-- **Close `TBR-TAK-01`.** `CRITICAL`, needs no hardware, and is the single
-  highest-value piece of work available.
+- **Work the upstream integration backlog.** The lab's assisted delivery
+  path still needs a persistent gateway and reproducible deployment; keep the
+  accepted `TBR-TAK-01` state boundary and the open catalog/HA decisions intact.
 - **Work `TBR-ID-01`**, whether the browser services need a common identity
   provider. Workflow analysis, no hardware.
 - **Work `TBR-NET-01`**, the addressing scheme, so that two independently built

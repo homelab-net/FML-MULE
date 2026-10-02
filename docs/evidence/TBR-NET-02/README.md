@@ -14,6 +14,18 @@
 | `2026-09-27-one-lora-hop-to-a-partner-node.md` | Real-hardware bench result; formal `HARDWARE-VERIFIED` tier **held** pending a program-wide posture flip (see the note). A Meshtastic message crosses one **real** sub-GHz LoRa RF hop between two physical nodes (RAK4631 + a partner node, ~1 room, SNR 6-7 dB), both ways with a delivery ACK. Also finds a PKI direct message NAKs `NO_CHANNEL` until a NodeInfo key exchange completes. Says nothing about range/duty/coexistence (`TBR-RF-02`) or real `GeoChat.to` contents (still `SIMULATED`). |
 | `2026-09-28-real-geochat-encoding-through-ots.md` | `SIMULATED` / real-OTS-encoder. Drives a GeoChat through OpenTAKServer's own encoder: it copies the client's `<__chat id>` into `GeoChat.to` verbatim, substituting no callsign of its own (in-run a DM carried the injected **id**/UID, a room the **room name**; what a live client places there -- a UID by convention -- is owed a capture), `Contact.callsign` = sender callsign, `device_callsign` = sender UID (unishox2, `ATAK_PLUGIN`). **Advances** `FML-ADR-070`'s "GeoChat.to contents" item (encoder behavior); the *resolution* roster source is now decided (the Mission Trust Service; `CCR-06`, recorded in `FML-ADR-087`), while the live-client DM (what the client places in `<__chat id>`) remains owed. |
 
+The [October three-node record][three-node] adds a real addressed LoRa/IP
+phone round trip, with native UID correlation and a continuously connected
+synthetic sender. It also records every assisted step and the fresh-checkout
+limits. It records the radios' LoRa configuration, including the region-capped
+transmit-power setting, and **withholds** the radio-reported RSSI/SNR: antenna
+model, orientation, separation and ambient conditions were never recorded, so
+those values would not meet the measurement-record contract in
+[`docs/evidence/README.md`](../README.md). It does not establish persistent
+gateway or RF fail-closed behavior.
+
+[three-node]: 2026-10-02-three-node-lab-boundaries.md
+
 **This trade is `CLOSED` (2026-09-04) on `FML-ADR-070`,** accepted by the named
 owner (Cameron Zobrist). The selected encoding is upstream's `Contact.callsign`
 and `GeoChat.to`, not the one-byte index the analysis first costed; the

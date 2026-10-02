@@ -6,11 +6,13 @@ You have this repository checked out on a real machine rather than in hosted
 CI. Read this before you start work, then `AGENTS.md`, then `STATUS.md`, then
 `docs/ROADMAP-DEV.md` for what to build.
 
-Everything in this repository up to now was produced in hosted CI or in a
-container. That constrained what could be tested and it also constrained what
-could be *known*. This file records which of those constraints your machine
-lifts, which it does not, and the four facts you should check in your first
-hour because they currently rest on one kernel this program does not control.
+Early work in this repository used hosted CI and containers. The
+[three-node lab record][lab] now adds physical radio and service-recovery
+observations, with explicit intervention and fresh-checkout limits. This file
+describes a development machine's capabilities; attached hardware and local
+configuration determine which experiments it can actually run.
+
+[lab]: evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 
 ## The first thing, because it is the thing that will fool you
 
@@ -83,9 +85,10 @@ specifically on "a machine with a wireless stack", and you are that machine.
 - **It exercises the portable half only.** `FML-ADR-040` and `os/README.md`
   split the system into a portable userland and a hardware-specific kernel and
   board support package. This machine says nothing about the second.
-- **There are no radios.** No HaLow driver, no RF, no power, no thermal.
-  `mac80211_hwsim` is a simulated device: it exercises the 802.11 stack, not a
-  radio.
+- **A software-only development machine has no physical radio evidence.**
+  `mac80211_hwsim` exercises the 802.11 stack, not propagation or a radio.
+  Attached LoRa radios and an SDR enabled the separate [lab observations][lab];
+  those results do not establish HaLow, power or thermal performance.
 - **Nothing done here earns `HARDWARE-VERIFIED`.** The tier stays `SIMULATED`.
 
 "It ran on real Debian on real hardware" is a true sentence that becomes

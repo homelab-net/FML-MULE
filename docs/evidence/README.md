@@ -82,6 +82,22 @@ An unlabelled number in a text file is not evidence. Every measurement records:
 Raw output is preferred over a summary. Commit the log; write the summary in
 the trade file.
 
+**One half of this is now machine-checked.** It was a `[review]` rule and it was
+broken on 2026-10-02: `TBR-NET-02/2026-10-02-three-node-lab-observations.json`
+published RSSI and SNR figures while the same file recorded the antenna,
+orientation and separation as "Not recorded" and the ambient conditions and EIRP
+as "Not measured". A reviewer caught it; nothing here could.
+`tools/validate-docs.sh` check 25 now fails any artifact that **both** publishes
+a received-signal figure **and** disclaims the configuration that figure has to
+be read against.
+
+It checks the shape of that failure, not the whole contract. Either half alone
+still passes, and should: `TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md`
+names its antenna, separation, orientation and ambient conditions and publishes
+its figures on that basis, and a record that lacks the geometry may say so as
+long as it withholds the figures. Everything else in the list above —
+instrument, date, node, who took it — is still on whoever reads the diff.
+
 ## What else belongs here
 
 - **Logs.** `dmesg`, `journalctl`, `batctl`, `iw`, build output. Scrub before

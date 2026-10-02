@@ -320,9 +320,16 @@ changes the file discovers it rather than someone assuming it.
 
 ### 1.1 LoRa and Meshtastic — the largest hole
 
-**State:** all four steps done. What remains on this plane is not this item:
-the member tag is specified and measured but unimplemented, and the gateway
-that would carry it is blocked on `TBR-TAK-01`.
+**State:** the four simulation steps are done. A
+[three-node lab experiment][three-node-lab] also carried an addressed message
+over real LoRa, Wi-Fi/IP and the existing iTAK connection, with a correlated
+return to a continuously connected synthetic sender. It required desktop
+coordination, temporary routing and controlled decoder fixtures. Persistent
+upstream gateway deployment, reconnect and RF recipient negative controls remain
+the integration backlog; this experiment is not autonomous operation.
+`TBR-TAK-01` is closed on `FML-ADR-071`; it is not the outstanding gate.
+
+[three-node-lab]: evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 `.github/workflows/lora-probe.yml`
 stands two meshtasticd nodes up in simulation on one segment and asserts a text
 message crosses between them. Three runs: the first died on a line of mine that
@@ -353,10 +360,13 @@ enough to shape an interface against, and the owner's acceptance of the
 upstream-field encoding made it final rather than replacing the interface built
 to it.
 
-**The gap is now only the signature.** Checked item by item, the specification
-satisfies all five closure-evidence items and the closure gate's additional
-condition, that it state what changes when `TBR-ID-01` closes and what does
-not. Nothing in the gate is outstanding except a named owner accepting it.
+**The addressing decision is closed.** The named owner accepted
+`FML-ADR-070` on 2026-09-04. The October lab adds physical carriage evidence;
+it does not reopen that decision or qualify the persistent gateway that acts
+on it. The supervised service-recovery observations and their intervention
+boundaries are recorded in the [recovery follow-up][lab-recovery].
+
+[lab-recovery]: evidence/TBR-HA-01/2026-10-02-supervised-recovery-three-nodes.md
 
 The specification withheld closure on a second ground as well, that nothing
 exercised an EUD behind one MULE reaching an EUD behind another. That ground
@@ -1097,6 +1107,13 @@ start, while a later API stop leaves the target, listener, and parser up.
 One synthetic CoT is persisted, including after the target is stopped and
 started again. That is not `Restart=`, not a different-node restore, and
 the mesh interface is still `TBD`.
+
+The [October lab recovery follow-up][lab-recovery] observed automatic recovery
+under separately installed prototype policy and candidate images, plus one Pi 1
+boot. Those are real bounded observations, not restart configuration delivered
+by the main units above. The [carrier trial][three-node-lab] additionally used
+an assisted bridge; it does not establish a persistent gateway from this checkout.
+
 `OpenTAKServer` is
 **three** console entry points, and upstream's own container runs only the
 first:
@@ -1793,12 +1810,15 @@ would be reasonable to assume otherwise.
 | A named owner accepting the specification | Governance. Nothing technical outstanding. |
 | The gateway can carry an application tag | **Untested.** The probe above. |
 | A mission package participant roster and index | Schema change, named in the specification and deliberately not made. `additionalProperties: false` makes it explicit. |
-| A gateway to read and write the tag | `services/gateways/` is a placeholder. `TBR-TAK-01` is now `CLOSED`, so it is blocked on `TBR-RF-02` (hardware) and a catalog decision. **`TBR-RF-02` is the real blocker.** |
+| A gateway to read and write the tag | `services/gateways/` is a placeholder. `TBR-TAK-01` is now `CLOSED`, so the translation function is blocked on `TBR-HA-01` and a catalog decision, as the Bank A note on `TBR-TAK-01` records. `TBR-RF-02` (hardware) gates the separate coexistence policy service in the same directory, not the tag gateway. |
 | `TBR-ID-01` | **Not required.** The specification separates addressing from authentication on purpose. |
 
-So the critical path to tagging now runs through `TBR-RF-02` (hardware):
-`TBR-TAK-01` is `CLOSED`, and the gateway to carry the tag waits on the RF
-coexistence trade and a catalog decision.
+So the critical path to tagging now runs through `TBR-HA-01` and a catalog
+decision, both of which need no hardware: `TBR-TAK-01` is `CLOSED`, and the
+gateway to carry the tag waits on the recovery mechanism the state boundary
+constrains plus the owner's catalog act. `TBR-RF-02` remains the hardware
+blocker for coexistence policy, which is a different function in the same
+placeholder directory. `services/gateways/README.md` holds the gate table.
 
 ## Definition of done for anything on this roadmap
 

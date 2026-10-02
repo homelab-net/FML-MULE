@@ -21,6 +21,12 @@ an artifact's presence is not owner acceptance.
 
 - [2026-10-01-power-ble-followup-node-a.md][ble-followup]
 
+The [October 2 follow-up][radio-followup] records successful retained-bond
+BLE API access and actual LoRa carriage after a normal physical RAK reset.
+The USB descriptor fault and current undervoltage observations remain unresolved;
+successful BLE is not USB repair or a power-envelope result.
+
+[radio-followup]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 [ble-followup]: 2026-10-01-power-ble-followup-node-a.md
 
 [artifact-1]: 2026-08-30-80211s-mesh-in-software.md

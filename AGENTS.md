@@ -99,6 +99,7 @@ A change is not done until all seven hold. Say which ones you actually ran.
 | You are about to write | Do this first |
 | --- | --- |
 | A number, capacity, range, current draw or duration | Source it to a datasheet or a measurement. If you cannot, write `TBD` and cite the trade that will decide it. |
+| A measured figure a reader will interpret: RSSI, SNR, throughput, current | Record the configuration it has to be read against **before** you take it -- antenna, separation, orientation, transmit power, ambient conditions, per `docs/evidence/README.md`. Afterwards the geometry is gone and the number is unpublishable. For signal figures this is `[CI]`: check 25 fails any artifact that publishes one while disclaiming that configuration. |
 | A claim about what works | Name the evidence. If the evidence is a fake, the claim is `SIMULATED` and says nothing about physical behaviour. |
 | A value a deployment could vary | Read it from the region profile, mission package or service catalog. Never a literal. |
 | A value that is genuinely fixed | Bind it to a named constant carrying the ADR or trade that set it. |
@@ -259,7 +260,8 @@ it holds only if you hold it. Unmarked rules are `[review]`.
 **When you find a `[review]` rule was broken, make it `[CI]` in the same
 change.** Every rule in this file that a machine now checks was added that way,
 after something slipped past: every fake named (check 11), every directory
-explained (check 12), nothing claiming hardware it has not met (check 13). A
+explained (check 12), nothing claiming hardware it has not met (check 13), no
+signal figure published while its configuration is disclaimed (check 25). A
 rule nothing checks is a suggestion, and this repository has already shipped
 three of them.
 
