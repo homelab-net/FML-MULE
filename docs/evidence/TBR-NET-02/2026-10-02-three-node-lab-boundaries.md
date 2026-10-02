@@ -68,18 +68,43 @@ after the board's PA gain has been subtracted ([source][sx126x], lines 82 and
 226). So the emitted power is board-specific, lower than the configured number,
 and was not measured here.
 
-Antenna model, orientation, separation, ambient conditions and EIRP were not
-recorded. The radios did report RSSI and SNR per packet, but without that
-geometry nobody can interpret or repeat those values, so **they are not
-published as measurements** -- `docs/evidence/README.md` requires antenna,
-separation, orientation and ambient conditions in a measurement record, and no
-log from this trial holds them. The radios have since been physically handled,
-so a repeat is the route to those values rather than a re-read: a
-configuration-complete repeat shall record antenna model, orientation,
-separation and ambient conditions alongside the values. These omissions prevent
-range,
-coexistence or RF performance qualification; the carriage and field-preservation
-results below do not depend on a link budget.
+Antenna model, orientation, separation and ambient conditions were not recorded.
+The radios did report RSSI and SNR per packet, and **those figures are not
+published as measurements**, because `docs/evidence/README.md` requires that
+configuration in a measurement record and no log from this trial holds it. These
+omissions prevent range, coexistence or RF performance qualification; the
+carriage and field-preservation results below do not depend on a link budget.
+
+**What it would take to publish them, qualified independently.** An earlier
+draft of this record said a repeat was the only route. That is wrong for the
+antenna model and overstated for the rest, and an independent qualifier
+established the difference:
+
+| Value | Route without a repeat |
+| --- | --- |
+| Antenna model, node B | **A datasheet fact.** The T1000-E's antenna is `Internal (GNSS/LoRa/Wi-Fi/BLE)` in a sealed IP65 card with no connector, so it cannot be swapped or disturbed by handling. |
+| Antenna model, node A | **Operator inspection.** An antenna is a persistent attachment on the RAK4631's U.FL connector; handling does not change which one is fitted. |
+| Orientation, separation, ambient | **A dated operator attestation, or nothing.** Every derivation route was refuted: GNSS is ~10 m CEP and node A carries none, inverting the figure to get separation is circular, and the persisted node database stores `DeviceMetrics`, which upstream gives no temperature field. |
+
+That attestation is the same evidence class the accepted
+[September record](2026-09-27-one-lora-hop-to-a-partner-node.md) rests on --
+"stock antenna, vertical", "~1 room away (one interior wall)", "indoor, room
+temperature" -- which is operator statement, not instrumentation. So the figures
+are withheld pending a named operator's dated attestation, recorded as such.
+**That is an owner's act, not an impossibility,** and this record should not have
+implied otherwise.
+
+**The September geometry cannot be carried over.** Same two radios by firmware
+version, but the received-signal figures of the two runs differ by tens of
+decibels, so the geometry demonstrably changed. Transcribing "~1 room away" onto
+this run would be exactly the paraphrase failure `AGENTS.md` warns about, and
+that difference is itself the evidence it would be false. The absolute figures
+stay in the private log and in September's own record, which carries the
+configuration to read its own by.
+
+EIRP is absent too, and stays absent: it needs a calibrated measurement no
+instrument on this bench can make. It is also not part of the contract, which
+asks for transmit power -- recorded above.
 
 ## Results and intervention
 

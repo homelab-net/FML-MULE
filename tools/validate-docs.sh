@@ -28,6 +28,8 @@
 #  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
 #  23. The service catalog is valid and every enabled service resolves to it.
 #  24. The trades page states each trade the way its record does (GAP-08).
+#  25. No evidence artifact publishes a signal figure and disclaims the
+#      configuration it must be read against.
 #
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
@@ -971,6 +973,76 @@ printf 'Trade states\n'
 if ! python3 tools/validate-trade-states.py "$ROOT"; then
   fail "docs/trades/README.md contradicts a trade record's status (GAP-08)"
 fi
+
+# --- 26: an artifact may not publish a signal figure and disclaim the
+# configuration needed to read it ---------------------------------------------
+#
+# docs/evidence/README.md requires a measurement record to carry its
+# configuration: antenna, separation, orientation, transmit power and ambient
+# conditions. That was a [review] rule and it was broken on 2026-10-02:
+# the three-node lab record, 2026-10-02-three-node-lab-observations.json, published
+# RSSI -18/-21 dBm and SNR figures while the same file said the antenna model,
+# orientation and separation were "Not recorded" and the ambient conditions and
+# EIRP "Not measured". A reviewer caught it; nothing in the repository could.
+#
+# The failure has a machine-visible shape, which is why this exists: ONE file
+# both publishing a received-signal figure AND declaring the geometry absent.
+# Either half alone is fine and must stay fine. A record that states the
+# configuration may publish its figures -- see
+# 2026-09-27-one-lora-hop-to-a-partner-node.md, which names the stock antenna,
+# "~1 room away (one interior wall)", the antenna orientation and the ambient
+# conditions, and publishes RSSI and SNR on that basis. A record that lacks the
+# geometry may say so, as long as it withholds the figures.
+#
+# Checking only that the words "antenna" and "ambient" appear would NOT have
+# caught this: the broken file contained both, inside the sentences disclaiming
+# them. So the signal is the disclaimer, not the vocabulary.
+#
+# Scope is .md and .json under docs/evidence/ and test/results/. An archived
+# upstream source (.proto, .cpp, a captured .txt) is not a measurement record,
+# and prose discussing SNR as a protocol field carries no figure, so neither
+# trips this.
+
+printf 'Signal figures against their configuration\n'
+
+signal_checked=0
+signal_files=$(find docs/evidence test/results \
+  -type f \( -name '*.md' -o -name '*.json' \) 2>/dev/null | sort || true)
+
+for art in $signal_files; do
+  [ -e "$art" ] || continue
+  signal_checked=$((signal_checked + 1))
+
+  # A published figure: rssi or snr on a line that also carries a number
+  # attached to it, as a value (rssi=-60, "snr_db": 6.0) or with its unit
+  # (RSSI approx -52 dBm, SNR 6-7 dB). "copies node_id and snr into" has no
+  # figure and does not count.
+  grep -Eiq \
+    '(rssi|snr)[A-Za-z_0-9]*"?[[:space:]]*[=:][[:space:]]*"?-?[0-9]|(rssi|snr)[^.!?]{0,40}-?[0-9]+(\.[0-9]+)?[[:space:]]*d[Bb]' \
+    "$art" || continue
+
+  # A disclaimer that the configuration is absent. "not captured during the
+  # trial" is deliberately NOT one of these: it dates a reading rather than
+  # denying it, and a record may legitimately say when a value was taken.
+  #
+  # The terms are exactly the ones docs/evidence/README.md requires, and no
+  # more. EIRP was in this list for one commit and should not have been: the
+  # contract asks for "transmit power", which a record can state, and **not**
+  # for EIRP, which needs a calibrated measurement nothing on this bench can
+  # make. A check stricter than the rule it enforces makes an honest record
+  # unpublishable and teaches people to delete the honest line.
+  absent=$(grep -Ein \
+    '(antenna|separation|orientation|ambient|transmit[ _]power|tx[_ ]power)' "$art" |
+    grep -Ei 'not (recorded|measured|known|available)|unrecorded|unmeasured' |
+    cut -c1-90 | head -3 || true)
+
+  [ -n "$absent" ] || continue
+
+  fail "$art publishes a received-signal figure and disclaims the configuration it must be read against. docs/evidence/README.md requires antenna, separation, orientation, transmit power and ambient conditions in a measurement record. Record the configuration in a repeat, or withhold the figure. Disclaimed at:"
+  printf '%s\n' "$absent" | sed 's/^/        /' >&2
+done
+
+info "$signal_checked evidence artifact(s) checked for a signal figure without its configuration"
 
 # --- result -----------------------------------------------------------------
 printf '\n'

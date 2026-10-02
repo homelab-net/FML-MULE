@@ -119,9 +119,13 @@ correlate a unique reply with source/destination UID and received RF bytes, and
 keep clients live through the reply. Record configuration differences from main
 and interventions before assigning a result. **Record the measurement
 configuration before the first packet**, not after: antenna model, orientation,
-separation and ambient conditions, alongside the LoRa settings. That is the one
-thing the October run cannot be corrected into supplying, and it is why its
-signal-strength numbers are unpublishable. The next autonomous demonstration is
+separation and ambient conditions, alongside the LoRa settings. Orientation,
+separation and ambient are the values a later pass cannot reconstruct -- an
+independent qualifier refuted every derivation route for the October run, and
+they are now obtainable only as a dated operator attestation, which is why that
+run's signal-strength figures are unpublished. Antenna model is the exception:
+it is a datasheet or inspection fact, not a per-run measurement. The next
+autonomous demonstration is
 boot-to-gateway plus radio reconnect and intended-only/unknown-recipient RF
 controls, using the selected upstream integration rather than a new protocol.
 

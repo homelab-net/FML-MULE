@@ -57,7 +57,7 @@
       "kernel": "6.12.105+deb13-amd64",
       "architecture": "x86_64"
     },
-    "calibration": "No instrument was calibrated for this trial. Radio-reported RSSI/SNR are uncalibrated and are not published; see rf_configuration."
+    "calibration": "No instrument was calibrated for this trial. Radio-reported RSSI/SNR are uncalibrated and are not published; see rf_configuration. Upstream labels the field a display value: \"rssi of received packet. Only sent to phone for dispay purposes.\" (meshtastic mesh.proto)."
   },
   "rf_configuration": {
     "read_provenance": "Persistent LoRa configuration read back from both radios on 2026-10-02 after the trial, by the development-machine agent over their working APIs: node B over USB serial, node A over its retained BlueZ object because a fresh name-only BLE scan still fails. Both radios returned identical values.",
@@ -83,12 +83,14 @@
     "sx126x_rx_boosted_gain": true,
     "override_duty_cycle": false,
     "channel_name_and_key_match_checked_privately": true,
-    "antennas": "Operator confirmed attached to both radios",
+    "antennas": "Node B's antenna is internal to the T1000-E and has no connector, so nothing is attached to it. Node A's RAK4631 carries an external antenna on its U.FL/IPEX LoRa connector, which the operator confirmed attached; its model was not recorded.",
     "antenna_model_orientation_separation": "Not recorded",
     "ambient_conditions": "Not measured",
-    "eirp": "Not measured",
+    "eirp": "Not measured, and not required by the measurement-record contract, which asks for transmit power. EIRP needs a calibrated measurement no instrument on this bench can make.",
     "received_signal_strength_published": false,
-    "received_signal_strength_withheld_because": "The radios reported RSSI and SNR per packet, but antenna model, orientation, separation, ambient conditions and EIRP were not recorded. Without them the values cannot be interpreted or repeated, so they are not published as measurements. A configuration-complete repeat shall record antenna model, orientation, separation and ambient conditions alongside the values."
+    "received_signal_strength_withheld_because": "The radios reported RSSI and SNR per packet. Orientation, separation and ambient conditions were not recorded, and an independent qualifier refuted every route to deriving them: GNSS is ~10 m CEP and node A has none, inverting the figure to get separation is circular, and the persisted node database stores DeviceMetrics, which upstream gives no temperature field. They are obtainable only as a dated operator attestation, which is the same evidence class the accepted 2026-09-27 record uses (\"stock antenna, vertical\", \"~1 room away (one interior wall)\", \"indoor, room temperature\"). The figures stay withheld until a named operator provides that attestation and it is recorded as such; this is an owner's act, not an impossibility.",
+    "antenna_model_recoverability": "Node B's antenna model is a datasheet fact, not a per-run measurement: the SenseCAP Card Tracker T1000-E datasheet gives \"Antenna: Internal (GNSS/LoRa/Wi-Fi/BLE)\" in a sealed IP65 card, so it cannot be swapped or disturbed. Node A's is a persistent attachment that handling does not change, so operator inspection recovers it. Neither needs a repeat.",
+    "geometry_cannot_be_carried_over_from_2026_09_27": "Same two radios by firmware version, but the two runs' received-signal figures differ by tens of decibels, so the geometry demonstrably changed. Transcribing the September record's separation onto this run would be the paraphrase failure AGENTS.md names, and that difference is itself the evidence it would be false. Absolute figures are not restated here; September's own record carries the configuration to read its own by."
   },
   "mixed_carrier_observation": {
     "outward": "Synthetic EUD A -> RAK LoRa -> T1000 on node B -> Wi-Fi/router -> bench OTS -> phone iTAK",
