@@ -17,6 +17,16 @@ Python 3.12 base. Nothing in the bundle is loadable: the application image
 has no digest until that Containerfile is built, and no registry publishes
 one. A database-only copy is not a restore.
 
+`isolate_handler_state.py` applies a bounded upstream integration fix during
+the image build (`FML-ADR-048`, `TBR-HA-01`). Release 1.7.13 stores cached
+messages, queue bindings and group memberships in mutable class attributes.
+Disconnect cleanup can therefore unbind another connection's queues. The fix
+creates those lists per connection before `BaseRequestHandler` dispatches
+setup and handling. An unexpected constructor fails the build; rerunning the
+fix is idempotent. The lifecycle regression test exercises the unpatched
+shared-state control as well as the fix. Stock CoT fields and upstream routing
+remain the interfaces.
+
 The units share an internal Podman network, `ots.network`, and name each
 other on it: `postgresql` and `rabbitmq`. Release 1.7.13 defaults those
 dependencies to `127.0.0.1`, which is the container itself, so separate
