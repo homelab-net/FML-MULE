@@ -110,13 +110,19 @@ hop to the phone through Wi-Fi and bench TAK, and received the actual phone repl
 back over RF while the synthetic sender stayed connected. This used private
 controlled-fixture instrumentation and desktop coordination; it does not
 complete the persistent upstream gateway part of Step 3 or its group/unknown
-recipient controls. Antenna geometry and ambient conditions were not recorded.
+recipient controls. Antenna geometry and ambient conditions were not recorded,
+so the radio-reported RSSI/SNR from that run are **not published** as
+measurements.
 
 For the next repeat, keep the intended EUD identity in native GeoChat.to,
 correlate a unique reply with source/destination UID and received RF bytes, and
 keep clients live through the reply. Record configuration differences from main
-and interventions before assigning a result. The next autonomous demonstration
-is boot-to-gateway plus radio reconnect and intended-only/unknown-recipient RF
+and interventions before assigning a result. **Record the measurement
+configuration before the first packet**, not after: antenna model, orientation,
+separation and ambient conditions, alongside the LoRa settings. That is the one
+thing the October run cannot be corrected into supplying, and it is why its
+signal-strength numbers are unpublishable. The next autonomous demonstration is
+boot-to-gateway plus radio reconnect and intended-only/unknown-recipient RF
 controls, using the selected upstream integration rather than a new protocol.
 
 [lab-carriers]: evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md

@@ -13,9 +13,7 @@ identifiers, source fingerprints and instrument provenance. Node A is Pi 1 with
 a RAK4631 accessed over BLE; node B is Pi 2 with a T1000-E over USB serial;
 node C is the existing bench. Both hosts are Pi 4B running Debian 13, with
 firmware versions and kernels recorded in [data]. Antennas were confirmed
-attached by the operator. Radio-reported RSSI/SNR are uncalibrated. Antenna
-model, orientation, separation, ambient conditions and EIRP were not measured.
-These omissions prevent range, coexistence or RF performance qualification.
+attached by the operator.
 
 The desktop orchestrator collected the logs; the Program Owner operated the
 real phone EUD. The observations span October 1–2 in US Mountain time; precise
@@ -29,6 +27,59 @@ TAK used release 1.7.13 with a local connection-state candidate from PR #208,
 plus private recovery settings and test instrumentation. Local immutable image
 IDs identify the tested bytes but are not published registry pull references.
 No selected release-image build or promotion was exercised.
+
+### The radio configuration, and what is still missing from it
+
+Both radios' persistent LoRa configuration was read back over their working
+APIs and is recorded in [data]: US region, `LONG_FAST` (250 kHz, SF11, CR5),
+`channel_num` 20, primary channel index 0, no frequency override, receive
+boosted gain on, duty-cycle override off, device hop limit 7. Node A was read
+over its retained BlueZ object, because the stock client's fresh name-only BLE
+scan still times out on this radio. The test packets themselves were sent with
+a per-packet hop limit of 1, which is a harness argument and not the device
+setting; [data] now names the two separately.
+
+That read was taken after the trial, not during it, so [data] separates the
+part that is corroborated from the part that is not. Region, preset,
+`channel_num` and the absent frequency override were **also** recorded per radio
+during the trial, in the two private radio profiles now fingerprinted in [data],
+and they match the post-trial read; because the preset was in use, bandwidth,
+spreading factor and coding rate follow from it rather than being independent
+settings. The transmit power, device hop limit, boosted-gain and duty-cycle
+values have the post-trial read only, which does not by itself prove they were
+unchanged while the packets crossed.
+
+The centre frequency, 906.875 MHz, is **derived from the firmware rather than
+measured.** The US region row is
+`RDEF(US, 902.0f, 928.0f, 100, 0, 30, true, false, false)`, and the slot
+formula is `float freq = myRegion->freqStart + (bw / 2000) + (channel_num *
+(bw / 1000));` with `channel_num` the configured value minus one
+([`RadioInterface.cpp`][radioiface] lines 32 and 589). No spectrum measurement
+confirms it.
+
+The configured transmit power reads 30 dBm, and that is **not** a radiated
+figure. The same file sets `power = myRegion->powerLimit` whenever the request
+exceeds the regional limit and an unlicensed owner is configured, then writes
+the result back to the config, so 30 dBm is the US regional limit echoed back
+rather than an operator choice. `SX126xInterface.cpp` then calls
+`limitPower(SX126X_MAX_POWER)` and caps again with
+`if (power > SX126X_MAX_POWER) // This chip has lower power limits than some`,
+after the board's PA gain has been subtracted ([source][sx126x], lines 82 and
+226). So the emitted power is board-specific, lower than the configured number,
+and was not measured here.
+
+Antenna model, orientation, separation, ambient conditions and EIRP were not
+recorded. The radios did report RSSI and SNR per packet, but without that
+geometry nobody can interpret or repeat those values, so **they are not
+published as measurements** -- `docs/evidence/README.md` requires antenna,
+separation, orientation and ambient conditions in a measurement record, and no
+log from this trial holds them. The radios have since been physically handled,
+so a repeat is the route to those values rather than a re-read: a
+configuration-complete repeat shall record antenna model, orientation,
+separation and ambient conditions alongside the values. These omissions prevent
+range,
+coexistence or RF performance qualification; the carriage and field-preservation
+results below do not depend on a link budget.
 
 ## Results and intervention
 
@@ -116,3 +167,5 @@ receipt confirmation.
 [recovery]: ../TBR-HA-01/2026-10-02-supervised-recovery-three-nodes.md
 [firmware]: https://github.com/meshtastic/firmware/blob/v2.7.15.567b8ea/src/mqtt/MQTT.cpp
 [api]: https://github.com/meshtastic/python/blob/2.7.11/meshtastic/mesh_interface.py
+[radioiface]: https://github.com/meshtastic/firmware/blob/v2.7.15.567b8ea/src/mesh/RadioInterface.cpp
+[sx126x]: https://github.com/meshtastic/firmware/blob/v2.7.15.567b8ea/src/mesh/SX126xInterface.cpp

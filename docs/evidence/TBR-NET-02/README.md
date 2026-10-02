@@ -17,7 +17,12 @@
 The [October three-node record][three-node] adds a real addressed LoRa/IP
 phone round trip, with native UID correlation and a continuously connected
 synthetic sender. It also records every assisted step and the fresh-checkout
-limits. It does not establish persistent gateway or RF fail-closed behavior.
+limits. It records the radios' LoRa configuration, including the region-capped
+transmit-power setting, and **withholds** the radio-reported RSSI/SNR: antenna
+model, orientation, separation and ambient conditions were never recorded, so
+those values would not meet the measurement-record contract in
+[`docs/evidence/README.md`](../README.md). It does not establish persistent
+gateway or RF fail-closed behavior.
 
 [three-node]: 2026-10-02-three-node-lab-boundaries.md
 

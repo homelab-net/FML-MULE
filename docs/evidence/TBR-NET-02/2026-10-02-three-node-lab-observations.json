@@ -57,18 +57,38 @@
       "kernel": "6.12.105+deb13-amd64",
       "architecture": "x86_64"
     },
-    "calibration": "RSSI/SNR are radio-reported and uncalibrated"
+    "calibration": "No instrument was calibrated for this trial. Radio-reported RSSI/SNR are uncalibrated and are not published; see rf_configuration."
   },
   "rf_configuration": {
+    "read_provenance": "Persistent LoRa configuration read back from both radios on 2026-10-02 after the trial, by the development-machine agent over their working APIs: node B over USB serial, node A over its retained BlueZ object because a fresh name-only BLE scan still fails. Both radios returned identical values.",
+    "captured_during_trial": "region, use_preset, modem_preset, lora_channel_num and override_frequency_mhz were also recorded per radio during the trial in the two private radio profiles below, and match the post-trial read. Because use_preset was set, bandwidth, spreading factor and coding rate follow from the preset rather than being independent settings.",
+    "post_trial_read_only": "configured_tx_power_dbm, device_configured_hop_limit, sx126x_rx_boosted_gain, override_duty_cycle and tx_enabled were not captured during the trial. The post-trial read does not by itself prove they were unchanged while the packets crossed.",
     "region": "US",
+    "region_code_value": 1,
     "preset": "LONG_FAST",
+    "use_preset": true,
+    "bandwidth_khz": 250,
+    "spreading_factor": 11,
+    "coding_rate": 5,
     "primary_channel_index": 0,
+    "lora_channel_num": 20,
+    "override_frequency_mhz": 0.0,
+    "center_frequency_mhz": 906.875,
+    "center_frequency_basis": "Derived from the firmware slot formula and the US region row, not measured. See the boundaries record for the quoted source lines.",
+    "configured_tx_power_dbm": 30,
+    "configured_tx_power_meaning": "The region-capped request the firmware writes back into its own config, equal to the US regional power limit. The board subtracts its PA gain and the SX126x driver caps again at the chip maximum, so this is neither emitted power nor EIRP.",
+    "tx_enabled": true,
+    "device_configured_hop_limit": 7,
+    "per_packet_hop_limit": 1,
+    "sx126x_rx_boosted_gain": true,
+    "override_duty_cycle": false,
     "channel_name_and_key_match_checked_privately": true,
-    "hop_limit": 1,
     "antennas": "Operator confirmed attached to both radios",
     "antenna_model_orientation_separation": "Not recorded",
     "ambient_conditions": "Not measured",
-    "eirp": "Not measured"
+    "eirp": "Not measured",
+    "received_signal_strength_published": false,
+    "received_signal_strength_withheld_because": "The radios reported RSSI and SNR per packet, but antenna model, orientation, separation, ambient conditions and EIRP were not recorded. Without them the values cannot be interpreted or repeated, so they are not published as measurements. A configuration-complete repeat shall record antenna model, orientation, separation and ambient conditions alongside the values."
   },
   "mixed_carrier_observation": {
     "outward": "Synthetic EUD A -> RAK LoRa -> T1000 on node B -> Wi-Fi/router -> bench OTS -> phone iTAK",
@@ -83,10 +103,7 @@
     "return_rf_bytes_match_encoded_phone_reply": true,
     "synthetic_sender_radio_client_continuous": true,
     "mqtt_on_observed_rf_packets": false,
-    "outward_rssi_dbm": -18,
-    "outward_snr_db": 10.75,
-    "return_rssi_dbm": -21,
-    "return_snr_db": 6.0,
+    "radio_reported_link_margin": "Withheld; see rf_configuration.received_signal_strength_withheld_because",
     "unattended_gateway_demonstrated": false,
     "interventions": [
       "Desktop starts radio clients and bridge",
@@ -139,6 +156,14 @@
     "SDR higher-rate counter tests reported lost bytes; finite sample capture is not RF signal decoding"
   ],
   "private_source_fingerprints": [
+    {
+      "artifact": "rf-pair-rak-profile.json",
+      "sha256": "85b05ed60528d36bb00fdd41e2398c9cd7ea4f5331dd19ab15f6ac0f102d936b"
+    },
+    {
+      "artifact": "rf-pair-t1000-profile.json",
+      "sha256": "6e99df4dc80bb3af6a30e52d8bcde97c4104a6fde385c535f7798c2f794db3fd"
+    },
     {
       "artifact": "hardware-rf-pair-between-pis-roundtrip.log",
       "sha256": "c8643ca17b7c658c3b7a11759d87c69f580be3f51c826712b07bcb7c89170e22"

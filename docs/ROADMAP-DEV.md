@@ -1810,12 +1810,15 @@ would be reasonable to assume otherwise.
 | A named owner accepting the specification | Governance. Nothing technical outstanding. |
 | The gateway can carry an application tag | **Untested.** The probe above. |
 | A mission package participant roster and index | Schema change, named in the specification and deliberately not made. `additionalProperties: false` makes it explicit. |
-| A gateway to read and write the tag | `services/gateways/` is a placeholder. `TBR-TAK-01` is now `CLOSED`, so it is blocked on `TBR-RF-02` (hardware) and a catalog decision. **`TBR-RF-02` is the real blocker.** |
+| A gateway to read and write the tag | `services/gateways/` is a placeholder. `TBR-TAK-01` is now `CLOSED`, so the translation function is blocked on `TBR-HA-01` and a catalog decision, as the Bank A note on `TBR-TAK-01` records. `TBR-RF-02` (hardware) gates the separate coexistence policy service in the same directory, not the tag gateway. |
 | `TBR-ID-01` | **Not required.** The specification separates addressing from authentication on purpose. |
 
-So the critical path to tagging now runs through `TBR-RF-02` (hardware):
-`TBR-TAK-01` is `CLOSED`, and the gateway to carry the tag waits on the RF
-coexistence trade and a catalog decision.
+So the critical path to tagging now runs through `TBR-HA-01` and a catalog
+decision, both of which need no hardware: `TBR-TAK-01` is `CLOSED`, and the
+gateway to carry the tag waits on the recovery mechanism the state boundary
+constrains plus the owner's catalog act. `TBR-RF-02` remains the hardware
+blocker for coexistence policy, which is a different function in the same
+placeholder directory. `services/gateways/README.md` holds the gate table.
 
 ## Definition of done for anything on this roadmap
 

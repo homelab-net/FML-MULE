@@ -14,8 +14,8 @@ below.
 [lab]: ../../docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 [recovery]: ../../docs/evidence/TBR-HA-01/2026-10-02-supervised-recovery-three-nodes.md
 
-`FML-ADR-032` makes **OpenTAKServer** the
-preferred initial implementation, and the architecture remains
+`FML-ADR-032` makes **OpenTAKServer** the preferred initial
+implementation, and the architecture remains
 **TAK-compatible, not OpenTAKServer-exclusive**. `FML-ADR-033` makes PyTAK
 the preferred library for custom CoT clients and translation gateways.
 `TBR-TAK-01` is `CLOSED` on `FML-ADR-071`.

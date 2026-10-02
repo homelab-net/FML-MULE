@@ -56,17 +56,22 @@ after that test**, and no driver fork is authorised.
 Its closure evidence must include a **supported-control inventory**, so the
 program knows what it can actually command rather than what it wishes it could.
 
-## Decision gates
+## What must close before implementation starts
 
 | Question | Trade | Current gate |
 | --- | --- | --- |
-| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | Closed on `FML-ADR-071`; not an outstanding translation gate |
-| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | Open; the physical coexistence decision is still owed |
+| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | **Closed** on `FML-ADR-071` (2026-09-06). No longer an outstanding translation gate |
+| What "failed" and "given up" mean for a service the gateway depends on | `TBR-HA-01` | **Open.** The mechanism the state boundary constrains |
+| Whether this gateway is admitted to `services/catalog/`, with an image pinned by digest and a start order | Catalog decision, the owner's | **Open** |
+| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | **Open.** Needs hardware; the physical coexistence decision is still owed |
 
-The selected translation rule permits the upstream integration experiment; it
-does not mean a persistent gateway is packaged or deployed by current main.
-The lab record identifies that implementation gap separately from the trade
-whose state classification is already accepted.
+`TBR-TAK-01` closing did **not** make translation implementable. What unblocks
+this directory next is `TBR-HA-01` and the catalog decision, per
+`docs/ROADMAP-DEV.md`, and for the coexistence half `TBR-RF-02` remains the
+real blocker. The selected translation rule permits the upstream integration
+experiment above; it does not mean a persistent gateway is packaged or deployed
+by current main. The lab record identifies that implementation gap separately
+from the trade whose state classification is already accepted.
 
 ## Why not build either anyway
 

@@ -13,10 +13,10 @@ three-node lab. The latter carried native fake-EUD chat through a Pi AP but used
 NetworkManager infrastructure configuration, not concurrent AP/802.11s mesh.
 It does not answer radio consolidation, airtime contention or coexistence.
 
-[onboard-ap]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
-
- This trade is `OPEN`: the airtime-contention and antenna/stream
+This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
+
+[onboard-ap]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
   sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate
