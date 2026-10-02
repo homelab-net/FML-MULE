@@ -1,0 +1,394 @@
+Sanitized selected raw command outputs from the 2026-10-01 prototype trial.
+Hostnames, accounts, addresses, interface-derived identities and synthetic
+event identifiers were replaced. Line endings, trailing whitespace and ANSI colour were normalized.
+The selected logs contain synthetic test traffic, not operational captures.
+Original logs remain private; their hashes are recorded in the companion JSON.
+Section names are pseudonyms; no radio pairing PIN is included.
+
+=== test-node-a-pr-platform.log ===
+2026-10-01T17:41:01+00:00
+6.18.50+rpt-rpi-v8
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+VERSION_ID="13"
+VERSION="13 (trixie)"
+VERSION_CODENAME=trixie
+DEBIAN_VERSION_FULL=13.7
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+throttled=0x50005
+podman version 5.4.2
+bash: line 1: /home/test-user/mule-prototype/.venv-lora/bin/activate: No such file or directory
+
+=== test-node-a-pr-platform-complete.log ===
+{'meshtastic': '2.7.11', 'bleak': '3.0.2', 'dbus-fast': '5.0.22'}
+{
+  "source_revision": "f898983ca0d4a80f20a8083db595b947a1a53608",
+  "ots_image": "sha256:1ab447ad3a32728e16546894a464b8786fe6b44802878986237967bbfd5bf961",
+  "images": {
+    "postgresql": "docker.io/library/postgres@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54",
+    "rabbitmq": "docker.io/library/rabbitmq@sha256:e582c0bc7766f3342496d8485efb5a1df782b5ce3886ad017e2eaae442311f69",
+    "martin": "ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca"
+  },
+  "article": "Pi 4 LAN service trial",
+  "deviations": [
+    "Ethernet readiness replaces unresolved production mesh gate",
+    "Prototype state and environment files use the login account home",
+    "microSD hosts prototype database state; ADR-050 excludes it as the production baseline",
+    "PostgreSQL 16.15 and RabbitMQ 3.13.7-management use separately resolved ARM-capable candidate digests; production pins are unchanged",
+    "No RF settings, mesh, EUD AP, authentication ingress or automatic recovery are claimed",
+    "Synthetic map tile only; operator readout is the existing bench increment"
+  ]
+}
+
+=== test-node-b-pr-platform.log ===
+2026-10-01T17:41:01+00:00
+6.18.50+rpt-rpi-v8
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+VERSION_ID="13"
+VERSION="13 (trixie)"
+VERSION_CODENAME=trixie
+DEBIAN_VERSION_FULL=13.7
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+throttled=0x50000
+podman version 5.4.2
+{
+  "source_revision": "f898983ca0d4a80f20a8083db595b947a1a53608",
+  "ots_image": "sha256:8a5e37ec0ed0fbf67c134f15c296f80b79679010ec98a53b8c88ab978d1aa4b7",
+  "images": {
+    "postgresql": "docker.io/library/postgres@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54",
+    "rabbitmq": "docker.io/library/rabbitmq@sha256:e582c0bc7766f3342496d8485efb5a1df782b5ce3886ad017e2eaae442311f69",
+    "martin": "ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca"
+  },
+  "article": "Pi 4 LAN service trial",
+  "deviations": [
+    "Ethernet readiness replaces unresolved production mesh gate",
+    "Prototype state and environment files use the login account home",
+    "microSD hosts prototype database state; ADR-050 excludes it as the production baseline",
+    "PostgreSQL 16.15 and RabbitMQ 3.13.7-management use separately resolved ARM-capable candidate digests; production pins are unchanged",
+    "No RF settings, mesh, EUD AP, authentication ingress or automatic recovery are claimed",
+    "Synthetic map tile only; operator readout is the existing bench increment"
+  ]
+}
+
+=== bench-pr-platform.log ===
+2026-10-01T17:41:01+00:00
+6.12.105+deb13-amd64
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+VERSION_ID="13"
+VERSION="13 (trixie)"
+VERSION_CODENAME=trixie
+DEBIAN_VERSION_FULL=13.6
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+podman version 5.4.2
+bash: line 1: iw: command not found
+
+=== bench-pr-radio-instrument.log ===
+
+2026-10-01T17:46:07+00:00
+iw version 6.9
+batctl debian-2025.0-2 [batman-adv: 2024.2]
+	type AP
+	channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+bash: line 1: ethtool: command not found
+qdisc noqueue 0: root refcnt 2
+
+=== bench-pr-ap-public-settings.log ===
+
+{"ap_isolate": "0", "channel": "11", "hw_mode": "g", "rsn_pairwise": "CCMP", "wpa": "2", "wpa_key_mgmt": "WPA-PSK"}
+
+=== test-node-a-mesh-type-probe.log ===
+command failed: Operation not supported (-95)
+
+=== test-node-b-mesh-type-probe.log ===
+command failed: Operation not supported (-95)
+
+=== test-node-a-wifi-mtu.log ===
+[redacted-ip-1] dev fmlbat0 src [redacted-ip-2] uid 0
+    cache
+PING [redacted-ip-1] ([redacted-ip-1]) from [redacted-ip-2] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-1]: icmp_seq=1 ttl=64 time=1.88 ms
+1480 bytes from [redacted-ip-1]: icmp_seq=2 ttl=64 time=2.08 ms
+
+--- [redacted-ip-1] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+rtt min/avg/max/mdev = 1.880/1.981/2.083/0.101 ms
+[redacted-ip-3] dev fmlbat0 src [redacted-ip-2] uid 0
+    cache
+PING [redacted-ip-3] ([redacted-ip-3]) from [redacted-ip-2] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-3]: icmp_seq=1 ttl=64 time=3.21 ms
+1480 bytes from [redacted-ip-3]: icmp_seq=2 ttl=64 time=19.1 ms
+
+--- [redacted-ip-3] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 3.210/11.166/19.122/7.956 ms
+
+=== test-node-b-wifi-mtu.log ===
+[redacted-ip-1] dev fmlbat0 src [redacted-ip-3] uid 0
+    cache
+PING [redacted-ip-1] ([redacted-ip-1]) from [redacted-ip-3] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-1]: icmp_seq=1 ttl=64 time=3.88 ms
+1480 bytes from [redacted-ip-1]: icmp_seq=2 ttl=64 time=5.43 ms
+
+--- [redacted-ip-1] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 3.878/4.654/5.430/0.776 ms
+[redacted-ip-2] dev fmlbat0 src [redacted-ip-3] uid 0
+    cache
+PING [redacted-ip-2] ([redacted-ip-2]) from [redacted-ip-3] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-2]: icmp_seq=1 ttl=64 time=10.5 ms
+1480 bytes from [redacted-ip-2]: icmp_seq=2 ttl=64 time=33.8 ms
+
+--- [redacted-ip-2] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 10.457/22.107/33.757/11.650 ms
+
+=== bench-wifi-mtu.log ===
+
+[redacted-ip-2] dev fmlbat0 src [redacted-ip-1] uid 0
+    cache
+PING [redacted-ip-2] ([redacted-ip-2]) from [redacted-ip-1] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-2]: icmp_seq=1 ttl=64 time=1.93 ms
+1480 bytes from [redacted-ip-2]: icmp_seq=2 ttl=64 time=6.60 ms
+
+--- [redacted-ip-2] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 1.933/4.268/6.603/2.335 ms
+[redacted-ip-3] dev fmlbat0 src [redacted-ip-1] uid 0
+    cache
+PING [redacted-ip-3] ([redacted-ip-3]) from [redacted-ip-1] fmlbat0: 1472(1500) bytes of data.
+1480 bytes from [redacted-ip-3]: icmp_seq=1 ttl=64 time=5.24 ms
+1480 bytes from [redacted-ip-3]: icmp_seq=2 ttl=64 time=9.09 ms
+
+--- [redacted-ip-3] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 5.244/7.167/9.090/1.923 ms
+
+=== wifi-negative-control.log ===
+PING [redacted-ip-4] ([redacted-ip-4]) from [redacted-ip-5] eth0: 56(84) bytes of data.
+64 bytes from [redacted-ip-4]: icmp_seq=1 ttl=64 time=0.439 ms
+
+--- [redacted-ip-4] ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.439/0.439/0.439/0.000 ms
+PING [redacted-ip-6] ([redacted-ip-6]) from [redacted-ip-7] wlan0: 56(84) bytes of data.
+64 bytes from [redacted-ip-6]: icmp_seq=1 ttl=64 time=15.6 ms
+
+--- [redacted-ip-6] ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 15.582/15.582/15.582/0.000 ms
+PING [redacted-ip-1] ([redacted-ip-1]) from [redacted-ip-2] fmlbat0: 56(84) bytes of data.
+
+--- [redacted-ip-1] ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1029ms
+
+PASS overlay failed while Ethernet and ordinary WiFi remained available
+
+=== test-node-a-wifi-cot.log ===
+{"uid": "synthetic-cot-a", "callsign": "SYNTHETIC-A", "route": "fmlbat0"}
+2026-10-01 15:54:29,466 pytak INFO - Using COT_URL='tcp://[redacted-ip-1]:8088'
+2026-10-01 15:54:29,472 pytak INFO - Run: CLITool
+2026-10-01 15:54:29,481 pytak INFO - Run: RXWorker
+2026-10-01 15:54:29,481 pytak INFO - Run: TXWorker
+
+=== test-node-b-wifi-cot.log ===
+{"uid": "synthetic-cot-b", "callsign": "SYNTHETIC-B", "route": "fmlbat0"}
+2026-10-01 15:54:27,953 pytak INFO - Using COT_URL='tcp://[redacted-ip-1]:8088'
+2026-10-01 15:54:27,954 pytak INFO - Run: CLITool
+2026-10-01 15:54:27,956 pytak INFO - Run: TXWorker
+2026-10-01 15:54:27,957 pytak INFO - Run: RXWorker
+
+=== wifi-cot-database.log ===
+
+synthetic-cot-a|1
+synthetic-cot-b|1
+
+=== test-node-a-final-readiness.log ===
+test-node-a
+active
+active
+active
+active
+active
+active
+active
+active
+Operator HTTP 200
+[redacted-ip-1] dev fmlbat0 src [redacted-ip-2] uid 1000
+    cache
+[redacted-ip-8] dev eth0 src [redacted-ip-5] uid 1000
+    cache
+fmlbat0          UNKNOWN        [redacted-ip-2]/24 [redacted-link-local]
+
+=== test-node-b-final-readiness.log ===
+test-node-b
+active
+active
+active
+active
+active
+active
+active
+active
+Operator HTTP 200
+[redacted-ip-1] dev fmlbat0 src [redacted-ip-3] uid 1000
+    cache
+[redacted-ip-8] dev eth0 src [redacted-ip-9] uid 1000
+    cache
+fmlbat0          UNKNOWN        [redacted-ip-3]/24 [redacted-link-local]
+
+=== bench-final-readiness.log ===
+
+test-bench
+fml-mq Up 39 hours
+fml-pg Up 39 hours
+fml-eud_handler Up 3 hours
+fml-cot_parser Up 39 hours
+fml-tiles Up 39 hours
+fml-ots Up 39 hours
+fml-nginx-api Up 3 weeks
+Operator HTTP 200
+[redacted-ip-2] dev fmlbat0 src [redacted-ip-1] uid 0
+    cache
+[redacted-ip-8] dev management-wifi src [redacted-ip-10] uid 0
+    cache
+fmlbat0          UNKNOWN        [redacted-ip-1]/24 [redacted-link-local]
+
+=== test-node-a-final-batman.log ===
+disabled
+{"version":"2025.4","algo_name":"BATMAN_IV","mesh_ifindex":4,"mesh_ifname":"fmlbat0","mesh_address":"[redacted-mac-1]","hard_ifindex":3,"hard_ifname":"wlan0","hard_address":"[redacted-mac-2]","tt_ttvn":3,"bla_crc":24504,"mcast_flags":{"all_unsnoopables": false,"want_all_ipv4": false,"want_all_ipv6": false,"want_no_rtr_ipv4": true,"want_no_rtr_ipv6": true,"have_mc_ptype_capa": true,"raw": 56},"mcast_flags_priv":{"bridged": false,"querier_ipv4_exists": false,"querier_ipv6_exists": false,"querier_ipv4_shadowing": false,"querier_ipv6_shadowing": false,"raw": 0},"aggregated_ogms_enabled":true,"ap_isolation_enabled":false,"isolation_mark":0,"isolation_mask":0,"bonding_enabled":false,"bridge_loop_avoidance_enabled":false,"distributed_arp_table_enabled":true,"fragmentation_enabled":true,"gw_bandwidth_down":100,"gw_bandwidth_up":20,"gw_mode":"off","gw_sel_class":20,"hop_penalty":30,"multicast_forceflood_enabled":false,"orig_interval":1000,"multicast_fanout":16}
+wlan0: active
+0: hci0: Bluetooth
+	Soft blocked: yes
+	Hard blocked: no
+
+=== test-node-b-final-batman.log ===
+disabled
+{"version":"2025.4","algo_name":"BATMAN_IV","mesh_ifindex":4,"mesh_ifname":"fmlbat0","mesh_address":"[redacted-mac-3]","hard_ifindex":3,"hard_ifname":"wlan0","hard_address":"[redacted-mac-4]","tt_ttvn":3,"bla_crc":20858,"mcast_flags":{"all_unsnoopables": false,"want_all_ipv4": false,"want_all_ipv6": false,"want_no_rtr_ipv4": true,"want_no_rtr_ipv6": true,"have_mc_ptype_capa": true,"raw": 56},"mcast_flags_priv":{"bridged": false,"querier_ipv4_exists": false,"querier_ipv6_exists": false,"querier_ipv4_shadowing": false,"querier_ipv6_shadowing": false,"raw": 0},"aggregated_ogms_enabled":true,"ap_isolation_enabled":false,"isolation_mark":0,"isolation_mask":0,"bonding_enabled":false,"bridge_loop_avoidance_enabled":false,"distributed_arp_table_enabled":true,"fragmentation_enabled":true,"gw_bandwidth_down":100,"gw_bandwidth_up":20,"gw_mode":"off","gw_sel_class":20,"hop_penalty":30,"multicast_forceflood_enabled":false,"orig_interval":1000,"multicast_fanout":16}
+wlan0: active
+
+=== bench-final-batman.log ===
+
+disabled
+{"version":"2024.2","algo_name":"BATMAN_IV","mesh_ifindex":254,"mesh_ifname":"fmlbat0","mesh_address":"[redacted-mac-5]","hard_ifindex":3,"hard_ifname":"wlp2s0","hard_address":"[redacted-mac-6]","tt_ttvn":3,"bla_crc":58357,"mcast_flags":{"all_unsnoopables": false,"want_all_ipv4": false,"want_all_ipv6": false,"want_no_rtr_ipv4": true,"want_no_rtr_ipv6": true,"have_mc_ptype_capa": true,"raw": 56},"mcast_flags_priv":{"bridged": false,"querier_ipv4_exists": false,"querier_ipv6_exists": false,"querier_ipv4_shadowing": false,"querier_ipv6_shadowing": false,"raw": 0},"aggregated_ogms_enabled":true,"ap_isolation_enabled":false,"isolation_mark":0,"isolation_mask":0,"bonding_enabled":false,"bridge_loop_avoidance_enabled":false,"distributed_arp_table_enabled":true,"fragmentation_enabled":true,"gw_bandwidth_down":100,"gw_bandwidth_up":20,"gw_mode":"off","gw_sel_class":20,"hop_penalty":30,"multicast_forceflood_enabled":false,"network_coding_enabled":false,"orig_interval":1000,"multicast_fanout":16}
+wlp2s0: active
+
+=== test-node-a-pr-link-mtu.log ===
+2026-10-01T17:53:03+00:00
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel master fmlbat0 state UP mode DORMANT group default qlen 1000
+    link/ether [redacted-mac-2] brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 1500
+    batadv_slave addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus sdio parentdev mmc1:0001:1
+iw version 6.9
+batctl debian-2025.0-2 [batman-adv: 2025.4]
+/sys/bus/sdio/drivers/brcmfmac
+0: hci0: Bluetooth
+	Soft blocked: yes
+	Hard blocked: no
+	Powered: no
+
+=== test-node-b-pr-link-mtu.log ===
+2026-10-01T17:53:03+00:00
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel master fmlbat0 state UP mode DORMANT group default qlen 1000
+    link/ether [redacted-mac-4] brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 1500
+    batadv_slave addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus sdio parentdev mmc1:0001:1
+iw version 6.9
+batctl debian-2025.0-2 [batman-adv: 2025.4]
+/sys/bus/sdio/drivers/brcmfmac
+0: hci0: Bluetooth
+	Soft blocked: yes
+	Hard blocked: no
+	Powered: no
+
+=== bench-pr-link-mtu.log ===
+
+2026-10-01T17:53:03+00:00
+3: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master fmlbat0 state UP mode DEFAULT group default qlen 1000
+    link/ether [redacted-mac-6] brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 256 maxmtu 2304
+    batadv_slave addrgenmode none numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 parentbus pci parentdev 0000:02:00.0
+    altname management-wifi
+iw version 6.9
+batctl debian-2025.0-2 [batman-adv: 2024.2]
+/sys/bus/pci/drivers/rtw89_8852be
+
+=== test-node-a-post-reboot-usb.log ===
+[    1.789320] usb 1-1.2: new full-speed USB device number 3 using xhci_hcd
+[    1.865569] usb 1-1.2: device descriptor read/64, error -32
+[    2.041582] usb 1-1.2: device descriptor read/64, error -32
+[    2.217311] usb 1-1.2: new full-speed USB device number 4 using xhci_hcd
+[    2.289551] usb 1-1.2: device descriptor read/64, error -32
+[    2.465564] usb 1-1.2: device descriptor read/64, error -32
+[    2.569804] usb 1-1-port2: attempt power cycle
+[    3.157326] usb 1-1.2: new full-speed USB device number 5 using xhci_hcd
+[    3.157652] usb 1-1.2: Device not responding to setup address.
+[    3.361602] usb 1-1.2: Device not responding to setup address.
+[    3.565303] usb 1-1.2: device not accepting address 5, error -71
+[    3.565747] usb 1-1.2: WARN: invalid context state for evaluate context command.
+[    3.637330] usb 1-1.2: new full-speed USB device number 6 using xhci_hcd
+[    3.637646] usb 1-1.2: Device not responding to setup address.
+[    3.841596] usb 1-1.2: Device not responding to setup address.
+[    4.045347] usb 1-1.2: device not accepting address 6, error -71
+[    4.045768] usb 1-1.2: WARN: invalid context state for evaluate context command.
+[    4.045988] usb 1-1-port2: unable to enumerate USB device
+[    9.949368] hwmon hwmon1: Undervoltage detected!
+[   22.045382] hwmon hwmon1: Undervoltage detected!
+[   56.317594] hwmon hwmon1: Undervoltage detected!
+[   66.401401] hwmon hwmon1: Undervoltage detected!
+[   74.462185] hwmon hwmon1: Undervoltage detected!
+[   96.645418] hwmon hwmon1: Undervoltage detected!
+[  126.882716] hwmon hwmon1: Undervoltage detected!
+
+=== test-node-a-usb-restored-state.log ===
+00000000
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 2109:3431 VIA Labs, Inc. Hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+throttled=0x50005
+	Powered: no
+
+=== test-node-a-ble-retry-20261001.log ===
+2026-10-01T17:42:12+00:00
+Advertisement refresh complete; phone reported disconnected
+Pairing helper failed: RuntimeError
+Pair helper exit: 3
+Scanning identified RAK
+Connecting Bluetooth link
+TimeoutError:
+API helper exit: 3
+2026-10-01T17:42:47+00:00
+
+=== test-node-a-ble-fresh-discovery-20261001.log ===
+2026-10-01T17:46:07+00:00
+Refreshing the identified radio's BLE advertisement
+Starting one identified-radio pairing attempt
+Pairing failed: org.bluez.Error.ConnectionAttemptFailed
+Pair helper exit: 3
+2026-10-01T17:46:08+00:00
+
+=== test-node-a-ble-clean-confirmed-pin-20261001.log ===
+2026-10-01T18:01:34+00:00
+Refreshing the identified radio's BLE advertisement
+Before: paired=False, connected=False, services_resolved=False
+Clearing only the identified radio's pending connection
+Cancel pending pairing: org.bluez.Error.DoesNotExist
+Starting one identified-radio pairing attempt
+After failure: connected=False, services_resolved=False
+Pairing failed: org.bluez.Error.ConnectionAttemptFailed
+Pair helper exit: 3
+2026-10-01T18:01:36+00:00
+
+=== test-node-b-rak-ble-cross-host-20261001.log ===
+2026-10-01T17:51:22+00:00
+Refreshing the identified radio's BLE advertisement
+Pairing helper failed: RuntimeError: Identified radio is not advertising during this attempt
+Pair helper exit: 3
+2026-10-01T17:51:32+00:00

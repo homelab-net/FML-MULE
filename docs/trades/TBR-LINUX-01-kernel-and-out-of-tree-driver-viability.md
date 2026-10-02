@@ -65,6 +65,24 @@ trade.
 Where DKMS is not the supported path, SAD section 20.2 item 4 requires the
 driver build to be pinned to the approved kernel package.
 
+## Progress
+
+The [2026-10-01 physical infrastructure-WiFi trial][wifi-trial] records two
+Pi 4 prototype nodes and the x86 bench carrying BATMAN_IV IP traffic and
+synthetic TAK events on real onboard radios. It identifies a mesh-point
+creation limitation in the tested Pi driver and an AP-dependent alternative.
+It does not exercise HaLow, selected 802.11s association, the kernel-promotion
+pipeline or rollback, and does not close this trade.
+
+[wifi-trial]: ../evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
+
+A [subsequent power/BLE follow-up][ble-followup] records clean voltage flags,
+continued USB enumeration failure, and two complete Meshtastic BLE
+configuration exchanges with the RAK4631. LoRa delivery remains untested
+in this follow-up.
+
+[ble-followup]: ../evidence/TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md
+
 ## Closure evidence
 
 SAD section 30.2: driver install and rebuild; mesh formation; the HIL

@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-01",
+  "source_revision": "f898983ca0d4a80f20a8083db595b947a1a53608",
+  "instrument": "SSH operator console, kernel journal, vcgencmd, BlueZ, Meshtastic Python and Bleak",
+  "operator": "desktop automation; program owner performed physical power change",
+  "node": "test-node-a (Pi 4); x86 bench for startup observation",
+  "image_build_identifier": "not recorded; OS and kernel are in the selected output",
+  "radio": "RAK4631, 2.7.15.567b8ea, US, LONG_FAST; configuration unchanged",
+  "antenna_separation_orientation": "not recorded; no RF delivery test performed",
+  "ambient": "not measured",
+  "power_supply_rating": "not recorded",
+  "raw_sha256": "e43999bc97b923829f14bce691c3acc9ef77829619b6cb128b69b8e3cd38c9b4",
+  "sections": [
+    {
+      "section": "node-a-clean-power-ble-pair.log",
+      "original_sha256": "10e659ad830ce1b862e7de5be81c2ebf94581d834d89fb09921c79b3de7474b2",
+      "public_section_sha256": "12e16114958a3a0f82b17779e392a246941c129f5326690fb8ea36831c5556b9"
+    },
+    {
+      "section": "node-a-paired-radio-api-retry.log",
+      "original_sha256": "27b1968150627e5eb748e323ddd2a46e8c97c635e59032873ebc9745f455af61",
+      "public_section_sha256": "1671cd40b3caf4f364c16327a29f171651ad1ab6a5b09545fb7884a9939348cb"
+    },
+    {
+      "section": "node-a-paired-gatt-complete.log",
+      "original_sha256": "2817cbdcfa7465ff4c59896a6960f3c6550c0c084d9ca2b6c12b78de3611d898",
+      "public_section_sha256": "2817cbdcfa7465ff4c59896a6960f3c6550c0c084d9ca2b6c12b78de3611d898"
+    },
+    {
+      "section": "node-a-paired-gatt-response-counts.log",
+      "original_sha256": "ac693ddbaead994d19de1765ecb49514537ca89e87931525dcc48274216629ce",
+      "public_section_sha256": "ac693ddbaead994d19de1765ecb49514537ca89e87931525dcc48274216629ce"
+    },
+    {
+      "section": "node-a-paired-gatt-repeat.log",
+      "original_sha256": "ac693ddbaead994d19de1765ecb49514537ca89e87931525dcc48274216629ce",
+      "public_section_sha256": "ac693ddbaead994d19de1765ecb49514537ca89e87931525dcc48274216629ce"
+    },
+    {
+      "section": "node-a-ble-followup-final-state.log",
+      "original_sha256": "295815c498392172a83d37c483c2e9c0b29ae6d45696db8b266cad0b36738fc2",
+      "public_section_sha256": "2df07425c7253435d8b1d26382e55edb319d7718fd772437fa53a9db63109567"
+    },
+    {
+      "section": "bench-return-service-check.log",
+      "original_sha256": "4a0d02d211882027fb345efcc94ae13705f7418b385ef14ba6e367e64f57af57",
+      "public_section_sha256": "17e679f4479941aed4a854fd10dd43b5ffda42574990e8cf244d2533421d8b85"
+    },
+    {
+      "section": "bench-reboot-tak-client-state.log",
+      "original_sha256": "91db163d96f56ad20a16949e28a7681baa482925cfec4dd9ea0fd83571f1b80b",
+      "public_section_sha256": "86170a5bde7ffdb3252c0cf7fde4ed3cc0c776af78f619bb75e0b14c5425aef6"
+    },
+    {
+      "section": "bench-split-dns-query.log",
+      "original_sha256": "7a5e29ec6c0382105b142d90b5b32e036731be052e62ebe8d65e66afd6e23e79",
+      "public_section_sha256": "19275a47f617a0712cbb7f8e52ba44e06ebd60595220fbcc6c0565132f5ce36e"
+    },
+    {
+      "section": "bench-ap-dns-startup-defect.log",
+      "original_sha256": "92f02f5f910e1727bd92f307e98257e174ae18ef72028968bdfd93e09e4c5733",
+      "public_section_sha256": "2c6fed07307df6a46872d77a230b9e2af0bf9ad4b05f1ef0f91b314d83d260fc"
+    },
+    {
+      "section": "node-a-bench-reachability-during-dns-repair.log",
+      "original_sha256": "c28e34c5b32176af1443a084dabc56bd3a7beab933968d333e22e89b07b84888",
+      "public_section_sha256": "07dfdaecfc2a48231082133c584bd897e91c1e6600ec61c1fec6dc9bc6ce289c"
+    },
+    {
+      "section": "bench-power-current-boot-events.log",
+      "original_sha256": "245d330b2f6622c176e4add3aaa422f6d3b9063c4cd510fd6a90ac59f0df358e",
+      "public_section_sha256": "bb125291e97d2453e354e4052bd7035ab0b28112b7afc60163d0dee744d4631a"
+    },
+    {
+      "section": "bench-dns-ownership-repair-confirmed.log",
+      "original_sha256": "0582af76ec46360d0448704b0f6b246f83d17d273ec67356c9d1136776306d16",
+      "public_section_sha256": "470dc1e30148f51711061a9d23f43db49916ab80845b74bf96014ee87706c247"
+    },
+    {
+      "section": "bench-automatic-sleep-disabled.log",
+      "original_sha256": "8d4d3a30d1da1e3450b0ca69b50c670a1fabd9a17cc83b2cc511c2d06a38dcc6",
+      "public_section_sha256": "69535e98049fd44b37d1f4fe468b1ffd499b941a51d18049ede8fb8995d95352"
+    },
+    {
+      "section": "bench-dns-sleep-repair-validation.log",
+      "original_sha256": "b279292572765aa4496266908d1c931b08995295a33e87cc24788701675bf809",
+      "public_section_sha256": "f90c644040230ac7523bb6badb5ab626fbd6661cf4300db6f2dfbec5da9fbc14"
+    },
+    {
+      "section": "bench-rtl-sdr-inventory.log",
+      "original_sha256": "c99703d239d96bc3f6a0eebd1a8a70a7c9dfc114b3c07e001c43c173e7169dc3",
+      "public_section_sha256": "1473cb9801b54e86ddd46e9eb7a33d105e1ba39a8251508a9c708a53f1b4459c"
+    },
+    {
+      "section": "node-b-restored-standard-marker.log",
+      "original_sha256": "6fdeef26f46a500c9ce02cee1d18e0216169f24fe7dba0ce38ff2c7cb45a32b4",
+      "public_section_sha256": "753e5afd96efef0f0efda9ce790c6c0c075edde7d4499ba87a828c1b610fcbf3"
+    },
+    {
+      "section": "bench-restored-marker-db-and-session.log",
+      "original_sha256": "68440747f534fa1df730c20addef4949ecdcac4fe64926260a66f0406dbc8c40",
+      "public_section_sha256": "0f9943ef3dc3f0ec8cffa701bd9ee8f851525da5e0b69f2cb4d4a389dc018547"
+    }
+  ],
+  "scope": "BLE configuration request/completion and clean disconnect; USB enumeration observation; bench startup listener; DNS startup collision and later bench reachability loss",
+  "limits": [
+    "No LoRa delivery or gateway integration test",
+    "No power-causality conclusion",
+    "No automatic recovery or full bench-loss test",
+    "No whole-host reboot with both DNS/sleep fixes",
+    "Fresh marker UI confirmation pending",
+    "No SDR IQ capture, tuning, calibration or RF claims"
+  ],
+  "recorded_utc": "2026-10-01T23:12:17Z",
+  "reachability_qualification": "Separate agent /root/verify_pi_discovery found no response at known bench addresses or alternative bench SSH address in a timed LAN sweep; this does not establish power state or repair execution.",
+  "latest_observation_utc": "2026-10-01T23:36:00Z",
+  "latest_observation_time_note": "Approximate operator collection time; exact kernel suspend and resume timestamps appear in selected output.",
+  "results": {
+    "ble_configuration_exchange": "two complete requests and clean disconnects",
+    "usb_enumeration": "failed in node A current boot",
+    "bench_control_path": "restored after operator resumed suspended host",
+    "dns": "default daemon disabled; configured AP/overlay resolver started; startup failure guard reproduced against occupied port",
+    "sleep": "all four modes disabled persistently; login1 Can* changed from yes to no",
+    "tak": "node B synthetic marker accepted by SQL; EUD SSL established; UI confirmation pending",
+    "sdr": "NESDR SMArt v5 enumerated; kernel RTL2832/DVB attached; reception untested"
+  }
+}

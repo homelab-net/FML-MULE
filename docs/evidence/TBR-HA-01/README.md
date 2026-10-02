@@ -7,8 +7,18 @@
 **Priority:** 12 of 16 (SAD v0.31 section 30.2). **Function owner:** SRE + TAK.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** a [manual routed-marker and streaming-worker trial][trial]
+records usable iTAK delivery through a forced transit node and a controlled
+worker move behind the existing assigned ingress. SQL, broker and durable state
+remain on bench. It does not demonstrate automatic recovery or close this trade.
+
+A [later startup observation][startup] records the native SSL container
+listening after a bench reboot, a subsequent suspend/resume interruption,
+and DNS/sleep repairs. EUD SSL returned; fresh marker UI confirmation was pending.
+
+[startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md
+
+[trial]: 2026-10-01-routed-marker-streaming-host.md
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

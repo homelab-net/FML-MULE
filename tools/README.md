@@ -186,6 +186,9 @@ Checks:
 6. No trade identifier is duplicated, and each matches its filename.
 7. Every trade's evidence directory exists, and a `CLOSED` trade's directory
    holds actual evidence. **A trade does not close on wording alone.**
+   An evidence README cannot claim `**Current contents:** none.` while
+   artifacts exist, including in child directories. Other prose still needs
+   review.
 8. **Every patch file in `os/kernel/patches/` has an entry in `docs/forks/`.**
    Every carried patch is a liability with a name attached, and the failure
    this catches is otherwise silent: a patch lands, works, and is forgotten

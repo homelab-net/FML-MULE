@@ -1,0 +1,325 @@
+Sanitized outputs from a manual routed-marker and streaming-worker movement trial.
+Addresses, accounts, event labels and UIDs replaced. No operational CoT payloads,
+real credentials, certificates, phone identifiers or screenshots are included.
+
+## route-hop-positive.log
+[address-1] via [address-2] dev fmlbat0 src [address-3] uid 0
+    cache
+PING [address-1] ([address-1]) 56(84) bytes of data.
+64 bytes from [address-1]: icmp_seq=1 ttl=63 time=9.43 ms
+64 bytes from [address-1]: icmp_seq=2 ttl=63 time=9.09 ms
+64 bytes from [address-1]: icmp_seq=3 ttl=63 time=8.77 ms
+
+--- [address-1] ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 8.774/9.097/9.433/0.269 ms
+TAK TCP connected
+
+## route-hop-negative-block.log
+table ip fml_hop_trial {
+	chain forward {
+		type filter hook forward priority filter - 10; policy drop;
+		counter packets 0 bytes 0 drop comment "fml-negative"
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] ip protocol icmp counter packets 3 bytes 252 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] ip protocol icmp counter packets 3 bytes 252 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] tcp dport 8088 counter packets 4 bytes 216 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] tcp sport 8088 counter packets 3 bytes 164 accept
+	}
+}
+
+## route-hop-negative.log
+PING [address-1] ([address-1]) 56(84) bytes of data.
+
+--- [address-1] ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1009ms
+
+PASS: TAK socket timed out with Pi1 forwarding blocked
+PING [address-4] ([address-4]) from [address-5] eth0: 56(84) bytes of data.
+64 bytes from [address-4]: icmp_seq=1 ttl=64 time=0.483 ms
+
+--- [address-4] ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.483/0.483/0.483/0.000 ms
+
+## route-hop-negative-unblock.log
+table ip fml_hop_trial {
+	chain forward {
+		type filter hook forward priority filter - 10; policy drop;
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] ip protocol icmp counter packets 3 bytes 252 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] ip protocol icmp counter packets 3 bytes 252 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] tcp dport 8088 counter packets 4 bytes 216 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] tcp sport 8088 counter packets 3 bytes 164 accept
+	}
+}
+
+## eud-marker-single-step.log
+2026-10-01 19:43:27,097 pytak INFO - Using COT_URL='tcp://[address-6]:8088'
+2026-10-01 19:43:27,097 pytak INFO - Run: CLITool
+{"uid": "synthetic-marker-baseline", "label": "SYNTHETIC-BASELINE", "phase": "baseline", "time": "2026-10-01T19:43:27.100028Z", "stale": "2026-10-01T20:43:27.100060Z", "type": "b-m-p-s-m", "bytes": 528}
+2026-10-01 19:43:27,100 pytak INFO - Run: RXWorker
+2026-10-01 19:43:27,100 pytak INFO - Run: TXWorker
+
+## eud-marker-expiry-evidence.log
+synthetic-marker-baseline|b-m-p-s-m|2026-10-01 19:43:27.100028|2026-10-01 20:43:27.10006|f
+synthetic-old-a|a-f-G-U-C|2026-10-01 15:54:29.479512|2026-10-01 15:56:29.479799|t
+synthetic-old-b|a-f-G-U-C|2026-10-01 15:54:27.957537|2026-10-01 15:56:27.957637|t
+
+## route-hop-marker-send.log
+[address-1] via [address-2] dev fmlbat0 src [address-3] uid 1000
+    cache
+PING [address-1] ([address-1]) 56(84) bytes of data.
+64 bytes from [address-1]: icmp_seq=1 ttl=63 time=2.35 ms
+64 bytes from [address-1]: icmp_seq=2 ttl=63 time=9.02 ms
+
+--- [address-1] ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 2.354/5.686/9.018/3.332 ms
+{"uid": "synthetic-marker-routed", "label": "SYNTHETIC-ROUTED", "phase": "forwarded-baseline", "time": "2026-10-01T19:45:37.202125Z", "stale": "2026-10-01T20:45:37.202217Z", "type": "b-m-p-s-m", "bytes": 538}
+2026-10-01 19:45:37,198 pytak INFO - Using COT_URL='tcp://[address-1]:8088'
+2026-10-01 19:45:37,198 pytak INFO - Run: CLITool
+2026-10-01 19:45:37,201 pytak INFO - Run: TXWorker
+2026-10-01 19:45:37,201 pytak INFO - Run: RXWorker
+
+## route-hop-marker-counters.log
+[address-1] dev fmlbat0 src [address-2] uid 0
+    cache
+
+table ip fml_hop_trial {
+	chain forward {
+		type filter hook forward priority filter - 10; policy drop;
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] ip protocol icmp counter packets 5 bytes 420 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] ip protocol icmp counter packets 5 bytes 420 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] tcp dport 8088 counter packets 11 bytes 1518 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] tcp sport 8088 counter packets 8 bytes 1158 accept
+	}
+}
+
+## route-hop-marker-db.log
+synthetic-marker-routed|b-m-p-s-m|2026-10-01 19:45:37.202125|2026-10-01 20:45:37.202217
+
+## host-switch-pi-preflight-corrected.log
+authoritative SQL reachable True
+authoritative broker reachable True
+/home/test-user/mule-prototype/stream-switch/ca/certs/opentakserver/opentakserver.pem: OK
+
+## host-switch-ingress-state.log
+fml-stream-switch-ingress Up 29 seconds
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port
+LISTEN    0         511                [address-7]:8089             [address-7]:*
+State   Recv-Q   Send-Q        Local Address:Port          Peer Address:Port
+ESTAB   0        0            [address-8]:8089        [address-9]:49798
+ESTAB   0        0               [address-1]:49184          [address-2]:8089
+
+## host-switch-worker-session.log
+fml-stream-switch-worker Up About a minute
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0      0          [address-6]:5672    [address-6]:43198
+ESTAB 0      0        [address-2]:8089  [address-1]:49184
+
+## host-switch-marker-send.log
+[address-1] via [address-2] dev fmlbat0 src [address-3] uid 1000
+    cache
+{"uid": "synthetic-marker-routed", "label": "SYNTHETIC-ROUTED", "phase": "node-a-streaming-host", "time": "2026-10-01T20:01:33.979023Z", "stale": "2026-10-01T21:01:33.979117Z", "type": "b-m-p-s-m", "bytes": 538}
+2026-10-01 20:01:33,975 pytak INFO - Using COT_URL='tcp://[address-1]:8088'
+2026-10-01 20:01:33,975 pytak INFO - Run: CLITool
+2026-10-01 20:01:33,978 pytak INFO - Run: TXWorker
+2026-10-01 20:01:33,978 pytak INFO - Run: RXWorker
+
+## host-switch-marker-db.log
+synthetic-marker-routed|b-m-p-s-m|2026-10-01 20:01:33.979023|2026-10-01 21:01:33.979117|t
+synthetic-marker-routed|b-m-p-s-m|2026-10-01 19:45:37.202125|2026-10-01 20:45:37.202217|f
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process
+LISTEN    0         511                [address-7]:8089             [address-7]:*        users:(("nginx",pid=2512442,fd=5),("nginx",pid=2512408,fd=5))
+fml-stream-switch-ingress Up 2 minutes
+
+## host-switch-forward-counters.log
+[address-1] dev fmlbat0 src [address-2] uid 0
+    cache
+
+table ip fml_hop_trial {
+	chain forward {
+		type filter hook forward priority filter - 10; policy drop;
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] ip protocol icmp counter packets 0 bytes 0 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] ip protocol icmp counter packets 0 bytes 0 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] tcp dport 8088 counter packets 19 bytes 1926 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] tcp sport 8088 counter packets 17 bytes 11807 accept
+	}
+}
+
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0      0        [address-2]:8089  [address-1]:49184
+	 cubic wscale:7,10 rto:204 rtt:1.969/1.431 ato:40 mss:1448 pmtu:1500 rcvmss:1228 advmss:1448 cwnd:10 bytes_sent:2982 bytes_acked:2982 bytes_received:5606 segs_out:11 segs_in:13 data_segs_out:4 data_segs_in:7 send 58831894bps lastsnd:54252 lastrcv:46464 lastack:46464 pacing_rate 117626448bps delivery_rate 7226448bps delivered:5 app_limited busy:12ms rcv_space:14480 rcv_ssthresh:68680 minrtt:0.997 snd_wnd:72832 rcv_wnd:69632
+
+## host-switch-worker-health-summary.log
+{"ssl_started": true, "warning_lines": 0, "error_lines": 0, "log_exists": true}
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0      0        [address-2]:8089  [address-1]:49184
+
+## native-ssl-durable-setup.log
+c34221f22aa996545c8081817557ccb2523a38667b285965615fbac5e9b3fde7
+{"persistent_native_ssl_container_created": true, "started": false, "startup_and_stop_paths_updated": true, "backup_sha256": "eaa402d710c6e76baa103ef5480eb5132d8a595e62f7d2b1cc3faf09dea73192", "image": "sha256:5a8b02d96ce87d00d63b4831b4e269e8ff00fa4c2c0063cc7ea3cb66c80a2ed9"}
+
+## native-ssl-config-validation.log
+5a8b02d96ce87d00d63b4831b4e269e8ff00fa4c2c0063cc7ea3cb66c80a2ed9 ["eud_handler"] ["--ssl"] created
+State   Recv-Q    Send-Q        Local Address:Port         Peer Address:Port
+ESTAB   0         0            [address-8]:8089       [address-9]:49798
+
+## native-ssl-restart-validation.log
+fml-eud_ssl Up 35 seconds
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process
+LISTEN    0         5                  [address-7]:8089             [address-7]:*        users:(("eud_handler",pid=2513254,fd=5))
+LISTEN 0      5            [address-7]:8089      [address-7]:*
+PASS: plaintext restart retained same SSL container process and listener
+LISTEN 0      5            [address-7]:8089      [address-7]:*
+PASS: restarting persistent SSL container restored its own listener
+ExecStop={ path=/usr/bin/podman ; argv[]=/usr/bin/podman stop fml-eud_ssl fml-tiles fml-nginx-tls fml-cot_parser fml-eud_handler fml-ots fml-mq fml-pg ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }
+fml-mq Up 41 hours
+fml-pg Up 41 hours
+fml-eud_handler Up 4 seconds
+fml-cot_parser Up 41 hours
+fml-tiles Up 41 hours
+fml-ots Up 41 hours
+fml-nginx-api Up 3 weeks
+fml-eud_ssl Up 3 seconds
+State    Recv-Q    Send-Q       Local Address:Port         Peer Address:Port
+
+## route-hop-switch-node-a-restore.log
+{"role": "test-node-a", "restored": true}
+0
+[address-10] dev eth0 src [address-11] uid 0
+    cache
+
+## route-hop-switch-node-b-restore.log
+{"role": "test-node-b", "restored": true}
+[address-1] dev fmlbat0 src [address-3] uid 0
+    cache
+
+## route-hop-switch-bench-restore.log
+{"role": "bench", "restored": true}
+[address-3] dev fmlbat0 src [address-1] uid 0
+    cache
+
+## host-switch-private-cleanup.log
+Temporary dependency credentials removed
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+active
+[address-10] dev eth0 src [address-11] uid 1000
+    cache
+
+## native-ssl-startup-path-check.log
+starting datastore + bus
+  started fml-pg
+  started fml-mq
+waiting for postgres + rabbitmq to accept connections
+starting OTS processes
+  started fml-ots
+  started fml-eud_handler
+  started fml-cot_parser
+waiting for the CoT listener (8088)
+  started fml-eud_ssl
+  started fml-tiles
+stack up
+2026-10-01 20:11:17,814 pytak INFO - Using COT_URL='tcp://[address-6]:8088'
+2026-10-01 20:11:17,814 pytak INFO - Run: CLITool
+2026-10-01 20:11:17,816 pytak INFO - Run: RXWorker
+2026-10-01 20:11:17,817 pytak INFO - Run: TXWorker
+{"uid": "synthetic-marker-restored", "label": "SYNTHETIC-RESTORED", "phase": "persistent-bench-ssl", "time": "2026-10-01T20:11:17.817199Z", "stale": "2026-10-01T21:11:17.817232Z", "type": "b-m-p-s-m", "bytes": 548}
+State   Recv-Q    Send-Q        Local Address:Port         Peer Address:Port
+ESTAB   0         0            [address-8]:8089       [address-9]:49828
+fml-mq Up 41 hours
+fml-pg Up 41 hours
+fml-eud_handler Up About a minute
+fml-cot_parser Up 41 hours
+fml-tiles Up 41 hours
+fml-ots Up 41 hours
+fml-nginx-api Up 3 weeks
+fml-eud_ssl Up About a minute
+
+## host-switch-fresh-node-a-setup.log
+{"role": "test-node-a", "action": "setup", "state": "/run/fml-route-hop.json"}
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0      0        [address-2]:8089  [address-1]:35886
+
+## host-switch-fresh-node-b-setup.log
+{"role": "test-node-b", "action": "setup", "state": "/run/fml-route-hop.json"}
+
+## host-switch-fresh-bench-setup.log
+{"role": "bench", "action": "setup", "state": "/run/fml-route-hop.json"}
+State   Recv-Q   Send-Q        Local Address:Port          Peer Address:Port
+ESTAB   0        0            [address-8]:8089        [address-9]:49839
+ESTAB   0        0               [address-1]:35886          [address-2]:8089
+
+## host-switch-fresh-marker-send.log
+[address-1] via [address-2] dev fmlbat0 src [address-3] uid 1000
+    cache
+2026-10-01 20:15:53,993 pytak INFO - Using COT_URL='tcp://[address-1]:8088'
+2026-10-01 20:15:53,994 pytak INFO - Run: CLITool
+2026-10-01 20:15:53,996 pytak INFO - Run: RXWorker
+2026-10-01 20:15:53,997 pytak INFO - Run: TXWorker
+{"uid": "synthetic-marker-moved-worker", "label": "SYNTHETIC-MOVED-WORKER", "phase": "node-a-streaming-host-fresh", "time": "2026-10-01T20:15:53.997738Z", "stale": "2026-10-01T21:15:53.997837Z", "type": "b-m-p-s-m", "bytes": 548}
+
+## host-switch-fresh-forward-counters.log
+[address-1] dev fmlbat0 src [address-2] uid 0
+    cache
+
+table ip fml_hop_trial {
+	chain forward {
+		type filter hook forward priority filter - 10; policy drop;
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] ip protocol icmp counter packets 0 bytes 0 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] ip protocol icmp counter packets 0 bytes 0 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-3] ip daddr [address-1] tcp dport 8088 counter packets 6 bytes 1260 accept
+		iifname "fmlbat0" oifname "fmlbat0" ip saddr [address-1] ip daddr [address-3] tcp sport 8088 counter packets 4 bytes 216 accept
+	}
+}
+
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0      0        [address-2]:8089  [address-1]:35886
+
+## host-switch-fresh-proof.log
+bench_native_ssl=exited
+fml-stream-switch-ingress Up About a minute
+synthetic-marker-moved-worker|b-m-p-s-m|2026-10-01 20:15:53.997738|2026-10-01 21:15:53.997837|t
+State   Recv-Q   Send-Q        Local Address:Port          Peer Address:Port
+ESTAB   0        0            [address-8]:8089        [address-9]:49839
+ESTAB   0        0               [address-1]:35886          [address-2]:8089
+
+## host-switch-final-node-a-restore.log
+{"role": "test-node-a", "restored": true}
+0
+
+## host-switch-final-node-b-restore.log
+{"role": "test-node-b", "restored": true}
+[address-1] dev fmlbat0 src [address-3] uid 0
+    cache
+
+## host-switch-final-bench-restore.log
+{"role": "bench", "restored": true}
+[address-3] dev fmlbat0 src [address-1] uid 0
+    cache
+
+## host-switch-final-private-cleanup.log
+Temporary dependency credentials removed
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+active
+
+## host-switch-final-bench-readiness.log
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process
+LISTEN    0         5                  [address-7]:8089             [address-7]:*        users:(("eud_handler",pid=2514535,fd=5))
+State    Recv-Q    Send-Q       Local Address:Port         Peer Address:Port
+fml-mq Up 41 hours
+fml-pg Up 41 hours
+fml-eud_handler Up 12 minutes
+fml-cot_parser Up 41 hours
+fml-tiles Up 41 hours
+fml-ots Up 41 hours
+fml-nginx-api Up 3 weeks
+fml-eud_ssl Up About a minute
+operator_http=200

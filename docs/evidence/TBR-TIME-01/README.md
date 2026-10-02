@@ -7,8 +7,12 @@
 **Priority:** 5 of 16 (SAD v0.31 section 30.2). **Function owner:** Platform + Security.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** the following artifacts. This trade remains `OPEN`;
+an artifact's presence is not owner acceptance.
+
+- [2026-09-14-partition-rejoin-time-reconciliation.md][artifact-1]
+
+[artifact-1]: 2026-09-14-partition-rejoin-time-reconciliation.md
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

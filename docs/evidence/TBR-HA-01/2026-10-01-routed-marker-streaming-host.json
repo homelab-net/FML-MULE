@@ -1,0 +1,217 @@
+{
+  "date": "2026-10-01",
+  "source_revision": "f898983ca0d4a80f20a8083db595b947a1a53608",
+  "recorded_utc": "2026-10-01T20:22:22.293134+00:00",
+  "scope": "real prototype nodes and iTAK; synthetic events; manual operator-controlled trial, not HA qualification",
+  "node_provenance": "../TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.json",
+  "topology": "AP-dependent BATMAN_IV plus temporary IPv4 host routes via node-a; not independent RF multihop",
+  "streaming_move": {
+    "ingress": "bench retained",
+    "TLS_worker": "node-a",
+    "state": "authoritative SQL and Rabbit remained on bench",
+    "server_key": "generated on node-a; distinct leaf signed by existing bench CA",
+    "dependency_transport": "SSH tunnels via desktop; Pi loopback listeners only",
+    "tailnet_grant": "unchanged, assigned bench only",
+    "eud_configuration": "unchanged by operator instruction"
+  },
+  "operator_observation": {
+    "baseline_marker_opened": true,
+    "routed_marker_opened": true,
+    "moved_worker_fresh_phase_visible": "pending operator confirmation",
+    "restored_bench_new_marker_notification": true
+  },
+  "restoration": {
+    "temporary_routes_and_sysctl": "restored and checked",
+    "streaming_worker": "bench persistent native SSL container",
+    "temporary_proxy_and_worker": "removed",
+    "SSH_dependency_forwards": "closed",
+    "temporary_dependency_credentials": "removed from Pi",
+    "plaintext_worker_restart_retained_ssl": true,
+    "ssl_container_restart_restored_listener": true,
+    "existing_startup_path_executed": "checked"
+  },
+  "limitations": [
+    "No autonomous failover, writer promotion or durable-state migration",
+    "No test of losing the bench, desktop, broker or SQL authority",
+    "No calibrated recovery-time measurement or sustained load",
+    "Public raw record omits real client identity and application secrets"
+  ],
+  "raw_sha256": "8f8d59265053c65aad29a15f135bfebb26736edf9de9b5ddce61c2e4d8afd630",
+  "sections": [
+    {
+      "section": "route-hop-positive.log",
+      "original_sha256": "1c41dc6910c28aebf07c180b9693c9fa9af6305edea12c1aa112a89889fda123",
+      "public_section_sha256": "a8d65bfed67ca91c2889e35739b0171ecb55b19fe832ba8567f243aad554c430"
+    },
+    {
+      "section": "route-hop-negative-block.log",
+      "original_sha256": "ce1fe8ff33bd33ee531ba456be0bfa752468436d5f95051eb091f6991e297732",
+      "public_section_sha256": "7a46ade21450e88a7c8d54155ab9a82c4724f913f048bce53e64904d7ffd9263"
+    },
+    {
+      "section": "route-hop-negative.log",
+      "original_sha256": "5fec7daaccb1e88ff5a778b3daf4be766c47fc0cc719d08d5fbd019c44e2fa4f",
+      "public_section_sha256": "8be0fe38bd5662d3a4c97e66dfd1c73024afc4282ed69c0905cb29d7437de990"
+    },
+    {
+      "section": "route-hop-negative-unblock.log",
+      "original_sha256": "5cc5685e99865ac6459e3f841752a649aa92a4d34617e1226ef16ce709946832",
+      "public_section_sha256": "4f6c5297eb2fa3dd36e51aeed5d5dc1201e3acdf59615417c74a02429b3b33ee"
+    },
+    {
+      "section": "eud-marker-single-step.log",
+      "original_sha256": "851dac3d0d99e0494e2c524e17b5f6ff8bcb71065693bc6d6e690029443e12ea",
+      "public_section_sha256": "05ee27063b080f172a61e1a6474ec69cfe5ed49512475153d038825c6a45c157"
+    },
+    {
+      "section": "eud-marker-expiry-evidence.log",
+      "original_sha256": "c512a65c1b1dceb4f817bdef7b53d769cd99228306a7613b7bcc011db54eb1a7",
+      "public_section_sha256": "f604f51d096d8df8eba008f959e5f856a7b1ae90daa75f6e6751af5778367e44"
+    },
+    {
+      "section": "route-hop-marker-send.log",
+      "original_sha256": "ede995f305e3c10d15f8353a3324b681853eb5c329f4bc0bf60405422e1caeb1",
+      "public_section_sha256": "cee664b8b77773c928d76843e24b00afd6cf4ba6f268592c9f4fd41df590ebb2"
+    },
+    {
+      "section": "route-hop-marker-counters.log",
+      "original_sha256": "b139f51f1677ea9c347a58316faea858cbb8a3c3860206c518a870f8ae65fa32",
+      "public_section_sha256": "6640585b08dd74e6915233e77ad25835197fc5583fb42822a129f770f9f576f7"
+    },
+    {
+      "section": "route-hop-marker-db.log",
+      "original_sha256": "1c041a3cbe1ba42758c4d296171cebf714cf00dc4e2e4350108dbb37134c54a8",
+      "public_section_sha256": "6d7854851530876ea11d9069b10ab56ed34dc4753c0c13c531b65e733886185b"
+    },
+    {
+      "section": "host-switch-pi-preflight-corrected.log",
+      "original_sha256": "208440d9d56b6149bf390eb96162b743f9e25a8534879adef4d04fe2de49289d",
+      "public_section_sha256": "d28a94875e1062da04c21e0add91a2df69c87fa6206ec599082a8ef274ba6fc6"
+    },
+    {
+      "section": "host-switch-ingress-state.log",
+      "original_sha256": "f4d14027b12a4475f646b267689a6441b1159d9f5856e90264d7b7b00873335e",
+      "public_section_sha256": "54278b844ded6fc8258f4316f60d55cb2f4104ccda0c297d2909f3f2132e63bf"
+    },
+    {
+      "section": "host-switch-worker-session.log",
+      "original_sha256": "f1a98f9c0333a431536b928bbcd0a2fbc0c3394251dd7240efa7b7ccbf07bd01",
+      "public_section_sha256": "ce204e2ea4e9baf0d807bd664235542e1f25105299f9080c0b80dba8e2cacbcd"
+    },
+    {
+      "section": "host-switch-marker-send.log",
+      "original_sha256": "8b4ece581c87f1438e1c0ec8cd7b9308ba1bcb833be2cc14aa8cbf8ca8e28930",
+      "public_section_sha256": "3ae7ba5cc7ded16310871b72d54abea096c07431bebfe58b1d4e67259ca6abb9"
+    },
+    {
+      "section": "host-switch-marker-db.log",
+      "original_sha256": "95c220a80b9da76b0cf6a6d05fbb69cb3fd2c1862082c652b8fa8f9a5f194ef8",
+      "public_section_sha256": "6cb7dff2d243bf622a259949e6c1d08b18b4314237f2c76747f663bf60eb4652"
+    },
+    {
+      "section": "host-switch-forward-counters.log",
+      "original_sha256": "616a9403ff47c467b906ca6a551d27e0bfb639b66c0516e66bdcc2921b4fd861",
+      "public_section_sha256": "40537d70b2c274155508e0177f8017d874805d6e83b731bd9a650bfabfca3314"
+    },
+    {
+      "section": "host-switch-worker-health-summary.log",
+      "original_sha256": "0cd572e335d4c49876d636c21c7b7ca3b5ba964e1e580be2e42429fd24ba401d",
+      "public_section_sha256": "a2d9d024f927b9ed2795cc03fda5d2a980dab715c6f25989805d047d62a0ac7d"
+    },
+    {
+      "section": "native-ssl-durable-setup.log",
+      "original_sha256": "c149baa052a6ab8e403889ce5d01b079ee7338f19f1e65d5530ec5a40b2f5a7b",
+      "public_section_sha256": "8259798398eca0914f0dc6940d972dd3cbd085eb34f4275b49351179f040c130"
+    },
+    {
+      "section": "native-ssl-config-validation.log",
+      "original_sha256": "7bd048a2e00626180896b2939efb576783199e9933689116e3c132faf5eb2c60",
+      "public_section_sha256": "f35741f47b6e289d56c7138600ca4671e3581b0de22d7d4cbe9d0096f3556383"
+    },
+    {
+      "section": "native-ssl-restart-validation.log",
+      "original_sha256": "b24230e844ad7fa19f16100d57ffb2a0cf90888bd63e9d2f64d552c95b3593bf",
+      "public_section_sha256": "69d2fcc9d10fd7b27962f25abf2e2c929c59127d414b3c53e255a6af09f921fb"
+    },
+    {
+      "section": "route-hop-switch-node-a-restore.log",
+      "original_sha256": "565759c35ff78e7836d986b2748278288118d653c74d37e7d7b0822187abfcf5",
+      "public_section_sha256": "4793b4338e8ff87f096cc20dcda394249d4b24bea255dfe027e46cc6cabaf526"
+    },
+    {
+      "section": "route-hop-switch-node-b-restore.log",
+      "original_sha256": "e8dc4923dea63533187faa0ca0801b68cd4d16179a2d867645742c378d89d690",
+      "public_section_sha256": "f490c765c0ca7845797ded69feebe1018c68915cde1842ea2bca5d9d760091b4"
+    },
+    {
+      "section": "route-hop-switch-bench-restore.log",
+      "original_sha256": "25ba2955a3a1904dae4fcfe0df5bd63d3f286a3cea81d1b2a98dc8675804d18a",
+      "public_section_sha256": "369def1425ca3f2bfb6e37de02b0182c5c42e391e41868a570648977e5456880"
+    },
+    {
+      "section": "host-switch-private-cleanup.log",
+      "original_sha256": "e17ef508d53a8cc6899b20dc0e58772f73deb9f25bac3015b41e09fe9207fbb6",
+      "public_section_sha256": "b44eb81cf746eacb3933a6616bc3025de1f9531090c81eff2269167360ee0e34"
+    },
+    {
+      "section": "native-ssl-startup-path-check.log",
+      "original_sha256": "04e2ebfffd6050b36ed350917d248319cc41dde18cfa35705aaa79a850b5d0d5",
+      "public_section_sha256": "4d915ec6c591ce1a86ae42daf25fa7671e1d16481d0c33866514946c24d13bce"
+    },
+    {
+      "section": "host-switch-fresh-node-a-setup.log",
+      "original_sha256": "2139725459ebc55fa504251d4ae0e9b392ecedc1e92d7330cfaa8a6f464ea70e",
+      "public_section_sha256": "0ba0deb1d5d367944efaa6a18456f0e1ec119527f832c11b8f0548cc5a037f0f"
+    },
+    {
+      "section": "host-switch-fresh-node-b-setup.log",
+      "original_sha256": "5c94f974f840b223513ae56a1d7cfcda12763a88b79f6a17d6d623df75b72486",
+      "public_section_sha256": "37232520c84bd5d9863826fb6b26ad59fefefdf671c0c80a8405f957b51c9a91"
+    },
+    {
+      "section": "host-switch-fresh-bench-setup.log",
+      "original_sha256": "8460f998ca6935c98522eca52cc87df53d4037d7d22135ea0898f0b3371ab1d6",
+      "public_section_sha256": "acfa5910001257cffdf12ef0b2634cec69481a397075349dd2ddc59f6f46bf4a"
+    },
+    {
+      "section": "host-switch-fresh-marker-send.log",
+      "original_sha256": "63dc743eca7697010526df776a4710fb0001d19d86e0e409a1eb39fb489a09f0",
+      "public_section_sha256": "f42785bbaa75e99e89f2d39c4d54d6eb0c767c816fb0c2a663ae8555de709c3e"
+    },
+    {
+      "section": "host-switch-fresh-forward-counters.log",
+      "original_sha256": "3936703a04f13d52e50f15c3a4dbfb07e62e645152ffee52866f6a3b51e03282",
+      "public_section_sha256": "2dacb54bccdf6e6e0de70ea1b57452d68361e569f44de38609117c3acadbcd40"
+    },
+    {
+      "section": "host-switch-fresh-proof.log",
+      "original_sha256": "0b286abc21d35f2562406b2ff0fa6db47f619a9c433b563ff7014e40728ee0a8",
+      "public_section_sha256": "56b196406e31de494b9ea9ec145341b2d6636a6e681a52872ef45f1e59b31066"
+    },
+    {
+      "section": "host-switch-final-node-a-restore.log",
+      "original_sha256": "63f3bf5ea6c5b48f6bf425d6482cdd2aaf240274e14c626dd28d0ea6ac787133",
+      "public_section_sha256": "3c266dc4aeba02351d5d23a9f1a8fda769e7ce6cd46e65db37471c16c34261d7"
+    },
+    {
+      "section": "host-switch-final-node-b-restore.log",
+      "original_sha256": "e8dc4923dea63533187faa0ca0801b68cd4d16179a2d867645742c378d89d690",
+      "public_section_sha256": "f490c765c0ca7845797ded69feebe1018c68915cde1842ea2bca5d9d760091b4"
+    },
+    {
+      "section": "host-switch-final-bench-restore.log",
+      "original_sha256": "25ba2955a3a1904dae4fcfe0df5bd63d3f286a3cea81d1b2a98dc8675804d18a",
+      "public_section_sha256": "369def1425ca3f2bfb6e37de02b0182c5c42e391e41868a570648977e5456880"
+    },
+    {
+      "section": "host-switch-final-private-cleanup.log",
+      "original_sha256": "e8c0c0873d54d595b239cd4679f8e7dd1c0514715538abe78bebe4cca0fc12ef",
+      "public_section_sha256": "e8c0c0873d54d595b239cd4679f8e7dd1c0514715538abe78bebe4cca0fc12ef"
+    },
+    {
+      "section": "host-switch-final-bench-readiness.log",
+      "original_sha256": "b736165749f68d7521932f844e29fd10762cdc1c27abb532e4dc2230f71499f3",
+      "public_section_sha256": "66efa454ca3b98d7254cc5d2b42e2ea4cb3718a2e8627160726abd5782d292ef"
+    }
+  ]
+}

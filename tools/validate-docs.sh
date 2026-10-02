@@ -10,7 +10,7 @@
 #   4. Every trade referenced by an ADR exists as a file in docs/trades/.
 #   5. Every trade has the six required sections and its frontmatter fields.
 #   6. No trade identifier is duplicated, and each matches its filename.
-#   7. Every trade's evidence directory exists.
+#   7. Every trade's evidence directory exists and its README does not deny artifacts.
 #   8. Every patch file in os/kernel/patches/ has an entry in docs/forks/.
 #   9. No OCI image reference anywhere uses a mutable tag.
 #  10. Every open trade appears in the ITEP campaign plan.
@@ -264,6 +264,14 @@ $id"
   # does not close on document wording alone.
   if [ -n "$evidence" ] && [ ! -d "$evidence" ]; then
     fail "$base names evidence directory '$evidence', which does not exist"
+  fi
+  # AGENTS.md requires evidence findings and their directory README to agree.
+  # Five indexes still claimed no contents after artifacts had landed. Catch
+  # that exact contradiction; arbitrary summary prose still needs review.
+  if [ -n "$evidence" ] && [ -f "$evidence/README.md" ] &&
+    grep -Eq '^\*\*Current contents:\*\* none\.' "$evidence/README.md" &&
+    [ -n "$(find "$evidence" -type f ! -name README.md 2>/dev/null | head -1)" ]; then
+    fail "${evidence%/}/README.md claims no contents but evidence artifacts exist"
   fi
   if [ "$status" = "CLOSED" ]; then
     if [ -z "$(find "$evidence" -type f ! -name README.md 2>/dev/null | head -1)" ]; then
