@@ -49,6 +49,31 @@ make_sandbox() {
 
 # --- planted violations -----------------------------------------------------
 
+@test "validate-docs allows an empty evidence directory to claim no contents" {
+  make_sandbox
+  target="$SANDBOX/docs/evidence/TBR-HW-01"
+  [ -z "$(find "$target" -type f ! -name README.md | head -1)" ]
+  grep -qF '**Current contents:** none.' "$target/README.md"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-docs catches an evidence README that claims no contents" {
+  make_sandbox
+  target="$SANDBOX/docs/evidence/TBR-HW-01"
+  grep -qF '**Current contents:** none.' "$target/README.md"
+  # Put the artifact in a child directory too: a top-level-only check would
+  # miss archived datasheets, which are evidence under the same index.
+  mkdir -p "$target/datasheets"
+  printf '# Synthetic test artifact\n' > "$target/datasheets/README.md"
+  printf 'Synthetic test artifact, not a hardware reading.\n' > "$target/datasheets/sample.txt"
+
+  run sh "$SANDBOX/tools/validate-docs.sh" "$SANDBOX"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"TBR-HW-01/README.md claims no contents but evidence artifacts exist"* ]]
+}
+
 @test "validate-docs detects an ADR missing a required section" {
   make_sandbox
   # Remove the "## Accepted cost" section from one ADR.

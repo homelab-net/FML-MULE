@@ -1,0 +1,276 @@
+{
+  "date": "2026-10-01",
+  "source_revision": "f898983ca0d4a80f20a8083db595b947a1a53608",
+  "recorded_by": "Desktop SSH orchestration under Program Owner instruction",
+  "scope": "Physical prototype observations; no trade acceptance or field qualification",
+  "nodes": {
+    "test-node-a": {
+      "model": "Raspberry Pi 4 (owner identification)",
+      "kernel": "6.18.50+rpt-rpi-v8",
+      "os_reported": "Debian 13.7",
+      "ots_image_id": "sha256:1ab447ad3a32728e16546894a464b8786fe6b44802878986237967bbfd5bf961",
+      "driver": "brcmfmac"
+    },
+    "test-node-b": {
+      "model": "Raspberry Pi 4 (owner identification)",
+      "kernel": "6.18.50+rpt-rpi-v8",
+      "os_reported": "Debian 13.7",
+      "ots_image_id": "sha256:8a5e37ec0ed0fbf67c134f15c296f80b79679010ec98a53b8c88ab978d1aa4b7",
+      "driver": "brcmfmac"
+    },
+    "test-bench": {
+      "model": "x86_64 development bench",
+      "kernel": "6.12.105+deb13-amd64",
+      "os_reported": "Debian 13.6",
+      "driver": "rtw89_8852be"
+    }
+  },
+  "host_os_image_build_id": null,
+  "host_os_image_build_note": "Whole-image checksums were not captured; kernels and deployed OCI IDs are recorded separately.",
+  "candidate_dependency_images": {
+    "postgresql": "docker.io/library/postgres@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54",
+    "rabbitmq": "docker.io/library/rabbitmq@sha256:e582c0bc7766f3342496d8485efb5a1df782b5ce3886ad017e2eaae442311f69",
+    "martin": "ghcr.io/maplibre/martin@sha256:59902019bf9038926ff0c71174237d6852e64c457830a6349abe7090be8818ca"
+  },
+  "instrument": {
+    "icmp": "Linux ping; versions not captured",
+    "route": "iproute2; version not captured",
+    "iw": "6.9",
+    "batctl": "debian-2025.0-2",
+    "meshtastic_client": "2.7.11",
+    "bleak": "3.0.2",
+    "dbus_fast": "5.0.22",
+    "clock_calibration": null
+  },
+  "configuration": {
+    "association": "WPA2/CCMP infrastructure AP and two stations",
+    "channel": 11,
+    "frequency_mhz": 2462,
+    "channel_width_mhz": 20,
+    "routing_algorithm": "BATMAN_IV",
+    "bridge_loop_avoidance": false,
+    "hard_interface_mtu_bytes": 1500,
+    "overlay_mtu_bytes": 1500,
+    "batman_fragmentation_enabled": true,
+    "management": "Pi Ethernet; separate bench USB WiFi adapter",
+    "runtime_only": true,
+    "radio_region": null,
+    "transmit_power_dbm": null,
+    "antenna": null,
+    "separation_m": null,
+    "orientation": null,
+    "ambient_conditions": null
+  },
+  "measurements": {
+    "basic_pairs": "Single bench/node-a pair first; then all six directed pairs passed",
+    "full_size_ipv4": {
+      "directions": 6,
+      "packets_per_direction": 2,
+      "payload_bytes": 1472,
+      "ipv4_packet_bytes": 1500,
+      "df": true,
+      "received_per_direction": 2
+    },
+    "negative_control": "Overlay failed after node-a hard-interface detachment; Ethernet and ordinary WiFi still passed; interface restored",
+    "cot_rows": {
+      "synthetic-cot-a": 1,
+      "synthetic-cot-b": 1
+    },
+    "eud_delivery": "Not confirmed for these event identifiers",
+    "ble_target_identity": "Candidate RAK inferred from the remaining advertisement after the owner identified T1000; not matched to RAK serial API or label",
+    "ble": "Node-a Pair returned ConnectionAttemptFailed before PIN callback; node-b scan did not find the targeted advertisement in its bounded window",
+    "usb": "Node-a EPROTO -71 and EPIPE -32; cause unresolved",
+    "power": "Node-a reported throttled=0x50005 in final sample; USB causality unproved"
+  },
+  "sanitization": [
+    "Hostnames, accounts, IP/MAC/link-local addresses and MAC-derived interface names replaced",
+    "Line endings, trailing whitespace and ANSI colour normalized",
+    "Synthetic CoT identifiers/callsigns replaced; no event payloads published",
+    "Only selected outputs included; full AP/mission configuration, credentials, node inventories and operational traffic excluded",
+    "Nonsecret AP security/channel settings retained through an exact key allowlist; SSID and password excluded"
+  ],
+  "raw_output_file": "2026-10-01-infrastructure-wifi-prototype.txt",
+  "raw_output_sha256": "bbb50e4634253eb7528d9a29f0e59b4c5e9ca6e1c6941698698d11130ebaae86",
+  "selected_original_logs": [
+    {
+      "section": "test-node-a-pr-platform.log",
+      "original_sha256": "bd49a978b1386a632442d790f35737a369d73c523cd343bf403a828b94b7e6dd",
+      "sanitized_section_sha256": "255bb9aad3762eb592ff6d513ae8faa75077039c1fccf7a4df4c7d571ed8cde3",
+      "local_log_modified_utc": "2026-10-01T17:41:01.114185+00:00"
+    },
+    {
+      "section": "test-node-a-pr-platform-complete.log",
+      "original_sha256": "830bd69a6cc67e125806a45c91e104552addb887717c013ecb8f85fabb016322",
+      "sanitized_section_sha256": "3d889fc59b0e004effb2893016217694c4857631c2d81747a77d81c203320c9c",
+      "local_log_modified_utc": "2026-10-01T17:42:12.265707+00:00"
+    },
+    {
+      "section": "test-node-b-pr-platform.log",
+      "original_sha256": "ba24ee253d30b62bfdb96b9d51255b58acaeddfc603d76b8a32d6f9d2d66a5fb",
+      "sanitized_section_sha256": "8851172115eb89244499f484d311fca80ef80ee2c7adc6e7023fd75a942d3dba",
+      "local_log_modified_utc": "2026-10-01T17:41:00.900690+00:00"
+    },
+    {
+      "section": "bench-pr-platform.log",
+      "original_sha256": "5862a557d7067ddec89d5b4220cf3fb98622b90b07515ec353ecf9ebbd91e081",
+      "sanitized_section_sha256": "8ea67390143729688fd6e7198d11b2f03806493c8d12d3a0bde8fb6c6aa90a88",
+      "local_log_modified_utc": "2026-10-01T17:41:00.855526+00:00"
+    },
+    {
+      "section": "bench-pr-radio-instrument.log",
+      "original_sha256": "00409084b7abb2222c65383caba366e899b2f8ba23c4ca4f47fc55b11da4bab7",
+      "sanitized_section_sha256": "14a591037ba16af3b119b59f0a7e759938c9d530c1a749b98f3506c5188f093f",
+      "local_log_modified_utc": "2026-10-01T17:46:06.839398+00:00"
+    },
+    {
+      "section": "bench-pr-ap-public-settings.log",
+      "original_sha256": "c853c8c4b2d98a701b893fc4d0492e5483f14c74cb7081119564b7edf6ed6119",
+      "sanitized_section_sha256": "e7e398156cad5acc1afae0c655cee8b1e3a83a7ef59de02188a9ec7b7ff7c460",
+      "local_log_modified_utc": "2026-10-01T18:14:25.375475+00:00"
+    },
+    {
+      "section": "test-node-a-mesh-type-probe.log",
+      "original_sha256": "5d168e0818f1c2fd66bdd4d49780aa554b0af7cf7a93c671da4ee9dd192db5d2",
+      "sanitized_section_sha256": "ae56fd17c5fbadaf34bada6175ce4147792e9ff2e40e657c3a607a2fa9398bb0",
+      "local_log_modified_utc": "2026-10-01T14:33:10.476983+00:00"
+    },
+    {
+      "section": "test-node-b-mesh-type-probe.log",
+      "original_sha256": "5d168e0818f1c2fd66bdd4d49780aa554b0af7cf7a93c671da4ee9dd192db5d2",
+      "sanitized_section_sha256": "ae56fd17c5fbadaf34bada6175ce4147792e9ff2e40e657c3a607a2fa9398bb0",
+      "local_log_modified_utc": "2026-10-01T14:33:10.430686+00:00"
+    },
+    {
+      "section": "test-node-a-wifi-mtu.log",
+      "original_sha256": "3658b639aa7d95ede16880fc974d7d7ee0a1f772a3cf73103434fc31b1b21f70",
+      "sanitized_section_sha256": "86092430e054d9bd219607a89588d4ace5fa3753ce6e98c435498cd1a81a27e3",
+      "local_log_modified_utc": "2026-10-01T15:56:35.022748+00:00"
+    },
+    {
+      "section": "test-node-b-wifi-mtu.log",
+      "original_sha256": "d7d6cb7ba8d90862df022157e9728d22fac8e3f293dfab4f5576aacd2d367b0b",
+      "sanitized_section_sha256": "62815fcc3cc67740b9cde6277bf7f9798e456d2d9bf04f8b13c1fad9d98edb61",
+      "local_log_modified_utc": "2026-10-01T15:56:35.022748+00:00"
+    },
+    {
+      "section": "bench-wifi-mtu.log",
+      "original_sha256": "e4468d5633c7171f12151f6d5ed2173fbaa4048b4f85b16bbc1c144d75634071",
+      "sanitized_section_sha256": "720a9fc1be4e94ae091656fa4257e56fa5cb5d3205832048002909b4cb9fdea5",
+      "local_log_modified_utc": "2026-10-01T15:56:35.127493+00:00"
+    },
+    {
+      "section": "wifi-negative-control.log",
+      "original_sha256": "1be5e7753b79332695958cbd8f1ac75d07092bfab047a9f594e077dfe19f2ccf",
+      "sanitized_section_sha256": "d4fc76cf5e781c77ce74383d609e1a8b53a62e782c11c2d283ae66bc3b1b14b3",
+      "local_log_modified_utc": "2026-10-01T15:53:16.587980+00:00"
+    },
+    {
+      "section": "test-node-a-wifi-cot.log",
+      "original_sha256": "5871b31eb0566d55a87b42ca7e02e6f85f1d2b5b213220982bda5a9ac56acd88",
+      "sanitized_section_sha256": "645830d597318a22762dc9dcba4ed19e588edc8c2a9a44bf9e38404a385db6db",
+      "local_log_modified_utc": "2026-10-01T15:54:34.485006+00:00"
+    },
+    {
+      "section": "test-node-b-wifi-cot.log",
+      "original_sha256": "e2d7e0beebb542ae1223d31368163402a9332962f8c868618fda81cd7695e6a6",
+      "sanitized_section_sha256": "65958b215b4d2eecd1d29dd3e99fd2a1017e91e8307e64fcc99858f10cfe0e36",
+      "local_log_modified_utc": "2026-10-01T15:54:33.171382+00:00"
+    },
+    {
+      "section": "wifi-cot-database.log",
+      "original_sha256": "fc40d3bdb92a450baceae077a1675bd6b0aeae500fea2d6731ec45b7b5931544",
+      "sanitized_section_sha256": "f592f07878c79b42470fbe444f0e65a73b395023ba7ffea88fce499ca4372299",
+      "local_log_modified_utc": "2026-10-01T15:56:33.366042+00:00"
+    },
+    {
+      "section": "test-node-a-final-readiness.log",
+      "original_sha256": "9b8019265a1923bb3fcf255deb7a4cf25e007d7c41e52e262635e9557b1c937e",
+      "sanitized_section_sha256": "76fa0e674e77961464bc5ea584db254ed38bcd698c3ba8cf65d0e5ec401ba363",
+      "local_log_modified_utc": "2026-10-01T17:32:06.240320+00:00"
+    },
+    {
+      "section": "test-node-b-final-readiness.log",
+      "original_sha256": "d1ef058ea7d26c9f99325666825158d906a20a7e0ee194af60ca874acf9ac07a",
+      "sanitized_section_sha256": "5f012022cc5dbfb35acf39aec4e3b56c4da0357fa35e40eafd414764f4e28c3f",
+      "local_log_modified_utc": "2026-10-01T17:32:06.256032+00:00"
+    },
+    {
+      "section": "bench-final-readiness.log",
+      "original_sha256": "5c467529f2a8bd4389446b6da3fc92b55c6f0bf7a69c4d4b7e5e1edb663894ef",
+      "sanitized_section_sha256": "dd3dc6e7368b98fea633f6a06aa55d9cb41e051039361b46093d51b191e0fcb6",
+      "local_log_modified_utc": "2026-10-01T17:32:06.694684+00:00"
+    },
+    {
+      "section": "test-node-a-final-batman.log",
+      "original_sha256": "c842600ae82bb3c056517e9daa2aec4fb3c093d179601f6fbbb324a0d2a5b2fe",
+      "sanitized_section_sha256": "0e0c4b87c3f60dafab22bf7d584d6cc45b0684c44497d848cf7a08ab991a48af",
+      "local_log_modified_utc": "2026-10-01T17:32:26.066258+00:00"
+    },
+    {
+      "section": "test-node-b-final-batman.log",
+      "original_sha256": "7b0928ff09157be7012f9018dc9f2912a1185891d8f1df194c7d5f986b0d55ac",
+      "sanitized_section_sha256": "aa1f0447fbb2486ed21b62b16a9870c682a3e1af5b0a364911aaeec1a8e94596",
+      "local_log_modified_utc": "2026-10-01T17:32:26.018550+00:00"
+    },
+    {
+      "section": "bench-final-batman.log",
+      "original_sha256": "cda244694f7f356481aaf1ea8d175dcf0cefc5f8f43f8ce4571f63d620f74abd",
+      "sanitized_section_sha256": "b9ed48a2557a4cfd1f7957efbbbd51518cc62f869debb4082800e581cd582f73",
+      "local_log_modified_utc": "2026-10-01T17:32:26.066258+00:00"
+    },
+    {
+      "section": "test-node-a-pr-link-mtu.log",
+      "original_sha256": "6ff9476f5508e03179c3ae2e493de260a53e4711e3f5f132e27f99725ec51411",
+      "sanitized_section_sha256": "5831888db97287389e41fc07bd77784c6c5bc7b63f36d91f048e8771c8f38b96",
+      "local_log_modified_utc": "2026-10-01T17:53:02.909857+00:00"
+    },
+    {
+      "section": "test-node-b-pr-link-mtu.log",
+      "original_sha256": "6b6eb7aa3c6ede059293fd1fcfc7dfcb989ce24383530ae0973341958bc14287",
+      "sanitized_section_sha256": "c31a2521bdfdc9167ab0256d4cb0b752fba5fd9e5fed4ff958534a13a8e57b1a",
+      "local_log_modified_utc": "2026-10-01T17:53:02.791645+00:00"
+    },
+    {
+      "section": "bench-pr-link-mtu.log",
+      "original_sha256": "f62c4ec21950ec601bcd07f4a7d5df8eca95c5ae0ac19ea99c6a56d217410ba7",
+      "sanitized_section_sha256": "b16fe570233b06746344363e199eac590f783760e963e84cc3a4cfd6816aa514",
+      "local_log_modified_utc": "2026-10-01T17:53:03.233987+00:00"
+    },
+    {
+      "section": "test-node-a-post-reboot-usb.log",
+      "original_sha256": "fc28ab51c21a4504cc3bb6e3cb09aa5279667fdf8bf6d5d664de19e1e11c791e",
+      "sanitized_section_sha256": "522471af94e1b93487bf78982a3ca498b26e958555924b95bb6639a9ac6adba2",
+      "local_log_modified_utc": "2026-10-01T14:53:27.784059+00:00"
+    },
+    {
+      "section": "test-node-a-usb-restored-state.log",
+      "original_sha256": "c478f51726a191ee3169300e2cdb9845d97dd73595832032fbb7f605f3341a02",
+      "sanitized_section_sha256": "acb238340dcb1bcde17938b87ff7b6f5322fa93cc7c9fe26419abab0d049b9bd",
+      "local_log_modified_utc": "2026-10-01T16:07:59.661716+00:00"
+    },
+    {
+      "section": "test-node-a-ble-retry-20261001.log",
+      "original_sha256": "c6d1cf67f6660688e890742e99b0c5b5d08df7a3c99f4b8c363dde93a7e25103",
+      "sanitized_section_sha256": "4a30419a046f0ca0bcaf76820187d4ab53239d1dd30fc842a4d624233c2af0f9",
+      "local_log_modified_utc": "2026-10-01T17:42:46.940200+00:00"
+    },
+    {
+      "section": "test-node-a-ble-fresh-discovery-20261001.log",
+      "original_sha256": "d257e4fd1109d8cf92986dbb42a80427f47741dff50bbf16e3503122929dfc27",
+      "sanitized_section_sha256": "4b10ba9526002e77fd1eab2e2ae5ac4323cab5acb51bbdbd612730f930c84a4f",
+      "local_log_modified_utc": "2026-10-01T17:46:08.491174+00:00"
+    },
+    {
+      "section": "test-node-a-ble-clean-confirmed-pin-20261001.log",
+      "original_sha256": "929fc4f9337ea8adebe3fda61d756d6f0954b718ab3849b6691758723e44e757",
+      "sanitized_section_sha256": "d1101e2843c735b0191e2fc8976e0366c9b396d374ded1f142e5f0a3ce576df3",
+      "local_log_modified_utc": "2026-10-01T18:01:35.715138+00:00"
+    },
+    {
+      "section": "test-node-b-rak-ble-cross-host-20261001.log",
+      "original_sha256": "ff128b2a899b5765c934c304d713ef6381d1cfee0fb673667a1d7d262fcaec00",
+      "sanitized_section_sha256": "4990887999b332cb955b373910af0b4fe519f5627da6596a6dda59740560a7b9",
+      "local_log_modified_utc": "2026-10-01T17:51:32.509020+00:00"
+    }
+  ]
+}

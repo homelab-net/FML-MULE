@@ -7,8 +7,30 @@
 **Priority:** 8 of 16 (SAD v0.31 section 30.2). **Function owner:** Linux/Platform.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** the following artifacts. This trade remains `OPEN`;
+an artifact's presence is not owner acceptance.
+
+- [2026-08-30-80211s-mesh-in-software.md][artifact-1]
+- [2026-08-30-batman-v-available-on-debian.md][artifact-2]
+- [2026-08-30-wireless-adapter-survey.md][artifact-3]
+- [2026-08-31-halow-driver-mesh-and-sae-support.md][artifact-4]
+- [2026-08-31-originator-count-differs-by-interface-order.md][artifact-5]
+- [2026-10-01-infrastructure-wifi-prototype.json][artifact-6]
+- [2026-10-01-infrastructure-wifi-prototype.md][artifact-7]
+- [2026-10-01-infrastructure-wifi-prototype.txt][artifact-8]
+
+- [2026-10-01-power-ble-followup-node-a.md][ble-followup]
+
+[ble-followup]: 2026-10-01-power-ble-followup-node-a.md
+
+[artifact-1]: 2026-08-30-80211s-mesh-in-software.md
+[artifact-2]: 2026-08-30-batman-v-available-on-debian.md
+[artifact-3]: 2026-08-30-wireless-adapter-survey.md
+[artifact-4]: 2026-08-31-halow-driver-mesh-and-sae-support.md
+[artifact-5]: 2026-08-31-originator-count-differs-by-interface-order.md
+[artifact-6]: 2026-10-01-infrastructure-wifi-prototype.json
+[artifact-7]: 2026-10-01-infrastructure-wifi-prototype.md
+[artifact-8]: 2026-10-01-infrastructure-wifi-prototype.txt
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

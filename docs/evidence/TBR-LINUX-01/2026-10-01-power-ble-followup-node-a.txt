@@ -1,0 +1,125 @@
+Allowlisted diagnostic output; no node records, keys, identities or addresses.
+
+## node-a-clean-power-ble-pair.log
+throttled=0x0
+usb 1-1.1: device descriptor read/64, error -32
+usb 1-1.1: device descriptor read/64, error -32
+usb 1-1.1: device descriptor read/64, error -32
+usb 1-1.1: device descriptor read/64, error -32
+usb 1-1.1: device not accepting address 5, error -71
+usb 1-1.1: device not accepting address 6, error -71
+usb 1-1-port1: unable to enumerate USB device
+Before: paired=False, connected=False, services_resolved=False
+Factory passkey requested once
+Pairing result: paired=True
+
+## node-a-paired-radio-api-retry.log
+{"transport": "BLE", "firmware": "2.7.15.567b8ea", "hardware": "RAK4631", "region": "US", "modem_preset": "LONG_FAST"}
+
+## node-a-paired-gatt-complete.log
+Scanning candidate RAK
+Connecting Bluetooth link
+Bluetooth link connected
+Meshtastic configuration request accepted
+{"firmware": "2.7.15.567b8ea", "hardware": "RAK4631"}
+TimeoutError: Configuration exchange did not complete
+throttled=0x0
+
+## node-a-paired-gatt-response-counts.log
+Scanning candidate RAK
+Connecting Bluetooth link
+Bluetooth link connected
+Meshtastic configuration request accepted
+{"firmware": "2.7.15.567b8ea", "hardware": "RAK4631"}
+Meshtastic configuration exchange complete
+{"response_counts": {"my_info": 1, "deviceuiConfig": 1, "node_info": 50, "metadata": 1, "channel": 8, "config": 10, "moduleConfig": 13, "fileInfo": 5, "config_complete_id": 1}}
+throttled=0x0
+
+## node-a-paired-gatt-repeat.log
+Scanning candidate RAK
+Connecting Bluetooth link
+Bluetooth link connected
+Meshtastic configuration request accepted
+{"firmware": "2.7.15.567b8ea", "hardware": "RAK4631"}
+Meshtastic configuration exchange complete
+{"response_counts": {"my_info": 1, "deviceuiConfig": 1, "node_info": 50, "metadata": 1, "channel": 8, "config": 10, "moduleConfig": 13, "fileInfo": 5, "config_complete_id": 1}}
+throttled=0x0
+
+## node-a-ble-followup-final-state.log
+6.18.50+rpt-rpi-v8
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+throttled=0x0
+meshtastic=2.7.11
+bleak=3.0.2
+
+## bench-return-service-check.log
+fml-mq Up 5 minutes
+fml-pg Up 5 minutes
+fml-eud_handler Up 5 minutes
+fml-cot_parser Up 5 minutes
+fml-tiles Up 5 minutes
+fml-ots Up 5 minutes
+fml-eud_ssl Up 5 minutes
+Native SSL listener present on port 8089
+
+## bench-reboot-tak-client-state.log
+ActiveState=active
+ActiveEnterTimestamp=Thu 2026-10-01 17:01:08 MDT
+
+## bench-split-dns-query.log
+2012]: ignoring query from non-local network [address] (logged only once)
+
+## bench-ap-dns-startup-defect.log
+2654]: failed to create listening socket for [address]: Address already in use
+2654]: FAILED to start up
+
+## node-a-bench-reachability-during-dns-repair.log
+2 packets transmitted, 0 received, 100% packet loss, time 1006ms
+bash: connect: No route to host
+bash: line 1: /dev/tcp/[address]/22: No route to host
+
+## bench-power-current-boot-events.log
+Oct 01 17:15:54 test-bench systemd-logind[715]: The system will suspend now!
+Oct 01 17:15:55 test-bench systemd-sleep[3168]: Performing sleep operation 'suspend'...
+Oct 01 17:26:29 test-bench systemd-sleep[3168]: System returned from sleep operation 'suspend'.
+Oct 01 17:15:55 test-bench kernel: PM: suspend entry (deep)
+Oct 01 17:26:29 test-bench kernel: PM: suspend exit
+
+## bench-dns-ownership-repair-confirmed.log
+Occupied-port guarded start exit=1
+Configured AP/tailnet resolver started; default service disabled
+
+## bench-automatic-sleep-disabled.log
+systemd 257 (257.13-1~deb13u1)
+AllowSuspend=no
+AllowHibernation=no
+AllowHybridSleep=no
+AllowSuspendThenHibernate=no
+s "no"
+s "no"
+s "no"
+s "no"
+
+## bench-dns-sleep-repair-validation.log
+disabled
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 64158
+[logical-service-name]		0	IN	A	[address]
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27552
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12008
+[logical-service-name]		0	IN	A	[address]
+EUD native SSL session established on port 8089
+
+## bench-rtl-sdr-inventory.log
+Bus 001 Device 005: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
+    |__ Port 002: Dev 005, If 0, Class=Vendor Specific Class, Driver=dvb_usb_rtl28xxu, 480M
+usb 1-2: Product: NESDR SMArt v5
+r820t 12-001a: Rafael Micro r820t successfully identified, chip type: R820T
+rtl2832_sdr rtl2832_sdr.1.auto: Registered as swradio0
+EUD native SSL session established on port 8089
+
+## node-b-restored-standard-marker.log
+{"uid": "synthetic-restored-marker", "label": "SYNTHETIC-RESTORED-MARKER", "phase": "dns-and-sleep-repaired", "type": "b-m-p-s-m"}
+
+## bench-restored-marker-db-and-session.log
+synthetic-restored-marker|b-m-p-s-m
+EUD native SSL session established on port 8089

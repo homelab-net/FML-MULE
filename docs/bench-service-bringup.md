@@ -7,6 +7,32 @@ sequence differs from the CM4 field node the BOM specifies**. It is a bench
 record, `SIMULATED` tier: it exercises the service-plane user flow end to end,
 and says nothing about RF, thermal, power, or CM4 footprint.
 
+The setup described below is the earlier AP/service bench snapshot. The
+[2026-10-01 prototype record][wifi-prototype] documents a later live trial with
+the onboard radio as the EUD AP, the separate USB adapter as bench management,
+and two Pi 4 stations carrying a temporary BATMAN_IV overlay. Use that dated
+record for the trial topology and its limits; the earlier interface roles
+below do not describe the later trial. The selected field configuration and
+its remaining qualification gates are unchanged.
+
+The [later routed-marker and streaming-worker record][streaming-trial] also
+corrects the TLS snapshot below: the live bench retired nginx TLS termination
+in favor of native OpenTAKServer SSL authentication. A detached native SSL exec
+was lost when the plaintext container restarted; that trial installs a separate
+persistent native SSL container in the existing bench startup/stop path.
+The temporary host-movement proxy carries opaque TCP and does not terminate TLS.
+
+A [subsequent reboot observation][ble-followup] records native SSL startup
+and the restored earlier interface roles: USB adapter as AP and onboard
+WiFi as management. The temporary BATMAN trial was not recreated. A later
+suspend/resume interruption led to disabling automatic sleep and repairing a
+DNS startup collision; the follow-up records those changes and their limits.
+
+[ble-followup]: evidence/TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md
+
+[wifi-prototype]: evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
+[streaming-trial]: evidence/TBR-HA-01/2026-10-01-routed-marker-streaming-host.md
+
 The field hardware is `hardware/prototype/prototype-bom-revA.csv`. Read the
 deltas table against it before assuming anything here transfers unchanged.
 

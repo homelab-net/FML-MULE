@@ -83,6 +83,14 @@ closes the trade (`requires-hardware: yes`).
   remains this trade's to choose.
   `docs/evidence/TBR-RF-01/2026-09-14-voice-data-contention-hwsim.md`.
 
+The [2026-10-01 physical infrastructure-WiFi trial][wifi-trial] adds a limited
+real-radio observation: BATMAN_IV traffic and synthetic TAK events between two
+Pi 4 nodes and the bench. The access-point star, unrecorded separation/antennas
+and short samples do not qualify selected 802.11s, RF multi-hop, throughput,
+recovery or coexistence. The trade remains open.
+
+[wifi-trial]: ../evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
+
 ## Closure evidence
 
 SAD section 30.2: multi-node mobility and load; recovery; multicast and bulk

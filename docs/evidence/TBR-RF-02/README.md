@@ -7,8 +7,12 @@
 **Priority:** 11 of 16 (SAD v0.31 section 30.2). **Function owner:** RF/Spectrum.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** the following artifacts. This trade remains `OPEN`;
+an artifact's presence is not owner acceptance.
+
+- [2026-08-30-sx1262-usb-modem-identified.md][artifact-1]
+
+[artifact-1]: 2026-08-30-sx1262-usb-modem-identified.md
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be

@@ -29,6 +29,20 @@ of important assumptions not yet confronted with real hardware**, not to make th
 architecture more complete. `AGENTS.md` ("The current objective") carries the
 per-task rule; this section carries the demonstration ladder it serves.
 
+The [2026-10-01 physical WiFi trial][wifi-prototype] confronts a subset of the
+Linux/radio boundary on two Pi 4s and the x86 bench. It carries BATMAN_IV and
+synthetic TAK over an infrastructure AP, with explicit deviations. It does not
+complete M2's selected 802.11s gate or M3's automatic recovery gate; the existing
+item states and production selections remain unchanged.
+
+The [later routed-marker trial][streaming-trial] confirms a marker opened in
+iTAK after forced prototype-node transit. A controlled SSL-worker move retains
+bench ingress and authoritative dependencies; it does not demonstrate the M3
+automatic recovery gate or full loss of that authority.
+
+[wifi-prototype]: evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
+[streaming-trial]: evidence/TBR-HA-01/2026-10-01-routed-marker-streaming-host.md
+
 Every phase ends with a **demonstration, not a document.** Each gate is a
 physical result:
 

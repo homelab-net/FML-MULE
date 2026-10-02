@@ -65,6 +65,14 @@ case.**
 
 ## Closure evidence
 
+The [2026-10-01 manual streaming-worker trial][streaming-trial] confronts
+unchanged-EUD connectivity and a detached SSL-process loss on the prototype.
+It retains bench ingress, SQL and broker authority, and desktop dependency
+tunnels. It does not select or demonstrate automatic recovery, writer promotion,
+durable-state migration or the closure cases below. This trade remains open.
+
+[streaming-trial]: ../evidence/TBR-HA-01/2026-10-01-routed-marker-streaming-host.md
+
 SAD section 30.2: primary loss; partition; stale standby; rejoin; no-authority;
 administrative recovery.
 
