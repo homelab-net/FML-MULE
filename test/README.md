@@ -81,7 +81,14 @@ code.
 | `SIMULATED` | fakes or recorded fixtures | software logic, integration, user flow |
 | `HARDWARE-VERIFIED` | the real hardware that claim is about | physical behaviour |
 
-**Nothing in this repository is `HARDWARE-VERIFIED`.** No node exists.
+**No formal hardware evidence-tier promotion is made here.** Physical lab
+nodes exist, and the [three-node observations][lab] record measured radio/API
+carriage and service recovery with explicit intervention boundaries. They are
+trade evidence, not qualification-stage results; `test/results/` remains empty.
+The private assisted bridge is not runnable from a fresh checkout, and CI does
+not establish its physical results or unattended operation.
+
+[lab]: ../docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 
 `SIMULATED` never supports a claim about RF, power, thermal, timing under load,
 or driver behaviour. Those are `UNVERIFIED` regardless of how green the suite

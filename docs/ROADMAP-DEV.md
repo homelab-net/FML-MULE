@@ -320,9 +320,16 @@ changes the file discovers it rather than someone assuming it.
 
 ### 1.1 LoRa and Meshtastic — the largest hole
 
-**State:** all four steps done. What remains on this plane is not this item:
-the member tag is specified and measured but unimplemented, and the gateway
-that would carry it is blocked on `TBR-TAK-01`.
+**State:** the four simulation steps are done. A
+[three-node lab experiment][three-node-lab] also carried an addressed message
+over real LoRa, Wi-Fi/IP and the existing iTAK connection, with a correlated
+return to a continuously connected synthetic sender. It required desktop
+coordination, temporary routing and controlled decoder fixtures. Persistent
+upstream gateway deployment, reconnect and RF recipient negative controls remain
+the integration backlog; this experiment is not autonomous operation.
+`TBR-TAK-01` is closed on `FML-ADR-071`; it is not the outstanding gate.
+
+[three-node-lab]: evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
 `.github/workflows/lora-probe.yml`
 stands two meshtasticd nodes up in simulation on one segment and asserts a text
 message crosses between them. Three runs: the first died on a line of mine that
@@ -353,10 +360,13 @@ enough to shape an interface against, and the owner's acceptance of the
 upstream-field encoding made it final rather than replacing the interface built
 to it.
 
-**The gap is now only the signature.** Checked item by item, the specification
-satisfies all five closure-evidence items and the closure gate's additional
-condition, that it state what changes when `TBR-ID-01` closes and what does
-not. Nothing in the gate is outstanding except a named owner accepting it.
+**The addressing decision is closed.** The named owner accepted
+`FML-ADR-070` on 2026-09-04. The October lab adds physical carriage evidence;
+it does not reopen that decision or qualify the persistent gateway that acts
+on it. The supervised service-recovery observations and their intervention
+boundaries are recorded in the [recovery follow-up][lab-recovery].
+
+[lab-recovery]: evidence/TBR-HA-01/2026-10-02-supervised-recovery-three-nodes.md
 
 The specification withheld closure on a second ground as well, that nothing
 exercised an EUD behind one MULE reaching an EUD behind another. That ground
@@ -1097,6 +1107,13 @@ start, while a later API stop leaves the target, listener, and parser up.
 One synthetic CoT is persisted, including after the target is stopped and
 started again. That is not `Restart=`, not a different-node restore, and
 the mesh interface is still `TBD`.
+
+The [October lab recovery follow-up][lab-recovery] observed automatic recovery
+under separately installed prototype policy and candidate images, plus one Pi 1
+boot. Those are real bounded observations, not restart configuration delivered
+by the main units above. The [carrier trial][three-node-lab] additionally used
+an assisted bridge; it does not establish a persistent gateway from this checkout.
+
 `OpenTAKServer` is
 **three** console entry points, and upstream's own container runs only the
 first:

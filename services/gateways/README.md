@@ -5,6 +5,15 @@
 
 Two distinct functions sit here, and they have different statuses.
 
+The [three-node lab][lab] exercised upstream ATAK fields and native TAK routing
+through a private controlled-fixture bridge. Desktop payload handoff, a
+synthetic roster and codec fixture were explicit interventions. No persistent
+gateway is installed by this directory or its templates. An independent source
+review found the upstream host MQTT client-proxy route over BLE/serial; it is
+an integration path to demonstrate, not an implementation delivered here.
+
+[lab]: ../../docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
 ## Gateway translation - `FML-ADR-048`, SELECTED RULE
 
 **Source:** SAD v0.31 sections 29.5, 7.3 and 24.
@@ -47,12 +56,17 @@ after that test**, and no driver fork is authorised.
 Its closure evidence must include a **supported-control inventory**, so the
 program knows what it can actually command rather than what it wishes it could.
 
-## What must close before implementation starts
+## Decision gates
 
-| Question | Trade | Priority |
-| --- | --- | ---: |
-| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | 9, `CRITICAL` |
-| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | 11 |
+| Question | Trade | Current gate |
+| --- | --- | --- |
+| Which mission state matters, and therefore what is worth translating | `TBR-TAK-01` | Closed on `FML-ADR-071`; not an outstanding translation gate |
+| Whether a coexistence policy service is the selected control at all | `TBR-RF-02` | Open; the physical coexistence decision is still owed |
+
+The selected translation rule permits the upstream integration experiment; it
+does not mean a persistent gateway is packaged or deployed by current main.
+The lab record identifies that implementation gap separately from the trade
+whose state classification is already accepted.
 
 ## Why not build either anyway
 

@@ -1,0 +1,302 @@
+{
+  "record_date": "2026-10-02",
+  "observation_dates": [
+    "2026-10-01",
+    "2026-10-02"
+  ],
+  "clock_context": "US Mountain; exact per-packet wall-clock times were not collected",
+  "article": "Three-node lab; not selected production hardware or a qualification stage",
+  "observers": [
+    "Desktop test orchestrator",
+    "Program Owner operating the phone EUD"
+  ],
+  "node_aliases": {
+    "node_a": "Pi 1",
+    "node_b": "Pi 2",
+    "node_c": "Bench"
+  },
+  "software_provenance": {
+    "mule_revision": "326239026b609693bb10f16291cc8e904094cd64",
+    "all_source_trees_clean": true,
+    "installed_mule_modules_match_source": true,
+    "module_files_compared_per_node": 21,
+    "tak_release": "1.7.13",
+    "tak_connection_state_fix": "Candidate from PR #208, not merged main",
+    "candidate_local_image_ids": {
+      "node_a": "sha256:e367d6ffbf340910f0b5f4c7df0e6fd8a7a12e16fc016552a9ec59642b017cb7",
+      "node_b": "sha256:1b7616e000c7ade4b0f09642a2a8e6cc7fce294dcc37237a12757e1f8d8fd90c",
+      "bench_c": "sha256:d9cc5c5e2c4e396bb34c18389640187977386ca52ff6786a692099eb9fc72efa"
+    },
+    "local_image_ids_are_registry_pullable": false,
+    "recovery_policy": "Private prototype configuration; not installed by a fresh main checkout",
+    "mixed_carrier_bridge": "Private controlled-fixture test harness; not a persistent gateway",
+    "native_client_readiness": "Clients waited for asynchronous broker setup before first identity; immediate first-identity handling was not validated"
+  },
+  "instruments": {
+    "node_a": {
+      "host": "Raspberry Pi 4 Model B Rev 1.4",
+      "os": "Debian 13",
+      "kernel": "6.18.50+rpt-rpi-v8",
+      "architecture": "aarch64",
+      "radio": "RAK4631",
+      "firmware": "2.7.15.567b8ea",
+      "api": "BLE"
+    },
+    "node_b": {
+      "host": "Raspberry Pi 4 Model B Rev 1.4",
+      "os": "Debian 13",
+      "kernel": "6.18.50+rpt-rpi-v8",
+      "architecture": "aarch64",
+      "radio": "Seeed T1000-E",
+      "firmware": "2.7.26.54e0d8d",
+      "api": "USB serial"
+    },
+    "node_c": {
+      "host": "Existing bench computer",
+      "os": "Debian 13",
+      "kernel": "6.12.105+deb13-amd64",
+      "architecture": "x86_64"
+    },
+    "calibration": "RSSI/SNR are radio-reported and uncalibrated"
+  },
+  "rf_configuration": {
+    "region": "US",
+    "preset": "LONG_FAST",
+    "primary_channel_index": 0,
+    "channel_name_and_key_match_checked_privately": true,
+    "hop_limit": 1,
+    "antennas": "Operator confirmed attached to both radios",
+    "antenna_model_orientation_separation": "Not recorded",
+    "ambient_conditions": "Not measured",
+    "eirp": "Not measured"
+  },
+  "mixed_carrier_observation": {
+    "outward": "Synthetic EUD A -> RAK LoRa -> T1000 on node B -> Wi-Fi/router -> bench OTS -> phone iTAK",
+    "return": "Actual phone reply -> bench OTS -> node B -> T1000 LoRa -> RAK -> live synthetic EUD A",
+    "native_recipient_field": "GeoChat.to",
+    "native_sender_fields": [
+      "Contact.callsign",
+      "Contact.device_callsign"
+    ],
+    "outward_rf_bytes_match_original": true,
+    "phone_reply_source_and_destination_uids_match": true,
+    "return_rf_bytes_match_encoded_phone_reply": true,
+    "synthetic_sender_radio_client_continuous": true,
+    "mqtt_on_observed_rf_packets": false,
+    "outward_rssi_dbm": -18,
+    "outward_snr_db": 10.75,
+    "return_rssi_dbm": -21,
+    "return_snr_db": 6.0,
+    "unattended_gateway_demonstrated": false,
+    "interventions": [
+      "Desktop starts radio clients and bridge",
+      "Controlled roster and known-field codec fixture",
+      "Temporary explicit Wi-Fi host route",
+      "Desktop transfers the captured phone reply to the receiver radio API",
+      "Human operator replies in iTAK"
+    ]
+  },
+  "recovery_observations": {
+    "node_a": {
+      "worker_crash_healthy_s": 28.048,
+      "broker_crash_healthy_s": 124.776,
+      "recipient_controls": "passed before faults and after each fault"
+    },
+    "node_b": {
+      "worker_crash_healthy_s": 24.337,
+      "broker_crash_healthy_s": 64.948,
+      "recipient_controls": "passed before faults and after each fault"
+    },
+    "bench_c": {
+      "worker_crash_healthy_s": 17.887,
+      "broker_crash_healthy_s": 15.488,
+      "recipient_controls": "passed before faults and after each fault"
+    }
+  },
+  "pi1_boot": {
+    "automatic_target_active_seconds_since_boot": 137.379645,
+    "recipient_controls_after_boot": true,
+    "scope": "One controlled Pi 1 reboot; no fleet/mission availability claim"
+  },
+  "wifi_ap": {
+    "onboard_pi1_ap_with_pi2_station": true,
+    "pi2_via_pi1_ap_to_bench_native_fake_eud_controls": true,
+    "restored": true,
+    "scope": "NetworkManager infrastructure test deviation; not selected 802.11s/batman-adv"
+  },
+  "sdr": {
+    "finite_samples": 1048577,
+    "sample_rate_hz": 1024000,
+    "scope": "Tuner/ADC sample acquisition to /dev/null; no signal decoding or RF qualification"
+  },
+  "negative_or_incomplete_observations": [
+    "Reverse outward LoRa/IP/iTAK path succeeded; its RF reply clients expired before a correlated return",
+    "Isolated service-container namespace had no wlan0; host-network test container replaced it",
+    "Initial Pi 2 Wi-Fi TCP attempt timed out; explicit direct host route preceded successful retry",
+    "One payload preparation failure log was overwritten on retry; transcript alone retains that failure",
+    "Pi 1 USB descriptor failure persists; normal physical radio reset preceded BLE recovery",
+    "Pi 1 reports current undervoltage/throttling; it was not isolated as the USB cause",
+    "SDR higher-rate counter tests reported lost bytes; finite sample capture is not RF signal decoding"
+  ],
+  "private_source_fingerprints": [
+    {
+      "artifact": "hardware-rf-pair-between-pis-roundtrip.log",
+      "sha256": "c8643ca17b7c658c3b7a11759d87c69f580be3f51c826712b07bcb7c89170e22"
+    },
+    {
+      "artifact": "hardware-rf-pair-pi1-retained-bond-listener.log",
+      "sha256": "e469459f724d792a3a45ecdc9c2e48c5b7cd3c184f549e902dda1d4cc4775d98"
+    },
+    {
+      "artifact": "hardware-rf-eud-live-rak.log",
+      "sha256": "420131e0b26da812e2fd5caea14822b5ff446fef8c1bdc83d7baa6bd0c653d64"
+    },
+    {
+      "artifact": "hardware-rf-eud-live-t1000.log",
+      "sha256": "2b6cf90b837f5c1e5c2af97b99b3f21356b8fdeaaf1c7112b3c917d1b0240384"
+    },
+    {
+      "artifact": "hardware-rf-eud-host-wifi-forwarder-normalized-image.log",
+      "sha256": "0cca589c9d423cb1970b9fe6fd7b39c09eec2bfef174492eb717bb6b4dab04c0"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-ble-live.log",
+      "sha256": "15fedf9023390048f1e00d32870bfb2bc96c8a6096436d34723f1e4ce623448f"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-serial-live.log",
+      "sha256": "61c45f91f24f078080dc48263f5c303d6f3edff16df830d965378493b3f01bfd"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-wifi-forward-live.log",
+      "sha256": "4918e6bced02abdc4e00add568274cb0c136a8ad720a0cfa21ad8499fa001bf2"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-wifi-direct-route-live.log",
+      "sha256": "82082cff81aec860345bd24eec4878519371200ede693dd58f691c233e86a73a"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-rf-capture-private.log",
+      "sha256": "6df2130ea2287b4f7914ede81e73ffbeae0df962b9c515182adfb5d3589a20ac"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-reply-watch-2.log",
+      "sha256": "9baf727904e1ec60e452b983a151a1c198bdc99ba7db7debf3946eb1a23f5a90"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-rf-return-private.log",
+      "sha256": "86ec2bceb8ae217b0fbf2c433ba22d5a0d13e8e99297d6d84d2e7dd0d1843f80"
+    },
+    {
+      "artifact": "hardware-rf-eud-reverse-route-restored.log",
+      "sha256": "db18d3dca32225d4f3f0faaeb8757986342cf7ccdbbb7452948a040b3f446c34"
+    },
+    {
+      "artifact": "hardware-pi1-boot-recovery-timestamps.log",
+      "sha256": "1e296b87cb056815ebd5080c192691950b02ae36aea891b566caba5c7afab452"
+    },
+    {
+      "artifact": "hardware-pi1-postboot-native-eud-control.log",
+      "sha256": "fa9eeebf7d66d21e7c6827f8d4eb5652bba0836a7a28c6d3803896cc0c67beae"
+    },
+    {
+      "artifact": "hardware-onboard-ap-native-eud-controls.log",
+      "sha256": "d3c493ee8e130bbb0b6891a47e54a855717e0982cee44b2826080b038dcbd414"
+    },
+    {
+      "artifact": "hardware-onboard-client-restored.log",
+      "sha256": "963e3be0d8f10ac45987fea755ae5bf095cbf2bbd115728a827374d3b8c0100a"
+    },
+    {
+      "artifact": "hardware-onboard-ap-restored.log",
+      "sha256": "dcbb887bfcff29806e3041c4a0382099f7eb9a5db42f613ebc9ca39e175c5c82"
+    },
+    {
+      "artifact": "hardware-rtl-finite-odd-count.log",
+      "sha256": "c8876352bfe119b75d833cad9a4f9de6587d072ae32b96015c908d8458872fc1"
+    },
+    {
+      "artifact": "hardware-final-main-audit-pi1.log",
+      "sha256": "2281e5dfbdb4c577795a97de24b223b9362efecc63bc2a8f72157a98c6733a3f"
+    },
+    {
+      "artifact": "hardware-final-main-audit-pi2.log",
+      "sha256": "2281e5dfbdb4c577795a97de24b223b9362efecc63bc2a8f72157a98c6733a3f"
+    },
+    {
+      "artifact": "hardware-final-main-audit-bench.log",
+      "sha256": "2281e5dfbdb4c577795a97de24b223b9362efecc63bc2a8f72157a98c6733a3f"
+    },
+    {
+      "artifact": "hardware-final-health-pi1.log",
+      "sha256": "20fd808ed1661c848cabff56729a7f57ccbf1413d8ea5bb528cfd77b8a8a5fdf"
+    },
+    {
+      "artifact": "hardware-final-health-pi2.log",
+      "sha256": "e0d3956938bdef892814febaaabad575a0af366960495638b0a7a6c5e5de8a8e"
+    },
+    {
+      "artifact": "hardware-final-health-bench.log",
+      "sha256": "f3cafb0c22c6867b9d742372f36b34183389d3a966d88aecc9a422db7c3d4298"
+    },
+    {
+      "artifact": "node_a-recovery-log",
+      "sha256": "d6a30961687ef93ef5858ea2f012432d3b0d7a34400cc10fa02b4ac3ecb35628"
+    },
+    {
+      "artifact": "node_b-recovery-log",
+      "sha256": "2de914095cb64b412c7bc3b59929e1ac4309e1083bbd70b6dffdefd01dbca293"
+    },
+    {
+      "artifact": "bench_c-recovery-log",
+      "sha256": "e67a8cc2c145ffcfe529f6f8a347d657a90a37285993956378baf7e178edb5ca"
+    },
+    {
+      "artifact": "rf-eud-mixed-session.py",
+      "sha256": "78ac124dac3c3604cc95f9262bb381a1b0544952943f93406e0cac4f2db8d164"
+    },
+    {
+      "artifact": "forward-rf-eud.py",
+      "sha256": "b1ce2b0ca6ac1d6dc909107b8678598ce35852480a7667ff4838e4308fb2aa09"
+    },
+    {
+      "artifact": "rf-pair-ble-listener.py",
+      "sha256": "3fab329e7b496c0ac5fda1fa21baa23a622e9fa37e81dcc9a465198534805bbc"
+    },
+    {
+      "artifact": "hardware-rak-after-reset-api-retry.log",
+      "sha256": "dcaf27da0235f5f373ffa59a5d224fb94faa58f7f95d09f428e9699831072f81"
+    },
+    {
+      "artifact": "hardware-rak-after-single-reset-usb.log",
+      "sha256": "c9cf839112733d6ba5d1689c7edf12efe988edd26221ac2d4a260c9f9d8a38ce"
+    },
+    {
+      "artifact": "hardware-rak-current-power.log",
+      "sha256": "33d1e7fea3da5fc4c4330ee01569b1f97a75f145030cfdb9ec6823b04c4c7cf1"
+    },
+    {
+      "artifact": "hardware-next-rtl-default-benchmark.log",
+      "sha256": "b49f789ebb142f22953ca2c143c447f04e0dff85ab60c1b8b9528c78a2891404"
+    },
+    {
+      "artifact": "hardware-next-rtl-default-repeat.log",
+      "sha256": "6326a2a1126c361e4effcf87802694a3778b4726b889ff9d2d4078df6cf2fc19"
+    }
+  ],
+  "publication": {
+    "method": "Allowlisted measurements and predicates, not copies of private packets or manifests",
+    "excluded": [
+      "Real identities/callsigns/UIDs",
+      "Passwords/keys/certificates",
+      "Addresses/hostnames/MACs/radio IDs",
+      "Locations",
+      "Raw chat/CoT/RF payloads",
+      "OAuth/session links",
+      "Private vulnerability details"
+    ],
+    "raw_artifacts_committed": false,
+    "private_hashes_are_publicly_reproducible_proof": false,
+    "trade_closed": false
+  }
+}

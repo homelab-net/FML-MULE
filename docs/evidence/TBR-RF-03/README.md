@@ -7,8 +7,15 @@
 **Priority:** 4 of 16 (SAD v0.31 section 30.2). **Function owner:** Network + RF.
 **Named owner:** `TBD-SRR`.
 
-**Current contents:** one `SIMULATED` interface-combination demonstration of
-option 1. This trade is `OPEN`: the airtime-contention and antenna/stream
+**Current contents:** a `SIMULATED` interface-combination demonstration of
+option 1, plus the [October onboard AP trial][onboard-ap] recorded with the
+three-node lab. The latter carried native fake-EUD chat through a Pi AP but used
+NetworkManager infrastructure configuration, not concurrent AP/802.11s mesh.
+It does not answer radio consolidation, airtime contention or coexistence.
+
+[onboard-ap]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
+ This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
 
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
