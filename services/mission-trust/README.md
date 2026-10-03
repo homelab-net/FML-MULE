@@ -97,7 +97,7 @@ believed, which is a precondition, not a part.
 | --- | --- | ---: |
 | How an unattended node unlocks protected storage | `TBR-SEC-01` | 6 |
 | Clock holdover, skew tolerance, partition reconciliation | `TBR-TIME-01` | 5 |
-| What mission state exists and what must be protected | `TBR-TAK-01` | 9, `CRITICAL` |
+| What mission state exists and what must be protected | `TBR-TAK-01` **CLOSED 2026-09-04** | 9, `CRITICAL` |
 | Whether a common browser-service IdP is needed | `TBR-ID-01` | 14 |
 
 ## Why not build it anyway
@@ -121,8 +121,9 @@ this component is even for.
 
 ## What can be done now
 
-- **Close `TBR-TAK-01`**, which needs no hardware and determines the trust
-  boundary this component enforces.
+- ~~**Close `TBR-TAK-01`**~~ -- **done.** It closed on 2026-09-04 and determined
+  the trust boundary this component enforces, so one of the four gates above is
+  clear. The other three are not, and this component stays blocked.
 - **Work the `TBR-SEC-01` analysis half**, which also needs no hardware:
   evaluate each unlock option against the capture scenarios in
   `THREAT_MODEL.md`, stating what an adversary holding a powered-off node
