@@ -729,3 +729,34 @@ REQ
   [ "$status" -ne 0 ]
   [[ "$output" == *"one-lora-hop-to-a-partner-node.md"* ]]
 }
+
+@test "validate-docs catches an artifact asserting HARDWARE-VERIFIED as its status" {
+  make_sandbox
+  # Check 13 used to step aside the moment any evidence file existed, which it
+  # had done for weeks while AGENTS.md still advertised it as machine-checked.
+  # It now guards the claim instead. Assert the tier on a real artifact and it
+  # must fire.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md"
+  grep -q "Real-hardware lab observations" "$target"
+  sed -i '1a\
+\
+**Tier:** `HARDWARE-VERIFIED`' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"asserts HARDWARE-VERIFIED as its status"* ]]
+}
+
+@test "validate-docs allows a status line that names HARDWARE-VERIFIED without claiming it" {
+  make_sandbox
+  # The discriminator is "begins with", not "contains". The September radio
+  # record reads "**Tier: deferred (... formal HARDWARE-VERIFIED held).**" -- a
+  # status line carrying the word while correctly refusing the tier. A contains
+  # test would fire on the most carefully worded artifact in the repository and
+  # teach someone to delete the honest sentence.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md"
+  grep -q "formal \`HARDWARE-VERIFIED\` held" "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -eq 0 ]
+}

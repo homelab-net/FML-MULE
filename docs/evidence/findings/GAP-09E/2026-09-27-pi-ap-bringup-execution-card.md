@@ -19,9 +19,15 @@
 
 ## Status
 
-Every step here is a **procedure to run, not a result**. Nothing becomes
-`HARDWARE-VERIFIED` until it is run on the Pi and its evidence is recorded under
-`docs/evidence/`. None of this runs in CI: a hosted runner has no wireless stack
+Every step here is a **procedure to run, not a result**. Running it on the Pi
+and recording the evidence under `docs/evidence/` produces a **real-hardware
+result**; it does **not** promote the evidence tier. Nothing in this repository
+carries `HARDWARE-VERIFIED`, and promoting it is a program-level act, not
+something a procedure confers on itself by being executed. An earlier version of
+this line read "nothing becomes `HARDWARE-VERIFIED` until it is run on the Pi
+and its evidence is recorded", which states the condition as sufficient and is
+the opposite of the program's posture. None of this runs in CI: a hosted runner
+has no wireless stack
 (`docs/dev-machine.md`). Run on the Pi as root. This card is the M1 dry run
 (`ROADMAP-DEV.md`: one node, its EUD AP, one service to a phone).
 

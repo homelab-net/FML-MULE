@@ -458,33 +458,56 @@ info "$dir_count directories checked for a README or a parent that names them"
 # with an empty evidence directory, and a second check saying the same thing is
 # noise that makes both easier to ignore.
 #
-# The moment real evidence lands this check steps aside, because the claim it
-# guards becomes one somebody can substantiate. It is a stage-appropriate
-# tripwire, not a permanent law, and it says so rather than pretending.
+# THIS CHECK USED TO STEP ASIDE AS SOON AS ANY EVIDENCE FILE EXISTED. That was
+# written as "a stage-appropriate tripwire, not a permanent law", and it was
+# wrong in the way that matters: evidence landed, the gate opened, and the
+# program's posture did not change. On 2026-10-02 there were 158 files under
+# docs/evidence/ and the check had not been able to fire for weeks, while
+# AGENTS.md still advertised it as machine-checked and every artifact still
+# correctly held the tier. A check that disables itself on success is not a
+# tripwire, it is a countdown.
+#
+# So it now guards the CLAIM rather than the emptiness of a directory. The
+# vocabulary may be used freely -- defining the tier, saying nothing carries it,
+# explaining what would earn it. What is refused is an artifact ASSERTING the
+# tier as its own status: a Tier/Status/Classification line whose VALUE is
+# HARDWARE-VERIFIED.
+#
+# The discriminator is "begins with", not "contains", and that is load-bearing.
+# docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md reads
+# "**Tier: deferred (real-hardware bench result; formal HARDWARE-VERIFIED
+# held).**" -- a status line, containing the word, correctly NOT claiming it. A
+# "contains" test would fire on the one artifact in the repository that handled
+# this question most carefully, and whoever hit that would delete the honest
+# sentence to get CI green.
 
-VOCABULARY_FILES="AGENTS.md CHANGELOG.md CONTRIBUTING.md README.md \
-docs/glossary.md docs/verification/README.md test/README.md \
-docs/evidence/README.md"
+hv_claims=$(grep -rniE \
+  '^[*_"[:space:]]*(tier|status|status of this artifact|evidence tier|classification)[^:]*:' \
+  --include="*.md" --include="*.json" \
+  docs/evidence test/results 2>/dev/null |
+  awk -F: '
+    {
+      line = $0
+      sub(/^[^:]*:[0-9]+:/, "", line)          # strip path:lineno
+      sub(/^[^:]*:/, "", line)                 # strip the label, keep the value
+      gsub(/[*_`"[:space:]]+/, " ", line)      # strip markdown emphasis and JSON quoting
+      sub(/^ +/, "", line)
+      if (line ~ /^HARDWARE-VERIFIED/) print $1 ":" $2
+    }' || true)
 
-evidence_files=$(find docs/evidence test/results -type f ! -name README.md 2>/dev/null | wc -l)
+# Redirect, never a pipe. `... | while read` runs the loop in a subshell, so
+# fail() increments a fail_count that is discarded when the subshell exits: the
+# check prints FAIL and the script exits 0. That was written here first and
+# caught by running it, which is the only reason this comment exists.
+printf '%s\n' "$hv_claims" >/tmp/fml-hv.$$
+while IFS= read -r claimed; do
+  [ -n "$claimed" ] || continue
+  fail "$claimed asserts HARDWARE-VERIFIED as its status. Nothing in this repository has met the hardware its claims are about; see AGENTS.md. Promoting the tier is a program-level act, not an edit to one artifact."
+done </tmp/fml-hv.$$
+rm -f /tmp/fml-hv.$$
 
-if [ "$evidence_files" -eq 0 ]; then
-  # shellcheck disable=SC2086
-  grep -rl "HARDWARE-VERIFIED" --include="*.md" --include="*.py" \
-    $GREP_EXCLUDES . 2>/dev/null |
-    sed 's|^\./||' >/tmp/fml-hv.$$ || true
-  while read -r claimed; do
-    [ -n "$claimed" ] || continue
-    case " $VOCABULARY_FILES " in
-      *" $claimed "*) continue ;;
-    esac
-    fail "$claimed uses HARDWARE-VERIFIED, but nothing has met hardware. See AGENTS.md."
-  done </tmp/fml-hv.$$
-  rm -f /tmp/fml-hv.$$
-  info "nothing has met hardware, and nothing claims to have"
-else
-  info "$evidence_files evidence file(s) present; hardware claims now need review, not this check"
-fi
+hv_scanned=$(find docs/evidence test/results -type f \( -name '*.md' -o -name '*.json' \) 2>/dev/null | wc -l)
+info "$hv_scanned evidence artifact(s) checked for a HARDWARE-VERIFIED status claim"
 
 # --- 14: every cited decision ID resolves ------------------------------------
 #

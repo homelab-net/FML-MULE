@@ -106,6 +106,26 @@ The obvious approaches each have a real cost:
   node. A node is expected to be captured (`THREAT_MODEL.md`), so this
   distributes a publicly trusted key to devices designed to be lost.
 - **Self-signed with an operator exception.** Trains the wrong habit.
+- **Reusing a certificate authority the program already runs** — in particular
+  the OpenTAKServer CA, whose bench leaf already carries the EUD access-point
+  address in its SAN and whose root the enrolled EUDs already hold. This looks
+  nearly free and **must not be done.** `THREAT_MODEL.md` records that the Marti
+  API "reads a certificate from an `X-Ssl-Cert` header and checks that it chains
+  to the server CA", that this "proves the certificate is valid and **not** that
+  the sender holds the private key" because "a certificate is public", and that
+  "**revocation is not consulted on that path**". A TLS server certificate is
+  transmitted in clear in every handshake. Fronting a browser service with a
+  leaf from that CA therefore hands a usable, unrevocable API authenticator to
+  every device that completes a handshake, including one that has merely
+  associated to the access point. Installing that root on an operator's personal
+  device is worse: a certificate authority with no working revocation becomes a
+  trust anchor for everything else that device does.
+
+  The general rule the specific case produces: **the CA that signs the ingress
+  certificate must not be a CA that authenticates anything.** A separate
+  authority whose only purpose is server identity is sound; borrowing one that
+  is already an authorisation root is not, however convenient its SAN happens to
+  be.
 
 This is not currently anyone's trade. It should be, and it is recorded here
 rather than discovered later. It interacts with `services/identity/`,
@@ -116,7 +136,17 @@ credible time.
 
 Two independently built deployments meeting at an incident must not collide. A
 fixed local domain across every deployment makes that collision certain. The
-domain comes from the mission configuration package; see `TBR-NET-01`.
+domain comes from the mission configuration package.
+
+**No trade currently owns it, and that is a gap rather than an oversight to
+leave standing.** This line cited `TBR-NET-01` until 2026-10-02; that trade is
+`CLOSED` and decided the per-deployment **mesh field prefix**, not the local
+domain a browser resolves on the access-point subnet. `TBR-NET-05` owns the AP
+subnet, DHCP range and lease. `TBR-NET-06` owns how a **remote** EUD resolves
+one stable service name to its assigned MULE across the WAN overlay. Neither
+decides the local domain itself, which the HAProxy `hdr(host)` ACL, the
+`dnsmasq` configuration and any ingress certificate's SAN all need before a
+phone can reach a service by name.
 
 ## What never appears here
 
