@@ -66,7 +66,56 @@ EUI64_RE = re.compile(
     re.IGNORECASE,
 )
 
-IPV4_RE = re.compile(r"(?<![0-9.])(?:\d{1,3}\.){3}\d{1,3}(?![0-9.])")
+#: A dotted quad that is not part of a longer dotted or alphanumeric run. The
+#: trailing letter exclusion is not cosmetic: `meshtastic --info` reports
+#: `"firmwareVersion": "2.7.26.54e0d8d"`, whose first four components are a valid
+#: dotted quad, and an earlier pattern redacted it as a public address --
+#: destroying the firmware version that `docs/evidence/README.md` requires in a
+#: measurement record. An address followed immediately by a letter is not an
+#: address.
+IPV4_RE = re.compile(r"(?<![0-9.A-Za-z])(?:\d{1,3}\.){3}\d{1,3}(?![0-9.A-Za-z])")
+
+#: A Meshtastic node id: "!" and eight hex digits. The 2026-09-27 record scrubbed
+#: these by hand ("the Meshtastic node id is scrubbed") while deliberately
+#: publishing the RAK's USB board serial as a non-sensitive instrument id.
+NODE_ID_RE = re.compile(r"!(?=[0-9a-f]{8}\b)[0-9a-f]{8}", re.IGNORECASE)
+
+#: A Meshtastic channel URL. The fragment is the serialised channel set,
+#: including every PSK, so the fragment is the secret and the host is not.
+CHANNEL_URL_RE = re.compile(r"(https?://meshtastic\.org/e/#)([A-Za-z0-9_\-=]+)")
+
+#: Fields whose value is a position. `AGENTS.md` forbids committing a
+#: **deployment location** outright, and `meshtastic --info` prints latitude and
+#: longitude to five decimals. These arrive as JSON *numbers*, which no
+#: string-matching pass can see -- the reason this is keyed on the field name.
+POSITION_FIELDS = frozenset(
+    {"latitude", "longitude", "latitudeI", "longitudeI", "altitude"}
+)
+
+#: Fields whose value is key material or a device identifier, redacted by name
+#: because their values have no distinguishing shape.
+#:
+#: `macaddr` is here for a specific reason: a Meshtastic node's address is often
+#: **locally administered** (the lab RAK's is `d3:d1:...`), so
+#: `is_equipment_mac()` correctly declines to treat it as equipment -- that rule
+#: exists so 45 committed hwsim addresses are not scrubbed into noise. But a
+#: Meshtastic `macaddr` *is* a real radio's identifier. Field name settles what
+#: value shape cannot.
+SECRET_FIELDS = frozenset({"psk", "publicKey", "privateKey", "macaddr"})
+
+#: The compiled-in public channel PSK, base64 of the single byte 0x01. It is the
+#: same on every stock device in a region -- `AGENTS.md` records that the
+#: firmware source "calls the compiled-in key the `public` default channel that
+#: every device powers up on" -- so it is a published constant, not a secret, and
+#: redacting it would hide which channel a run actually used.
+PUBLIC_DEFAULT_PSK = "AQ=="
+
+#: `"field": value` inside a text blob, for either field set. The value may be a
+#: quoted string or a bare number, because `latitude` arrives unquoted.
+_TEXT_FIELD_RE = re.compile(
+    r'"(?P<name>' + "|".join(sorted(POSITION_FIELDS | SECRET_FIELDS)) + r')"'
+    r"\s*:\s*(?P<value>\"[^\"]*\"|-?[0-9]+(?:\.[0-9]+)?)"
+)
 
 
 def is_equipment_mac(mac: str) -> bool:
@@ -152,9 +201,25 @@ class Scrubber:
                 return found
             return self._token("IPV4", found)
 
+        def _field(match: re.Match[str]) -> str:
+            name, raw = match.group("name"), match.group("value")
+            if name in POSITION_FIELDS:
+                return f'"{name}": "{self._token("POSITION", name + raw)}"'
+            if raw.strip('"') == PUBLIC_DEFAULT_PSK:
+                return match.group(0)
+            return f'"{name}": "{self._token("SECRET", raw)}"'
+
         value = EUI64_RE.sub(_eui64, value)
         value = MAC_RE.sub(_mac, value)
         value = IPV4_RE.sub(_v4, value)
+        value = NODE_ID_RE.sub(lambda m: self._token("NODEID", m.group(0)), value)
+        value = CHANNEL_URL_RE.sub(
+            lambda m: m.group(1) + self._token("SECRET", m.group(2)), value
+        )
+        # `meshtastic --info` is text with JSON embedded in it, so the field pass
+        # in walk() never sees these. Numbers are matched as well as strings:
+        # latitude arrives unquoted.
+        value = _TEXT_FIELD_RE.sub(_field, value)
         if self.hostname and self.hostname in value:
             value = value.replace(self.hostname, self._token("NODE", self.hostname))
         return value
@@ -166,7 +231,15 @@ class Scrubber:
         if isinstance(node, list):
             return [self.walk(item) for item in node]
         if isinstance(node, dict):
-            return {key: self.walk(value) for key, value in node.items()}
+            out: dict[str, object] = {}
+            for key, value in node.items():
+                if key in POSITION_FIELDS:
+                    out[key] = self._token("POSITION", f"{key}{value}")
+                elif key in SECRET_FIELDS and value != PUBLIC_DEFAULT_PSK:
+                    out[key] = self._token("SECRET", str(value))
+                else:
+                    out[key] = self.walk(value)
+            return out
         return node
 
     def manifest(self) -> dict[str, object]:
@@ -178,6 +251,8 @@ class Scrubber:
             "kept_deliberately": [
                 "locally administered MACs (hwsim/veth; identify no equipment)",
                 "RFC1918 and link-local IPv4 (bench topology, not identity)",
+                f"the public default channel PSK {PUBLIC_DEFAULT_PSK!r}, a"
+                " published constant every stock device powers up on",
             ],
             "not_handled": [
                 "kernel-log firmware strings and board revisions",

@@ -11,6 +11,18 @@ does the scrubbing; this refuses the commit when somebody forgets to run it,
 because `AGENTS.md` is explicit that a rule nothing checks is a suggestion. The
 secret scanner in CI does not look for MAC addresses.
 
+It also refuses **position, key material and Meshtastic node identity**, added
+2026-10-03 after `meshtastic --info` was run against the lab T1000-E: its output
+carried the node's latitude and longitude to five decimals, two secret channel
+PSKs, public keys, a channel URL whose fragment serialises every PSK, and 80
+third-party node ids. `AGENTS.md` forbids committing a **deployment location**
+outright and nothing checked for one, which is the `[review]`-rule-found-broken
+case that this file exists to close.
+
+The public default channel PSK is **not** refused: it is base64 of a single byte,
+identical on every stock device, and redacting it would hide which channel a run
+actually used.
+
 WHY IT DOES NOT FLAG EVERY MAC-SHAPED STRING
 
 Checked against the tree on 2026-10-03: 45 of the MAC-shaped values already
@@ -28,6 +40,9 @@ Two traps this has already fallen into, both now pinned by tests:
 
 - A truncated **certificate fingerprint** is colon-separated hex too. An earlier
   pattern matched one in `docs/evidence/TBR-TAK-01/` and called it a leaked MAC.
+- A **four-part firmware version** is a valid dotted quad. `meshtastic --info`
+  reports `"firmwareVersion": "2.7.26.54e0d8d"` and an earlier IPv4 pattern
+  redacted it, destroying a value the measurement-record contract requires.
 - **IPv6 link-local in EUI-64 form** contains no MAC-shaped text at all, and
   reconstructs the address exactly: `fe80::dea6:32ff:fe12:3456` decodes to
   `dc:a6:32:12:34:56`, a Raspberry Pi OUI. A MAC-only check misses the leak that
@@ -87,6 +102,35 @@ def findings(root: Path) -> list[str]:
                 continue
             rel = path.relative_to(root)
             for number, line in enumerate(text.splitlines(), 1):
+                for match in scrub._TEXT_FIELD_RE.finditer(line):
+                    name = match.group("name")
+                    raw = match.group("value")
+                    if raw.strip('"') == scrub.PUBLIC_DEFAULT_PSK:
+                        continue
+                    if "REDACTED" in raw:
+                        continue
+                    kind = (
+                        "position"
+                        if name in scrub.POSITION_FIELDS
+                        else "key material or device id"
+                    )
+                    found.append(
+                        f"{rel}:{number}: {kind} in field {name!r} "
+                        f"-- scrub with tools/scrub-telemetry.py"
+                    )
+                for match in scrub.NODE_ID_RE.finditer(line):
+                    found.append(
+                        f"{rel}:{number}: Meshtastic node id {match.group(0)} "
+                        f"-- scrub with tools/scrub-telemetry.py"
+                    )
+                for match in scrub.CHANNEL_URL_RE.finditer(line):
+                    if "REDACTED" in match.group(2):
+                        continue
+                    found.append(
+                        f"{rel}:{number}: Meshtastic channel URL fragment "
+                        f"(serialises every PSK) "
+                        f"-- scrub with tools/scrub-telemetry.py"
+                    )
                 for match in scrub.MAC_RE.finditer(line):
                     if scrub.is_equipment_mac(match.group(0)):
                         found.append(

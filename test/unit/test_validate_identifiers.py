@@ -86,3 +86,44 @@ def test_exit_code_is_non_zero_when_something_is_found(tmp_path: Path) -> None:
     (root / "docs/evidence/TBR-X/capture.txt").write_text("dc:a6:32:aa:bb:cc\n")
     assert checker.main([str(root)]) == 1
     assert checker.main([str(REPO)]) == 0
+
+
+def test_position_in_committed_evidence_is_refused(tmp_path: Path) -> None:
+    """A committed deployment location is refused.
+
+    AGENTS.md forbids one outright, and `meshtastic --info` prints latitude and
+    longitude to five decimals.
+    """
+    root = _sandbox(tmp_path)
+    (root / "docs/evidence/TBR-X/lora.json").write_text(
+        '{"position": {"latitude": 38.94836, "longitude": -104.73636}}\n'
+    )
+    found = checker.findings(root)
+    assert len(found) == 2
+    assert all("position" in line for line in found)
+
+
+def test_node_identity_and_secret_psk_are_refused(tmp_path: Path) -> None:
+    """A node id and a non-default PSK each identify or unlock a radio."""
+    root = _sandbox(tmp_path)
+    (root / "docs/evidence/TBR-X/ch.json").write_text(
+        '{"id": "!22509c08", "psk": "bXlzZWNyZXRrZXk="}\n'
+    )
+    found = checker.findings(root)
+    assert len(found) == 2
+
+
+def test_the_public_default_psk_and_a_firmware_version_are_allowed(
+    tmp_path: Path,
+) -> None:
+    """The published constants stay allowed.
+
+    Refusing the public PSK would hide which channel a run used, and a four-part
+    firmware version is a dotted quad that is not an address.
+    """
+    root = _sandbox(tmp_path)
+    (root / "docs/evidence/TBR-X/ok.json").write_text(
+        '{"psk": "AQ==", "firmwareVersion": "2.7.26.54e0d8d",\n'
+        ' "modemPreset": "LONG_FAST", "hopsAway": 0}\n'
+    )
+    assert checker.findings(root) == []
