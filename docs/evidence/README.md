@@ -125,6 +125,33 @@ The publication rule in `SECURITY.md` applies without exception:
 Record what you scrubbed. A log with an obvious redaction is honest; a log
 silently trimmed is not reviewable.
 
+**Two tools now stand behind that rule, because it had nothing behind it.**
+`tools/scrub-telemetry.py` redacts the identifiers from a
+`test/bench/capture-telemetry.py` document, replacing each with a visible token
+and attaching a `scrub_manifest` recording what went and what deliberately
+stayed. `tools/validate-identifiers.py` runs in `tools/lint.sh` and **fails the
+build** when something under `docs/evidence/`, `test/fixtures/` or
+`test/results/` still carries one, because the secret scanner does not look for
+MAC addresses.
+
+It refuses an equipment identifier, not every address-shaped string. A
+universally administered MAC names a real part; the locally administered ones
+that `mac80211_hwsim` and `veth` invent name nothing, and 45 of them are already
+committed here. Failing on those would mean scrubbing meaningless values across
+most of this directory, which is how a check gets ignored.
+
+The case worth knowing about: **an IPv6 link-local address defeats a MAC
+pattern.** An `fe80::` address in EUI-64 form contains no MAC-shaped text and
+reconstructs the hardware address exactly -- one beginning `fe80::dea6:32ff:fe…`
+decodes to a MAC beginning `dc:a6:32:…`, the Raspberry Pi OUI. That is the leak
+a capture from an arm64 article actually produces, so both tools decode rather
+than matching on shape.
+
+The addresses above are deliberately truncated, and finding out why is the
+shortest demonstration that the check works: written in full, they tripped it in
+this very file the first time it ran. Documentation that lives under a scanned
+directory has to illustrate the shape without carrying a whole identifier.
+
 ## Evidence for a trade that closes against a fake
 
 Some evidence is legitimately produced against fakes and fixtures rather than

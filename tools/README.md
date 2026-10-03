@@ -23,6 +23,8 @@ installs the toolchain the others are checked by, so it needs `apt-get`,
 | `lint.sh` | Run every configured linter. Skips what is not installed. |
 | `validate-docs.sh` | Validate decision records, findings, closure packets, the fork ledger, and image references. |
 | `validate-findings.py` | Validate the remediation register and evidence-backed finding closure. |
+| `validate-identifiers.py` | Refuse committed evidence that carries an equipment identifier. Universally administered MACs and the IPv6 link-locals that encode them; hwsim/veth addresses identify nothing and are allowed. |
+| `scrub-telemetry.py` | Redact those identifiers from a `capture-telemetry.py` document and record what was removed. Run it before filing a capture. |
 | `validate-prior-art.py` | Validate the OSS candidate corpus, immutable references, evaluation links, licenses, and adoption approvals. |
 | `new-adr.sh` | Allocate the next unused ADR identifier and create the file. |
 | `new-trade.sh` | Allocate the next unused trade identifier and create the file. |

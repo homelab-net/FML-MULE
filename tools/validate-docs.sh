@@ -1082,6 +1082,23 @@ done
 
 info "$signal_checked evidence artifact(s) checked for a signal figure without its configuration"
 
+# --- 27: committed evidence carries no equipment identifier ------------------
+#
+# SECURITY.md forbids publishing what identifiers a deployment's equipment
+# carries, and test/bench/capture-telemetry.py warns that its own output holds
+# the node's real MAC and IP addresses and must be scrubbed before filing. That
+# was a [review] rule with nothing behind it: gitleaks does not look for MAC
+# addresses, so the first unscrubbed capture would have been committed with
+# nothing objecting.
+#
+# tools/scrub-telemetry.py does the redaction and owns the detection;
+# tools/validate-identifiers.py imports it, so the thing that redacts and the
+# thing that refuses cannot disagree about what counts.
+printf 'Equipment identifiers in evidence\n'
+if ! python3 tools/validate-identifiers.py "$ROOT"; then
+  fail "committed evidence carries an equipment identifier; scrub it with tools/scrub-telemetry.py"
+fi
+
 # --- result -----------------------------------------------------------------
 printf '\n'
 if [ "$fail_count" -gt 0 ]; then

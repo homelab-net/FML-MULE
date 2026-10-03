@@ -760,3 +760,29 @@ REQ
   run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
   [ "$status" -eq 0 ]
 }
+
+@test "validate-docs catches an equipment identifier in committed evidence" {
+  make_sandbox
+  # SECURITY.md forbids publishing what identifiers a deployment's equipment
+  # carries, and gitleaks does not look for MAC addresses. A universally
+  # administered OUI names a real part; plant one and the build must stop.
+  printf 'Station dc:a6:32:de:ad:be signal -40 dBm\n' \
+    >>"$SANDBOX/docs/evidence/TBR-NET-05/README.md"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"equipment MAC"* ]]
+}
+
+@test "validate-docs allows the virtual addresses most of the evidence base carries" {
+  make_sandbox
+  # 45 locally administered MACs are already committed under docs/evidence/ --
+  # what mac80211_hwsim and veth invent. They identify nothing, and failing on
+  # them would mean scrubbing meaningless values everywhere, which is how a
+  # check gets ignored.
+  printf 'orig 1e:fa:23:ea:fb:69 via ff:ff:ff:ff:ff:ff\ninet6 fe80::4c59:ecff:fee3:6716/64\n' \
+    >>"$SANDBOX/docs/evidence/TBR-NET-05/README.md"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -eq 0 ]
+}
