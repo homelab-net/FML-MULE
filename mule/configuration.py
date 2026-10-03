@@ -36,8 +36,14 @@ exist would be adding structure ahead of content. Only the decided hostapd
 surface, whose values exist, is rendered today.
 
 Status: SIMULATED against the synthetic fixture region in
-``test/fixtures/regions/``. No region profile in ``regions/`` is resolvable
-today, and that is the correct result.
+``test/fixtures/regions/``. ``regions/us-915/`` resolves for a node whose only
+active bearer is ``wifi_ap`` -- checked 2026-10-02, ``unresolved()`` returns
+``[]`` -- because ``FML-ADR-075`` scopes resolution to the bearers a node
+actually fields and the AP parameters were decided on 2026-09-21. It does not
+resolve for ``wifi_mesh`` (``TBR-RF-01``) or ``halow`` (``TBR-RF-02``), and
+those refusals are the correct result. This docstring previously said no region
+profile was resolvable at all, which stopped being true when the AP parameters
+were accepted.
 """
 
 from __future__ import annotations
@@ -772,7 +778,7 @@ def main(argv: list[str]) -> int:
         print(f"{args.region}: {len(gaps)} required parameter(s) still {TBD}.\n")
         for dotted, trade in gaps:
             print(f"  {dotted:34s} supplied by {trade}")
-        print("\nThis is the expected state. No region profile is resolvable yet.")
+        print("\nThis is the expected state for the bearers listed above.")
         return 0
 
     try:

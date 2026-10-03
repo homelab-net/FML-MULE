@@ -95,7 +95,12 @@ and no test could tell.
 
 ## Every fake, named
 
-All four live in `fakes.py`. Each is scripted, not modelled: it returns what the
+Seven, of which **six live in `fakes.py`**; `FakeTranslation` lives in
+`test_loops.py`, beside the only scenario that uses it. This file said "all four
+live in `fakes.py`" while listing seven below -- `tools/validate-docs.sh` check
+11 reads `fakes.py` and requires every class it finds to appear here, which
+cannot catch a row here that names a fake living somewhere else. Each is
+scripted, not modelled: it returns what the
 scenario told it to return. None contains a curve, a model, or a constant
 derived from anything but the scenario, because no measured value exists to
 derive one from.
@@ -200,7 +205,7 @@ That refusal is the behaviour under test, not an obstacle to it.
 | File | Contents |
 | --- | --- |
 | `interfaces.py` | Narrow Protocols over radio, power and thermal state. They stay here deliberately; see the location note in the file. |
-| `fakes.py` | The four fakes above, and nothing else. |
+| `fakes.py` | Six of the seven fakes above, and nothing else. `FakeTranslation` is in `test_loops.py`. |
 | `node.py` | `DigitalTwinNode`: **assembly, not judgement.** It reads the fakes, hands plain values to `mule/`, and reports what came back. |
 | `conftest.py` | The fixture time policy and the node factory, so no scenario carries a literal another scenario must match. |
 | `test_modes.py` | Unit tests for `mule/modes.py`, the nine CONOPS section 50 axes. |

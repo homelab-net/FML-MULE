@@ -3,7 +3,12 @@
 Recorded output captured from real hardware, replayed so that code can be
 tested without that hardware.
 
-**Empty. No fixture has been captured, because no node exists.**
+**No fixture has yet been captured from a MULE.** What is here was captured
+from development hardware that is not a node: `radio/` holds `iw` and `batctl`
+output used to test the readers, and `nodes/` holds node descriptors used by the
+configuration tests. Neither says anything about a MULE's radios. This file said
+the directory was empty "because no node exists"; the second half is still true
+and the first stopped being true without anyone noticing.
 
 ## Why fixtures matter here more than usual
 

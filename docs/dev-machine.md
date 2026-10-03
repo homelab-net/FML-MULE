@@ -286,9 +286,9 @@ stops:
 
 | Role | Field prototype | Lab bench (`nodes/lab-bench/`) | What carries / what does not |
 | --- | --- | --- | --- |
-| `eud_ap` | onboard CYW43455 (integrated) | onboard `rtw89_8852be` (phy0, `wlp2s0`) | Role + integrated-radio-as-AP faithful (ADR-045). The **chip differs**, so chip-specific AP behaviour does not carry. |
+| `eud_ap` | onboard CYW43455 (integrated) | **descriptor says** onboard `rtw89_8852be` (`wlp2s0`); **the box is running** the RTL8812AU USB adapter (`wlx…`) as AP. See the deviation note below. | Role + integrated-radio-as-AP faithful (ADR-045) **when the descriptor holds**. The **chip differs**, so chip-specific AP behaviour does not carry. |
 | `mesh` | QCA6174A on M.2 (`ath10k`) | `mac80211_hwsim` (`wlan0`) | 802.11s + BATMAN-IV + the `mac80211` code path are **real**. The **RF medium is simulated** — no airtime, contention, range, or desense. RF trades stay open. |
-| `wan` | Ethernet (USB-C-to-Ethernet) / Tailscale | RTL8812AU USB client (`wlx…`) — **stand-in** | Role faithful; the **medium differs** (Wi-Fi client vs wired). Rebinds to the Ethernet device with a one-line descriptor change. |
+| `wan` | Ethernet (USB-C-to-Ethernet) / Tailscale | **descriptor says** RTL8812AU USB client (`wlx…`); **the box is running** the onboard `rtw89_8852be` (`wlp2s0`) as the client, and it holds the default route. **Stand-in** either way. | Role faithful; the **medium differs** (Wi-Fi client vs wired). Rebinds to the Ethernet device with a one-line descriptor change. |
 | `halow`, `lora` | dedicated radios | **none** — faked on the software digital twin | Logic exercised against fakes; says nothing about the radios. |
 | service plane | rootless Quadlet units from `services/catalog/`, arm64 digests (FML-ADR-029) | `podman start` of pre-built containers (`mule-stack-up.sh`) | Service *behaviour* carries; the *deployment mechanism* (Quadlet/rootless/digest-pinning) does not. |
 | link config | `systemd-networkd` owns links (FML-ADR-059) | NetworkManager present; bring-up uses `hostapd`/`nftables`/`dnsmasq` directly | The AP/firewall/DHCP mechanisms match the field templates (`os/config/`); full networkd link ownership is not yet mirrored on this NM-managed box. |
@@ -316,6 +316,40 @@ on ch36 and the WAN client on 2.4 GHz, all three roles — `eud_ap` (onboard, 5 
 `mesh` (hwsim, batman-adv), `wan` (USB, 2.4 GHz) — run concurrently with the
 uplink intact. When the Ethernet WAN cable is available, this constraint
 disappears and the bench matches the field's wired-WAN topology directly.
+
+### The mitigation is not currently in force (2026-10-02)
+
+**The descriptor and the box disagree, and the box is running the rejected
+configuration.** Observed directly: `wlx…` is `type AP` on **channel 11**
+(2.4 GHz) and `wlp2s0` is `type managed` on **channel 4** (2.4 GHz) holding the
+default route. That is two co-located 2.4 GHz radios — the arrangement the
+2026-09-14 experiment above says drops the uplink — and `ap_channel: 36` in
+`nodes/lab-bench/node.yml` is not what the AP is using.
+
+This is not drift nobody recorded. `docs/bench-service-bringup.md` notes that a
+later reboot observation restored "the earlier interface roles: USB adapter as
+AP and onboard WiFi as management". The descriptor and the table above were
+written for the 2026-10-01 arrangement and were never updated when it was
+reverted.
+
+Two consequences worth knowing before anyone uses this bench:
+
+- **`test/bench/mule-ap-up.sh` will refuse to run here**, and refusing is
+  correct. It resolves `eud_ap` to `wlp2s0` from the descriptor, and `wlp2s0` is
+  the current default-route device, which its guard explicitly rejects so it
+  cannot cannibalise the box's uplink. The failure is safe, not silent: it does
+  **not** configure the wrong radio.
+- **`AGENTS.md`: "A bench must be configured the way the program decided."** A
+  rig left in a configuration the program examined and moved away from is not
+  neutral; it is testing the option that was rejected. Any coexistence or
+  uplink-stability observation taken on this box today is taken under the
+  2026-09-14 failure condition.
+
+Resolving it is a choice between two defensible things — put the AP back on the
+onboard radio at ch36 as the descriptor says, or accept USB-as-AP and update the
+descriptor and this table to match. It is recorded rather than silently picked,
+because the second option also discards the 5 GHz mitigation and that should be
+a decision rather than a side effect.
 
 One clarification the experiment settled: the agent's control path does **not**
 ride the box's internet WAN — the box losing its default route does not end the

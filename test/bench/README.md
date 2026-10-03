@@ -3,7 +3,10 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eleven procedures. No hardware measurement has been taken.** Two of them emit
+**Fifteen procedures and three helpers. No hardware measurement has been
+taken.** The helpers are `operator-view.py` and `udpflow.py`, each driven by the
+shell procedure beside it, and `capture-telemetry.py`, which is run directly.
+Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
 bridging loop and detects it live, and one captures a state snapshot for the

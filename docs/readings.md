@@ -54,7 +54,7 @@ produce silent hundred-fold errors. The thermal framework reports
 | Reading | Kind | Real source | Units | Status |
 | --- | --- | --- | --- | --- |
 | `temperatures_c` | `kernel` | `/sys/class/thermal/thermal_zone<N>/temp`, matched by the sibling `type` file | millidegrees C | `READER`. Zone-to-sensor map is per board and empty until `TBR-HW-01`. |
-| `throttling_reported` | `none` | No portable interface. Raspberry Pi has `vcgencmd get_throttled`, which needs package `libraspberrypi-bin` and is not Debian-general; others expose cooling-device state, vendor sysfs, or nothing. | flag | `NO SOURCE` until `TBR-HW-01`. Probe is injected; a platform with none reports `None`, never `False`. |
+| `throttling_reported` | `none` | No portable interface. Raspberry Pi has `vcgencmd get_throttled`, which needs package `raspi-utils-core` (meta: `raspi-utils`) and is not Debian-general -- the name was `libraspberrypi-bin`, which no longer exists on Debian 13, checked on the lab Pi 2026-10-02; others expose cooling-device state, vendor sysfs, or nothing. | flag | `NO SOURCE` until `TBR-HW-01`. Probe is injected; a platform with none reports `None`, never `False`. |
 
 ## Power
 

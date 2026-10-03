@@ -31,6 +31,21 @@
 #  25. No evidence artifact publishes a signal figure and disclaims the
 #      configuration it must be read against.
 #
+# THE NUMBERS ABOVE AND THE `# --- N:` SECTION MARKERS BELOW DO NOT AGREE, and
+# neither is canonical. Three checks have a marker and no entry in this list
+# (the mesh-bridge check, the mesh-script `bridge_loop_avoidance` check, and the
+# roadmap-state check), markers 20 and 21 each appear twice, and from there the
+# markers run one ahead of this list. External citations follow both: `FML-ADR-054`
+# and `FML-ADR-056` cite "check 19" for the mesh bridge, which matches the
+# MARKER; `GAP-02` cites "check 23" for the service catalog and `AGENTS.md`
+# cites "check 25" for the signal-figure check, which match this LIST.
+#
+# Do not renumber one side alone. About a dozen citations across ADRs, evidence
+# packets, CHANGELOG.md and AGENTS.md point at these numbers, and a renumber
+# that does not move them in the same commit turns a confusing reference into a
+# wrong one. Recorded here 2026-10-02 rather than half-fixed; the repair is a
+# focused change that renumbers the markers and every citation together.
+#
 # Exits non-zero on the first category of failure found, after reporting every
 # failure in the run. POSIX sh; the findings check uses the repository's pinned
 # Python, PyYAML and jsonschema dependencies.
