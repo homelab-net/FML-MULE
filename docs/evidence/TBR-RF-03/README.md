@@ -25,20 +25,21 @@ evidence the closure gate demands is hardware and not produced.
   channel 4), with the AP on a channel the **`DECIDED` AP-params packet below had
   already ruled against**. Reads three things off the AP adapter that this
   trade's open half needs: the `rtl8812au` radio advertises channel 149 with no
-  DFS or no-IR flag and advertises VHT at 80 MHz in a domain that permits it; its
-  advertised per-channel transmit ceiling is 5 dB lower at 5 GHz than the figure
-  it reported on 2.4 GHz; and it reports **no per-station bitrate** through
-  nl80211, so the EUD-leg rate cannot be read from the AP on this adapter.
+  DFS or no-IR flag and advertises VHT at 80 MHz in a domain that permits it; it
+  advertises a 15.0 dBm per-channel figure for 5 GHz **while operating at 20.00
+  dBm on those channels, so that advertisement is not the operative limit**; and
+  it reports **no per-station bitrate** through nl80211, so the EUD-leg rate
+  cannot be read from the AP on this adapter.
   Then records the band move itself (section 8): the AP now runs the decided
   channel 149, the radios no longer share a band, the EUD reassociated on its
   own and the WAN path still carries traffic -- but the requested 80 MHz
   operating width **did not take and `hostapd` logged no complaint**, leaving the
   AP at 40 MHz. That last point generalises: a `hostapd` configuration that
   starts cleanly is not evidence the radio did what it asked, so the bring-up
-  script would need a width read back off the interface as its check. Section 3
-  also **corrects a claim this record first made** -- an advertised 15.0 dBm
-  per-channel figure read as an enforced ceiling, refuted by the adapter running
-  at 20.00 dBm on the same channel. **Publishes no throughput figure** and
+  script would need a width read back off the interface as its check. Section 3 keeps, in
+  place of the claim, the **correction of an error this record first made**: that
+  same advertised figure was initially read as an enforced ceiling and written up
+  as a 5 dB cost to the band move. There is no such cost. **Publishes no throughput figure** and
   withholds every received-signal figure, because the geometry was not recorded
   before the observation. Does not claim the band move fixes the reported
   slowness, and touches nothing about the mesh half.

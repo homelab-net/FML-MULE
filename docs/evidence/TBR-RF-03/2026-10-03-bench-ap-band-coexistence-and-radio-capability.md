@@ -5,6 +5,29 @@ below are direct device and regulatory-domain queries on real hardware.
 **Status:** observation record. Nothing here closes `TBR-RF-03`.
 **Date:** 2026-10-03. **Node:** the x86 bench article. **Trade:** `TBR-RF-03`.
 
+## 0. Provenance
+
+`docs/evidence/README.md` requires a measurement record to name its instrument,
+node and image build, and who took it, and
+`docs/bench-hardware-bringup.md` requires the kernel, radio and driver "alongside
+every result". The first version of this artifact carried only a date and "the
+x86 bench article", which did not meet either. Recorded here rather than
+reconstructed later.
+
+| | |
+| --- | --- |
+| Node | the x86 bench article, hostname `FML-MULE`, descriptor `nodes/lab-bench/` |
+| Image build | **none — this is not the MULE image.** A hand-provisioned Debian GNU/Linux 13 (trixie) host, so there is no image identifier to give |
+| Kernel | `6.12.105+deb13-amd64` |
+| AP radio | RTL8812AU USB adapter, **out-of-tree** `rtl8812au` driver `v5.13.6-23-g232107d9b.20210820` |
+| Uplink radio | onboard, in-tree `rtw89_8852be` |
+| Instruments | `iw` version 6.9; `hostapd` v2.10. Both report values from the driver; neither measures radiated power |
+| Taken by | Cameron Zobrist, with Claude Code, on the lab bench |
+
+The absent image build is itself the honest answer and not an omission: the bench
+is the dirty development article, which is why nothing here can be read as
+evidence about a built node.
+
 **Why this exists.** The Program Owner reported that reaching the WAN through
 the bench access point is very slow. The cause is a band-coexistence condition
 on the bench, and diagnosing it produced three readings about the AP radio that
