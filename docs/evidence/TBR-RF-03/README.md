@@ -8,8 +8,9 @@
 **Named owner:** Cameron Zobrist.
 
 **Current contents:** a `SIMULATED` interface-combination demonstration of
-option 1, plus the [October onboard AP trial][onboard-ap] recorded with the
-three-node lab. The latter carried native fake-EUD chat through a Pi AP but used
+option 1, the [October onboard AP trial][onboard-ap] recorded with the
+three-node lab, and an October band-coexistence observation off the bench AP
+adapter. The latter carried native fake-EUD chat through a Pi AP but used
 NetworkManager infrastructure configuration, not concurrent AP/802.11s mesh.
 It does not answer radio consolidation, airtime contention or coexistence.
 
@@ -17,6 +18,21 @@ This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
 
 [onboard-ap]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
+- `2026-10-03-bench-ap-band-coexistence-and-radio-capability.md` -- observation
+  record, taken from an Owner report that the WAN was slow through the bench AP.
+  Both bench radios were in 2.4 GHz at once (AP on channel 11, uplink station on
+  channel 4), with the AP on a channel the **`DECIDED` AP-params packet below had
+  already ruled against**. Reads three things off the AP adapter that this
+  trade's open half needs: the `rtl8812au` radio advertises channel 149 with no
+  DFS or no-IR flag and advertises VHT at 80 MHz in a domain that permits it; its
+  advertised per-channel transmit ceiling is 5 dB lower at 5 GHz than the figure
+  it reported on 2.4 GHz; and it reports **no per-station bitrate** through
+  nl80211, so the EUD-leg rate cannot be read from the AP on this adapter.
+  **Publishes no throughput figure** and withholds every received-signal figure,
+  because the geometry was not recorded before the observation. Does not claim
+  the band move fixes the reported slowness, and touches nothing about the mesh
+  half.
 
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
   sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate
