@@ -70,8 +70,17 @@ IPV4_RE = re.compile(r"(?<![0-9.])(?:\d{1,3}\.){3}\d{1,3}(?![0-9.])")
 
 
 def is_equipment_mac(mac: str) -> bool:
-    """Report whether the address identifies a real part: universal and unicast."""
-    first = int(mac.split(":")[0], 16)
+    """Report whether the address identifies a real part: universal and unicast.
+
+    The all-zero address is excluded, and finding that out is why rehearsals
+    happen: `ip -details -json link` reports `00:00:00:00:00:00` for every
+    interface with no hardware address, and the bit test alone calls that
+    universal and unicast. A real bench capture carried three of them.
+    """
+    octets = mac.split(":")
+    if all(int(o, 16) == 0 for o in octets):
+        return False
+    first = int(octets[0], 16)
     return not (first & 0x02) and not (first & 0x01)
 
 

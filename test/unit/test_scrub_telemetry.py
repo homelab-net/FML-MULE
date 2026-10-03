@@ -103,3 +103,12 @@ def test_manifest_records_what_is_not_handled() -> None:
     assert manifest["tool"] == "tools/scrub-telemetry.py"
     assert manifest["not_handled"], "the tool must say what it leaves behind"
     assert manifest["kept_deliberately"]
+
+
+def test_the_null_address_is_not_an_equipment_identifier() -> None:
+    """`ip link` reports 00:00:00:00:00:00 for interfaces with no hardware address."""
+    assert not scrub.is_equipment_mac("00:00:00:00:00:00")
+    out = scrub.scrub_document(
+        _doc(links="link/none 00:00:00:00:00:00 brd 00:00:00:00:00:00")
+    )
+    assert "00:00:00:00:00:00" in str(out)
