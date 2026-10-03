@@ -44,4 +44,5 @@ never names a device.
 | --- | --- |
 | `_template/` | The starting point for a new node descriptor. Copy it, do not edit it in place. |
 | `mule-v001/` | The ROADMAP v0.0.1 node: a conventional Wi-Fi access point only. |
-| `lab-bench/` | The development-machine bench standing in for the prototype; its substitutions are recorded in `docs/dev-machine.md`. |
+| `lab-bench/` | The development-machine bench standing in for the prototype; its substitutions are recorded in `docs/dev-machine.md`. **The box currently deviates from this descriptor** -- see the note in the file and in `docs/dev-machine.md`. |
+| `pi-mule-1/` | A Raspberry Pi 4B used as the v0.0.1 / M1 article: access point only, one service, one phone. A **development article**, not a `TBR-HW-01` selection; the GAP-09A precedent. |

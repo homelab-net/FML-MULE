@@ -14,11 +14,22 @@ decided, sourced surface -- client isolation, onboarding broadcast/hidden
 posture, the mission SSID, and the hostapd radio block (`country_code: US` plus
 the `us-915` band/channel/DFS). DHCP/addressing (`TBR-NET-01`), credentials
 (`TBR-SEC-01`) and multi-BSS/interface names (`TBR-LINUX-01`) stay gated and are
-not rendered. The renderer is now wired into the boot oneshot (`FML-ADR-083`),
+not rendered. The **article** this will run on is recorded in
+[`2026-10-03-arm64-development-article.md`][article]: a Raspberry Pi 4B, a
+development article on the `GAP-09A` precedent and **not** a `TBR-HW-01`
+selection, with its interface name and channel verified on the board. Two limits
+read off that radio matter here: it fields **one BSS** (`#{ AP } <= 1`, no
+software interface modes), so `FML-ADR-084`'s second onboarding BSS cannot be
+raised on it at all; and its 20 dBm ceiling is below the profile's
+`ap_max_eirp_dbm: 36`. The renderer is now wired into the boot oneshot
+(`FML-ADR-083`),
 fail-closed: for a node that fields an AP, a render it cannot complete fails the
 oneshot (exit 5) rather than reporting success without the AP configuration
 (2026-09-27 note below). Multi-BSS on the real radio is proven only by the
-Stage-9 Pi exercise (execution card below).
+Stage-9 Pi exercise (execution card below) -- which, on this article, is
+expected to find the multi-BSS shape unavailable rather than to pass.
+
+[article]: 2026-10-03-arm64-development-article.md
 
 | Artifact | What it records |
 | --- | --- |
