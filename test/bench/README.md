@@ -3,9 +3,10 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Fifteen procedures and three helpers. No hardware measurement has been
+**Fifteen procedures and four helpers. No hardware measurement has been
 taken.** The helpers are `operator-view.py` and `udpflow.py`, each driven by the
-shell procedure beside it, and `capture-telemetry.py`, which is run directly.
+shell procedure beside it, and `capture-telemetry.py` and
+`eud-chat-id-capture.py`, which are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -245,6 +246,27 @@ configuration, the ambient conditions, and who took it. See
 Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
+
+`eud-chat-id-capture.py` registers an **obviously fake** EUD against the plain
+CoT port so a real client can address it, then reports the `<__chat id>` of any
+GeoChat that arrives. Its fake identity's UID and callsign differ on purpose:
+that is the entire discriminator, and the 2026-09-28 run could not answer the
+question because it used `id == callsign`.
+
+It is a listener with a registration, not a decision: it sends no LoRa traffic,
+and it exists so a human with a phone can produce one fact. It does **not**
+scrub what it prints -- a live client's identity belongs to the Owner and
+`AGENTS.md` forbids committing a callsign -- so read its output, do not redirect
+it into `docs/evidence/`.
+
+**It has been run and it answered nothing**, which is recorded because the next
+person will otherwise repeat it: the probe registered (the server's `euds` table
+carries it) and received no CoT in 55 seconds. The question it was written for
+was instead answered from state the server had already stored, in
+[`2026-10-03-live-client-chat-id-capture.md`][chatid]. Why a registered client on
+the plain port receives no stream is still open.
+
+[chatid]: ../../docs/evidence/TBR-NET-02/2026-10-03-live-client-chat-id-capture.md
 
 `capture-telemetry.py` is the instrumentation harness for the evidence-led phase
 (`AGENTS.md`, "The current objective"). It snapshots node state as one
