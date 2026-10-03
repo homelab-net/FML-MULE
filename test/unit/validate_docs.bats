@@ -730,6 +730,28 @@ REQ
   [[ "$output" == *"one-lora-hop-to-a-partner-node.md"* ]]
 }
 
+@test "validate-docs catches iw's signal: spelling, not only rssi and snr" {
+  make_sandbox
+  # Found on the bench, 2026-10-03. The check was written against the
+  # Meshtastic record, which prints rssi= and snr=, so its pattern looked for
+  # those two words only. `iw station dump` -- the reader every Wi-Fi bearer
+  # bring-up uses -- prints neither: a real capture taken with a phone
+  # associated to the bench AP carried four figures, all spelled
+  # "signal:  -58 dBm", "signal avg:", "beacon signal avg:", and the check was
+  # blind to every one. A capture filed as evidence would have published RF
+  # figures with no recorded geometry and passed CI, which is the 2026-10-02
+  # defect in a shape the check could not see.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-observations.json"
+  grep -q '"antenna_model_orientation_separation": "Not recorded"' "$target"
+  sed -i 's/"mqtt_on_observed_rf_packets": false,/"mqtt_on_observed_rf_packets": false,\n    "iw_station_dump": "signal:  -58 dBm",/' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"publishes a received-signal figure and disclaims the configuration"* ]]
+  [[ "$output" == *"2026-10-02-three-node-lab-observations.json"* ]]
+}
+
+
 @test "validate-docs catches an artifact asserting HARDWARE-VERIFIED as its status" {
   make_sandbox
   # Check 13 used to step aside the moment any evidence file existed, which it

@@ -28,7 +28,8 @@
 #  22. A workflow that sources the toolchain pins triggers on them (GAP-07).
 #  23. The service catalog is valid and every enabled service resolves to it.
 #  24. The trades page states each trade the way its record does (GAP-08).
-#  25. No evidence artifact publishes a signal figure and disclaims the
+#  25. No evidence artifact publishes a signal figure (rssi, snr, or iw's
+#      "signal:") and disclaims the
 #      configuration it must be read against.
 #
 # THE NUMBERS ABOVE AND THE `# --- N:` SECTION MARKERS BELOW DO NOT AGREE, and
@@ -1056,9 +1057,21 @@ for art in $signal_files; do
   # (RSSI approx -52 dBm, SNR 6-7 dB). "copies node_id and snr into" has no
   # figure and does not count.
   grep -Eiq \
-    '(rssi|snr)[A-Za-z_0-9]*"?[[:space:]]*[=:][[:space:]]*"?-?[0-9]|(rssi|snr)[^.!?]{0,40}-?[0-9]+(\.[0-9]+)?[[:space:]]*d[Bb]' \
+    '(rssi|snr)[A-Za-z_0-9]*"?[[:space:]]*[=:][[:space:]]*"?-?[0-9]|(rssi|snr)[^.!?]{0,40}-?[0-9]+(\.[0-9]+)?[[:space:]]*d[Bb]|signal[A-Za-z_ ]{0,12}:[[:space:]]*-?[0-9]' \
     "$art" || continue
 
+  # NOT extended to "never recorded", though that wording exists in the tree.
+  # docs/evidence/TBR-NET-02/README.md is a summary README spanning two
+  # artifacts: it publishes the September record's "SNR 6-7 dB" (which does
+  # record its antenna, orientation and ambient conditions) and separately says
+  # the October record's geometry "were never recorded" (which withholds its
+  # figures, correctly). This check is per-file, so any README summarising both
+  # carries a figure from one artifact and a disclaimer from the other. Adding
+  # "never" fires there, on a record that is honest -- the exact failure the
+  # note below describes. The residual gap is real: a single artifact that
+  # publishes a figure and says "never recorded" escapes. Closing it needs
+  # per-claim scoping, not a wider pattern.
+  #
   # A disclaimer that the configuration is absent. "not captured during the
   # trial" is deliberately NOT one of these: it dates a reading rather than
   # denying it, and a record may legitimately say when a value was taken.
