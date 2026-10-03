@@ -56,8 +56,13 @@ mesh_interface=TBD             # e.g. bat0
 # Interfaces attached to the mesh. Which bearers join is TBR-RF-01: the sub-GHz
 # bearer certainly, the high-rate inter-node bearer possibly.
 #
-# The EUD access point does NOT join the mesh. It is a separate logical radio
-# function; see FML-ADR-045.
+# The EUD access point is NOT a batman-adv hard interface. That is what this
+# setting is about and the statement is correct here -- but it is not a claim
+# about layer 2, and reading it as one is the FML-ADR-054 error that
+# FML-ADR-056 had to correct. SAD section 4.3 bridges local EUD access INTO the
+# field BATMAN domain, and FML-ADR-056 puts the AP interfaces in the same bridge
+# as the mesh interface. So the AP shares the broadcast domain while not being a
+# hard interface. FML-ADR-045 separates radio FUNCTIONS, not L2 domains.
 hard_interfaces=TBD
 
 # --- Hard interface MTU -----------------------------------------------------

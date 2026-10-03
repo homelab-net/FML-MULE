@@ -150,7 +150,7 @@ def render_hostapd(
         "# (gated on TBR-SEC-01). The passphrase never enters this repository or",
         "# the parameter document (SECURITY.md).",
         "",
-        "# --- DHCP/DNS and addressing: GATED (TBR-NET-01), rendered elsewhere ---",
+        "# --- DHCP/DNS and addressing: GATED (TBR-NET-05), rendered elsewhere ---",
     ]
 
     lines.extend(_render_onboarding(resolved, interfaces, onboarding))

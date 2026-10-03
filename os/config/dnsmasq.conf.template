@@ -8,7 +8,16 @@
 # configuration generation, not a file to be edited on a node. dnsmasq is the
 # assumed implementation; that choice is not recorded as an ADR and should be.
 #
-# Trades: TBR-NET-01 (addressing scheme, and therefore the DHCP range)
+# Trades: TBR-NET-05 (the EUD AP subnet, the DHCP range and the lease).
+# NOT TBR-NET-01, which is CLOSED and decided the per-deployment MESH prefix
+# only; docs/evidence/TBR-NET-01/README.md says so directly.
+#
+# KNOWN PROBLEM with the scoping below, recorded 2026-10-03: SAD section 4.3
+# bridges EUD access into the BATMAN domain and FML-ADR-056 puts the AP
+# interfaces in the mesh bridge. dnsmasq then binds the BRIDGE, and the mesh is
+# inside it -- so `interface=<ap>` plus `bind-interfaces` has no boundary left
+# to scope on and cannot honour the "do NOT serve onto the mesh" rule below by
+# itself. See docs/evidence/TBR-NET-05/2026-10-03-ap-subnet-and-dhcp-decision.md.
 #         TBR-TAK-01 (which services need names)
 #
 # LOCAL-FIRST
@@ -53,4 +62,10 @@ no-resolv
 # --- Notes ------------------------------------------------------------------
 # Two independently built deployments meeting at an incident must not collide.
 # A fixed local domain across all deployments makes that collision certain.
-# See TBR-NET-01.
+#
+# NO TRADE OWNS THE LOCAL DOMAIN, checked 2026-10-03. TBR-NET-01 is CLOSED and
+# decided the mesh prefix; TBR-NET-05 owns the AP subnet and DHCP; TBR-NET-06
+# owns how a REMOTE EUD resolves one service name across the WAN overlay. The
+# local domain a phone on the AP subnet resolves is needed by this file, by the
+# HAProxy hdr(host) ACL and by any ingress certificate SAN, and is owned by
+# none of them. Recorded in services/ingress/README.md.
