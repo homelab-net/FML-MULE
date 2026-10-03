@@ -5,7 +5,7 @@
 **Trade file:** `docs/trades/TBR-NET-01-field-address-prefix.md`
 
 **Priority:** 15 of 16 (SAD v0.31 section 30.2). **Function owner:** Network.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** three artifacts. This trade is **`CLOSED`** (2026-09-04, on
 the named owner's acceptance; the decision is `FML-ADR-063`). This README was stale
@@ -95,4 +95,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.

@@ -2,7 +2,7 @@
 id: TBR-NET-06
 title: How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: NET
 priority: 99
 function-owner: Network

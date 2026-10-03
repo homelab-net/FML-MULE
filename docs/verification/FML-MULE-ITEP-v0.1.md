@@ -83,7 +83,9 @@ accepts the evidence**, and the resulting decision is entered into the ADR
 register.
 
 **Every trade read `TBD-SRR` until 2026-08-31, when Cameron Zobrist was assigned
-to each; open trades also carry a 2026-09-30 target date as of 2026-09-04.**
+to each; open trades also carry a 2026-09-30 target date as of 2026-09-04.
+`TBR-NET-04`, `TBR-NET-05` and `TBR-NET-06` were raised after that pass and were
+assigned on 2026-10-02; the latter two still have no target date.**
 Work proceeds against this plan and evidence is gathered. Three trades have since
 closed on accepted evidence and a registered decision (`TBR-NET-01`,
 `TBR-NET-02`, `TBR-NET-03`); the rest, most gated on hardware, complete their
@@ -196,8 +198,11 @@ Campaign identifiers are permanent and never reused, on the same terms as
 
 Every campaign names the trades it closes or advances, the CONOPS section 78
 stage it feeds, the rig, the procurement gate it waits on, the evidence path,
-and the function owner from SAD section 30.2. Named owners are `TBD-SRR`
-throughout, per section 1.1.
+and the function owner from SAD section 30.2. Named owners were `TBD-SRR`
+throughout when this plan was written; every trade now names one (the
+SAD-register trades 2026-08-31, `TBR-NET-04`/`05`/`06` on 2026-10-02), so the
+section 1.1 blocker is cleared for acceptance. Target dates are not: `TBR-NET-05`
+and `TBR-NET-06` still read `TBD-SRR`.
 
 ### ITEP-C01 - Analysis, no hardware
 

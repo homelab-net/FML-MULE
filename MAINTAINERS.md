@@ -5,11 +5,19 @@ knowledge, becomes unavailable, and the program stops without anyone deciding
 that it should. This file exists to make that failure visible before it
 happens, not to describe an organisation that already works.
 
-**Current state: every role below is unfilled.** Everything in this repository
-was produced by the program originator, and until names are recorded here, the
-program has a single point of human failure in every role simultaneously. That
-is the most significant risk this program carries, and it is not a technical
-one.
+**Current state: every role below carries one name, and no role has an
+alternate.** Everything in this repository was produced by the program
+originator. Recording that name is what lets a trade close -- closure requires a
+named owner to accept the evidence, and nothing could close while the owner read
+`TBD-SRR`. It does **not** reduce the risk: the program still has a single point
+of human failure in every role simultaneously, which is the most significant
+risk it carries and is not a technical one. Naming the person who was already
+doing the work makes the risk legible, not smaller.
+
+**Raised under the 90-day rule, 2026-10-02:** all eight roles sit with a single
+name and no alternate. CONOPS section 79 criterion 33 -- that the program can be
+maintained by more than one qualified person -- is **unmet**, and filling these
+cells does not change that.
 
 Two controlling documents say the same thing in their own terms:
 
@@ -21,7 +29,10 @@ Two controlling documents say the same thing in their own terms:
   mission credentials, node identities, re-keying and audit records, and states
   it **shall exist and be staffed before fielding**.
 - **SAD section 30.2** makes assigning a named individual and a target date to
-  every open TBR an **SRR exit action**. All sixteen read `TBD-SRR`.
+  every open TBR an **SRR exit action**. Every open trade now names an owner
+  (2026-10-02). **Target dates are not all assigned**: `TBR-NET-05` and
+  `TBR-NET-06` still read `TBD-SRR` for `target-date`, so the SRR exit action is
+  partly outstanding. A date is a commitment and is not invented here.
 - **SAD section 31** carries "one individual owns too many TBRs/release
   functions" as an OPEN risk, to be reviewed when names are assigned.
 
@@ -45,14 +56,14 @@ reads as a fact.
 
 | Role | Primary | Alternate | Held since |
 | --- | --- | --- | --- |
-| Build and image pipeline | VACANT | VACANT | - |
-| Radio and RF | VACANT | VACANT | - |
-| Security and identity | VACANT | VACANT | - |
-| Hardware | VACANT | VACANT | - |
-| Documentation | VACANT | VACANT | - |
-| Release | VACANT | VACANT | - |
-| TAK and service plane | VACANT | VACANT | - |
-| Power, thermal and mechanical | VACANT | VACANT | - |
+| Build and image pipeline | Cameron Zobrist | VACANT | 2026-10-02 |
+| Radio and RF | Cameron Zobrist | VACANT | 2026-10-02 |
+| Security and identity | Cameron Zobrist | VACANT | 2026-10-02 |
+| Hardware | Cameron Zobrist | VACANT | 2026-10-02 |
+| Documentation | Cameron Zobrist | VACANT | 2026-10-02 |
+| Release | Cameron Zobrist | VACANT | 2026-10-02 |
+| TAK and service plane | Cameron Zobrist | VACANT | 2026-10-02 |
+| Power, thermal and mechanical | Cameron Zobrist | VACANT | 2026-10-02 |
 
 ### Relationship to the SAD function owners
 

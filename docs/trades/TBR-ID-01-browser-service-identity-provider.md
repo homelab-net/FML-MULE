@@ -20,7 +20,7 @@ target-date: 2026-09-30
 **Source:** SAD v0.31 section 16.5, and the TBR register in SAD section
 30.2 (priority 14 of 16).
 
-**Function owner:** Security/Identity. **Named owner:** `TBD-SRR`.
+**Function owner:** Security/Identity. **Named owner:** Cameron Zobrist.
 
 SAD section 30.2 records an SRR exit action: the Program Owner assigns one named
 individual and one calendar target date to every open TBR. The named individual
