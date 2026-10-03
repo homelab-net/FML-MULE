@@ -29,10 +29,19 @@ evidence the closure gate demands is hardware and not produced.
   advertised per-channel transmit ceiling is 5 dB lower at 5 GHz than the figure
   it reported on 2.4 GHz; and it reports **no per-station bitrate** through
   nl80211, so the EUD-leg rate cannot be read from the AP on this adapter.
-  **Publishes no throughput figure** and withholds every received-signal figure,
-  because the geometry was not recorded before the observation. Does not claim
-  the band move fixes the reported slowness, and touches nothing about the mesh
-  half.
+  Then records the band move itself (section 8): the AP now runs the decided
+  channel 149, the radios no longer share a band, the EUD reassociated on its
+  own and the WAN path still carries traffic -- but the requested 80 MHz
+  operating width **did not take and `hostapd` logged no complaint**, leaving the
+  AP at 40 MHz. That last point generalises: a `hostapd` configuration that
+  starts cleanly is not evidence the radio did what it asked, so the bring-up
+  script would need a width read back off the interface as its check. Section 3
+  also **corrects a claim this record first made** -- an advertised 15.0 dBm
+  per-channel figure read as an enforced ceiling, refuted by the adapter running
+  at 20.00 dBm on the same channel. **Publishes no throughput figure** and
+  withholds every received-signal figure, because the geometry was not recorded
+  before the observation. Does not claim the band move fixes the reported
+  slowness, and touches nothing about the mesh half.
 
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
   sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate

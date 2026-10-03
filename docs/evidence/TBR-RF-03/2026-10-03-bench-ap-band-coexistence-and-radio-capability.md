@@ -51,22 +51,40 @@ page. The adapter presents as `rtl8812au`, an out-of-tree driver.
   permits 80 MHz. Channel 149 is the lowest member of the 149/153/157/161 block,
   whose 80 MHz centre is channel 155.
 
-So the decided channel is reachable on this adapter at 80 MHz. This is a
-statement about what the radio and the regulatory domain allow, not a
-measurement of a link.
+So the decided channel is reachable on this adapter, and the radio and the
+regulatory domain both permit 80 MHz. This is a statement about what is
+*advertised and allowed*, not about what the driver delivers -- section 8
+records the bring-up, where the requested 80 MHz did not take. It is not a
+measurement of a link either way.
 
-## 3. The per-channel power ceiling is lower at 149 than at the 2.4 GHz channel
+## 3. The advertised per-channel ceiling is not the operative one
 
-The adapter advertised a 20.00 dBm transmit power while on channel 11, and the
-5 GHz entries each carry a 15.0 dBm per-channel figure. These are the driver's
-configured and advertised ceilings read back from the device, not radiated
-measurements, and nothing on this bench can measure EIRP. The decision packet
-is explicit that antenna gain raises radiated power and that the profile's
-`ap_max_eirp_dbm` is a planning value; this record does not revise it.
+**This section originally recorded a 5 dB cost that does not exist. The
+correction is kept in place of the claim, because the mistake is the useful
+part.**
 
-The trade-off is therefore real and should be recorded before anyone treats the
-band move as free: moving the AP to 149 buys band separation from the uplink and
-80 MHz of width, and costs 5 dB of advertised transmit ceiling.
+The adapter reported a 20.00 dBm transmit power while on channel 11, and every
+5 GHz entry in its channel list carries a 15.0 dBm per-channel figure. The first
+draft of this record read those two together as a ceiling and stated that moving
+to 149 "costs 5 dB of advertised transmit ceiling".
+
+The bring-up in section 8 refutes it. On channel 149 the adapter reports
+**20.00 dBm**, unchanged, while `iw phy` still advertises 15.0 dBm for 149 and
+153. The advertised per-channel figure and the operative transmit power
+disagree, and the regulatory domain's own `5730 - 5850` entry permits 30 dBm, so
+15.0 dBm was never the binding limit. Reading a per-channel advertisement as an
+enforced ceiling was the error.
+
+What can be said: no transmit-power cost to the band move was observed. All of
+these are values read back from the driver, not radiated measurements; nothing
+on this bench can measure EIRP. The decision packet is explicit that antenna
+gain raises radiated power and that the profile's `ap_max_eirp_dbm` is a
+planning value, and this record does not revise it.
+
+This is `AGENTS.md`'s transcription rule earning its place: the source said
+what a channel entry *advertises*, and the draft wrote down what the radio
+*would be limited to*. Those are different claims, and the paraphrase failed in
+the direction that sounded like diligence.
 
 ## 4. A reading this platform cannot provide
 
@@ -110,17 +128,22 @@ Established, on real hardware:
   channel the program had already decided against.
 - The AP adapter advertises channel 149 without DFS or no-IR restriction, and
   advertises VHT with 80 MHz support in a regulatory domain that permits it.
-- The adapter advertises a lower per-channel transmit ceiling at 5 GHz than the
-  figure it reported on 2.4 GHz.
+- The adapter advertises a 15.0 dBm per-channel figure for 5 GHz while
+  operating at 20.00 dBm on those channels, so that advertisement is not the
+  operative limit (section 3).
 - The `rtl8812au` driver reports no per-station bitrate through nl80211.
+- Channel 149 was brought up and an EUD associated to it; the requested 80 MHz
+  operating width did not take and the AP runs at 40 MHz (section 8).
 
 Not established, and not claimed:
 
 - **No throughput figure, before or after.** None was measured; the EUD-leg rate
   cannot be read from this driver, and no endpoint measurement was taken.
-- **That the band move fixes the reported slowness.** The coexistence condition
-  is documented and the mechanism is sound, but the remedy is untested here. The
-  Owner's report is a report, not a measurement.
+- **That the band move fixes the reported slowness.** The move was made and the
+  coexistence condition is gone, but no throughput was measured before or after,
+  and this adapter cannot report the EUD-leg rate at all. The mechanism is
+  sound; the improvement is unquantified. The Owner's report was a report, not a
+  measurement, and so is any report of it being better.
 - **Nothing about radiated power.** No EIRP was measured and none can be on this
   bench.
 - **Nothing about the mesh half of `TBR-RF-03`.** Whether AP and mesh share one
@@ -132,8 +155,8 @@ Not established, and not claimed:
 
 ## 7. Consequences worth acting on
 
-1. The bench AP should run the decided channel 149, so that bench results
-   describe the configuration the program chose.
+1. ~~The bench AP should run the decided channel 149~~ -- **done**, section 8.
+   Bench results from here describe the configuration the program chose.
 2. `test/bench/mule-ap-up.sh` emits `ieee80211n=1` and no VHT directives, so it
    would bring an AP up at 20 MHz even on channel 149. Making it emit VHT cannot
    be unconditional: `hostapd` refuses to start when `ieee80211ac=1` is set on a
@@ -143,3 +166,63 @@ Not established, and not claimed:
    instance of the reconciliation item: the live `hostapd` was started from a
    predictable `/tmp` path by an older copy of the bring-up script, and the live
    `dnsmasq` carries options the repository's script does not generate.
+
+## 8. The band move, and what the driver did with it
+
+Performed 2026-10-03 on Owner instruction, after the coexistence condition
+above was reported. The access point was moved from 2.4 GHz channel 11 to the
+decided channel 149 by deriving a 5 GHz `hostapd` configuration from the live
+one and restarting `hostapd` only. `dnsmasq` was deliberately left running: it
+serves `tailscale0`, `/etc/mule-hosts` and `--local=/field/`, and the
+device-level instructions require shared Mule DNS to stay operational. The
+script carried a rollback to the 2.4 GHz configuration, which was not needed.
+
+Outcome:
+
+| | Before | After |
+| --- | --- | --- |
+| AP band and channel | 2.4 GHz ch 11 (2462 MHz) | 5 GHz **ch 149** (5745 MHz) |
+| AP operating width | 20 MHz | **40 MHz** (requested 80) |
+| AP reported transmit power | 20.00 dBm | 20.00 dBm |
+| Uplink band and channel | 2.4 GHz ch 4 | 2.4 GHz ch 4, unchanged |
+| Radios sharing a band | yes | **no** |
+
+`hostapd` reached `AP-ENABLED` through `COUNTRY_UPDATE` and `HT_SCAN` with no
+warning, the EUD reassociated on the new band on its own and completed the
+four-way handshake, the AP's address survived the restart, and the EUD's
+masquerade counter continued to increment, so the WAN path through the node
+still carries traffic. The DNS process was untouched.
+
+### The requested 80 MHz did not take, silently
+
+The configuration set `ieee80211ac=1`, `vht_oper_chwidth=1` and
+`vht_oper_centr_freq_seg0_idx=155`, which is the 80 MHz centre for the
+149/153/157/161 block. The radio advertises VHT capabilities including short
+guard interval at 80 MHz. The interface nevertheless runs at **40 MHz with
+`center1: 5755 MHz`**, which is the HT40 centre of 149+153; an 80 MHz operating
+channel would centre on 5775 MHz.
+
+`hostapd` logged no complaint. It did not warn, downgrade audibly, or fail --
+it went straight to `ENABLED`. So this is not a configuration error that
+announced itself; the requested operating width was accepted and not delivered,
+and the only way to know is to read the operating channel back off the
+interface afterwards.
+
+That is a finding at the Linux/radio boundary, which `AGENTS.md` names as the
+program's dominant uncertainty, and it carries a general lesson for the bearer
+work: **a `hostapd` configuration that starts cleanly is not evidence that the
+radio is doing what the configuration asked.** Whether the cause is the
+out-of-tree `rtl8812au` driver ignoring the VHT operating width, a capability
+the adapter advertises but does not implement for AP mode, or a hostapd/driver
+negotiation, is not established here and needs its own investigation.
+
+### What this means for the bring-up script
+
+`test/bench/mule-ap-up.sh` emits `ieee80211n=1` and no VHT directives, so it
+would have produced 20 MHz on channel 149. Adding VHT cannot be unconditional:
+`hostapd` refuses to start when `ieee80211ac=1` is set on a radio that does not
+advertise VHT, and the Pi's `brcmfmac` is a different part. This observation
+adds a second reason for caution -- on this adapter the directives are accepted
+and partially ignored, so emitting them would make the script's output *look*
+like an 80 MHz AP while delivering 40. Any change there needs a width read back
+from the interface as its check, not a clean `hostapd` start.
