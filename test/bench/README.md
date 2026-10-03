@@ -288,5 +288,33 @@ role model: it reads the `interfaces` map from `nodes/<node-id>/node.yml`
 `os/config/` templates use -- naming roles, never devices, so the same script
 drives the prototype after a descriptor swap (FML-ADR-045). It refuses to run if
 `eud_ap` and `wan` resolve to the same device, or if `eud_ap` is the current
-default-route device, so it cannot cannibalise the box's uplink. Unlike the
-probes above it is an operational bring-up, not a CI test.
+default-route device, so it cannot cannibalise the box's uplink. It also refuses
+when something already holds `:53` on the wildcard address or on the gateway
+address it is about to bind. Unlike the probes above it is an operational
+bring-up, not a CI test.
+
+**It had never been run anywhere when that third refusal was added
+(2026-10-03).** No evidence artifact records an execution, on the bench or on a
+Pi. Two defects were found by reading it against the articles rather than by
+running it:
+
+- Both Pi articles ship `dnsmasq` enabled, running and bound to the wildcard
+  address, so the second instance this script starts could not bind and exited
+  non-zero. Under `set -eu` that aborted the run **after** `hostapd` was up and
+  the address was added and **before** `ip_forward`, `nftables` and the `AP UP`
+  banner -- an access point with no DHCP, no uplink, and no message, because the
+  output went to `/dev/null`. That is now a pre-flight refusal with the command
+  to fix it.
+- Every failure path discarded its output, so `FAIL: hostapd did not start` was
+  the entire diagnostic available on a board nobody had run it on. `hostapd` and
+  `dnsmasq` now log to `/run/fml/` and the log is printed on failure.
+
+**Why there is no automated test for this.** The script requires root, a real
+radio that can enter AP mode, and -- for the new refusal -- a conflicting
+resolver on the same host. None of those exists in CI, which has no radios. The
+detection was instead verified on all three lab machines: it refuses on both Pis
+(wildcard `0.0.0.0:53`) and on the bench (a `dnsmasq` holding `10.41.0.1:53`,
+the exact address the script binds), and a negative control against a port
+nothing holds stays clear, so the check discriminates rather than always firing.
+Testing only for the wildcard was a false negative on the bench and was found
+that way.

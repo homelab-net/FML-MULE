@@ -23,9 +23,17 @@ NODE_YML="$ROOT/nodes/$NODE/node.yml"
 SUBNET="10.41.0.0/24"
 GW="10.41.0.1"
 SSID="${MULE_AP_SSID:-feralmulenet}" # override via env; field SSID is mission data
-CONF="/tmp/mule-hostapd.conf"
-DPID="/tmp/mule-dnsmasq.pid"
-PSK_FILE="/tmp/mule-psk" # runtime only, 0600; the passphrase never lives in git
+# Runtime files live under /run, not /tmp. This script runs as root and writes
+# these paths unconditionally; a predictable root-written path in a
+# world-writable directory is a symlink-swap away from an arbitrary-file
+# overwrite, and the pid file is read back and passed to kill. /run/fml is the
+# same directory os/systemd/mule-runtime.service declares with UMask=0077.
+RUNDIR="/run/fml"
+CONF="$RUNDIR/mule-hostapd.conf"
+DPID="$RUNDIR/mule-dnsmasq.pid"
+PSK_FILE="$RUNDIR/mule-psk" # runtime only, 0600; the passphrase never lives in git
+HOSTAPD_LOG="$RUNDIR/mule-hostapd.log"
+DNSMASQ_LOG="$RUNDIR/mule-dnsmasq.log"
 
 say() { printf '  %s\n' "$1"; }
 
@@ -64,11 +72,20 @@ AP_CHANNEL="$(node_scalar ap_channel)"
 AP_CHANNEL="${AP_CHANNEL:-36}"
 if [ "$AP_CHANNEL" -ge 36 ]; then HW_MODE=a; else HW_MODE=g; fi
 
+# 0700 root-owned, created before anything writes into it. systemd would supply
+# this via RuntimeDirectory= when the bring-up runs as a unit; this script may be
+# run by hand, so it does not assume the unit has run.
+mkdir -p "$RUNDIR"
+chmod 700 "$RUNDIR"
+
 down() {
   say "stopping dnsmasq/hostapd"
   if [ -f "$DPID" ]; then kill "$(cat "$DPID")" 2>/dev/null || true; fi
   pkill -x hostapd 2>/dev/null || true
-  rm -f "$PSK_FILE" 2>/dev/null || true
+  # The config carries no secret -- the passphrase lives only in PSK_FILE -- but
+  # leaving it behind made a stale run look like a live one. Logs are kept
+  # deliberately: they are the diagnostic for whatever went wrong.
+  rm -f "$PSK_FILE" "$CONF" "$DPID" 2>/dev/null || true
   nft delete table ip mule 2>/dev/null || true
   ip addr flush dev "$AP" 2>/dev/null || true
   ip link set "$AP" down 2>/dev/null || true
@@ -144,10 +161,15 @@ max_num_sta=16
 EOF
 
 say "starting hostapd on $AP"
-hostapd -B "$CONF" >/dev/null 2>&1
+# Keep the output. This script had `>/dev/null 2>&1` here, which made
+# "FAIL: hostapd did not start" the entire diagnostic available on a board
+# nobody had ever run it on -- the difference between an afternoon and a week.
+hostapd -B "$CONF" >"$HOSTAPD_LOG" 2>&1 || true
 sleep 4
 pgrep -x hostapd >/dev/null || {
-  echo "FAIL: hostapd did not start"
+  echo "FAIL: hostapd did not start. Its output follows:"
+  sed 's/^/    /' "$HOSTAPD_LOG" 2>/dev/null || echo "    (no output captured)"
+  echo "  config: $CONF"
   exit 1
 }
 iw dev "$AP" info 2>/dev/null | grep -q "type AP" || {
@@ -159,10 +181,37 @@ ip addr add "$GW/24" dev "$AP"
 ip link set "$AP" up
 iw dev "$AP" set power_save off 2>/dev/null || true
 
+# A system dnsmasq bound to the wildcard address already owns :53 on every
+# interface including this one, so a second instance fails with EADDRINUSE.
+# Under `set -eu` that aborted the script HERE -- after hostapd was up and the
+# address was added, before ip_forward, before nftables, before the AP UP
+# banner -- leaving an access point with no DHCP, no uplink and no explanation,
+# because the output went to /dev/null. Both Pi articles ship dnsmasq enabled
+# and running, so this is the default state, not an edge case.
+# Two ways this collides: a wildcard listener owns :53 on every address
+# including ours, or something already holds our gateway address specifically.
+# Testing only for the wildcard was a false negative on the bench, where a
+# dnsmasq bound to 10.41.0.1:53 -- the very address this script binds -- read as
+# clear. Check both.
+if ss -lntu 2>/dev/null |
+  grep -qE "(^|[^0-9.])(0\.0\.0\.0|${GW//./\\.}):53|\*:53"; then
+  echo "REFUSED: something already holds :53 on the wildcard address or on $GW."
+  echo "         A second dnsmasq cannot bind $GW:53 and this script would"
+  echo "         abort midway, leaving the AP up with no DHCP."
+  echo "         Stop the system resolver first, e.g.:"
+  echo "             systemctl stop dnsmasq"
+  echo "         then re-run. 'mule-ap-up.sh down $NODE' undoes what is up."
+  exit 1
+fi
+
 dnsmasq --interface="$AP" --bind-interfaces --except-interface=lo \
   --dhcp-range=10.41.0.50,10.41.0.150,255.255.255.0,12h \
   --dhcp-option=3,"$GW" --dhcp-option=6,"$GW" \
-  --dhcp-authoritative --pid-file="$DPID" >/dev/null 2>&1
+  --dhcp-authoritative --pid-file="$DPID" >"$DNSMASQ_LOG" 2>&1 || {
+  echo "FAIL: dnsmasq did not start. Its output follows:"
+  sed 's/^/    /' "$DNSMASQ_LOG" 2>/dev/null || echo "    (no output captured)"
+  exit 1
+}
 say "dnsmasq serving DHCP on $AP"
 
 # Uplink passthrough via nftables (the field firewall mechanism), added in its
