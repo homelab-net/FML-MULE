@@ -1,9 +1,10 @@
 # GAP-09H decision packet: what the image carries so M1 can run from it
 
 **State:** `AWAITING_USER_DECISION`. Nothing here is implemented. The Program
-Owner decides; the decision lands in a new ADR (the arm64 profile ADR, not yet
-written), as `FML-ADR-083` did for `python3`, because a packet cannot override
-a `shall`.
+Owner decides; the decision lands in its own new ADR, as `FML-ADR-083` did for
+`python3`, because a packet cannot override a `shall`. It is a separate decision
+from the arm64 boot profile, proposed as its own ADR on branch
+`claude/c1-arm64-profile-adr`.
 
 **Finding:** GAP-09H, gap G8 (operator procedure,
 `2026-09-26-operator-procedure.md`). **Prepared:** 2026-10-04. **Author:**
@@ -56,7 +57,7 @@ and the Python runtime. None of the following is present.
 | --- | --- | --- | --- | --- |
 | Container runtime | `podman` (`5.4.2+ds1-2+b2`, main) | step 5, Martin (G8) | both | Its rootless helpers are `Recommends`, not `Depends`, at the pinned snapshot, and the image installs no Recommends (`os/image/mkosi.conf`, `WithRecommends=no`). So `uidmap` (subordinate ID mapping), `passt` (rootless networking) and `dbus-user-session` (the user manager's bus) join the list by name. `catatonit` is also only recommended and is not proposed: `martin.container` sets no `Init=`. |
 | Access point userspace | `hostapd` (`2:2.10-24`, main) | step 4, the EUD AP | both | Consumes the rendered `hostapd.partial.conf`; the WPA block stays gated on `TBR-SEC-01`. |
-| Wi-Fi firmware | `firmware-brcm80211` (`20250410-2`, non-free-firmware) | step 4 on the Pi 4B (CYW43455) | arm64 only | Carries `cypress/cyfmac43455-sdio.bin`, its `clm_blob`, and `brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.txt` (package file list). It is in `non-free-firmware`, which the image does not enable today; the arm64 profile ADR decides that component. The lab Pis run a Raspberry Pi kernel, so they are not evidence for the Debian package. |
+| Wi-Fi firmware | `firmware-brcm80211` (`20250410-2`, non-free-firmware) | step 4 on the Pi 4B (CYW43455) | arm64 only | Carries `cypress/cyfmac43455-sdio.bin`, its `clm_blob`, and `brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.txt` (package file list). It is in `non-free-firmware`, which the image does not enable today; the arm64 boot profile ADR proposes enabling it for that profile. The lab Pis run a Raspberry Pi kernel, so they are not evidence for the Debian package. |
 | Regulatory database | `wireless-regdb` (`2026.05.30-1~deb13u1`, main) | step 4 | both | Expected to provide the kernel's regulatory database, so a `country_code` request is applied rather than leaving the world domain. On the Pi 4B's FullMAC `brcmfmac` the firmware's own country tables also apply (`TBR-LINUX-01`). |
 | DHCP and local DNS | `dnsmasq` (`2.91-1+deb13u1`, main) | steps 7-8, a phone gets an address and resolves the name | both | Package only. Its configuration is `TBR-NET-05`'s and stays unrendered until that trade decides lease and scope. |
 | Ingress proxy | `haproxy` (`3.0.11-1+deb13u3`, main) | step 7, reach Martin by name (G5a) | both | `FML-ADR-031` selects it. `os/config/haproxy.conf.template` has its bind address `TBD` on `TBR-NET-05`. |
@@ -210,8 +211,7 @@ WAN, pulled at first start or pre-seeded at build.
 
 It decides no `TBR-NET-05`, `TBR-SEC-01`, `TBR-HA-01` or `TBR-LINUX-01` value.
 It does not reconcile the lab articles, which is deferred by the Program Owner.
-It does not make the image boot on the Pi; that is the arm64 profile ADR (not
-yet written).
+It does not make the image boot on the Pi; that is the arm64 boot profile ADR.
 
 ## 7. Owner disposition
 
