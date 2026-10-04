@@ -15,6 +15,7 @@ close.
 | Artifact | What it records |
 | --- | --- |
 | `2026-09-26-operator-procedure.md` | The v0.0.1 build/bring-up procedure, the cold-start acceptance drill, and the register of gaps that block a hands-free run. |
+| `2026-10-04-m1-runtime-on-the-image-decision-packet.md` | Gap G8 decision packet, awaiting the Program Owner: the M1 package set on the image, and how Martin runs on it (account, per-UID Quadlet directory, state path, boot start). |
 
 Naming and recording rules are in `docs/evidence/README.md`. Nothing real: no
 deployment location, member identity, callsign, credential, or operational

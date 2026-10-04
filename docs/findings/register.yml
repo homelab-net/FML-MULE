@@ -290,6 +290,7 @@ findings:
     dependencies: [GAP-09D, GAP-09E, GAP-09G]
     evidence:
       - "docs/evidence/findings/GAP-09H/2026-09-26-operator-procedure.md"
+      - "docs/evidence/findings/GAP-09H/2026-10-04-m1-runtime-on-the-image-decision-packet.md"
     user_gate: null
 
   - <<: *open_independent
