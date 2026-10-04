@@ -6,12 +6,12 @@ build-and-bring-up steps a stranger follows, and names the gaps that still block
 clean end-to-end run. It is a procedure, not a completed drill: v0.0.1 is done only
 when a person who did not write the docs runs the cold-start drill on real hardware
 and reaches a working node (`ROADMAP.md`, `docs/verification/README.md`). Nothing
-here is `HARDWARE-VERIFIED`, and the tiers of the pieces vary: the config
-resolution and rendering are `SIMULATED`, but the Martin service unit is
-`UNVERIFIED` (authored, never instantiated -- GAP-09G), so the milestone is not a
-uniform `SIMULATED` whole. The manual bring-up fallback (steps 4-8) additionally
-depends on hardware not yet in hand: it leans on the GAP-09E Pi bring-up card, and
-the arm64 Pi is acquired the weekend of 2026-09-27.
+here is `HARDWARE-VERIFIED`. The config resolution, the partial hostapd render and
+the Martin deployment contract are `SIMULATED` (Martin was instantiated on the x86
+bench, `GAP-09G/2026-09-27-martin-instantiation.md`); none of them has run from the
+image on the v0.0.1 article. The manual bring-up fallback (steps 4-8) leans on the
+GAP-09E Pi bring-up card; the arm64 Pi article is in hand
+(`GAP-09E/2026-10-03-arm64-development-article.md`).
 
 ## Target (and non-target)
 
@@ -54,11 +54,13 @@ to end, the **gap** that blocks it (collected in the register below).
 
 3. **Boot; the runtime renders config.** `os/systemd/mule-runtime.service`
    (`FML-ADR-083`, PR #176) runs `python -m mule ... --out /run/fml`, resolving the
-   region+mission+node and, once wired, rendering the AP config. **Gap G3
-   (rendering wired into the oneshot):** `mule/rendering.py` (PR #178) renders the
-   decided hostapd surface but is **not yet wired into the boot oneshot**, and is a
-   partial (`SIMULATED`) render: no WPA block (`TBR-SEC-01`), no DHCP/addressing
-   (`TBR-NET-01`).
+   region+mission+node and rendering the AP config. **Gap G3 (partial render):**
+   the oneshot now writes `hostapd.partial.conf` (`mule/configuration.py`
+   `_render_ap_config`, PR #187;
+   `GAP-09E/2026-09-27-hostapd-render-wired-and-wpa-gate.md`), but the render is a
+   `SIMULATED` partial that says of itself it is not bootable: no WPA block
+   (`TBR-SEC-01`), and no DHCP/DNS, addressing, firewall or networkd output
+   (`TBR-NET-05`).
 
 4. **Bring up the EUD AP.** hostapd from the rendered config on `us-915` channel 149
    / 5 GHz (`FML-ADR-057` operational BSS not isolated). Until G2/G3 close, bring
@@ -68,16 +70,20 @@ to end, the **gap** that blocks it (collected in the register below).
 
 5. **Serve the one service.** Martin as a rootless Podman **Quadlet** unit
    (`FML-ADR-029`, GAP-09G), referenced by immutable digest, with its catalog entry
-   (`services/catalog/catalog.yml`). GAP-09G **authored and statically checked** this
-   unit but its evidence tier is `UNVERIFIED`: no container has been instantiated,
-   even on x86 (`GAP-09G/2026-09-24-implementation.md`). Running it here is its first
-   instantiation. It mounts one read-only per-mission MBTiles at
+   (`services/catalog/catalog.yml`). GAP-09G authored the unit
+   (`GAP-09G/2026-09-24-implementation.md`) and instantiated it rootless on the x86
+   bench at `SIMULATED` (`GAP-09G/2026-09-27-martin-instantiation.md`); running it
+   here is its first run on the v0.0.1 article. It mounts one read-only per-mission MBTiles at
    `/var/lib/fml/maps/mission.mbtiles` and fails closed if that file is unreadable.
    **Gap G8 (runtime + unit not on the image):** the current `os/image` closure
    installs no Podman, and the build does not place `martin.container` or its
    catalog into the runtime-consumed paths, so on the fresh image this step cannot
    be followed as written. The image must ship Podman and install the Quadlet unit
-   + catalog before the service can start.
+   + catalog before the service can start. The same closure also carries no access
+   point userspace (`hostapd`) and none of the Pi's Wi-Fi firmware or regulatory
+   database, so step 4 cannot run from the image either; which packages, and the
+   archive component the firmware needs, is for the Program Owner under
+   `FML-ADR-081`.
 
 6. **Provision the map tiles.** Place the mission MBTiles at
    `/var/lib/fml/maps/mission.mbtiles`, sourced per `FML-ADR-073` (one read-only
@@ -102,10 +108,13 @@ to end, the **gap** that blocks it (collected in the register below).
    **not** substitute for service TLS. The deferral accepts plain-HTTP tiles as a
    recorded residual risk for v0.0.1; it assumes at least a **WPA2** AP (itself
    gated -- G3/G4, no WPA block rendered, `TBR-SEC-01`), and an **open** AP plus
-   HTTP would compound the deviation. **Gap G6 (AP subnet / DHCP -- undecided and
-   unowned):** `TBR-NET-01` is `CLOSED` but decided only the mesh field prefix
-   (`FML-ADR-063`); no trade owns AP addressing. Set the AP subnet by hand for the
-   drill; a decision (or a new trade) is needed before it is hands-free.
+   HTTP would compound the deviation. **Gap G6 (AP subnet / DHCP -- owned,
+   undecided):** `TBR-NET-05` owns AP addressing; the 2026-10-03 decision narrowed
+   it (per-deployment subnet in the mission package, `address_prefix` governing on
+   a meshed node) but left the lease and the per-node slice assignment open
+   (`docs/evidence/TBR-NET-05/2026-10-03-ap-subnet-and-dhcp-decision.md`). Set the
+   AP subnet by hand for the drill; `TBR-NET-05` closing is what makes it
+   hands-free.
 
 8. **The phone.** Join the AP (SSID from the mission; credential from step 4), open
    the map URL by name, confirm tiles load. Needs a phone on the AP (the bookmarked
@@ -126,13 +135,13 @@ the drill; issues are read afterward. A skipped drill is recorded as skipped in
 | --- | --- | --- |
 | G1 image not booted for current closure | boot on any arch, then the Pi | the current `os/image` closure is built and booted, and an arm64 artifact is produced |
 | G2 interface name (`TBR-LINUX-01`) | rendered AP/networkd config | **met for the v0.0.1 article** 2026-10-03: `nodes/pi-mule-1/node.yml` names `wlan0`. Still `TBD` for the unassembled `mule-v001`. |
-| G3 render wired into oneshot + partial render | hands-free bring-up | rendering wired into `main`/the service; WPA path (`TBR-SEC-01`) + DHCP (`TBR-NET-01`) rendered |
+| G3 partial render (wired into the oneshot by PR #187) | hands-free bring-up | WPA path (`TBR-SEC-01`) and DHCP/DNS, addressing and firewall (`TBR-NET-05`) rendered |
 | G4 AP credential (`TBR-SEC-01`) | AP security (and the WPA2 link the HTTP deferral rests on) | the credential-supply mechanism is decided |
 | G5a reverse proxy / port exposure (`FML-ADR-031`, `services/ingress/`) | reach-by-name (Martin is loopback-only) | the ingress reverse-proxy mechanism is built |
 | G5b ingress TLS (`services/ingress/`) | encrypted reach-by-name | the Owner confirms the WPA2-contingent HTTP deferral, or TLS is built |
-| G6 AP subnet / DHCP -- undecided, **unowned** | phone gets an address | a decision (or a new trade) for AP addressing exists; `TBR-NET-01` is CLOSED and covers only the mesh field prefix |
+| G6 AP subnet / DHCP -- owned by `TBR-NET-05`, undecided | phone gets an address | `TBR-NET-05` decides the lease and per-node slice assignment |
 | G7 map-tile provisioning (`FML-ADR-073`/`FML-ADR-072`) | Martin serves tiles (step 8) | the mission MBTiles is sourced and placed |
-| G8 runtime + unit not on the image | starting Martin from the image | the image ships Podman and installs the Quadlet unit + catalog |
+| G8 runtime, unit and AP stack not on the image | starting Martin, and the AP, from the image | the image ships Podman, installs the Quadlet unit + catalog, and carries the AP userspace, firmware and regulatory database (`FML-ADR-081` package boundary) |
 
 Until these close, the drill can be **rehearsed by hand** on the Pi (steps 4-7
 manual, per the GAP-09E bring-up card) but not completed hands-free from the image

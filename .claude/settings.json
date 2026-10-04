@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ \"${CLAUDE_CODE_REMOTE:-}\" = true ] || exit 0; cd \"$CLAUDE_PROJECT_DIR\" && { [ -x .venv/bin/python ] || python3.13 -m venv .venv; } && tools/install-deps.sh >&2 && tools/install-deps.sh --check >&2",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  }
+}
