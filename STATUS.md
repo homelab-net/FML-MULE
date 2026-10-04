@@ -112,6 +112,12 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
 
+### PROPOSED
+
+| ID | Decision | Open trades it depends on |
+| --- | --- | --- |
+| `FML-ADR-088` | The Pi 4B development image is an arm64 profile booted by Debian raspi-firmware | TBR-HW-01, TBR-LINUX-01 |
+
 ### SUPERSEDED
 
 | ID | Decision | Open trades it depends on |
