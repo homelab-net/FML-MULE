@@ -18,6 +18,10 @@
 # nobody resolved. Close the proposal by refreshing the lock the way its header
 # says, from an environment that has run tools/lint.sh to completion.
 #
+# The pip entry below watches /tools, so it also proposes edits to
+# tools/requirements-lora.txt. Treat those the same way: close the proposal and
+# refresh that lock by its own header procedure.
+#
 # The bot's job is to notice. Deciding is still a person's.
 
 version: 2
