@@ -5,8 +5,10 @@ build-and-bring-up steps a person who did not write the documentation follows to
 reach one node, one service (Martin map tiles), reachable from a phone.
 
 State: OPEN -- a `DRAFT` procedure exists. It assembles the ready steps and names
-the gaps that still block a clean end-to-end run (arm64 image, interface naming,
-rendering wired into the oneshot, AP credential, ingress/TLS, DHCP addressing).
+the gaps that still block a clean end-to-end run (arm64 image, a complete AP
+render, AP credential, ingress/TLS, DHCP addressing, the runtime and AP stack on
+the image). Interface naming is met for the Pi article and the render is wired
+into the oneshot; the procedure's gap register is the current list.
 v0.0.1 is accepted only when the cold-start drill in `docs/verification/README.md`
 runs on real hardware and its issues are resolved; that is not done, and nothing
 here is `HARDWARE-VERIFIED`. Independent review is required before this finding can

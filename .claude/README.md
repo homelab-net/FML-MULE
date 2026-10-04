@@ -58,6 +58,16 @@ here.
   the toolchain exists before the session runs its first command. Asynchronous
   hooks have no enforced timeout and race the session.
 
+## Where it does not run
+
+Single-repository sessions only. The cloud-environment documentation: "a session
+with several repositories doesn't load hooks from any repository's
+`.claude/settings.json`, so a SessionStart hook you define there doesn't run.
+Install dependencies for those sessions with a setup script instead."
+(`code.claude.com/docs/en/cloud-environments`). In such a session run
+`tools/install-deps.sh` by hand, and expect `tools/lint.sh` to list what it
+skipped until you do.
+
 ## What it does not do
 
 It installs the tools that check the repository. It installs nothing the
