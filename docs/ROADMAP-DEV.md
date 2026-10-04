@@ -907,8 +907,10 @@ decision entered in the register. Out of `v1.0` scope until that evidence exists
 GAP-09A, GAP-09B defines the Debian mkosi image mechanism, and GAP-09C closes
 the exact package closure, retained cache, CycloneDX provenance, and
 repeatability/VM-boot gate under `FML-ADR-081` as `SIMULATED`. `FML-ADR-088`
-(`PROPOSED`) proposes an arm64 profile for the Raspberry Pi 4B development article,
-booted by Debian's `raspi-firmware`. No production
+(`SELECTED PLANNING BASELINE`, not yet implemented) adds an arm64 profile for the
+Raspberry Pi 4B development article, booted by Debian's `raspi-firmware`, and
+`FML-ADR-089` (`SELECTED`, not yet implemented) the packages and Martin runtime
+M1 needs on the image. No production
 hardware is selected and nothing in this repository has met a radio.
 
 **What the purchase should be made against.** `docs/readings.md` carries the
@@ -1247,7 +1249,9 @@ of the loopback backend; forward config `os/config/haproxy.conf.template`,
 exercised `SIMULATED` by `test/bench/ingress-name-routing.sh`), whose frontend
 bind and DNS resolve onto the EUD AP subnet -- undecided and owned by the new
 **`TBR-NET-05`** (`TBR-NET-01` closed only the mesh prefix). TLS stays a
-GAP-09H-recorded v0.0.1 deferral pending the Owner's disposition.
+GAP-09H-recorded v0.0.1 deferral pending the Owner's disposition. How the
+image carries and starts Martin, pre-seeded and rootless under a dedicated
+account, is decided by `FML-ADR-089` and not yet implemented.
 
 **State:** a gap, surfaced 2026-08-31 by the question "why can't we have map
 cache". Two things were being conflated. **Device-side tile caching** is an ATAK

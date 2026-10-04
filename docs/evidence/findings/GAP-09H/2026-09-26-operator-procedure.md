@@ -82,9 +82,10 @@ to end, the **gap** that blocks it (collected in the register below).
    be followed as written. The image must ship Podman and install the Quadlet unit
    + catalog before the service can start. The same closure also carries no access
    point userspace (`hostapd`) and none of the Pi's Wi-Fi firmware or regulatory
-   database, so step 4 cannot run from the image either; which packages, and the
-   archive component the firmware needs, is for the Program Owner under
-   `FML-ADR-081`.
+   database, so step 4 cannot run from the image either. `FML-ADR-089` decides
+   the packages, how Martin runs and how its image reaches the node, and
+   `FML-ADR-088` the archive component the firmware needs; neither is
+   implemented yet.
 
 6. **Provision the map tiles.** Place the mission MBTiles at
    `/var/lib/fml/maps/mission.mbtiles`, sourced per `FML-ADR-073` (one read-only
@@ -142,7 +143,7 @@ the drill; issues are read afterward. A skipped drill is recorded as skipped in
 | G5b ingress TLS (`services/ingress/`) | encrypted reach-by-name | the Owner confirms the WPA2-contingent HTTP deferral, or TLS is built |
 | G6 AP subnet / DHCP -- owned by `TBR-NET-05`, undecided | phone gets an address | `TBR-NET-05` decides the lease and per-node slice assignment |
 | G7 map-tile provisioning (`FML-ADR-073`/`FML-ADR-072`) | Martin serves tiles (step 8) | the mission MBTiles is sourced and placed |
-| G8 runtime, unit and AP stack not on the image | starting Martin, and the AP, from the image | the image ships Podman, installs the Quadlet unit + catalog, and carries the AP userspace, firmware and regulatory database (`FML-ADR-081` package boundary) |
+| G8 runtime, unit and AP stack not on the image | starting Martin, and the AP, from the image | the image ships Podman, installs the Quadlet unit + catalog, and carries the AP userspace, firmware and regulatory database (decided by `FML-ADR-089`, not yet implemented) |
 
 Until these close, the drill can be **rehearsed by hand** on the Pi (steps 4-7
 manual, per the GAP-09E bring-up card) but not completed hands-free from the image

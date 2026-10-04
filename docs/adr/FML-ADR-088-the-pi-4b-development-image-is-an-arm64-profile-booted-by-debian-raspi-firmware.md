@@ -1,7 +1,7 @@
 ---
 id: FML-ADR-088
 title: The Pi 4B development image is an arm64 profile booted by Debian raspi-firmware
-status: PROPOSED
+status: SELECTED PLANNING BASELINE
 date: 2026-10-04
 supersedes: none
 superseded-by: none
@@ -135,22 +135,22 @@ In the arm64 profile:
   `raspi4b` boot of the generated kernel, DTB, initrd and `cmdline.txt` should
   be used as a pre-flight check of the root and initramfs stage.
 
-This ADR does not decide which packages the image carries for M1. That is the
-GAP-09H G8 decision packet, prepared on branch `claude/c2-m1-runtime-packet`,
-and a separate decision.
+This ADR does not decide which packages the image carries for M1. That is
+`FML-ADR-089`, a separate decision.
 
 ## Status
 
-`PROPOSED`. It is written for the Program Owner's acceptance and carries no
-weight until then. Accepted, it is meant as a `SELECTED PLANNING BASELINE` for
-a development-article profile, revisited by `TBR-HW-01` and `TBR-LINUX-01`, not
-a `TBR-HW-01` selection: the field article named in the prototype BOM is a CM4,
-and `TBR-LINUX-01` still owns the production kernel and driver set.
+`SELECTED PLANNING BASELINE`. The Program Owner accepted it on 2026-10-04,
+including the N150 cross-build as the build host, in the Claude Code cloud
+session that prepared it. It is a baseline for a development-article profile,
+revisited by `TBR-HW-01` and `TBR-LINUX-01`, not a `TBR-HW-01` selection: the
+field article named in the prototype BOM is a CM4, and `TBR-LINUX-01` still
+owns the production kernel and driver set. Nothing in it is implemented yet.
 
 ## Consequences
 
 - G1's arm64 condition, "an arm64 artifact is produced", becomes reachable.
-  This ADR adds a physical boot before the profile is accepted.
+  This ADR adds a physical boot before a built profile is accepted.
 - The image's archive policy widens from `main` to `main` plus
   `non-free-firmware` for one profile. The licence-exception report gains
   non-free firmware entries, which an auditor sees.
@@ -201,7 +201,7 @@ flashes it, cold-boots it, and records the boot log, raw-image SHA-256, SBOM
 hash, a byte-identical rebuild and the EEPROM bootloader version. On the stock
 Debian kernel it also records whether `wlan0` appears, whether `iw list` shows
 AP mode, and whether `hostapd` starts. Those checks presuppose
-`firmware-brcm80211` in the image, which `raspi-firmware` does not supply; if
-the G8 decision has not added it, the run records that it is absent instead of
-a driver result. `TBR-LINUX-01` defines what those checks are required to show
+`firmware-brcm80211` in the image, which `raspi-firmware` does not supply and
+`FML-ADR-089` adds; if the image under test predates that, the run records that
+it is absent instead of a driver result. `TBR-LINUX-01` defines what those checks are required to show
 before they count toward it.
