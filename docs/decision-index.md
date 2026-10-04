@@ -90,6 +90,7 @@ that "decided and built" and "decided, not yet built" stay apart.
 | `FML-ADR-085` | SELECTED PRINCIPLE | *not yet* | `docs/ROADMAP-DEV.md`, `docs/evidence/TBR-OBS-01/2026-09-26-cot-detail-storage-on-ots.md`, `docs/evidence/TBR-OBS-01/2026-09-27-representation-decision-packet.md`, `docs/evidence/TBR-OBS-01/2026-09-27-tak-client-detail-reading-execution-card.md`, `docs/evidence/TBR-OBS-01/README.md` |
 | `FML-ADR-086` | SELECTED | `os/config/tailscale-acl.hujson.template` | `docs/evidence/TBR-HA-01/2026-10-01-routed-marker-streaming-host.md`, `docs/evidence/TBR-NET-06/2026-09-29-remote-name-resolution-analysis.md`, `docs/evidence/stage-06-wan-overlay/2026-09-29-assigned-ingress-only-real-tailnet.md`, `docs/evidence/stage-06-wan-overlay/2026-09-29-assigned-mule-lost-two-mule.md`, `docs/evidence/stage-06-wan-overlay/README.md`, `os/config/README.md` |
 | `FML-ADR-087` | SELECTED | `mule/recipients.py` | `docs/ROADMAP-DEV.md`, `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md`, `docs/evidence/TBR-NET-02/2026-10-03-live-client-chat-id-capture.md`, `docs/evidence/TBR-NET-02/README.md`, `services/gateways/README.md`, `services/mission-trust/README.md` |
+| `FML-ADR-088` | PROPOSED | *not yet* | `docs/ROADMAP-DEV.md` |
 
 ## Trades
 
