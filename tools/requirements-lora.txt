@@ -1,9 +1,12 @@
 # Python client for the LoRa plane, pinned. FML-ADR-058 applies to this file
 # the same way it applies to tools/requirements-dev.txt.
 #
-# GENERATED, NOT HAND-EDITED. This is the fully resolved set that was actually
-# exercised: it talked to two meshtasticd nodes over the API and to a physical
-# device over USB serial.
+# GENERATED, NOT HAND-EDITED. A refresh of this file is exercised by the
+# procedure below, which proves only that the client installs and answers
+# --version. The set last refreshed on 2026-10-04 was exercised that far and no
+# further. An earlier set, with the same meshtastic 2.7.11 and older
+# dependencies, talked to two meshtasticd nodes over the API and to a physical
+# device over USB serial; that is not evidence for this one.
 #
 # SEPARATE FROM tools/requirements-dev.txt on purpose. That file is the
 # toolchain tools/lint.sh runs, and CI installs it in three jobs. The client
@@ -24,15 +27,15 @@
 # Resolved on Python 3.13, Debian 13.
 bleak==3.0.2
 certifi==2026.7.22
-charset-normalizer==3.5.1
-dbus-fast==5.0.22
-idna==3.19
+charset-normalizer==3.5.2
+dbus-fast==5.2.0
+idna==3.20
 meshtastic==2.7.11
 packaging==26.3
-protobuf==7.36.0
+protobuf==7.36.2
 Pypubsub==4.0.7
 pyserial==3.5
 PyYAML==6.0.3
 requests==2.34.2
 tabulate==0.9.0
-urllib3==2.7.0
+urllib3==2.8.0

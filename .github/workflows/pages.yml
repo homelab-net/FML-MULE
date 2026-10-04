@@ -38,13 +38,19 @@ jobs:
           lfs: true
 
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload the site directory
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
+          # upload-pages-artifact v5 action.yml: include-hidden-files, "Include
+          # hidden files and directories (those starting with a dot) in the
+          # artifact. Excludes .git and .github regardless." Default "false",
+          # which adds --exclude=.[^/]* and would silently drop the tracked
+          # site/.nojekyll that v3 shipped. true keeps the artifact unchanged.
+          include-hidden-files: true
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
