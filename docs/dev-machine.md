@@ -31,12 +31,12 @@ So: install the toolchain until `tools/lint.sh` reports nothing skipped.
 tools/install-deps.sh
 ```
 
-`.github/workflows/lint.yml` installs all of them and remains the authoritative
-list; `install-deps.sh` mirrors it so you do not have to transcribe it by hand,
-and `tools/install-deps.sh --check` tells you what is still missing without
-installing anything. Until nothing is skipped a green run means nothing, and "a
-signal that looks like success" is this repository's signature failure. It is
-waiting for you on line one.
+`tools/install-deps.sh` is the authoritative list: `.github/workflows/lint.yml`
+calls it rather than restating the packages (`FML-ADR-058`), so continuous
+integration installs what you install. `tools/install-deps.sh --check` tells you
+what is still missing without installing anything. Until nothing is skipped a
+green run means nothing, and "a signal that looks like success" is this
+repository's signature failure. It is waiting for you on line one.
 
 ## What this machine can do that hosted CI cannot
 
