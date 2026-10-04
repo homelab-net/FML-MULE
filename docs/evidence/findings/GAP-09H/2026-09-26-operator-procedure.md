@@ -63,8 +63,9 @@ to end, the **gap** that blocks it (collected in the register below).
    (`TBR-NET-05`).
 
 4. **Bring up the EUD AP.** hostapd from the rendered config on `us-915` channel 149
-   / 5 GHz (`FML-ADR-057` operational BSS not isolated). Until G2/G3 close, bring
-   the AP up **by hand** per `docs/evidence/findings/GAP-09E/2026-09-27-pi-ap-bringup-execution-card.md`.
+   / 5 GHz (`FML-ADR-057` operational BSS not isolated). Until the render is
+   complete (G3: the WPA block and the `TBR-NET-05` outputs), bring the AP up
+   **by hand** per `docs/evidence/findings/GAP-09E/2026-09-27-pi-ap-bringup-execution-card.md`.
    **Gap G4 (AP credential, `TBR-SEC-01`):** the passphrase is supplied out of band,
    never from the repo.
 
