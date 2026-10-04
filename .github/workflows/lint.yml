@@ -208,6 +208,17 @@ jobs:
           # The complete lint run includes closure validation.
           fetch-depth: 0
 
+      # actions/checkout documents set-safe-directory as "Add repository path
+      # as safe.directory for Git global config ... Default: true", but in
+      # this container it does so under a temporary HOME ("Temporarily
+      # overriding HOME=... before making global git config changes" in the
+      # job log), which later steps do not see. Without this step git refuses
+      # the checkout ("detected dubious ownership") and every stage of
+      # tools/lint.sh that calls git fails: validate-docs, refs-report,
+      # mutation-check, coverage and bats.
+      - name: Let git read the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       # What the documentation tells a contributor to run, run exactly that.
       # This is the claim: clone on a fresh Debian, run one command, work.
       # It was made three times before anything tested it, and when something
