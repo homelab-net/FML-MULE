@@ -147,7 +147,8 @@ else
 fi
 
 # Mutation check: does the test suite actually notice a broken node? Runs the
-# suite once per mutation, so it is the slowest check here and still seconds.
+# suite once per mutation, so it is the slowest check here by far: minutes, not
+# seconds. It runs mutations in parallel, one per CPU, and still runs them all.
 if ! have python3; then
   skip "mutation-check" python3
 elif ! python3 -c "import pytest, yaml" 2>/dev/null; then
