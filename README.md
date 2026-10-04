@@ -146,6 +146,7 @@ the dependency graph, and [`STATUS.md`](STATUS.md) for the generated view.
 | `mission/` | Mission package schema, examples with fake identities, profiles. |
 | `test/` | Unit tests, the software digital twin, fixtures, the 13 qualification stages, results. |
 | `tools/` | Validation, identifier allocation, and generation scripts. |
+| `.claude/` | Claude Code session configuration: installs the lint toolchain in cloud sessions. Changes no rule. |
 | `site/` | Generated public front door for GitHub Pages. A reading of this repository. Not evidence, and not a node. |
 
 ## What is not in this repository

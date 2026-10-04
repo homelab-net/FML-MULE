@@ -19,7 +19,7 @@ omission in the output with the trade that gates it:
 - the WPA security block and the passphrase source -- `TBR-SEC-01` (which owns
   the auth mechanism; the passphrase never enters the repository or the
   parameter document, `SECURITY.md`);
-- DHCP/DNS and the address plan -- `TBR-NET-01`;
+- DHCP/DNS and the address plan -- `TBR-NET-05`;
 - the physical/virtual multi-BSS shape and the bridge -- `TBR-LINUX-01`.
 
 Because the security block is intentionally absent, **the rendered file is not a
