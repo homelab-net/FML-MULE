@@ -208,6 +208,17 @@ jobs:
           # The complete lint run includes closure validation.
           fetch-depth: 0
 
+      # actions/checkout documents set-safe-directory as "Add repository path
+      # as safe.directory for Git global config ... Default: true", but in
+      # this container it does so under a temporary HOME ("Temporarily
+      # overriding HOME=... before making global git config changes" in the
+      # job log), which later steps do not see. Without this step git refuses
+      # the checkout ("detected dubious ownership") and every stage of
+      # tools/lint.sh that calls git fails: validate-docs, refs-report,
+      # mutation-check, coverage and bats.
+      - name: Let git read the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       # What the documentation tells a contributor to run, run exactly that.
       # This is the claim: clone on a fresh Debian, run one command, work.
       # It was made three times before anything tested it, and when something
@@ -216,7 +227,15 @@ jobs:
       - name: Install the toolchain the way a contributor would
         run: tools/install-deps.sh
 
+      # The pipe into tee decides this step's exit status unless pipefail is
+      # set, and until 2026-10-04 it was not: tools/lint.sh reported "5
+      # linter(s) reported problems. FAILED" on main while this job passed.
+      # GitHub's supported-shells table: an unspecified shell runs
+      # "bash -e {0}"; `shell: bash` runs
+      # "bash --noprofile --norc -eo pipefail {0}". Omit the line below and a
+      # failing tools/lint.sh is green again.
       - name: Nothing is skipped, and everything that ran is clean
+        shell: bash
         run: |
           tools/lint.sh | tee /tmp/lint.log
           if grep -q '^Skipped' /tmp/lint.log; then
