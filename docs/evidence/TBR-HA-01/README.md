@@ -5,7 +5,7 @@
 **Trade file:** `docs/trades/TBR-HA-01-safe-automatic-service-recovery.md`
 
 **Priority:** 12 of 16 (SAD v0.31 section 30.2). **Function owner:** SRE + TAK.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** a [manual routed-marker and streaming-worker trial][trial]
 records usable iTAK delivery through a forced transit node and a controlled
@@ -21,7 +21,20 @@ after worker/broker faults and one Pi 1 reboot, after private policy installatio
 It separates that result from the assisted mixed-carrier chat and from a fresh
 main checkout, which does not install the tested policy. The trade stays open.
 
+A [reconciliation record][policy] publishes the private policy that trial rested
+on: thirteen systemd drop-ins per node, of which the operative six are
+`Restart=always` bounded by `StartLimitBurst=5` over an infinite window, so a
+unit is permitted five restarts **ever** and then stops. It also records
+`cot-parser` on Pi 1 reaching that limit by itself, giving up, reporting the
+failure, and holding that state for eleven hours against `rabbitmq`'s
+`Upholds=`, while every sibling unit and the host's default route survived. That
+is the shape the closure gate's "stops trying and reports that it has" asks for,
+observed rather than injected — so it narrows what an injection must establish
+and substitutes for none of it. The same record names where
+`services/quadlets/martin.container` has drifted from the deployed articles.
+
 [supervision]: 2026-10-02-supervised-recovery-three-nodes.md
+[policy]: 2026-10-02-deployed-recovery-policy-and-repo-divergence.md
 [startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md
 
 [trial]: 2026-10-01-routed-marker-streaming-host.md
@@ -58,4 +71,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.

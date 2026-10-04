@@ -5,7 +5,7 @@
 **Trade file:** `docs/trades/TBR-COMP-01-cpu-and-memory-budget.md`
 
 **Priority:** 2 of 16 (SAD v0.31 section 30.2). **Function owner:** Platform + TAK.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** one `SIMULATED` size measurement. This trade is `OPEN`:
 the software "size" half is now measured, but the closure gate's hardware half
@@ -50,4 +50,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.

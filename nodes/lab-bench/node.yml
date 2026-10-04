@@ -16,6 +16,27 @@ active_bearers:
 # Logical role -> concrete device on THIS machine. Code and bring-up reference
 # the role; only this map changes between lab and field. Radios are identified by
 # driver, never by a fuzzy name match.
+# DEVIATION, observed 2026-10-02, updated 2026-10-03: the box is not currently
+# wired this way. The USB adapter is running as the AP and the onboard radio is
+# the client holding the default route -- the roles below, reversed, and the
+# ap_channel below not in use. docs/bench-service-bringup.md records the revert
+# ("the restored earlier interface roles"); this file was written for the
+# 2026-10-01 arrangement and was not updated.
+#
+# 2026-10-03: the AP was moved from 2.4 GHz channel 11 to 5 GHz channel 149 on
+# Owner instruction, because both radios sharing 2.4 GHz was slowing the WAN
+# path through the node. So the band-separation intent the ap_channel comment
+# below describes -- a 5 GHz AP beside a 2.4 GHz WAN client -- is now met, but
+# with the roles reversed from this file and on 149 rather than 36. The AP runs
+# at 40 MHz: 80 MHz was requested and the rtl8812au driver did not deliver it,
+# silently. Recorded with the evidence in
+# docs/evidence/TBR-RF-03/2026-10-03-bench-ap-band-coexistence-and-radio-capability.md.
+#
+# These values are left as the DECIDED arrangement, not edited to match the box,
+# because matching it would silently discard the 5 GHz coexistence mitigation
+# that docs/dev-machine.md validated on 2026-09-14. Until the two agree,
+# test/bench/mule-ap-up.sh refuses here -- correctly, because eud_ap below
+# resolves to the current default-route device.
 interfaces:
   # WAN: stand-in only. Field is Ethernet (USB-C-to-Ethernet, BOM v0.4). Here it
   # is the RTL8812AU USB client, because it is the box's only uplink until a

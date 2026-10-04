@@ -68,9 +68,13 @@ SAD section 30.2 records an SRR exit action:
 > the Program Owner assigns one named individual and one calendar target date to
 > every open TBR.
 
-Both halves of that action are now done: every trade names Cameron Zobrist as
-owner (2026-08-31), and on 2026-09-04 the Program Owner set every open trade's
-`target-date` to 2026-09-30. `STATUS.md` reports the resulting single-owner
+Both halves of that action are **nearly** done: every trade names Cameron
+Zobrist as owner (the SAD-register trades on 2026-08-31; `TBR-NET-04`,
+`TBR-NET-05` and `TBR-NET-06`, raised afterwards, on 2026-10-02), and on
+2026-09-04 the Program Owner set every then-open trade's `target-date` to
+2026-09-30. **`TBR-NET-05` and `TBR-NET-06` still read `TBD-SRR` for
+`target-date`**, so that half of the SRR exit action is outstanding; a date is a
+commitment and is not assigned on their behalf here. `STATUS.md` reports the resulting single-owner
 concentration as a program risk, which is the second half of the same section
 30.1 finding the assignment instantiates.
 
@@ -111,22 +115,22 @@ Ordered by SAD section 30.2 priority. `STATUS.md` carries the generated view.
 
 | Pri | ID | Question | Status | Function owner | Named owner | HW | Critical |
 | ---: | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | `TBD-SRR` | yes | **yes** |
-| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | `TBD-SRR` | partly | **yes** |
-| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | `TBD-SRR` | yes | **yes** |
-| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | `TBD-SRR` | yes | no |
-| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | `TBD-SRR` | yes | no |
-| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | `TBD-SRR` | partly | no |
-| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | `TBD-SRR` | yes | no |
-| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | `TBD-SRR` | yes | no |
+| 1 | `TBR-PWR-01` | Endurance and battery mass | `OPEN` | Power/Mechanical | Cameron Zobrist | yes | **yes** |
+| 2 | `TBR-COMP-01` | CPU and memory budget | `OPEN` | Platform + TAK | Cameron Zobrist | partly | **yes** |
+| 3 | `TBR-THERM-01` | Thermal architecture | `OPEN` | Power/Mechanical + Platform | Cameron Zobrist | yes | **yes** |
+| 4 | `TBR-RF-03` | Access point and mesh radio consolidation | `OPEN` | Network + RF | Cameron Zobrist | yes | no |
+| 5 | `TBR-TIME-01` | Clock holdover and skew tolerance | `OPEN` | Platform + Security | Cameron Zobrist | yes | no |
+| 6 | `TBR-SEC-01` | Protected storage unlock | `OPEN` | Security + Hardware | Cameron Zobrist | partly | no |
+| 7 | `TBR-HW-01` | Primary compute hardware block | `OPEN` | Systems + Builder | Cameron Zobrist | yes | no |
+| 8 | `TBR-LINUX-01` | Kernel and out-of-tree driver viability | `OPEN` | Linux/Platform | Cameron Zobrist | yes | no |
 | 9 | `TBR-TAK-01` | Mission-critical state boundary | `CLOSED` | TAK + SRE | Cameron Zobrist | no | **yes** |
-| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | `TBD-SRR` | yes | no |
-| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | `TBD-SRR` | yes | no |
-| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | `TBD-SRR` | partly | no |
-| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | `TBD-SRR` | yes | no |
-| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | `TBD-SRR` | no | no |
+| 10 | `TBR-RF-01` | High-rate mesh implementation | `OPEN` | Network + RF | Cameron Zobrist | yes | no |
+| 11 | `TBR-RF-02` | Sub-GHz coexistence controls | `OPEN` | RF/Spectrum | Cameron Zobrist | yes | no |
+| 12 | `TBR-HA-01` | Safe automatic service recovery | `OPEN` | SRE + TAK | Cameron Zobrist | partly | no |
+| 13 | `TBR-REC-01` | Rollback implementation | `OPEN` | Platform + CM | Cameron Zobrist | yes | no |
+| 14 | `TBR-ID-01` | Browser-service identity provider | `OPEN` | Security/Identity | Cameron Zobrist | no | no |
 | 15 | `TBR-NET-01` | Field address prefix | `CLOSED` | Network | Cameron Zobrist | no | no |
-| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `TBD-SRR` | yes | no |
+| 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | Cameron Zobrist | yes | no |
 
 ### Raised after the SAD register
 
@@ -140,8 +144,8 @@ register drifts from the directory it describes.
 | --- | --- | --- | --- | --- | --- | --- |
 | `TBR-NET-02` | How does a node address the EUDs behind it | `CLOSED` | Network | Cameron Zobrist | no | `TBR-ID-01` |
 | `TBR-NET-03` | How do two deployments converge on one mesh | `CLOSED` | Network | Cameron Zobrist | no | `TBR-NET-01` |
-| `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | `TBD-SRR` | no | GAP-09E/H |
-| `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | `TBD-SRR` | partly | none |
+| `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | Cameron Zobrist | no | GAP-09E/H |
+| `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | Cameron Zobrist | partly | none |
 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or a framework | `OPEN` | Network | Cameron Zobrist | partly | `CCR-03` |
 | `TBR-VOICE-02` | How voice-group authorization behaves across a mesh merge | `OPEN` | Network | Cameron Zobrist | no | `TBR-SEC-01` |
 | `TBR-OBS-01` | How a mission observation keeps its age, source, and state | `OPEN` | Mission services | Cameron Zobrist | no | none |

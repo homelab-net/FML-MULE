@@ -43,9 +43,14 @@ to end, the **gap** that blocks it (collected in the register below).
 2. **Write the deployment inputs.** A region profile (`regions/us-915/`, AP RF set
    by `TBR-RF-03` AP-params, PR #177), a mission package (with `network.ap_ssid` and
    the `martin` service), and a node descriptor
-   (`nodes/mule-v001/node.yml`) whose `eud_ap` interface name is set to the node's
-   real Wi-Fi interface. **Gap G2 (interface name, `TBR-LINUX-01`):** `eud_ap` is
-   `TBD` until the node's interface is known.
+   (a node descriptor under `nodes/`) whose `eud_ap` interface name is set to
+   the node's real Wi-Fi interface. **Gap G2 (interface name, `TBR-LINUX-01`):**
+   closed for the v0.0.1 article on 2026-10-03 -- `nodes/pi-mule-1/node.yml`
+   names `wlan0`, verified on the board. It remains `TBD` in
+   `nodes/mule-v001/`, correctly, because that prototype is unassembled. This
+   gap previously required the interface to be named *in `mule-v001`*, which
+   could only have been satisfied by asserting that the lab Pi is the field
+   article.
 
 3. **Boot; the runtime renders config.** `os/systemd/mule-runtime.service`
    (`FML-ADR-083`, PR #176) runs `python -m mule ... --out /run/fml`, resolving the
@@ -120,7 +125,7 @@ the drill; issues are read afterward. A skipped drill is recorded as skipped in
 | Gap | Blocks | Closes when |
 | --- | --- | --- |
 | G1 image not booted for current closure | boot on any arch, then the Pi | the current `os/image` closure is built and booted, and an arm64 artifact is produced |
-| G2 interface name (`TBR-LINUX-01`) | rendered AP/networkd config | the node's Wi-Fi interface is named in `nodes/mule-v001` |
+| G2 interface name (`TBR-LINUX-01`) | rendered AP/networkd config | **met for the v0.0.1 article** 2026-10-03: `nodes/pi-mule-1/node.yml` names `wlan0`. Still `TBD` for the unassembled `mule-v001`. |
 | G3 render wired into oneshot + partial render | hands-free bring-up | rendering wired into `main`/the service; WPA path (`TBR-SEC-01`) + DHCP (`TBR-NET-01`) rendered |
 | G4 AP credential (`TBR-SEC-01`) | AP security (and the WPA2 link the HTTP deferral rests on) | the credential-supply mechanism is decided |
 | G5a reverse proxy / port exposure (`FML-ADR-031`, `services/ingress/`) | reach-by-name (Martin is loopback-only) | the ingress reverse-proxy mechanism is built |

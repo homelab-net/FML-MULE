@@ -2,7 +2,7 @@
 id: TBR-NET-05
 title: How does a node assign the EUD access-point subnet and DHCP
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: NET
 priority: 99
 function-owner: Network

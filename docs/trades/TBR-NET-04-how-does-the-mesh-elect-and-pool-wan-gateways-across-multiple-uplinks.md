@@ -2,7 +2,7 @@
 id: TBR-NET-04
 title: How does the mesh elect and pool WAN gateways across multiple uplinks
 status: OPEN
-owner: TBD-SRR
+owner: Cameron Zobrist
 area: NET
 priority: 99
 function-owner: TBD

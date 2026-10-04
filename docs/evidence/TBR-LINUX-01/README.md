@@ -5,7 +5,7 @@
 **Trade file:** `docs/trades/TBR-LINUX-01-kernel-and-out-of-tree-driver-viability.md`
 
 **Priority:** 8 of 16 (SAD v0.31 section 30.2). **Function owner:** Linux/Platform.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** the following artifacts. This trade remains `OPEN`;
 an artifact's presence is not owner acceptance.
@@ -70,4 +70,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.

@@ -5,7 +5,7 @@
 **Trade file:** `docs/trades/TBR-RF-01-high-rate-mesh-implementation.md`
 
 **Priority:** 10 of 16 (SAD v0.31 section 30.2). **Function owner:** Network + RF.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** the following artifacts. This trade remains `OPEN`;
 an artifact's presence is not owner acceptance.
@@ -51,4 +51,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.

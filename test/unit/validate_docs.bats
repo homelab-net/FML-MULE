@@ -729,3 +729,82 @@ REQ
   [ "$status" -ne 0 ]
   [[ "$output" == *"one-lora-hop-to-a-partner-node.md"* ]]
 }
+
+@test "validate-docs catches iw's signal: spelling, not only rssi and snr" {
+  make_sandbox
+  # Found on the bench, 2026-10-03. The check was written against the
+  # Meshtastic record, which prints rssi= and snr=, so its pattern looked for
+  # those two words only. `iw station dump` -- the reader every Wi-Fi bearer
+  # bring-up uses -- prints neither: a real capture taken with a phone
+  # associated to the bench AP carried four figures, all spelled
+  # "signal:  -58 dBm", "signal avg:", "beacon signal avg:", and the check was
+  # blind to every one. A capture filed as evidence would have published RF
+  # figures with no recorded geometry and passed CI, which is the 2026-10-02
+  # defect in a shape the check could not see.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-observations.json"
+  grep -q '"antenna_model_orientation_separation": "Not recorded"' "$target"
+  sed -i 's/"mqtt_on_observed_rf_packets": false,/"mqtt_on_observed_rf_packets": false,\n    "iw_station_dump": "signal:  -58 dBm",/' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"publishes a received-signal figure and disclaims the configuration"* ]]
+  [[ "$output" == *"2026-10-02-three-node-lab-observations.json"* ]]
+}
+
+
+@test "validate-docs catches an artifact asserting HARDWARE-VERIFIED as its status" {
+  make_sandbox
+  # Check 13 used to step aside the moment any evidence file existed, which it
+  # had done for weeks while AGENTS.md still advertised it as machine-checked.
+  # It now guards the claim instead. Assert the tier on a real artifact and it
+  # must fire.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-10-02-three-node-lab-boundaries.md"
+  grep -q "Real-hardware lab observations" "$target"
+  sed -i '1a\
+\
+**Tier:** `HARDWARE-VERIFIED`' "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"asserts HARDWARE-VERIFIED as its status"* ]]
+}
+
+@test "validate-docs allows a status line that names HARDWARE-VERIFIED without claiming it" {
+  make_sandbox
+  # The discriminator is "begins with", not "contains". The September radio
+  # record reads "**Tier: deferred (... formal HARDWARE-VERIFIED held).**" -- a
+  # status line carrying the word while correctly refusing the tier. A contains
+  # test would fire on the most carefully worded artifact in the repository and
+  # teach someone to delete the honest sentence.
+  target="$SANDBOX/docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md"
+  grep -q "formal \`HARDWARE-VERIFIED\` held" "$target"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-docs catches an equipment identifier in committed evidence" {
+  make_sandbox
+  # SECURITY.md forbids publishing what identifiers a deployment's equipment
+  # carries, and gitleaks does not look for MAC addresses. A universally
+  # administered OUI names a real part; plant one and the build must stop.
+  printf 'Station dc:a6:32:de:ad:be signal -40 dBm\n' \
+    >>"$SANDBOX/docs/evidence/TBR-NET-05/README.md"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"equipment MAC"* ]]
+}
+
+@test "validate-docs allows the virtual addresses most of the evidence base carries" {
+  make_sandbox
+  # 45 locally administered MACs are already committed under docs/evidence/ --
+  # what mac80211_hwsim and veth invent. They identify nothing, and failing on
+  # them would mean scrubbing meaningless values everywhere, which is how a
+  # check gets ignored.
+  printf 'orig 1e:fa:23:ea:fb:69 via ff:ff:ff:ff:ff:ff\ninet6 fe80::4c59:ecff:fee3:6716/64\n' \
+    >>"$SANDBOX/docs/evidence/TBR-NET-05/README.md"
+
+  run sh -c "sh '$SANDBOX/tools/validate-docs.sh' '$SANDBOX' 2>&1"
+  [ "$status" -eq 0 ]
+}

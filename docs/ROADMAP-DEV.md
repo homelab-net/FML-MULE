@@ -804,13 +804,22 @@ instead of a fixture.
 
 ### 1.7 802.11s, and the rest of the batman-adv template
 
-**State:** unreachable in hosted CI. `orig_interval`, `hop_penalty`, `gw_mode`
-and `fragmentation` remain `TBD`, and the figures previously recorded against
-`orig_interval` measured nothing and say so.
+**State:** the association half is reachable and has been reached;
+`orig_interval`, `hop_penalty`, `gw_mode` and `fragmentation` remain `TBD`, and
+the figures previously recorded against `orig_interval` measured nothing and say
+so. 802.11s association over `mac80211_hwsim` was exercised on 2026-08-30
+(`docs/evidence/TBR-LINUX-01/2026-08-30-80211s-mesh-in-software.md`,
+`test/bench/80211s-mesh.sh`), and `mac80211_hwsim` is present on all three lab
+machines.
 
-**Blocked by:** a machine with a wireless stack. A local VM with
-`mac80211_hwsim` is enough for 802.11s association; the RF quantities need
-`TBR-RF-01` and real radios.
+**Blocked by:** real radios, for the RF quantities only (`TBR-RF-01`). This item
+read "blocked by a machine with a wireless stack" until 2026-10-02; that gate was
+satisfied on 2026-08-30 and `docs/dev-machine.md` says outright "you are that
+machine", so the line had been false for over a month. **Still genuinely
+missing:** no radio in the lab advertises `mesh point` as a supported interface
+mode -- the two Pi 4B `brcmfmac` radios and both bench radios all lack it
+(checked 2026-10-02), so 802.11s on real RF has no hardware to run on yet and
+the simulated association result is the ceiling until an adapter arrives.
 
 **Do not** re-derive the `orig_interval` figures on `veth`. The question that
 parameter decides is convergence after a topology change on a lossy link, which

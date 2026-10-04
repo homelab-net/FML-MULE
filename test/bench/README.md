@@ -3,7 +3,11 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eleven procedures. No hardware measurement has been taken.** Two of them emit
+**Fifteen procedures and four helpers. No hardware measurement has been
+taken.** The helpers are `operator-view.py` and `udpflow.py`, each driven by the
+shell procedure beside it, and `capture-telemetry.py` and
+`eud-chat-id-capture.py`, which are run directly.
+Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
 bridging loop and detects it live, and one captures a state snapshot for the
@@ -243,6 +247,27 @@ Coexistence measurements in particular must be taken **in the assembled
 enclosure**, at the antenna separations physically achievable there. A bench
 measurement with the radios far apart does not answer `TBR-RF-02`.
 
+`eud-chat-id-capture.py` registers an **obviously fake** EUD against the plain
+CoT port so a real client can address it, then reports the `<__chat id>` of any
+GeoChat that arrives. Its fake identity's UID and callsign differ on purpose:
+that is the entire discriminator, and the 2026-09-28 run could not answer the
+question because it used `id == callsign`.
+
+It is a listener with a registration, not a decision: it sends no LoRa traffic,
+and it exists so a human with a phone can produce one fact. It does **not**
+scrub what it prints -- a live client's identity belongs to the Owner and
+`AGENTS.md` forbids committing a callsign -- so read its output, do not redirect
+it into `docs/evidence/`.
+
+**It has been run and it answered nothing**, which is recorded because the next
+person will otherwise repeat it: the probe registered (the server's `euds` table
+carries it) and received no CoT in 55 seconds. The question it was written for
+was instead answered from state the server had already stored, in
+[`2026-10-03-live-client-chat-id-capture.md`][chatid]. Why a registered client on
+the plain port receives no stream is still open.
+
+[chatid]: ../../docs/evidence/TBR-NET-02/2026-10-03-live-client-chat-id-capture.md
+
 `capture-telemetry.py` is the instrumentation harness for the evidence-led phase
 (`AGENTS.md`, "The current objective"). It snapshots node state as one
 machine-readable JSON document -- radio enumeration, interface/routing/BATMAN
@@ -285,5 +310,33 @@ role model: it reads the `interfaces` map from `nodes/<node-id>/node.yml`
 `os/config/` templates use -- naming roles, never devices, so the same script
 drives the prototype after a descriptor swap (FML-ADR-045). It refuses to run if
 `eud_ap` and `wan` resolve to the same device, or if `eud_ap` is the current
-default-route device, so it cannot cannibalise the box's uplink. Unlike the
-probes above it is an operational bring-up, not a CI test.
+default-route device, so it cannot cannibalise the box's uplink. It also refuses
+when something already holds `:53` on the wildcard address or on the gateway
+address it is about to bind. Unlike the probes above it is an operational
+bring-up, not a CI test.
+
+**It had never been run anywhere when that third refusal was added
+(2026-10-03).** No evidence artifact records an execution, on the bench or on a
+Pi. Two defects were found by reading it against the articles rather than by
+running it:
+
+- Both Pi articles ship `dnsmasq` enabled, running and bound to the wildcard
+  address, so the second instance this script starts could not bind and exited
+  non-zero. Under `set -eu` that aborted the run **after** `hostapd` was up and
+  the address was added and **before** `ip_forward`, `nftables` and the `AP UP`
+  banner -- an access point with no DHCP, no uplink, and no message, because the
+  output went to `/dev/null`. That is now a pre-flight refusal with the command
+  to fix it.
+- Every failure path discarded its output, so `FAIL: hostapd did not start` was
+  the entire diagnostic available on a board nobody had run it on. `hostapd` and
+  `dnsmasq` now log to `/run/fml/` and the log is printed on failure.
+
+**Why there is no automated test for this.** The script requires root, a real
+radio that can enter AP mode, and -- for the new refusal -- a conflicting
+resolver on the same host. None of those exists in CI, which has no radios. The
+detection was instead verified on all three lab machines: it refuses on both Pis
+(wildcard `0.0.0.0:53`) and on the bench (a `dnsmasq` holding `10.41.0.1:53`,
+the exact address the script binds), and a negative control against a port
+nothing holds stays clear, so the check discriminates rather than always firing.
+Testing only for the wildcard was a false negative on the bench and was found
+that way.

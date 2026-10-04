@@ -73,9 +73,14 @@ A change is not done until all seven hold. Say which ones you actually ran.
    `[review]`, with the cross-reference obligation `[CI]`.
 2. **Inventing a specification.** Compute module, enclosure, battery, antenna,
    channel plan, power budget, memory budget: all unselected. `[review]`
-3. **Claiming something is verified.** Nothing here has met hardware. The word
-   `HARDWARE-VERIFIED` is machine-checked `[CI]`; every softer claim is on you
-   `[review]`, and softer claims are how this has actually gone wrong.
+3. **Claiming something is verified.** Nothing here has met hardware. An
+   artifact **asserting** `HARDWARE-VERIFIED` as its `Tier:`/`Status:` is
+   machine-checked `[CI]`; using the word to define the tier or to refuse it is
+   free, and must stay free. Every softer claim is on you `[review]`, and softer
+   claims are how this has actually gone wrong. That check guarded the emptiness
+   of `docs/evidence/` until 2026-10-02 and so had been unable to fire for
+   weeks, while this line still advertised it: a check that disables itself on
+   success is a countdown, not a tripwire.
 4. **Committing anything real.** No key, certificate, credential, callsign,
    member identity, deployment location, or captured traffic, ever.
    `mission/examples/` carries obviously fake identities only. `[CI]`

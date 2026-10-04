@@ -153,15 +153,15 @@ Ordered by the SAD v0.31 section 30.2 priority.
 | 16 | `TBR-CARRIER-01` | Carrier board justification | `OPEN` | Builder + Power + RF | `Cameron Zobrist` | yes |
 | 99 | `TBR-EMCON-01` | Which transmissions does an EMCON posture class as avoidable, and which layers suppress them | `OPEN` | RF/Spectrum | `Cameron Zobrist` | no |
 | 99 | `TBR-MAP-01` | Which local tile store and server serves maps to an EUD offline | `OPEN` | Platform + TAK | `Cameron Zobrist` | partly |
-| 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `TBD-SRR` | partly |
-| 99 | `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | `TBD-SRR` | no |
-| 99 | `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | `TBD-SRR` | partly |
+| 99 | `TBR-NET-04` | How does the mesh elect and pool WAN gateways across multiple uplinks | `OPEN` | TBD | `Cameron Zobrist` | partly |
+| 99 | `TBR-NET-05` | How does a node assign the EUD access-point subnet and DHCP | `OPEN` | Network | `Cameron Zobrist` | no |
+| 99 | `TBR-NET-06` | How does a remote EUD resolve the one service name to its assigned MULE across multiple MULEs | `OPEN` | Network | `Cameron Zobrist` | partly |
 | 99 | `TBR-OBS-01` | How is a mission observation recorded and presented so its age, source, and state stay visible | `OPEN` | Mission services | `Cameron Zobrist` | no |
 | 99 | `TBR-SENSE-01` | How does a mission profile mark a capability required, optional, or off, and how does a sensor task end | `OPEN` | Mission services | `Cameron Zobrist` | no |
 | 99 | `TBR-VOICE-01` | Which RoIP gateway implementation, thin native or an existing framework | `OPEN` | Network | `Cameron Zobrist` | partly |
 | 99 | `TBR-VOICE-02` | How is voice-group authorization expressed and how does it behave across a mesh merge | `OPEN` | Network | `Cameron Zobrist` | no |
 
-23 open trades. 3 have no named owner.
+23 open trades. 0 have no named owner.
 
 ## Critical path
 
@@ -180,20 +180,20 @@ being raised as a program risk. See `MAINTAINERS.md`.
 
 | Role | Primary | Alternate |
 | --- | --- | --- |
-| Build and image pipeline | VACANT | VACANT |
-| Radio and RF | VACANT | VACANT |
-| Security and identity | VACANT | VACANT |
-| Hardware | VACANT | VACANT |
-| Documentation | VACANT | VACANT |
-| Release | VACANT | VACANT |
-| TAK and service plane | VACANT | VACANT |
-| Power, thermal and mechanical | VACANT | VACANT |
+| Build and image pipeline | Cameron Zobrist | VACANT |
+| Radio and RF | Cameron Zobrist | VACANT |
+| Security and identity | Cameron Zobrist | VACANT |
+| Hardware | Cameron Zobrist | VACANT |
+| Documentation | Cameron Zobrist | VACANT |
+| Release | Cameron Zobrist | VACANT |
+| TAK and service plane | Cameron Zobrist | VACANT |
+| Power, thermal and mechanical | Cameron Zobrist | VACANT |
 
-16 vacant slots across 8 roles.
+8 vacant slots across 8 roles.
 
 ## Reported risks
 
-- **16 vacant maintainer slots.** A role with no name is a role nobody
+- **8 vacant maintainer slots.** A role with no name is a role nobody
   answers for. See `MAINTAINERS.md`.
 
 ---

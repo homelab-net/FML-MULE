@@ -1,0 +1,71 @@
+---
+# A Raspberry Pi 4B used as the v0.0.1 / M1 article: one node, its EUD access
+# point, one service reachable from a phone (ROADMAP.md).
+#
+# THIS IS A DEVELOPMENT ARTICLE, NOT A HARDWARE SELECTION. `TBR-HW-01` is OPEN
+# and has chosen no compute block; its gate requires every dependency trade
+# CLOSED and a written block acceptance procedure, none of which this is. The
+# precedent is GAP-09A, which recorded an Intel N150 as a development-only
+# article without implying selection. `nodes/mule-v001/` remains the field
+# prototype with its devices TBD until one is assembled, and is deliberately not
+# edited to point at this board: filling it in would make the repository assert
+# that the v0.0.1 node IS the BOM article.
+#
+# What this board does and does not say about the BOM. The Pi 4B carries a
+# BCM2711 with a CYW43455 -- the same Wi-Fi part as the CM4 in
+# hardware/prototype/prototype-bom-revA.csv -- so driver behaviour and AP-mode
+# behaviour observed here bear on the BOM radio. Antenna, board layout,
+# enclosure and thermal do not carry at all: this is a bare board with a PCB
+# antenna.
+
+node:
+  id: pi-mule-1
+
+# ROADMAP.md scopes v0.0.1 to a conventional Wi-Fi access point only: no
+# sub-GHz, no mesh, no LoRa. FML-ADR-075 scopes configuration resolution to the
+# bearers a node actually fields, which is why regions/us-915/profile.yml
+# resolves for this node while still refusing the mesh and HaLow values that are
+# legitimately TBD under TBR-RF-01 and TBR-RF-02.
+active_bearers:
+  - wifi_ap
+
+# Logical role -> concrete device, verified on the board 2026-10-03.
+interfaces:
+  # Wired uplink. The field prototype's WAN is also Ethernet (BOM v0.4), so this
+  # is the one role on this article that is not a stand-in.
+  #
+  # It is also load-bearing for bring-up: test/bench/mule-ap-up.sh refuses to
+  # run when eud_ap is the current default-route device, so the route must be
+  # here and not on wlan0 before the AP is raised.
+  wan: eth0
+  # EUD access point on the onboard radio (brcmfmac, phy0) -- FML-ADR-045's
+  # integrated-radio-as-AP role.
+  #
+  # LIMIT, read from the radio 2026-10-03: phy0 reports `#{ AP } <= 1` and an
+  # empty "software interface modes" list, so this radio fields ONE BSS. The
+  # second, time-bounded onboarding BSS that FML-ADR-084 describes cannot be
+  # raised here. That is a finding for TBR-HW-01, not a defect to work around.
+  eud_ap: wlan0
+  # Not fielded by this article. `none` is the schema's value for a role the
+  # node does not have, and is not the same as TBD.
+  mesh: none
+  halow: none
+  lora: none
+
+# 5 GHz UNII-3, non-DFS. Three reasons it is written here explicitly rather than
+# left to default:
+#
+#  1. test/bench/mule-ap-up.sh falls back to channel 36 when this key is absent,
+#     which would silently disagree with the region profile.
+#  2. regions/us-915/profile.yml sets wifi.ap_channel: 149, accepted by the
+#     Program Owner in docs/evidence/TBR-RF-03/2026-09-21-ap-channel-and-eirp-decision-packet.md.
+#     The descriptor and the profile must not say different things.
+#  3. Mesh cannot use the DFS block at all, so when a mesh radio arrives the
+#     usable 5 GHz windows are UNII-1 (36-48) and UNII-3 (149-165) only. Putting
+#     the AP on 149 now is a choice to revisit then, not a permanent one.
+#
+# Verified permitted on this radio 2026-10-03: `iw list` reports
+# "5745.0 MHz [149] (20.0 dBm)" with no radar flag. Note the radio's own ceiling
+# is 20 dBm while the profile's ap_max_eirp_dbm is 36; the radio wins, and what
+# it actually transmits is unmeasured.
+ap_channel: 149

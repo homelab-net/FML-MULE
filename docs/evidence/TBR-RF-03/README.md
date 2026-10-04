@@ -5,11 +5,12 @@
 **Trade file:** `docs/trades/TBR-RF-03-access-point-and-mesh-radio-consolidation.md`
 
 **Priority:** 4 of 16 (SAD v0.31 section 30.2). **Function owner:** Network + RF.
-**Named owner:** `TBD-SRR`.
+**Named owner:** Cameron Zobrist.
 
 **Current contents:** a `SIMULATED` interface-combination demonstration of
-option 1, plus the [October onboard AP trial][onboard-ap] recorded with the
-three-node lab. The latter carried native fake-EUD chat through a Pi AP but used
+option 1, the [October onboard AP trial][onboard-ap] recorded with the
+three-node lab, and an October band-coexistence observation off the bench AP
+adapter. The latter carried native fake-EUD chat through a Pi AP but used
 NetworkManager infrastructure configuration, not concurrent AP/802.11s mesh.
 It does not answer radio consolidation, airtime contention or coexistence.
 
@@ -17,6 +18,31 @@ This trade is `OPEN`: the airtime-contention and antenna/stream
 evidence the closure gate demands is hardware and not produced.
 
 [onboard-ap]: ../TBR-NET-02/2026-10-02-three-node-lab-boundaries.md
+
+- `2026-10-03-bench-ap-band-coexistence-and-radio-capability.md` -- observation
+  record, taken from an Owner report that the WAN was slow through the bench AP.
+  Both bench radios were in 2.4 GHz at once (AP on channel 11, uplink station on
+  channel 4), with the AP on a channel the **`DECIDED` AP-params packet below had
+  already ruled against**. Reads three things off the AP adapter that this
+  trade's open half needs: the `rtl8812au` radio advertises channel 149 with no
+  DFS or no-IR flag and advertises VHT at 80 MHz in a domain that permits it; it
+  advertises a 15.0 dBm per-channel figure for 5 GHz **while operating at 20.00
+  dBm on those channels, so that advertisement is not the operative limit**; and
+  it reports **no per-station bitrate** through nl80211, so the EUD-leg rate
+  cannot be read from the AP on this adapter.
+  Then records the band move itself (section 8): the AP now runs the decided
+  channel 149, the radios no longer share a band, the EUD reassociated on its
+  own and the WAN path still carries traffic -- but the requested 80 MHz
+  operating width **did not take and `hostapd` logged no complaint**, leaving the
+  AP at 40 MHz. That last point generalises: a `hostapd` configuration that
+  starts cleanly is not evidence the radio did what it asked, so the bring-up
+  script would need a width read back off the interface as its check. Section 3 keeps, in
+  place of the claim, the **correction of an error this record first made**: that
+  same advertised figure was initially read as an enforced ceiling and written up
+  as a 5 dB cost to the band move. There is no such cost. **Publishes no throughput figure** and
+  withholds every received-signal figure, because the geometry was not recorded
+  before the observation. Does not claim the band move fixes the reported
+  slowness, and touches nothing about the mesh half.
 
 - `2026-09-21-ap-channel-and-eirp-decision-packet.md` -- the **AP-params
   sub-decision** (Owner, 2026-09-21): baseline dual-band, 5 GHz preferred, migrate
@@ -71,4 +97,6 @@ and the resulting architecture decision is entered into the persistent ADR
 register.
 
 Closing a trade whose named owner is still `TBD-SRR` is not possible, because
-there is nobody to accept the evidence.
+there is nobody to accept the evidence. This trade's owner was named on
+2026-10-02, so that bar is cleared; it says nothing about whether the evidence
+below meets the gate.
