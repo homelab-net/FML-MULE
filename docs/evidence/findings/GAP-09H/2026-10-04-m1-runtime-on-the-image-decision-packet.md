@@ -1,10 +1,9 @@
 # GAP-09H decision packet: what the image carries so M1 can run from it
 
-**State:** `AWAITING_USER_DECISION`. Nothing here is implemented. The Program
-Owner decides; the decision lands in its own new ADR, as `FML-ADR-083` did for
+**State:** `APPROVED` 2026-10-04, recorded as `FML-ADR-089`. Nothing here is
+implemented. The decision landed in its own ADR, as `FML-ADR-083` did for
 `python3`, because a packet cannot override a `shall`. It is a separate decision
-from the arm64 boot profile, proposed as its own ADR on branch
-`claude/c1-arm64-profile-adr`.
+from the arm64 boot profile, `FML-ADR-088`.
 
 **Finding:** GAP-09H, gap G8 (operator procedure,
 `2026-09-26-operator-procedure.md`). **Prepared:** 2026-10-04. **Author:**
@@ -203,9 +202,10 @@ Martin case in `.github/workflows/topology.yml` runs the decided unit with a
 fixture MBTiles and a negative control with the file absent. Each with a test
 that fails without it.
 
-One question stays open for the Owner and is not decided here: how the
+One question stayed open for the Owner and was not decided here: how the
 digest-pinned Martin image reaches the account's storage on a node with no
-WAN, pulled at first start or pre-seeded at build.
+WAN, pulled at first start or pre-seeded at build. `FML-ADR-089` decides it:
+pre-seeded at build.
 
 ## 6. What this does not do
 
@@ -215,4 +215,8 @@ It does not make the image boot on the Pi; that is the arm64 boot profile ADR.
 
 ## 7. Owner disposition
 
-Pending.
+Approved by the Program Owner on 2026-10-04, in the Claude Code cloud session
+that prepared this packet: the recommended package set (section 3), the
+recommended Martin runtime (section 4), and pre-seeding the Martin image at
+build. Recorded as `FML-ADR-089`, which is the citable decision; this packet
+remains its reasoning.

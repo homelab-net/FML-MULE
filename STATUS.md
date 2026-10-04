@@ -66,6 +66,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-084` | Onboarding EUDs use a temporary isolated access network | TBR-ID-01, TBR-TIME-01, TBR-SEC-01, TBR-LINUX-01 |
 | `FML-ADR-086` | The WAN overlay ACL is deny-by-default grants scoped to the assigned MULE | none |
 | `FML-ADR-087` | The EUD addressing roster is signed enrollment state carried by the Mission Trust Service | none |
+| `FML-ADR-089` | The M1 image carries its access point, ingress and Martin runtime, with Martin pre-seeded | TBR-NET-05, TBR-HA-01, TBR-LINUX-01, TBR-CARRIER-01 |
 
 ### SELECTED PRINCIPLE
 
@@ -98,6 +99,7 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | `FML-ADR-053` | BATMAN-IV is the baseline routing algorithm, not BATMAN-V | TBR-RF-01, TBR-RF-03, TBR-LINUX-01 |
 | `FML-ADR-079` | mkosi builds the Debian development image | TBR-LINUX-01, TBR-HW-01 |
 | `FML-ADR-081` | Development image package closure and CycloneDX provenance | TBR-LINUX-01, TBR-HW-01 |
+| `FML-ADR-088` | The Pi 4B development image is an arm64 profile booted by Debian raspi-firmware | TBR-HW-01, TBR-LINUX-01 |
 
 ### PREFERRED
 
@@ -111,12 +113,6 @@ by a new one, never edited in place. See `docs/adr/README.md`.
 | ID | Decision | Open trades it depends on |
 | --- | --- | --- |
 | `FML-ADR-034` | PostgreSQL is preferred only if the TAK state study demonstrates it is the correct continuity boundary | TBR-COMP-01, TBR-HA-01 |
-
-### PROPOSED
-
-| ID | Decision | Open trades it depends on |
-| --- | --- | --- |
-| `FML-ADR-088` | The Pi 4B development image is an arm64 profile booted by Debian raspi-firmware | TBR-HW-01, TBR-LINUX-01 |
 
 ### SUPERSEDED
 
