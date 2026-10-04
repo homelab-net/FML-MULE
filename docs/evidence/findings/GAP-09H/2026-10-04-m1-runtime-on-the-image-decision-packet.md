@@ -54,34 +54,38 @@ and the Python runtime. None of the following is present.
 
 | Role | Proposed Debian package | Needed by | Profile | Notes |
 | --- | --- | --- | --- | --- |
-| Container runtime | `podman` | step 5, Martin (G8) | both | Rootless helpers (`passt`, `uidmap`, `dbus-user-session`) may be Recommends, which this image does not install (`os/image/mkosi.conf`, `WithRecommends=no`). The resolver run records which; any that are needed join this list by name. The lab's hand-provisioned Debian 13 hosts ran `podman version 5.4.2` (`docs/evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.txt`). |
-| Access point userspace | `hostapd` | step 4, the EUD AP | both | Consumes the rendered `hostapd.partial.conf`; the WPA block stays gated on `TBR-SEC-01`. |
-| Wi-Fi firmware | `firmware-brcm80211` | step 4 on the Pi 4B (CYW43455) | arm64 only | Expected to carry the CYW43455 firmware and the Pi 4B NVRAM file, and expected in the `non-free-firmware` component, which the image does not enable today; the arm64 profile ADR decides that component. The lab Pis run a Raspberry Pi kernel, so they are not evidence for the Debian package. |
-| Regulatory database | `wireless-regdb` | step 4 | both | Expected to provide the kernel's regulatory database, so a `country_code` request is applied rather than leaving the world domain. On the Pi 4B's FullMAC `brcmfmac` the firmware's own country tables also apply (`TBR-LINUX-01`). |
-| DHCP and local DNS | `dnsmasq` | steps 7-8, a phone gets an address and resolves the name | both | Package only. Its configuration is `TBR-NET-05`'s and stays unrendered until that trade decides lease and scope. |
-| Ingress proxy | `haproxy` | step 7, reach Martin by name (G5a) | both | `FML-ADR-031` selects it. `os/config/haproxy.conf.template` has its bind address `TBD` on `TBR-NET-05`. |
+| Container runtime | `podman` (`5.4.2+ds1-2+b2`, main) | step 5, Martin (G8) | both | Its rootless helpers are `Recommends`, not `Depends`, at the pinned snapshot, and the image installs no Recommends (`os/image/mkosi.conf`, `WithRecommends=no`). So `uidmap` (subordinate ID mapping), `passt` (rootless networking) and `dbus-user-session` (the user manager's bus) join the list by name. `catatonit` is also only recommended and is not proposed: `martin.container` sets no `Init=`. |
+| Access point userspace | `hostapd` (`2:2.10-24`, main) | step 4, the EUD AP | both | Consumes the rendered `hostapd.partial.conf`; the WPA block stays gated on `TBR-SEC-01`. |
+| Wi-Fi firmware | `firmware-brcm80211` (`20250410-2`, non-free-firmware) | step 4 on the Pi 4B (CYW43455) | arm64 only | Carries `cypress/cyfmac43455-sdio.bin`, its `clm_blob`, and `brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.txt` (package file list). It is in `non-free-firmware`, which the image does not enable today; the arm64 profile ADR decides that component. The lab Pis run a Raspberry Pi kernel, so they are not evidence for the Debian package. |
+| Regulatory database | `wireless-regdb` (`2026.05.30-1~deb13u1`, main) | step 4 | both | Expected to provide the kernel's regulatory database, so a `country_code` request is applied rather than leaving the world domain. On the Pi 4B's FullMAC `brcmfmac` the firmware's own country tables also apply (`TBR-LINUX-01`). |
+| DHCP and local DNS | `dnsmasq` (`2.91-1+deb13u1`, main) | steps 7-8, a phone gets an address and resolves the name | both | Package only. Its configuration is `TBR-NET-05`'s and stays unrendered until that trade decides lease and scope. |
+| Ingress proxy | `haproxy` (`3.0.11-1+deb13u3`, main) | step 7, reach Martin by name (G5a) | both | `FML-ADR-031` selects it. `os/config/haproxy.conf.template` has its bind address `TBD` on `TBR-NET-05`. |
 
-**How the names get confirmed.** The image's package resolver
-(`tools/resolve-image-packages.py`) authenticates the pinned
-`snapshot.debian.org` index and fails if a named package, or the component it
-lives in, is absent. That run is where each name, component and dependency above
-becomes a recorded fact; this packet does not claim them in advance. The cloud
-session that wrote this packet could not reach any Debian archive host
-(connections to `snapshot.debian.org`, `deb.debian.org`, `packages.debian.org`,
-`salsa.debian.org` and `sources.debian.org` were refused by the session's network
-policy on 2026-10-04), so the resolver run happens once that access is allowed,
-or on the N150 as a bench card.
+**Where these facts come from.** The versions, components, `Depends` and
+`Recommends` above were read on 2026-10-04 from the `Packages` indexes of
+`snapshot.debian.org` `20260912T000000Z` (`trixie`, `main` and `non-free-firmware`, `arm64`;
+every package is also present for `amd64`), the snapshot the image pins. The
+firmware file names come from the package's own file list, and the service
+enablement below from each package's `postinst`. These indexes were read
+directly, not authenticated by the image's resolver
+(`tools/resolve-image-packages.py`); its run, at implementation, is what
+records the locked closure, including every transitive dependency.
 
-**Recommendation.** Approve all six as the M1 package set. Each is required by
-a numbered step of the operator procedure, and adding them one at a time costs
+**Recommendation.** Approve the six roles in the table, plus the three rootless
+helpers named in the `podman` row, as the M1 package set: nine direct packages
+on arm64, eight on amd64, which has no `firmware-brcm80211` row. Each is
+required by a numbered step of the operator procedure, and adding them one at a
+time costs
 one ADR each against the same `FML-ADR-081` sentence. Shipping `dnsmasq` and
-`haproxy` decides nothing about their values, provided the image disables
-`dnsmasq.service` and `haproxy.service` until their configuration is rendered;
-Debian maintainer scripts may enable packaged services with a stock
-configuration. The build run records each package's default enablement.
+`haproxy` decides nothing about their values, provided the image disables their
+services until their configuration is rendered: at the pinned snapshot the
+`postinst` of `dnsmasq`, `haproxy` and `hostapd` each runs
+`deb-systemd-helper enable` on first installation, so each would start at boot
+with its stock configuration. `hostapd.service` is disabled for the same reason
+until a complete configuration is rendered (`TBR-SEC-01`).
 
-**Alternative.** Approve `podman`, `hostapd`, `firmware-brcm80211` and
-`wireless-regdb` only, and leave `dnsmasq` and `haproxy` for when `TBR-NET-05`
+**Alternative.** Approve `podman` and its three helpers, `hostapd`,
+`firmware-brcm80211` and `wireless-regdb` only, and leave `dnsmasq` and `haproxy` for when `TBR-NET-05`
 closes. M1's drill then sets the phone's address by hand and reaches Martin by
 address, not by name, which falls short of the `v0.0.1` ingress text, "enough
 that the phone reaches the service by name" (`ROADMAP.md`).
@@ -189,7 +193,7 @@ that controller's job.
 `os/image/manifest/direct-packages.list` and the regenerated locks for each
 profile; `os/image/mkosi.postinst` installs `martin.container`, the catalog,
 the `sysusers.d`, `tmpfiles.d` and subordinate-range entries, the linger file,
-and disables `dnsmasq.service` and `haproxy.service`;
+and disables `dnsmasq.service`, `haproxy.service` and `hostapd.service`;
 `services/quadlets/martin.container` gains `[Install]` and its install-path
 comment changes; `os/systemd/mule-runtime.service` moves `--quadlets`, and
 `test/unit/test_runtime_entrypoint.py`'s pinned `--quadlets` path follows;
