@@ -181,6 +181,7 @@ fail each time. A break the suite does not notice is a **survivor**.
 ```sh
 tools/mutation-check.py          # every mutation must be caught
 tools/mutation-check.py --list   # what the suite is required to detect
+tools/mutation-check.py --jobs 1 # one at a time; the default is one per CPU
 ```
 
 The mutations live in `mutations.yml` as reviewable data. Adding one records

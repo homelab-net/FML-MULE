@@ -14,6 +14,14 @@ this program needs them visible:
 
 ## Unreleased
 
+### Ran the mutation check in parallel
+
+`tools/mutation-check.py` now runs mutations concurrently, one per CPU by
+default (`--jobs` overrides), each in its own copy of the tree with its own
+pytest temporary directory. Every mutation still runs and the report keeps its
+order; `tools/lint.sh` gained no skip. The mutation stage was the bulk of the
+CI full gate's roughly 33 minutes.
+
 ### Enabled Martin as the v0.0.1 service
 
 The Program Owner selected Martin serving one read-only per-mission MBTiles
