@@ -6,11 +6,13 @@ existing no-hardware evidence and the BOM's own acquisition gates so the calls a
 actionable. It **decides nothing** -- the BOM-choosing trades close on hardware
 the Owner accepts -- and it adds no architecture.
 
-**Coordination.** The `HW-01A/B/C/D` decision-packet findings in
-`docs/findings/register.yml` are Codex's register work and are not yet started.
-This brief **feeds** them for the Owner's decision; it does not fork or close
-them, and it must be reconciled with them before any trade closes. It does not
-edit the register.
+**Coordination.** The `HW-01A/B/C` decision-packet findings in
+`docs/findings/register.yml` were assigned to Claude by the Program Owner on
+2026-10-05 and are not yet started; `HW-01D` is unassigned. This brief **feeds**
+them for the Owner's decision; it does not fork or close them, and it must be
+reconciled with them before any trade closes. Its step 1 below is put to the
+Owner as a decision in
+`docs/evidence/findings/HW-01/2026-10-05-lab-article-order-decision-packet.md`.
 
 ## The reframe: the current BOM already lets you order a lab article now
 
@@ -129,7 +131,7 @@ closes without hardware. Directions are the Owner's to accept, not decisions.
    software digital twin against the real interfaces to find which fakes were lying
    (`docs/ROADMAP-DEV.md`, Track 2 day one).
 3. **Then:** make `TBR-RF-03`, `TBR-CARRIER-01` and `TBR-COMP-01` on **that**
-   evidence, reconciled with Codex's `HW-01A/B/C` packets.
+   evidence, reconciled with the `HW-01A/B/C` packets.
 4. **Then:** authorise the field BOM (`TBR-HW-01`; the `HW-01D` finding).
 
 Hardware paces steps 2-4; only step 1 is available today, which is why step 1 is

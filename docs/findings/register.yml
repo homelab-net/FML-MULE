@@ -309,26 +309,35 @@ findings:
     severity: P2
     verification: independent-plus-operator
     dependencies: [BASE-01]
+    evidence:
+      - "docs/evidence/findings/HW-01/2026-10-05-lab-article-order-decision-packet.md"
     user_gate: "Approve every hardware trade and test threshold"
 
-  - &open_hardware
-    <<: *open_independent
-    id: HW-01A
-    title: "RF consolidation decision packet"
-    severity: P2
-    parent: HW-01
-    verification: independent-plus-operator
-    dependencies: [BASE-01, OSS-01]
-    user_gate: "Approve the RF consolidation decision"
+  - <<: &open_hardware
+      <<: *open_independent
+      id: HW-01A
+      title: "RF consolidation decision packet"
+      severity: P2
+      parent: HW-01
+      verification: independent-plus-operator
+      dependencies: [BASE-01, OSS-01]
+      user_gate: "Approve the RF consolidation decision"
+    # Assigned to Claude by the Program Owner on 2026-10-05. Outside the
+    # anchor, so the later HW-01 findings that merge it do not inherit it.
+    owner: Claude
 
   - <<: *open_hardware
     id: HW-01B
+    # Assigned to Claude by the Program Owner on 2026-10-05.
+    owner: Claude
     title: "Carrier and M.2 decision packet"
     dependencies: [HW-01A, OSS-01]
     user_gate: "Approve the carrier and M.2 decision"
 
   - <<: *open_hardware
     id: HW-01C
+    # Assigned to Claude by the Program Owner on 2026-10-05.
+    owner: Claude
     title: "Compute memory/storage decision packet"
     dependencies: [GAP-09A]
     user_gate: "Approve the compute memory and storage thresholds"
