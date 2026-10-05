@@ -23,7 +23,14 @@ fi
 # tree. --no-deps means "Don't install package dependencies"; the target lock
 # supplies them. --no-compile says "Do not compile Python source files to
 # bytecode"; without it pip compiles the installed source during this build.
-python3 -m pip install \
+#
+# Debian's python3.13 sysconfig (/usr/lib/python3.13/sysconfig/__init__.py,
+# 3.13.5-2+deb13u5) chooses the prefix scheme with "deb_build =
+# os.environ.get('DEB_PYTHON_INSTALL_LAYOUT', 'posix_local')"; only "deb" or
+# "deb_system" select /usr. Omitted, pip installs into /usr/local, the checks
+# below find no runtime, and the build fails, as the first in-session build did
+# on 2026-10-05.
+DEB_PYTHON_INSTALL_LAYOUT=deb python3 -m pip install \
   --no-build-isolation \
   --no-compile \
   --no-deps \

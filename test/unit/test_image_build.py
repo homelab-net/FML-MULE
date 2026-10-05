@@ -1114,3 +1114,61 @@ def test_builder_resolver_rejects_modified_installed_module(tmp_path: Path) -> N
 
     assert result.returncode != 0
     assert "differs from the authenticated package" in result.stderr
+
+
+#: Debian trixie python3.13 3.13.5-2+deb13u5, /usr/lib/python3.13/sysconfig/
+#: __init__.py: "deb_build = os.environ.get('DEB_PYTHON_INSTALL_LAYOUT',
+#: 'posix_local')" and only "deb" or "deb_system" select the /usr scheme. The
+#: fake pip below reproduces that choice, so the postinst is tested against the
+#: layout the real tools tree produces rather than the one it was written for.
+DEBIAN_PIP_FAKE = """#!/bin/sh
+set -eu
+root=
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --root) root=$2; shift 2 ;;
+    *) shift ;;
+  esac
+done
+case "${DEB_PYTHON_INSTALL_LAYOUT:-posix_local}" in
+  deb | deb_system) lib="$root/usr/lib/python3/dist-packages" base="$root/usr" ;;
+  *) lib="$root/usr/local/lib/python3.13/dist-packages" base="$root/usr/local" ;;
+esac
+mkdir -p "$lib/mule" "$base/lib/systemd/system" "$base/share/fml-mule"
+: >"$lib/mule/__main__.py"
+: >"$base/lib/systemd/system/mule-runtime.service"
+: >"$base/share/fml-mule/mission-package.schema.json"
+"""
+
+
+def test_postinst_installs_the_runtime_where_it_checks_on_debian(
+    tmp_path: Path,
+) -> None:
+    """The postinst shall build on Debian, whose pip defaults to /usr/local."""
+    buildroot = tmp_path / "buildroot"
+    (buildroot / "var/lib/dpkg").mkdir(parents=True)
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    (fake_bin / "python3").write_text(DEBIAN_PIP_FAKE, encoding="utf-8")
+    (fake_bin / "apt-get").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    for executable in fake_bin.iterdir():
+        executable.chmod(0o755)
+
+    shell = shutil.which("sh")
+    assert shell is not None
+    result = subprocess.run(  # noqa: S603
+        [shell, str(REPO_ROOT / "os/image/mkosi.postinst")],
+        env={
+            **os.environ,
+            "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+            "BUILDROOT": str(buildroot),
+            "SRCDIR": str(REPO_ROOT),
+        },
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert (buildroot / "usr/lib/python3/dist-packages/mule/__main__.py").is_file()
+    assert not (buildroot / "usr/local").exists()
