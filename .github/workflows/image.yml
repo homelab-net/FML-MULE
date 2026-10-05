@@ -1,0 +1,157 @@
+---
+# Does the development image build, and does it boot? (FML-ADR-079, FML-ADR-081)
+#
+# The image had no CI at all: lint.yml called the raw-image and QEMU path "an
+# explicit image-build activity", so nothing noticed when the runtime install
+# (#176, 2026-09-25) stopped every build. The first build after it, in a cloud
+# session on 2026-10-05, found that defect
+# (docs/evidence/findings/GAP-09H/2026-10-05-first-build-cloud-session.md).
+#
+# WHAT THIS DOES
+#
+# One networked build with tools/build-image.sh --populate-cache, then a
+# bounded QEMU boot of its output with no guest network, using the VM step of
+# tools/verify-image-reproducibility.sh. Pass means the build exits 0 and the
+# console shows "Reached target multi-user.target". The tier is SIMULATED.
+#
+# WHAT THIS DOES NOT DO
+#
+# It is not the FML-ADR-081 acceptance sequence (two clean networked builds,
+# one network-isolated build, identical raw images). That is the next change to
+# this file, once this job has shown what a hosted runner provides. It says
+# nothing about the Pi, the access point or any radio.
+#
+# HOW IT BUILDS
+#
+# mkosi has to be the Debian 25.3-7 package whose retained .deb
+# tools/resolve-mkosi-builder.sh verifies against os/image/build-inputs.yml, so
+# the build runs in a Debian 13 container, privileged because mkosi builds the
+# disk image itself. The container is pinned by digest. It installs mkosi from
+# live trixie, not from the image's snapshot: the 2026-10-05 session found the
+# container's libmount1 newer than the snapshot's, and live trixie serves the
+# identical mkosi 25.3-7 file (same SHA-256), which the resolver checks anyway.
+# The image's own packages still come only from the snapshot, through the
+# image's sandbox trees.
+
+name: Image
+
+"on":
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/image.yml"
+      - "os/image/**"
+      - "os/systemd/**"
+      - "mule/**"
+      - "mission/schema/**"
+      - "pyproject.toml"
+      - "tools/build-image.sh"
+      - "tools/verify-image-reproducibility.sh"
+      - "tools/resolve-mkosi-builder.sh"
+      - "tools/resolve-image-packages.py"
+      - "tools/validate-image.py"
+      - "tools/validate-image-root.py"
+      - "tools/validate-package-cache.py"
+      - "tools/add-runtime-sbom.py"
+  push:
+    branches: [main]
+    # Same list as pull_request above.
+    paths:
+      - ".github/workflows/image.yml"
+      - "os/image/**"
+      - "os/systemd/**"
+      - "mule/**"
+      - "mission/schema/**"
+      - "pyproject.toml"
+      - "tools/build-image.sh"
+      - "tools/verify-image-reproducibility.sh"
+      - "tools/resolve-mkosi-builder.sh"
+      - "tools/resolve-image-packages.py"
+      - "tools/validate-image.py"
+      - "tools/validate-image-root.py"
+      - "tools/validate-package-cache.py"
+      - "tools/add-runtime-sbom.py"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-boot:
+    name: Build and boot (x86-64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      # Recorded on every run, so a change in what the runner offers shows up
+      # here instead of being guessed at.
+      - name: Record what the runner provides
+        run: |
+          uname -r
+          nproc
+          free -g
+          df -h /
+          if [ -c /dev/kvm ]; then ls -l /dev/kvm; else echo "no /dev/kvm"; fi
+
+      - name: Build and boot in Debian 13
+        env:
+          DEBIAN_IMAGE: >-
+            mirror.gcr.io/library/debian@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+        run: |
+          mkdir -p out
+          docker run --rm --privileged \
+            -v "$GITHUB_WORKSPACE:/work/tree" \
+            -w /work/tree \
+            "$DEBIAN_IMAGE" sh -euc '
+              apt-get update -qq
+              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+                --no-install-recommends mkosi=25.3-7 debian-archive-keyring \
+                ca-certificates python3 python3-yaml >/dev/null
+              # The official image deletes downloaded .debs after install, so
+              # the retained package the resolver verifies is fetched apart.
+              (cd /tmp && apt-get download -qq mkosi=25.3-7)
+              export FML_MKOSI_PACKAGE_DEB=/tmp/mkosi_25.3-7_all.deb
+
+              tools/build-image.sh --check
+              start=$(date +%s)
+              tools/build-image.sh --populate-cache >out/build.log 2>&1 || {
+                tail -n 200 out/build.log
+                exit 1
+              }
+              echo "build seconds: $(( $(date +%s) - start ))"
+              cat out/image/mule-development.raw.sha256
+
+              # QEMU under TCG took several minutes on 2026-10-05; with KVM it
+              # needs far less. The bound is generous either way, and running
+              # out of it is not a failure: the console is checked below.
+              bound=1500
+              [ -c /dev/kvm ] && bound=300
+              set +e
+              timeout "$bound" mkosi \
+                --directory /work/tree/os/image \
+                --output-directory /work/tree/out/image \
+                --output mule-development \
+                --runtime-network=none \
+                --console=native \
+                vm </dev/null >out/boot.log 2>&1
+              status=$?
+              set -e
+              case "$status" in
+                0 | 124) ;;
+                *) tail -n 200 out/boot.log; exit "$status" ;;
+              esac
+              grep -F "Reached target multi-user.target" out/boot.log
+              grep -F "[FAILED]" out/boot.log || echo "no failed units"
+            '
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-logs
+          path: |
+            out/build.log
+            out/boot.log
+            out/image/mule-development.raw.sha256
+            out/image/mule-development.manifest
+          if-no-files-found: warn

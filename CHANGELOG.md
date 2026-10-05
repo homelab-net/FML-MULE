@@ -14,6 +14,12 @@ this program needs them visible:
 
 ## Unreleased
 
+### Built and booted the image in CI
+
+`.github/workflows/image.yml` builds the x86-64 development image and boots it
+under QEMU with no guest network whenever its inputs change. One build and one
+boot, `SIMULATED`; the `FML-ADR-081` three-build sequence is the next step.
+
 ### Fixed the image build's runtime install on Debian
 
 `os/image/mkosi.postinst` installed the MULE runtime with
