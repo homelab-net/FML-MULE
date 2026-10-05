@@ -30,7 +30,7 @@ fi
 # "deb_system" select /usr. Omitted, pip installs into /usr/local, the checks
 # below find no runtime, and the build fails, as the first in-session build did
 # on 2026-10-05.
-python3 -m pip install \
+DEB_PYTHON_INSTALL_LAYOUT=deb python3 -m pip install \
   --no-build-isolation \
   --no-compile \
   --no-deps \
