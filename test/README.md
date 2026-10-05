@@ -12,6 +12,9 @@ A green pipeline means:
 - The documents are internally consistent: identifiers are unique, cited trades
   exist, the remediation findings register and closure packets agree with the
   plan, `STATUS.md` is not stale, and no image reference uses a mutable tag.
+- On changes to its inputs, the development image builds and boots to
+  `multi-user.target` under QEMU with no guest network (`image.yml`). One
+  build, not the three-build reproducibility sequence `FML-ADR-081` requires.
 
 **It says nothing about whether the system works on hardware.** Not whether a
 radio enumerates, whether a mesh forms, whether the node survives a day on

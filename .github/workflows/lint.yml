@@ -1,9 +1,10 @@
 ---
 # Lint and document validation.
 #
-# The Python job builds and invokes the FML-ADR-083 distribution. The complete
-# raw-image and QEMU acceptance path remains an explicit image-build activity;
-# hosted lint CI does not silently substitute for it.
+# The Python job builds and invokes the FML-ADR-083 distribution. The image is
+# built and booted by image.yml, one build and one QEMU boot. The complete
+# FML-ADR-081 acceptance sequence (three builds, identical images) is not yet in
+# CI, and hosted lint CI does not silently substitute for it.
 #
 # WHAT A GREEN RUN MEANS
 #
