@@ -64,7 +64,7 @@ Quantities and prices are the BOM's. Row numbers count the CSV header as row 1.
 The `Price Basis` column is reproduced because several prices are estimates,
 not quotes.
 
-**Option A (recommended)**
+### Option A (recommended)
 
 | Line | BOM row | Qty | Unit | Extended | Price basis |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -76,7 +76,7 @@ not quotes.
 | USB-C 100 W PD source | 38 | 1 | 30.00 | 30.00 | Estimate (Claude) |
 | **Total** | | | | **189.58** | 30.00 of it estimated |
 
-**Option B, adds**: one CM4 node for the QCA6174A.
+### Option B adds one CM4 node for the QCA6174A
 
 | Line | BOM row | Qty | Unit | Extended | Price basis |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -99,14 +99,16 @@ CM4's onboard radio, not the QCA6174A. It does not answer `TBR-RF-01`: no
 high-rate antennas are ordered (row 10 is `BUY AFTER RADIO VERIFY`), so no link
 can be measured, only driver enumeration.
 
-**Option C, adds**: one more HaLow kit (rows 31-33, 44.79). Option C needs a
+### Option C adds one more HaLow kit
+
+Rows 31-33, 44.79. Option C needs a
 third host with a 40-pin header. The BOM's `RELAY` class is "Minimal third node
 so Stage 2 can test multi-hop, relay, topology change, and BATMAN
 reconvergence. Two nodes cannot answer any of those." With B, the CM4 node is
 that host if its carrier exposes the 40-pin header the HAT needs (a fit check).
 Without B, the host is a `RELAY` set (rows 28-35, 152.78 for one).
 
-**Fit checks the BOM already carries go with the order:**
+### Fit checks the BOM already carries go with the order
 
 - WM1302 HAT (row 6, the same part as row 32): "FIT CHECK: confirm the HAT
   passes through or stacks the GPIO header - the I2C display and EMCON button
