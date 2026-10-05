@@ -10,7 +10,7 @@ nothing until the Program Owner accepts it.
 
 | Artifact | What it records |
 | --- | --- |
-| `2026-10-05-lab-article-order-decision-packet.md` | Decision packet: order two lab nodes, one high-rate radio to verify, and the shared instruments from the prototype BOM's `BUY NOW` and `BUY 1 THEN VERIFY` cells, ahead of the field-article decisions. |
+| `2026-10-05-lab-article-order-decision-packet.md` | Decision packet: HaLow kits for the two existing Pi 4B lab articles plus the shared instruments (recommended), with a CM4 node for the QCA6174A and a third HaLow node as options, all from the prototype BOM. |
 
 Naming and recording rules are in `docs/evidence/README.md`. Nothing real: no
 deployment location, member identity, callsign, credential, or operational

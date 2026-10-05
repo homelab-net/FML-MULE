@@ -131,7 +131,7 @@ closes without hardware. Directions are the Owner's to accept, not decisions.
    software digital twin against the real interfaces to find which fakes were lying
    (`docs/ROADMAP-DEV.md`, Track 2 day one).
 3. **Then:** make `TBR-RF-03`, `TBR-CARRIER-01` and `TBR-COMP-01` on **that**
-   evidence, reconciled with Codex's `HW-01A/B/C` packets.
+   evidence, reconciled with the `HW-01A/B/C` packets.
 4. **Then:** authorise the field BOM (`TBR-HW-01`; the `HW-01D` finding).
 
 Hardware paces steps 2-4; only step 1 is available today, which is why step 1 is
