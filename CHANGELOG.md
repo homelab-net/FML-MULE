@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Fixed the image build's runtime install on Debian
+
+`os/image/mkosi.postinst` installed the MULE runtime with
+`pip --prefix /usr`, which Debian's Python sends to `/usr/local`, so the
+postinst's own checks failed every image build since the runtime install
+landed. It now sets `DEB_PYTHON_INSTALL_LAYOUT=deb`. The first build after the
+fix, in a cloud session, boots to `multi-user.target` under QEMU (`SIMULATED`,
+one build, not the reproducibility sequence).
+
 ### Ran the mutation check in parallel
 
 `tools/mutation-check.py` now runs mutations concurrently, one per CPU by

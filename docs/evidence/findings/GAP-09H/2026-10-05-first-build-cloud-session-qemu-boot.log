@@ -1,0 +1,321 @@
+qemu-system-x86_64: terminating on signal 15 from pid 6768 (timeout)
+qemu-system-x86_64: tpm-emulator: Could not cleanly shutdown the TPM: Invalid argument
+001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x6,0x0)
+EFI stub: Loaded initrd from LINUX_EFI_INITRD_MEDIA_GUID device path
+Booting initrd of Debian GNU/Linux 13 (trixie)...
+[  O‣ Interrupted
+ce system-modprobe.slice - Slice /system/modprobe.
+[  OK  ] Created slice system-systemd\x2dpcrfs.slice - Slice /system/systemd-pcrfs.
+[  OK  ] Started systemd-ask-password-console.path - Dispatch Password Requests to Console Directory Watch.
+[  OK  ] Set up automount proc-sys-fs-binfmt_misc.automount - Arbitrary Executable File Formats File System Automount Point.
+         Expecting device dev-gpt\x2dauto\x2droot.device - /dev/gpt-auto-root...
+[  OK  ] Reached target initrd-usr-fs.target - Initrd /usr File System.
+[  OK  ] Reached target integritysetup.target - Local Integrity Protected Volumes.
+[  OK  ] Reached target paths.target - Path Units.
+[  OK  ] Reached target remote-cryptsetup.target - Remote Encrypted Volumes.
+[  OK  ] Reached target remote-veritysetup.target - Remote Verity Protected Volumes.
+[  OK  ] Reached target slices.target - Slice Units.
+[  OK  ] Reached target swap.target - Swaps.
+[  OK  ] Reached target veritysetup.target - Local Verity Protected Volumes.
+[  OK  ] Listening on systemd-creds.socket - Credential Encryption/Decryption.
+[  OK  ] Listening on systemd-initctl.socket - initctl Compatibility Named Pipe.
+[  OK  ] Listening on systemd-journald-audit.socket - Journal Audit Socket.
+[  OK  ] Listening on systemd-journald-dev-log.socket - Journal Socket (/dev/log).
+[  OK  ] Listening on systemd-journald.socket - Journal Sockets.
+[  OK  ] Listening on systemd-networkd.socket - Network Service Netlink Socket.
+[  OK  ] Listening on systemd-pcrextend.socket - TPM PCR Measurements.
+[  OK  ] Listening on systemd-pcrlock.socket - Make TPM PCR Policy.
+[  OK  ] Listening on systemd-udevd-control.socket - udev Control Socket.
+[  OK  ] Listening on systemd-udevd-kernel.socket - udev Kernel Socket.
+         Mounting dev-hugepages.mount - Huge Pages File System...
+         Mounting dev-mqueue.mount - POSIX Message Queue File System...
+         Mounting run-lock.mount - Legacy Locks Directory /run/lock...
+         Mounting sys-kernel-debug.mount - Kernel Debug File System...
+         Mounting sys-kernel-tracing.mount - Kernel Trace File System...
+         Mounting tmp.mount - Temporary Directory /tmp...
+         Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+         Starting modprobe@configfs.service - Load Kernel Module configfs...
+         Starting modprobe@dm_mod.service - Load Kernel Module dm_mod...
+         Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+         Starting modprobe@fuse.service - Load Kernel Module fuse...
+         Starting modprobe@loop.service - Load Kernel Module loop...
+         Starting systemd-journald.service - Journal Service...
+         Starting systemd-modules-load.service - Load Kernel Modules...
+         Starting systemd-network-generator.service - Generate Network Units from Kernel Command Line...
+         Starting systemd-pcrphase-initrd.service - TPM PCR Barrier (initrd)...
+         Starting systemd-udev-load-credentials.service - Load udev Rules from Credentials...
+         Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+[  OK  ] Mounted dev-hugepages.mount - Huge Pages File System.
+[  OK  ] Mounted dev-mqueue.mount - POSIX Message Queue File System.
+[  OK  ] Mounted run-lock.mount - Legacy Locks Directory /run/lock.
+[  OK  ] Mounted sys-kernel-debug.mount - Kernel Debug File System.
+[  OK  ] Mounted sys-kernel-tracing.mount - Kernel Trace File System.
+[  OK  ] Mounted tmp.mount - Temporary Directory /tmp.
+[  OK  ] Finished kmod-static-nodes.service - Create List of Static Device Nodes.
+[  OK  ] Finished modprobe@configfs.service - Load Kernel Module configfs.
+[  OK  ] Finished modprobe@dm_mod.service - Load Kernel Module dm_mod.
+[  OK  ] Finished modprobe@efi_pstore.service - Load Kernel Module efi_pstore.
+[  OK  ] Finished modprobe@fuse.service - Load Kernel Module fuse.
+[  OK  ] Finished modprobe@loop.service - Load Kernel Module loop.
+[  OK  ] Finished systemd-modules-load.service - Load Kernel Modules.
+[  OK  ] Finished systemd-network-generator.service - Generate Network Units from Kernel Command Line.
+[  OK  ] Finished systemd-pcrphase-initrd.service - TPM PCR Barrier (initrd).
+[  OK  ] Finished systemd-udev-load-credentials.service - Load udev Rules from Credentials.
+[  OK  ] Reached target cryptsetup.target - Local Encrypted Volumes.
+[  OK  ] Reached target network-pre.target - Preparation for Network.
+         Starting systemd-sysctl.service - Apply Kernel Variables...
+         Starting systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully...
+         Starting systemd-tpm2-setup-early.service - Early TPM SRK Setup...
+         Mounting sys-fs-fuse-connections.mount - FUSE Control File System...
+         Mounting sys-kernel-config.mount - Kernel Configuration File System...
+[  OK  ] Finished systemd-sysctl.service - Apply Kernel Variables.
+[  OK  ] Started systemd-journald.service - Journal Service.
+[  OK  ] Finished systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+[  OK  ] Mounted sys-fs-fuse-connections.mount - FUSE Control File System.
+[  OK  ] Mounted sys-kernel-config.mount - Kernel Configuration File System.
+[  OK  ] Finished systemd-tpm2-setup-early.service - Early TPM SRK Setup.
+         Starting systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev...
+[  OK  ] Finished systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+[  OK  ] Reached target local-fs-pre.target - Preparation for Local File Systems.
+[  OK  ] Reached target local-fs.target - Local File Systems.
+[  OK  ] Listening on systemd-sysext.socket - System Extension Image Management.
+         Starting systemd-tmpfiles-setup.service - Create System Files and Directories...
+         Starting systemd-udevd.service - Rule-based Manager for Device Events and Files...
+[  OK  ] Finished systemd-udev-trigger.service - Coldplug All udev Devices.
+[  OK  ] Finished systemd-tmpfiles-setup.service - Create System Files and Directories.
+[  OK  ] Started systemd-udevd.service - Rule-based Manager for Device Events and Files.
+[  OK  ] Reached target sysinit.target - System Initialization.
+[  OK  ] Reached target timers.target - Timer Units.
+[  OK  ] Listening on systemd-hostnamed.socket - Hostname Service Socket.
+[  OK  ] Reached target sockets.target - Socket Units.
+[  OK  ] Reached target basic.target - Basic System.
+[  OK  ] Reached target tpm2.target - Trusted Platform Module.
+[*     ] Job dev-gpt\x2dauto\x2droot.device/start running (10s / 1min 30s)
+[**    ] Job dev-gpt\x2dauto\x2droot.device/start running (10s / 1min 30s)
+[***   ] Job dev-gpt\x2dauto\x2droot.device/start running (11s / 1min 30s)
+[ ***  ] Job dev-gpt\x2dauto\x2droot.device/start running (11s / 1min 30s)
+[  OK  ] Found device dev-gpt\x2dauto\x2droot.device - /dev/gpt-auto-root.
+[  OK  ] Reached target initrd-root-device.target - Initrd Root Device.
+         Mounting sysroot.mount - Root Partition...
+[  OK  ] Mounted sysroot.mount - Root Partition.
+[  OK  ] Reached target initrd-root-fs.target - Initrd Root File System.
+         Starting initrd-parse-etc.service - Mountpoints Configured in the Real Root...
+[  OK  ] Finished initrd-parse-etc.service - Mountpoints Configured in the Real Root.
+[  OK  ] Reached target initrd-fs.target - Initrd File Systems.
+[  OK  ] Reached target initrd.target - Initrd Default Target.
+         Starting initrd-cleanup.service - Cleaning Up and Shutting Down Daemons...
+[  OK  ] Stopped target initrd.target - Initrd Default Target.
+[  OK  ] Stopped target basic.target - Basic System.
+[  OK  ] Stopped target initrd-root-device.target - Initrd Root Device.
+[  OK  ] Stopped target initrd-usr-fs.target - Initrd /usr File System.
+[  OK  ] Stopped target network-pre.target - Preparation for Network.
+[  OK  ] Stopped target paths.target - Path Units.
+[  OK  ] Stopped target remote-cryptsetup.target - Remote Encrypted Volumes.
+[  OK  ] Stopped target remote-veritysetup.target - Remote Verity Protected Volumes.
+[  OK  ] Stopped target slices.target - Slice Units.
+[  OK  ] Stopped target sockets.target - Socket Units.
+[  OK  ] Stopped target timers.target - Timer Units.
+[  OK  ] Closed systemd-creds.socket - Credential Encryption/Decryption.
+[  OK  ] Closed systemd-hostnamed.socket - Hostname Service Socket.
+[  OK  ] Stopped target sysinit.target - System Initialization.
+[  OK  ] Stopped target cryptsetup.target - Local Encrypted Volumes.
+[  OK  ] Stopped systemd-ask-password-console.path - Dispatch Password Requests to Console Directory Watch.
+[  OK  ] Stopped target integritysetup.target - Local Integrity Protected Volumes.
+[  OK  ] Stopped target swap.target - Swaps.
+[  OK  ] Stopped target veritysetup.target - Local Verity Protected Volumes.
+[  OK  ] Closed systemd-initctl.socket - initctl Compatibility Named Pipe.
+[  OK  ] Closed systemd-networkd.socket - Network Service Netlink Socket.
+[  OK  ] Closed systemd-pcrextend.socket - TPM PCR Measurements.
+[  OK  ] Closed systemd-pcrlock.socket - Make TPM PCR Policy.
+[  OK  ] Closed systemd-sysext.socket - System Extension Image Management.
+         Starting modprobe@dm_mod.service - Load Kernel Module dm_mod...
+         Starting modprobe@loop.service - Load Kernel Module loop...
+[  OK  ] Stopped systemd-sysctl.service - Apply Kernel Variables.
+[  OK  ] Stopped systemd-modules-load.service - Load Kernel Modules.
+[  OK  ] Stopped systemd-tmpfiles-setup.service - Create System Files and Directories.
+[  OK  ] Stopped target local-fs.target - Local File Systems.
+[  OK  ] Stopped target local-fs-pre.target - Preparation for Local File Systems.
+[  OK  ] Stopped systemd-tpm2-setup-early.service - Early TPM SRK Setup.
+         Stopping systemd-pcrphase-initrd.service - TPM PCR Barrier (initrd)...
+[  OK  ] Stopped systemd-udev-trigger.service - Coldplug All udev Devices.
+         Stopping systemd-udevd.service - Rule-based Manager for Device Events and Files...
+[  OK  ] Stopped systemd-udevd.service - Rule-based Manager for Device Events and Files.
+[  OK  ] Finished modprobe@dm_mod.service - Load Kernel Module dm_mod.
+[  OK  ] Finished modprobe@loop.service - Load Kernel Module loop.
+[  OK  ] Finished initrd-cleanup.service - Cleaning Up and Shutting Down Daemons.
+[  OK  ] Closed systemd-udevd-control.socket - udev Control Socket.
+[  OK  ] Closed systemd-udevd-kernel.socket - udev Kernel Socket.
+         Starting initrd-udevadm-cleanup-db.service - Cleanup udev Database...
+[  OK  ] Stopped systemd-network-generator.service - Generate Network Units from Kernel Command Line.
+[  OK  ] Stopped systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+[  OK  ] Stopped systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+[  OK  ] Stopped kmod-static-nodes.service - Create List of Static Device Nodes.
+[  OK  ] Stopped systemd-udev-load-credentials.service - Load udev Rules from Credentials.
+[  OK  ] Stopped systemd-pcrphase-initrd.service - TPM PCR Barrier (initrd).
+[  OK  ] Stopped target tpm2.target - Trusted Platform Module.
+[  OK  ] Finished initrd-udevadm-cleanup-db.service - Cleanup udev Database.
+[  OK  ] Reached target initrd-switch-root.target - Switch Root.
+         Starting initrd-switch-root.service - Switch Root...
+
+Welcome to Debian GNU/Linux 13 (trixie)!
+
+[  OK  ] Stopped initrd-switch-root.service - Switch Root.
+[  OK  ] Created slice system-getty.slice - Slice /system/getty.
+[  OK  ] Created slice system-serial\x2dgetty.slice - Slice /system/serial-getty.
+[  OK  ] Created slice user.slice - User and Session Slice.
+[  OK  ] Started systemd-ask-password-console.path - Dispatch Password Requests to Console Directory Watch.
+[  OK  ] Started systemd-ask-password-wall.path - Forward Password Requests to Wall Directory Watch.
+[  OK  ] Set up automount proc-sys-fs-binfmt_misc.automount - Arbitrary Executable File Formats File System Automount Point.
+         Expecting device dev-disk-by\x2dlabel-scratch.device - /dev/disk/by-label/scratch...
+         Expecting device dev-hvc0.device - /dev/hvc0...
+         Expecting device dev-ttyS0.device - /dev/ttyS0...
+[  OK  ] Stopped target initrd-switch-root.target - Switch Root.
+[  OK  ] Stopped target initrd-fs.target - Initrd File Systems.
+[  OK  ] Stopped target initrd-root-fs.target - Initrd Root File System.
+[  OK  ] Reached target paths.target - Path Units.
+[  OK  ] Reached target remote-fs.target - Remote File Systems.
+[  OK  ] Reached target slices.target - Slice Units.
+[  OK  ] Reached target swap.target - Swaps.
+[  OK  ] Listening on systemd-creds.socket - Credential Encryption/Decryption.
+[  OK  ] Listening on systemd-initctl.socket - initctl Compatibility Named Pipe.
+[  OK  ] Listening on systemd-networkd.socket - Network Service Netlink Socket.
+[  OK  ] Listening on systemd-pcrextend.socket - TPM PCR Measurements.
+[  OK  ] Listening on systemd-pcrlock.socket - Make TPM PCR Policy.
+[  OK  ] Listening on systemd-udevd-control.socket - udev Control Socket.
+[  OK  ] Listening on systemd-udevd-kernel.socket - udev Kernel Socket.
+         Mounting tmp.mount - Temporary Directory /tmp...
+         Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+         Starting modprobe@configfs.service - Load Kernel Module configfs...
+         Starting modprobe@drm.service - Load Kernel Module drm...
+         Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+         Starting modprobe@fuse.service - Load Kernel Module fuse...
+         Starting systemd-journald.service - Journal Service...
+         Starting systemd-modules-load.service - Load Kernel Modules...
+         Starting systemd-network-generator.service - Generate Network Units from Kernel Command Line...
+         Starting systemd-pcrmachine.service - TPM PCR Machine ID Measurement...
+         Starting systemd-remount-fs.service - Remount Root and Kernel File Systems...
+         Starting systemd-udev-load-credentials.service - Load udev Rules from Credentials...
+         Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+[  OK  ] Mounted tmp.mount - Temporary Directory /tmp.
+[  OK  ] Finished kmod-static-nodes.service - Create List of Static Device Nodes.
+[  OK  ] Finished modprobe@configfs.service - Load Kernel Module configfs.
+[  OK  ] Finished modprobe@drm.service - Load Kernel Module drm.
+[  OK  ] Finished modprobe@efi_pstore.service - Load Kernel Module efi_pstore.
+[  OK  ] Finished modprobe@fuse.service - Load Kernel Module fuse.
+[  OK  ] Finished systemd-modules-load.service - Load Kernel Modules.
+[  OK  ] Finished systemd-network-generator.service - Generate Network Units from Kernel Command Line.
+[  OK  ] Finished systemd-pcrmachine.service - TPM PCR Machine ID Measurement.
+[  OK  ] Finished systemd-remount-fs.service - Remount Root and Kernel File Systems.
+[  OK  ] Finished systemd-udev-load-credentials.service - Load udev Rules from Credentials.
+[  OK  ] Reached target network-pre.target - Preparation for Network.
+         Starting systemd-growfs-root.service - Grow Root File System...
+         Starting systemd-pcrfs-root.service - TPM PCR Root File System Measurement...
+         Starting systemd-pcrlock-file-system.service - Lock File Systems to TPM PCR Policy...
+         Starting systemd-pcrlock-machine-id.service - Lock Machine ID to TPM PCR Policy...
+         Starting systemd-random-seed.service - Load/Save OS Random Seed...
+         Starting systemd-sysctl.service - Apply Kernel Variables...
+         Starting systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully...
+         Starting systemd-tpm2-setup.service - TPM SRK Setup...
+[  OK  ] Started systemd-journald.service - Journal Service.
+[  OK  ] Finished systemd-growfs-root.service - Grow Root File System.
+[  OK  ] Finished systemd-pcrfs-root.service - TPM PCR Root File System Measurement.
+[  OK  ] Finished systemd-random-seed.service - Load/Save OS Random Seed.
+[  OK  ] Finished systemd-tpm2-setup.service - TPM SRK Setup.
+[  OK  ] Finished systemd-pcrlock-machine-id.service - Lock Machine ID to TPM PCR Policy.
+[  OK  ] Finished systemd-pcrlock-file-system.service - Lock File Systems to TPM PCR Policy.
+[  OK  ] Finished systemd-sysctl.service - Apply Kernel Variables.
+[  OK  ] Finished systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+         Starting systemd-journal-flush.service - Flush Journal to Persistent Storage...
+         Starting systemd-pcrlock-firmware-code.service - Lock Firmware Code to TPM PCR Policy...
+         Starting systemd-pcrlock-firmware-config.service - Lock Firmware Configuration to TPM PCR Policy...
+         Starting systemd-pcrlock-secureboot-authority.service - Lock UEFI SecureBoot Authority to TPM PCR Policy...
+         Starting systemd-pcrlock-secureboot-policy.service - Lock UEFI SecureBoot Policy to TPM PCR Policy...
+         Starting systemd-sysusers.service - Create System Users...
+[  OK  ] Finished systemd-udev-trigger.service - Coldplug All udev Devices.
+[FAILED] Failed to start systemd-pcrlock-firmware-code.service - Lock Firmware Code to TPM PCR Policy.
+See 'systemctl status systemd-pcrlock-firmware-code.service' for details.
+[FAILED] Failed to start systemd-pcrlock-firmware-config.service - Lock Firmware Configuration to TPM PCR Policy.
+See 'systemctl status systemd-pcrlock-firmware-config.service' for details.
+[  OK  ] Finished systemd-pcrlock-secureboot-authority.service - Lock UEFI SecureBoot Authority to TPM PCR Policy.
+[  OK  ] Finished systemd-journal-flush.service - Flush Journal to Persistent Storage.
+[  OK  ] Finished systemd-pcrlock-secureboot-policy.service - Lock UEFI SecureBoot Policy to TPM PCR Policy.
+         Starting systemd-pcrlock-make-policy.service - Make TPM PCR Policy...
+[  OK  ] Finished systemd-sysusers.service - Create System Users.
+         Starting systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev...
+[FAILED] Failed to start systemd-pcrlock-make-policy.service - Make TPM PCR Policy.
+See 'systemctl status systemd-pcrlock-make-policy.service' for details.
+[  OK  ] Finished systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+[  OK  ] Reached target local-fs-pre.target - Preparation for Local File Systems.
+[  OK  ] Set up automount boot.automount - EFI System Partition Automount.
+         Starting systemd-udevd.service - Rule-based Manager for Device Events and Files...
+[  OK  ] Started systemd-udevd.service - Rule-based Manager for Device Events and Files.
+         Starting systemd-networkd.service - Network Configuration...
+         Starting modprobe@configfs.service - Load Kernel Module configfs...
+         Starting modprobe@fuse.service - Load Kernel Module fuse...
+[  OK  ] Finished modprobe@configfs.service - Load Kernel Module configfs.
+[  OK  ] Finished modprobe@fuse.service - Load Kernel Module fuse.
+[  OK  ] Reached target tpm2.target - Trusted Platform Module.
+[  OK  ] Started systemd-networkd.service - Network Configuration.
+[  OK  ] Reached target network.target - Network.
+         Mounting var-tmp.mount - /var/tmp...
+         Starting systemd-networkd-persistent-storage.service - Enable Persistent Storage in systemd-networkd...
+[  OK  ] Finished systemd-networkd-persistent-storage.service - Enable Persistent Storage in systemd-networkd.
+[  OK  ] Mounted var-tmp.mount - /var/tmp.
+[  OK  ] Reached target local-fs.target - Local File Systems.
+[  OK  ] Listening on systemd-bootctl.socket - Boot Entries Service Socket.
+[  OK  ] Listening on systemd-sysext.socket - System Extension Image Management.
+         Starting systemd-binfmt.service - Set Up Additional Binary Formats...
+         Starting systemd-boot-random-seed.service - Update Boot Loader Random Seed...
+         Starting systemd-boot-update.service - Automatic Boot Loader Update...
+         Starting systemd-tmpfiles-setup.service - Create System Files and Directories...
+         Mounting proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System...
+         Mounting boot.mount - EFI System Partition Automount...
+[*     ] (1 of 6) Job systemd-binfmt.service/start running (15s / 1min 43s)
+[  OK  ] Finished systemd-tmpfiles-setup.service - Create System Files and Directories.
+[  OK  ] Mounted proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System.
+[  OK  ] Finished systemd-binfmt.service - Set Up Additional Binary Formats.
+         Starting ldconfig.service - Rebuild Dynamic Linker Cache...
+         Starting systemd-firstboot.service - First Boot Wizard...
+         Starting systemd-journal-catalog-update.service - Rebuild Journal Catalog...
+[  OK  ] Mounted boot.mount - EFI System Partition Automount.
+[  OK  ] Finished systemd-boot-random-seed.service - Update Boot Loader Random Seed.
+[  OK  ] Finished systemd-boot-update.service - Automatic Boot Loader Update.
+/etc/locale.conf written.
+Requested manager reload to apply locale configuration.
+[  OK  ] Finished ldconfig.service - Rebuild Dynamic Linker Cache.
+[  OK  ] Finished systemd-firstboot.service - First Boot Wizard.
+[  OK  ] Finished systemd-journal-catalog-update.service - Rebuild Journal Catalog.
+[  OK  ] Reached target first-boot-complete.target - First Boot Complete.
+[  OK  ] Listening on systemd-rfkill.socket - Load/Save RF Kill Switch Status /dev/rfkill Watch.
+         Starting systemd-machine-id-commit.service - Save Transient machine-id to Disk...
+         Starting systemd-update-done.service - Update is Completed...
+[  OK  ] Finished systemd-update-done.service - Update is Completed.
+[  OK  ] Finished systemd-machine-id-commit.service - Save Transient machine-id to Disk.
+[  OK  ] Reached target sysinit.target - System Initialization.
+[  OK  ] Started dpkg-db-backup.timer - Daily dpkg database backup timer.
+[  OK  ] Started fstrim.timer - Discard unused filesystem blocks once a week.
+[  OK  ] Started systemd-tmpfiles-clean.timer - Daily Cleanup of Temporary Directories.
+[  OK  ] Reached target timers.target - Timer Units.
+[  OK  ] Listening on dbus.socket - D-Bus System Message Bus Socket.
+[  OK  ] Listening on systemd-hostnamed.socket - Hostname Service Socket.
+[  OK  ] Reached target sockets.target - Socket Units.
+         Starting systemd-pcrphase-sysinit.service - TPM PCR Barrier (Initialization)...
+[  OK  ] Finished systemd-pcrphase-sysinit.service - TPM PCR Barrier (Initialization).
+[  OK  ] Reached target basic.target - Basic System.
+         Starting dbus.service - D-Bus System Message Bus...
+         Starting systemd-logind.service - User Login Management...
+         Starting systemd-pcrphase.service - TPM PCR Barrier (User)...
+[  OK  ] Started dbus.service - D-Bus System Message Bus.
+[  OK  ] Finished systemd-pcrphase.service - TPM PCR Barrier (User).
+         Starting systemd-user-sessions.service - Permit User Sessions...
+[  OK  ] Finished systemd-user-sessions.service - Permit User Sessions.
+[  OK  ] Started getty@tty1.service - Getty on tty1.
+[  OK  ] Started serial-getty@hvc0.service - Serial Getty on hvc0.
+[  OK  ] Started serial-getty@ttyS0.service - Serial Getty on ttyS0.
+[  OK  ] Reached target getty.target - Login Prompts.
+[  OK  ] Started systemd-logind.service - User Login Management.
+[  OK  ] Reached target multi-user.target - Multi-User System.
+
+Debian GNU/Linux 13 localhost hvc0
+
+localhost login: 

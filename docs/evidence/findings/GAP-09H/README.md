@@ -18,6 +18,7 @@ close.
 | --- | --- |
 | `2026-09-26-operator-procedure.md` | The v0.0.1 build/bring-up procedure, the cold-start acceptance drill, and the register of gaps that block a hands-free run. |
 | `2026-10-04-m1-runtime-on-the-image-decision-packet.md` | Gap G8 decision packet, approved 2026-10-04 and recorded as `FML-ADR-089`: the M1 package set on the image, and how Martin runs on it (account, per-UID Quadlet directory, state path, boot start). |
+| `2026-10-05-first-build-cloud-session.md` | First build and QEMU boot of the current x86 closure (`SIMULATED`), in a cloud session: found and fixed the runtime install defect that stopped every build since #176; boots to `multi-user.target`, three `systemd-pcrlock` units failing. One build, not the three-build sequence. Boot log beside it. |
 | `2026-10-04-bc0-x86-image-execution-card.md` | Bench card BC-0: build and QEMU-boot the current x86 118/454 closure on the N150, the "any arch" half of gap G1. A procedure, not a result. |
 
 Naming and recording rules are in `docs/evidence/README.md`. Nothing real: no

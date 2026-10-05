@@ -23,8 +23,11 @@ review and the cold-start drill.
 ## Where and as whom
 
 The N150 development article (GAP-09A), Debian 13, as root, with network access
-to `snapshot.debian.org`. Not a Claude Code cloud session: those have no KVM or
-QEMU, and on 2026-10-04 their network policy refused every Debian archive host.
+to `snapshot.debian.org`. A Claude Code cloud session can also build the image
+and boot it under QEMU without KVM, as of 2026-10-05; on 2026-10-04 its network
+policy had refused the Debian archive hosts. That session's single build and
+boot is `2026-10-05-first-build-cloud-session.md`, not this card's three-build
+sequence.
 
 ## Steps
 
