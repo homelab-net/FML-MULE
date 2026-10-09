@@ -136,9 +136,12 @@ qualification (SAD section 4.4).
 
 ## Current state
 
-Nothing here builds yet. There is no image, no kernel pin, no provisioning that
-has been run against real hardware, and no promotion has ever been performed.
-Every version in `os/kernel/PINS.md` is `TBD`.
+The x86-64 development image builds: `image/` (`FML-ADR-079`, `FML-ADR-081`)
+produces it, and `.github/workflows/image.yml` rebuilds it three times and
+boots it under QEMU on every change to its inputs. That is `SIMULATED` and
+says nothing about the Pi or any radio. There is no kernel pin, no provisioning
+that has been run against real hardware, and no promotion has ever been
+performed. Every version in `os/kernel/PINS.md` is `TBD`.
 
 The first real work in this repository is here, and it starts when
 `TBR-LINUX-01` has candidate hardware to run against.
