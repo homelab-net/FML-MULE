@@ -1276,6 +1276,11 @@ set -eu
 printf '%s|%s|%s\n' "$FML_IMAGE_OUTPUT_DIR" "$FML_IMAGE_PACKAGE_CACHE" "$*" \
   >>"$FML_TEST_BUILD_CALLS"
 mkdir -p "$FML_IMAGE_OUTPUT_DIR" "$FML_IMAGE_PACKAGE_CACHE"
+if [ "${FML_TEST_BUILD_FAILS:-}" = 1 ]; then
+  seq 1 300
+  printf '%s\n' 'ERROR: the reason the build failed'
+  exit 1
+fi
 name=mule-development
 [ "${2:-}" = --profile ] && name=mule-development-pi4b
 content=identical-image
@@ -1702,3 +1707,14 @@ def test_reproducibility_runner_refuses_an_unknown_profile(tmp_path: Path) -> No
     assert result.returncode == 2
     assert "Unknown image profile" in result.stderr
     assert not (tmp_path / "build-calls.txt").exists()
+
+
+def test_reproducibility_runner_shows_why_a_build_failed(tmp_path: Path) -> None:
+    """A failed build's reason is at the end of its log; that is what is shown."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment["FML_TEST_BUILD_FAILS"] = "1"
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode == 1
+    assert "ERROR: the reason the build failed" in result.stderr
+    assert "networked-1 build failed with status 1" in result.stderr

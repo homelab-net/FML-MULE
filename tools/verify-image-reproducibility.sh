@@ -100,7 +100,10 @@ run_build() {
     sed -n '1,160p' "$log"
   else
     status=$?
-    sed -n '1,240p' "$log" >&2
+    # The end of the log: a build fails after mkosi's last step, and on
+    # 2026-10-09 the cache validator's error sat below the first 240 lines,
+    # so CI showed the start of a build that had succeeded and no reason.
+    tail -n 240 "$log" >&2
     printf '%s build failed with status %s. Evidence: %s\n' \
       "$label" "$status" "$log" >&2
     exit "$status"
