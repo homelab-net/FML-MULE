@@ -2,7 +2,13 @@
 """Resolve FML-ADR-081 package locks from authenticated Debian snapshots.
 
 Usage:
-    tools/resolve-image-packages.py --keyring PATH [--write] [REPOSITORY_ROOT]
+    tools/resolve-image-packages.py --keyring PATH [--profile NAME] [--write]
+                                    [REPOSITORY_ROOT]
+
+Without --profile this resolves the x86-64 target and the shared amd64 tools
+tree. With --profile pi4b-arm64 (FML-ADR-088) it resolves only that profile's
+arm64 target closure; the tools tree stays the amd64 one, because the profile
+is cross-built on an amd64 host.
 
 The keyring is a builder input, not generated or downloaded by this script.
 APT authenticates each InRelease file and its Packages checksum before this
@@ -17,6 +23,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from dataclasses import dataclass
 from email.parser import Parser
 from pathlib import Path
 from typing import Any
@@ -26,6 +33,35 @@ ROLES = ("target", "tools-tree")
 PACKAGE_LINE = re.compile(r"^Inst\s+(\S+?)(?::(\S+))?\s+\((\S+)")
 POLICY_VERSION = re.compile(r"^\s*(?:\*\*\*\s*)?(\S+)\s+\d+\s*$")
 SUITE = re.compile(r"\b(trixie(?:-security|-backports)?)/")
+
+
+@dataclass(frozen=True)
+class Plan:
+    """Where one resolution reads its inputs and writes its locks."""
+
+    architecture: str
+    roles: tuple[str, ...]
+    target_sources: Path
+    manifest: Path
+
+
+def plan(root: Path, profile: str | None) -> Plan:
+    """Return the inputs and outputs for the base image or one profile."""
+    image = root / "os/image"
+    sources = Path("etc/apt/sources.list.d/mkosi.sources")
+    if profile is None:
+        return Plan(
+            "amd64", ROLES, image / "sandbox-target" / sources, image / "manifest"
+        )
+    if profile == "pi4b-arm64":  # FML-ADR-088
+        return Plan(
+            "arm64",
+            ("target",),
+            image / "mkosi.profiles" / profile / "sandbox-target" / sources,
+            image / "manifest" / profile,
+        )
+    message = f"unknown image profile: {profile}"
+    raise ValueError(message)
 
 
 def _run(command: list[str]) -> str:
@@ -53,7 +89,9 @@ def _intent(path: Path) -> list[str]:
     ]
 
 
-def _apt_options(work: Path, sources: Path, keyring: Path) -> list[str]:
+def _apt_options(
+    work: Path, sources: Path, keyring: Path, architecture: str
+) -> list[str]:
     """Create an isolated APT state and return its common arguments."""
     state = work / "state"
     cache = work / "cache"
@@ -72,9 +110,9 @@ def _apt_options(work: Path, sources: Path, keyring: Path) -> list[str]:
     )
     return [
         "-o",
-        "APT::Architecture=amd64",
+        f"APT::Architecture={architecture}",
         "-o",
-        "APT::Architectures=amd64",
+        f"APT::Architectures={architecture}",
         "-o",
         "APT::Install-Recommends=false",
         "-o",
@@ -117,7 +155,9 @@ def _suite(policy: str, version: str) -> str:
     return "trixie"
 
 
-def _metadata(name: str, version: str, options: list[str]) -> dict[str, str]:
+def _metadata(
+    name: str, version: str, options: list[str], architecture: str
+) -> dict[str, str]:
     """Return the required provenance fields for one resolved package."""
     output = _run(["apt-cache", *options, "show", f"{name}={version}"])
     records = Parser().parsestr(output, headersonly=True)
@@ -134,7 +174,7 @@ def _metadata(name: str, version: str, options: list[str]) -> dict[str, str]:
             for item in candidates
             if item.get("Package") == name
             and item.get("Version") == version
-            and item.get("Architecture") in {"amd64", "all"}
+            and item.get("Architecture") in {architecture, "all"}
         ),
         None,
     )
@@ -156,21 +196,20 @@ def _metadata(name: str, version: str, options: list[str]) -> dict[str, str]:
     return result
 
 
-def resolve(root: Path, role: str, keyring: Path) -> dict[str, Any]:
+def resolve(
+    root: Path, role: str, keyring: Path, profile: str | None = None
+) -> dict[str, Any]:
     """Resolve one role's complete package closure."""
-    sandbox_role = "target" if role == "target" else "tools"
-    source = (
-        root / f"os/image/sandbox-{sandbox_role}/etc/apt/sources.list.d/mkosi.sources"
-    )
-    intent_name = (
-        "direct-packages.list"
-        if role == "target"
-        else "tools-tree-direct-packages.list"
-    )
-    intent = _intent(root / "os/image/manifest" / intent_name)
+    selected = plan(root, profile)
+    if role == "target":
+        source = selected.target_sources
+        intent = _intent(selected.manifest / "direct-packages.list")
+    else:
+        source = root / "os/image/sandbox-tools/etc/apt/sources.list.d/mkosi.sources"
+        intent = _intent(root / "os/image/manifest/tools-tree-direct-packages.list")
     with tempfile.TemporaryDirectory(prefix=f"fml-{role}-apt-") as temporary:
         work = Path(temporary)
-        options = _apt_options(work, source, keyring)
+        options = _apt_options(work, source, keyring, selected.architecture)
         _run(["apt-get", *options, "update"])
         simulation = _run(
             [
@@ -192,7 +231,7 @@ def resolve(root: Path, role: str, keyring: Path) -> dict[str, Any]:
         if not resolved:
             raise RuntimeError(f"APT resolved no {role} packages")
         packages = [
-            _metadata(name, version, options)
+            _metadata(name, version, options, selected.architecture)
             for name, version in sorted(resolved.items())
             if role != "target" or name != "apt"
         ]
@@ -217,9 +256,8 @@ def resolve(root: Path, role: str, keyring: Path) -> dict[str, Any]:
     }
 
 
-def _write(root: Path, locks: dict[str, dict[str, Any]]) -> None:
+def _write(manifest: Path, locks: dict[str, dict[str, Any]]) -> None:
     """Write generated locks and mkosi's exact target package input."""
-    manifest = root / "os/image/manifest"
     for role, document in locks.items():
         destination = manifest / f"{role}-lock.json"
         destination.write_text(
@@ -238,6 +276,8 @@ def _write(root: Path, locks: dict[str, dict[str, Any]]) -> None:
     (manifest / "packages.list").write_text(
         "\n".join(target_lines) + "\n", encoding="utf-8"
     )
+    if "tools-tree" not in locks:
+        return
     tools_lines = [
         "# Generated from tools-tree-lock.json by tools/resolve-image-packages.py.",
         "# FML-ADR-081. Do not edit this file by hand.",
@@ -258,6 +298,7 @@ def main() -> int:
     parser.add_argument("repository_root", nargs="?", type=Path, default=Path.cwd())
     parser.add_argument("--keyring", required=True, type=Path)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--profile", default=None, help="for example pi4b-arm64")
     arguments = parser.parse_args()
     root = arguments.repository_root.resolve()
     keyring = arguments.keyring.resolve()
@@ -268,9 +309,15 @@ def main() -> int:
     ]
     if missing:
         parser.error(f"missing command(s): {', '.join(missing)}")
-    locks = {role: resolve(root, role, keyring) for role in ROLES}
+    try:
+        selected = plan(root, arguments.profile)
+    except ValueError as exc:
+        parser.error(str(exc))
+    locks = {
+        role: resolve(root, role, keyring, arguments.profile) for role in selected.roles
+    }
     if arguments.write:
-        _write(root, locks)
+        _write(selected.manifest, locks)
     else:
         print(json.dumps(locks, indent=2))
     return 0

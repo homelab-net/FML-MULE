@@ -1,0 +1,28 @@
+# FML-ADR-088 (pi4b-arm64 profile), on the FML-ADR-081 snapshot boundary.
+# mkosi v25.3 manual: "To add extra package manager configuration files such
+# as extra repositories, use SandboxTrees=". This tree replaces the base
+# image's sandbox-target for this profile only.
+#
+# FML-ADR-088: "The target repositories shall enable the non-free-firmware
+# component, because raspi-firmware lives there." Omitting the component makes
+# raspi-firmware unresolvable and the profile cannot build.
+#
+# sources.list(5): Check-Valid-Until "controls if APT should try to detect
+# replay attacks". A dated snapshot is intentionally historical, so expiry is
+# disabled while signature and checksum verification remain enabled.
+
+Enabled: yes
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian/20260912T000000Z
+Suites: trixie
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no
+
+Enabled: yes
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian-security/20260912T000000Z
+Suites: trixie-security
+Components: main non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no

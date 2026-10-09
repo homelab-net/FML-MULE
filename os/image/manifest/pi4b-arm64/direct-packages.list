@@ -1,0 +1,18 @@
+# FML-ADR-088 direct target package intent for the pi4b-arm64 profile.
+#
+# Names only: exact versions and transitive closure belong to target-lock.json.
+# The boot userspace and runtime packages are the x86-64 set approved under
+# FML-ADR-081 and FML-ADR-083, without systemd-boot: FML-ADR-088 installs no
+# UEFI bootloader on the Pi. Adding a package here requires Program Owner
+# approval at the owning gap.
+
+dbus                  # System bus required by the selected boot userspace.
+initramfs-tools       # Generates the initrd raspi-firmware copies to the FAT partition.
+linux-image-arm64     # FML-ADR-088: Debian's stock arm64 kernel meta-package.
+python3               # FML-ADR-083 runtime interpreter.
+python3-jsonschema    # Canonical mission and service-catalog validation.
+python3-yaml          # Region, node, and service-catalog input loader.
+raspi-firmware        # FML-ADR-088: Pi GPU firmware and the kernel hook (non-free-firmware).
+systemd               # Selected service manager and boot userspace.
+systemd-sysv          # Init-system compatibility links.
+udev                  # Device discovery and hotplug.
