@@ -23,8 +23,11 @@ GAP-09D adds the exact Debian Python, JSON Schema and YAML runtime closure.
 The separately locked tools tree builds `fml-mule==0.0.1` without build
 isolation or dependency resolution, installs its static native oneshot and
 canonical mission schema, and extends the completed-root CycloneDX inventory
-with a hash of those installed files. This 118/454 candidate has not yet earned
-the GAP-09C byte-identical image result; it requires a new image execution.
+with a hash of those installed files. This 118/454 closure earned the same
+result in CI on 2026-10-09 (`.github/workflows/image.yml`): three identical
+raw images and a boot to `multi-user.target` with no guest network, recorded
+in `docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md`. That is `SIMULATED`,
+on one runner, and says nothing about the Pi.
 
 ## Intended pipeline
 
@@ -161,4 +164,9 @@ is not in APT's archive cache. The reproducibility command creates two fresh
 networked output/cache pairs, then gives one authenticated populated cache to a
 fresh network-isolated output. `FML_IMAGE_OUTPUT_DIR` and
 `FML_IMAGE_PACKAGE_CACHE` are internal orchestration overrides used to keep
-those three build states separate.
+those three build states separate. Two settings are for the operator:
+`FML_IMAGE_BOOT_TIMEOUT` raises the QEMU bound from its 180 s default, which a
+boot emulated without KVM needs, and `FML_IMAGE_EVIDENCE_ROOT` moves the run's
+builds and logs off the checkout, to a disk with room for three tools trees.
+`.github/workflows/image.yml` runs this command in CI on changes to the image's
+inputs.

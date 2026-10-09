@@ -9,17 +9,16 @@
 #
 # WHAT THIS DOES
 #
-# One networked build with tools/build-image.sh --populate-cache, then a
-# bounded QEMU boot of its output with no guest network, using the VM step of
-# tools/verify-image-reproducibility.sh. Pass means the build exits 0 and the
-# console shows "Reached target multi-user.target". The tier is SIMULATED.
+# The FML-ADR-081 acceptance sequence, by running
+# tools/verify-image-reproducibility.sh unchanged: two clean networked builds,
+# one build with external network access unavailable reusing the first cache,
+# identical raw-image SHA-256, then a bounded QEMU boot with no guest network
+# that must show "Reached target multi-user.target". The tier is SIMULATED.
 #
 # WHAT THIS DOES NOT DO
 #
-# It is not the FML-ADR-081 acceptance sequence (two clean networked builds,
-# one network-isolated build, identical raw images). That is the next change to
-# this file, once this job has shown what a hosted runner provides. It says
-# nothing about the Pi, the access point or any radio.
+# It says nothing about the Pi, the access point or any radio, and it proves
+# reproducibility only between builds on the same runner, not across hosts.
 #
 # HOW IT BUILDS
 #
@@ -77,9 +76,10 @@ permissions:
 
 jobs:
   build-and-boot:
-    name: Build and boot (x86-64)
+    name: Reproducible build and boot (x86-64)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Three builds of roughly six minutes each, then the boot.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
 
@@ -90,17 +90,25 @@ jobs:
           uname -r
           nproc
           free -g
-          df -h /
+          df -h / /mnt
           if [ -c /dev/kvm ]; then ls -l /dev/kvm; else echo "no /dev/kvm"; fi
 
-      - name: Build and boot in Debian 13
+      # Three builds keep three tools trees and two package caches, which is
+      # more than the root filesystem comfortably holds; /mnt is the runner's
+      # larger scratch disk. The checkout stays on /.
+      - name: Make room for the evidence
+        run: |
+          sudo mkdir -p /mnt/fml-image
+          sudo chown "$(id -u):$(id -g)" /mnt/fml-image
+
+      - name: FML-ADR-081 sequence in Debian 13
         env:
           DEBIAN_IMAGE: >-
             mirror.gcr.io/library/debian@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
         run: |
-          mkdir -p out
           docker run --rm --privileged \
             -v "$GITHUB_WORKSPACE:/work/tree" \
+            -v /mnt/fml-image:/work/evidence \
             -w /work/tree \
             "$DEBIAN_IMAGE" sh -euc '
               apt-get update -qq
@@ -113,45 +121,55 @@ jobs:
               export FML_MKOSI_PACKAGE_DEB=/tmp/mkosi_25.3-7_all.deb
 
               tools/build-image.sh --check
-              start=$(date +%s)
-              tools/build-image.sh --populate-cache >out/build.log 2>&1 || {
-                tail -n 200 out/build.log
-                exit 1
-              }
-              echo "build seconds: $(( $(date +%s) - start ))"
-              cat out/image/mule-development.raw.sha256
 
-              # QEMU under TCG took several minutes on 2026-10-05; with KVM it
-              # needs far less. The bound is generous either way, and running
-              # out of it is not a failure: the console is checked below.
+              # Two clean networked builds, one network-isolated build from
+              # the first cache, identical raw images, then a QEMU boot with
+              # no guest network. With KVM the boot needs well under 300 s;
+              # TCG took several minutes on 2026-10-05.
               bound=1500
               [ -c /dev/kvm ] && bound=300
-              set +e
-              timeout "$bound" mkosi \
-                --directory /work/tree/os/image \
-                --output-directory /work/tree/out/image \
-                --output mule-development \
-                --runtime-network=none \
-                --console=native \
-                vm </dev/null >out/boot.log 2>&1
-              status=$?
-              set -e
-              case "$status" in
-                0 | 124) ;;
-                *) tail -n 200 out/boot.log; exit "$status" ;;
-              esac
-              grep -F "Reached target multi-user.target" out/boot.log
-              grep -F "[FAILED]" out/boot.log || echo "no failed units"
+              FML_IMAGE_BOOT_TIMEOUT=$bound \
+                FML_IMAGE_EVIDENCE_ROOT=/work/evidence \
+                tools/verify-image-reproducibility.sh
+
+              # Every field the BC-0 card asks a result record to carry, so
+              # the record can be written from this log alone; Actions logs
+              # and artifacts expire, the committed record does not.
+              run=$(ls -d /work/evidence/gap09c.*)
+              cat "$run/raw-image-sha256.txt"
+              sha256sum "$run/networked-1-mule-development.sbom.cdx.json" \
+                "$run/networked-1-mule-development.license-exceptions.json"
+              printf "SBOM components: "
+              python3 -c "import json, sys; print(len(json.load(open(sys.argv[1]))[sys.argv[2]]))" \
+                "$run/networked-1-mule-development.sbom.cdx.json" components
+              grep -F "Reached target multi-user.target" \
+                "$run/qemu-no-network.log"
+              grep -F "[FAILED]" "$run/qemu-no-network.log" ||
+                echo "no failed units"
+              printf "Debian %s, kernel %s\n" \
+                "$(cat /etc/debian_version)" "$(uname -r)"
+              dpkg-query -W mkosi
             '
 
-      - name: Keep the logs
+      # The container runs as root and verify-image-reproducibility.sh makes
+      # its run directory with mktemp -d (GNU coreutils: "Files are created
+      # u+rw, and directories u+rwx, minus umask restrictions"), so only root
+      # can enter it. The upload step runs as the runner user and failed on
+      # that directory with EACCES on 2026-10-09 after a passing sequence.
+      # Omit this step and the evidence is lost while the job reports a
+      # failure the image did not cause.
+      - name: Let the runner read the evidence
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" /mnt/fml-image
+
+      - name: Keep the evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: image-logs
+          name: image-evidence
           path: |
-            out/build.log
-            out/boot.log
-            out/image/mule-development.raw.sha256
-            out/image/mule-development.manifest
+            /mnt/fml-image/gap09c.*/*.log
+            /mnt/fml-image/gap09c.*/raw-image-sha256.txt
+            /mnt/fml-image/gap09c.*/*-mule-development.raw.sha256
+            /mnt/fml-image/gap09c.*/networked-1-mule-development.sbom.cdx.json
           if-no-files-found: warn

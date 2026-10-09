@@ -888,7 +888,10 @@ fi
         encoding="utf-8",
     )
     (fake_bin / "id").write_text("#!/bin/sh\nprintf '0\\n'\n", encoding="utf-8")
-    (fake_bin / "timeout").write_text('#!/bin/sh\nshift\nexec "$@"\n', encoding="utf-8")
+    (fake_bin / "timeout").write_text(
+        '#!/bin/sh\nprintf "%s\\n" "$1" >"$FML_TEST_TIMEOUT_BOUND"\nshift\nexec "$@"\n',
+        encoding="utf-8",
+    )
     (fake_bin / "mkosi").write_text(
         '#!/bin/sh\n: >"$FML_TEST_SHADOW_MKOSI_RAN"\nexit 91\n',
         encoding="utf-8",
@@ -908,6 +911,7 @@ fi
         "FML_TEST_PACKAGED_MKOSI_RAN": str(tmp_path / "packaged-mkosi-ran"),
         "FML_TEST_VM_ARGUMENTS": str(tmp_path / "vm-arguments.txt"),
         "FML_TEST_SHADOW_MKOSI_RAN": str(tmp_path / "shadow-mkosi-ran"),
+        "FML_TEST_TIMEOUT_BOUND": str(tmp_path / "timeout-bound.txt"),
     }
     return repository, environment
 
@@ -975,6 +979,59 @@ def test_reproducibility_runner_requires_boot_target_marker(tmp_path: Path) -> N
 
     assert result.returncode != 0
     assert "QEMU did not report the selected systemd target" in result.stderr
+
+
+def test_reproducibility_runner_keeps_its_boot_bound_by_default(
+    tmp_path: Path,
+) -> None:
+    """Without an override, the QEMU bound stays the acceptance-run 180 s."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment.pop("FML_IMAGE_BOOT_TIMEOUT", None)
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    bound = (tmp_path / "timeout-bound.txt").read_text(encoding="utf-8")
+    assert bound.strip() == "180"
+
+
+def test_reproducibility_runner_takes_a_longer_boot_bound(tmp_path: Path) -> None:
+    """An emulated boot needs more time than 180 s; the bound is a setting."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment["FML_IMAGE_BOOT_TIMEOUT"] = "1500"
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    bound = (tmp_path / "timeout-bound.txt").read_text(encoding="utf-8")
+    assert bound.strip() == "1500"
+
+
+def test_reproducibility_runner_refuses_a_bound_that_is_not_seconds(
+    tmp_path: Path,
+) -> None:
+    """A bound that timeout would misread is refused before any build."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment["FML_IMAGE_BOOT_TIMEOUT"] = "15m"
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode != 0
+    assert "FML_IMAGE_BOOT_TIMEOUT" in result.stderr
+    assert not (tmp_path / "build-calls.txt").exists()
+
+
+def test_reproducibility_runner_writes_evidence_where_it_is_told(
+    tmp_path: Path,
+) -> None:
+    """Evidence can live on a larger disk than the checkout."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    evidence_root = tmp_path / "elsewhere"
+    environment["FML_IMAGE_EVIDENCE_ROOT"] = str(evidence_root)
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    runs = list(evidence_root.glob("gap09c.*"))
+    assert len(runs) == 1
+    assert (runs[0] / "raw-image-sha256.txt").is_file()
+    assert not (repository / "out").exists()
 
 
 def _builder_resolver_fixture(
