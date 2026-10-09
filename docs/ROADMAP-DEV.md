@@ -909,7 +909,8 @@ the exact package closure, retained cache, CycloneDX provenance, and
 repeatability/VM-boot gate under `FML-ADR-081` as `SIMULATED`; the current
 closure passed the same gate in CI on 2026-10-09 (GAP-09H G1's x86 half), and
 `image.yml` reruns it on every change to the image inputs. `FML-ADR-088`
-(`SELECTED PLANNING BASELINE`, not yet implemented) adds an arm64 profile for the
+(`SELECTED PLANNING BASELINE`, implemented as the `pi4b-arm64` profile,
+cross-built and compared in CI, not yet booted on a Pi) adds an arm64 profile for the
 Raspberry Pi 4B development article, booted by Debian's `raspi-firmware`, and
 `FML-ADR-089` (`SELECTED`, not yet implemented) the packages and Martin runtime
 M1 needs on the image. No production

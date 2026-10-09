@@ -29,15 +29,17 @@ to end, the **gap** that blocks it (collected in the register below).
 
 0. **Have a node.** A compute element and power (`ROADMAP.md`: *a* node, not a
    qualified block; `TBR-HW-01` need not be closed). The arm64 Raspberry Pi is the
-   intended article. **Gap G1 (arm64 image needed for the Pi; the x86 half is
-   met, see step 1).**
+   intended article. **Gap G1 is met (see step 1); the Pi has not yet booted the
+   image (BC-1).**
 
 1. **Build the image.** `os/image/` (mkosi, `FML-ADR-079`) produces the bootable
    root filesystem. **Gap G1, x86 half met 2026-10-09:** the current 118/454
    closure passed the `FML-ADR-081` sequence in CI (three identical raw images,
    a QEMU boot to `multi-user.target`; `2026-10-09-bc0-x86-image-result.md`, `SIMULATED`). By
    the Program Owner's 2026-10-05 decision that record stands in for running
-   bench card BC-0 on the N150. The Pi still needs an **arm64** image.
+   bench card BC-0 on the N150. **The arm64 half was met on 2026-10-09:** the
+   `FML-ADR-088` `pi4b-arm64` profile cross-builds three identical images in CI
+   (`2026-10-09-pi4b-arm64-cross-build.md`, `SIMULATED`). No Pi has booted it; that is bench card BC-1.
 
 2. **Write the deployment inputs.** A region profile (`regions/us-915/`, AP RF set
    by `TBR-RF-03` AP-params, PR #177), a mission package (with `network.ap_ssid` and
@@ -134,7 +136,7 @@ the drill; issues are read afterward. A skipped drill is recorded as skipped in
 
 | Gap | Blocks | Closes when |
 | --- | --- | --- |
-| G1 image not booted for current closure | the Pi (the "any arch" half is **met** 2026-10-09: `2026-10-09-bc0-x86-image-result.md`) | the current `os/image` closure is built and booted, and an arm64 artifact is produced |
+| G1 image not booted for current closure | **met** 2026-10-09: x86 built and booted (`2026-10-09-bc0-x86-image-result.md`), arm64 artifact produced (`2026-10-09-pi4b-arm64-cross-build.md`). A Pi boot is BC-1, not this gap. | the current `os/image` closure is built and booted, and an arm64 artifact is produced |
 | G2 interface name (`TBR-LINUX-01`) | rendered AP/networkd config | **met for the v0.0.1 article** 2026-10-03: `nodes/pi-mule-1/node.yml` names `wlan0`. Still `TBD` for the unassembled `mule-v001`. |
 | G3 partial render (wired into the oneshot by PR #187) | hands-free bring-up | WPA path (`TBR-SEC-01`) and DHCP/DNS, addressing and firewall (`TBR-NET-05`) rendered |
 | G4 AP credential (`TBR-SEC-01`) | AP security (and the WPA2 link the HTTP deferral rests on) | the credential-supply mechanism is decided |
