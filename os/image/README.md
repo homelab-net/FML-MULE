@@ -18,7 +18,11 @@ UEFI loader, and a FAT firmware partition written by Debian's
 profile has not met a Pi; bench card BC-1 is its acceptance run.
 
 The exact resolver inputs contain a 118-package target closure and a separate
-454-package mkosi tools-tree closure. GAP-09C exercised the earlier 97/440
+456-package mkosi tools-tree closure. The tools tree was 454 packages until
+2026-10-09, when the first arm64 build showed that the capture of mkosi's
+tools-tree configuration had missed its `systemd-boot` drop-in: mkosi installed
+`systemd-boot` and `systemd-boot-tools` unlocked, and the x86-64 build hid it
+because both are also x86-64 target packages. GAP-09C exercised the earlier 97/440
 foundation in two clean networked builds and one externally isolated
 cache-only build; all three
 raw images, SBOMs, and licence-exception reports were byte-identical, and the

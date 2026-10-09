@@ -14,6 +14,22 @@ this program needs them visible:
 
 ## Unreleased
 
+### Added the Raspberry Pi 4B image profile
+
+`FML-ADR-088`'s `pi4b-arm64` mkosi profile: an arm64 target closure of its own,
+no UEFI loader, and a FAT firmware partition written by `raspi-firmware` with
+the root label, consoles and CMA fixed rather than probed from the build host.
+`tools/build-image.sh` and `tools/verify-image-reproducibility.sh` take
+`--profile pi4b-arm64`, and `image.yml` cross-builds the profile three times
+under qemu-user and compares the images. Nothing boots it: `FML-ADR-088` does
+not accept a QEMU boot for the Pi, and bench card BC-1 on a board is its
+acceptance run.
+
+The first arm64 build found an `FML-ADR-081` defect: the tools-tree lock lacked
+`systemd-boot` and `systemd-boot-tools`, which mkosi installs in every Debian
+tools tree. The x86-64 build could not notice, because both are also x86-64
+target packages. The lock now carries them (456 packages).
+
 ### Ran the image's reproducibility sequence in CI
 
 `image.yml` now runs `tools/verify-image-reproducibility.sh` unchanged: two
