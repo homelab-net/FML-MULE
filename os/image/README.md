@@ -34,8 +34,11 @@ GAP-09D adds the exact Debian Python, JSON Schema and YAML runtime closure.
 The separately locked tools tree builds `fml-mule==0.0.1` without build
 isolation or dependency resolution, installs its static native oneshot and
 canonical mission schema, and extends the completed-root CycloneDX inventory
-with a hash of those installed files. This 118/454 candidate has not yet earned
-the GAP-09C byte-identical image result; it requires a new image execution.
+with a hash of those installed files. This 118/454 closure earned the same
+result in CI on 2026-10-09 (`.github/workflows/image.yml`): three identical
+raw images and a boot to `multi-user.target` with no guest network, recorded
+in `docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md`. That is `SIMULATED`,
+on one runner, and says nothing about the Pi.
 
 ## Intended pipeline
 

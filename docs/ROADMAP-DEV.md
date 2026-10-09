@@ -906,7 +906,9 @@ decision entered in the register. Out of `v1.0` scope until that evidence exists
 **State:** an Intel N150 system is selected as a development-only article under
 GAP-09A, GAP-09B defines the Debian mkosi image mechanism, and GAP-09C closes
 the exact package closure, retained cache, CycloneDX provenance, and
-repeatability/VM-boot gate under `FML-ADR-081` as `SIMULATED`. `FML-ADR-088`
+repeatability/VM-boot gate under `FML-ADR-081` as `SIMULATED`; the current
+closure passed the same gate in CI on 2026-10-09 (GAP-09H G1's x86 half), and
+`image.yml` reruns it on every change to the image inputs. `FML-ADR-088`
 (`SELECTED PLANNING BASELINE`, not yet implemented) adds an arm64 profile for the
 Raspberry Pi 4B development article, booted by Debian's `raspi-firmware`, and
 `FML-ADR-089` (`SELECTED`, not yet implemented) the packages and Martin runtime

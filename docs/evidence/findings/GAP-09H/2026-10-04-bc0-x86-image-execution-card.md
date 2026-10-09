@@ -15,6 +15,12 @@
 
 ## Status
 
+**Superseded for G1 by CI on 2026-10-09.** The Program Owner decided on
+2026-10-05 that a passing CI run of the unchanged `FML-ADR-081` sequence with a
+committed record satisfies G1's x86 half, so this card need not be run on the
+N150 for G1. That record is `2026-10-09-bc0-x86-image-result.md`. The card stays as the
+procedure for running the same sequence on a bench host.
+
 A procedure to run, not a result. A QEMU boot exercises the image in a virtual
 machine, so its result is `SIMULATED` and says nothing about the Pi, the access
 point, or any radio. It closes no finding by itself; GAP-09H needs independent

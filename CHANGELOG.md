@@ -38,6 +38,12 @@ a QEMU boot with no guest network. The script gained two optional settings,
 `FML_IMAGE_BOOT_TIMEOUT` (default 180 s) and `FML_IMAGE_EVIDENCE_ROOT`
 (default `out/`), so an emulated boot and a larger scratch disk need no edit.
 
+It passed on 2026-10-09: three identical raw images (`ae7608b6...`) and a boot
+to `multi-user.target`, `SIMULATED` on one runner. The committed record,
+`docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md`, closes
+GAP-09H gap G1's x86 half by the Program Owner's 2026-10-05 decision; bench
+card BC-0 need not be run for it.
+
 ### Built and booted the image in CI
 
 `.github/workflows/image.yml` builds the x86-64 development image and boots it

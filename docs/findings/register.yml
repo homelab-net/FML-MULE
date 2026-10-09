@@ -293,6 +293,7 @@ findings:
       - "docs/evidence/findings/GAP-09H/2026-10-04-m1-runtime-on-the-image-decision-packet.md"
       - "docs/evidence/findings/GAP-09H/2026-10-04-bc0-x86-image-execution-card.md"
       - "docs/evidence/findings/GAP-09H/2026-10-05-first-build-cloud-session.md"
+      - "docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md"
     user_gate: null
 
   - <<: *open_independent
