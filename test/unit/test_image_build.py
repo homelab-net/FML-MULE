@@ -68,6 +68,10 @@ IMAGE_FILES = (
         "os/image/mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/sources.list.d/"
         "mkosi.sources"
     ),
+    Path(
+        "os/image/mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/apt.conf.d/"
+        "50-keep-tools-tree-lists"
+    ),
     Path("os/image/manifest/pi4b-arm64/direct-packages.list"),
     Path("os/image/manifest/pi4b-arm64/packages.list"),
     Path("os/image/manifest/pi4b-arm64/target-lock.json"),
@@ -838,6 +842,29 @@ def test_pi_profile_firmware_values_shall_be_written(
 
     assert any(
         "firmware configuration shall write CMA=0" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+@pytest.mark.parametrize("damage", ["removed", "cleanup on", "extra file"])
+def test_pi_profile_shall_keep_the_tools_tree_lists(
+    repository: Path, validator: ModuleType, damage: str
+) -> None:
+    """Without the setting the isolated build cannot rebuild the tools tree."""
+    conf = (
+        repository
+        / PI_PROFILE
+        / "sandbox-target/etc/apt/apt.conf.d/50-keep-tools-tree-lists"
+    )
+    if damage == "removed":
+        conf.unlink()
+    elif damage == "cleanup on":
+        _edit(conf, '"false"', '"true"')
+    else:
+        (conf.parent / "README.md").write_text("notes\n", encoding="utf-8")
+
+    assert any(
+        "sandbox apt.conf.d shall hold only 50-keep-tools-tree-lists" in error
         for error in validator.validate_repository(repository)
     )
 

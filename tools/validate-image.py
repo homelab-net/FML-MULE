@@ -115,6 +115,12 @@ PROFILE_MANIFEST_RELATIVE = Path("os/image/manifest") / PROFILE
 PROFILE_SOURCES_RELATIVE = (
     PROFILE_RELATIVE / "sandbox-target/etc/apt/sources.list.d/mkosi.sources"
 )
+PROFILE_APT_CONF_RELATIVE = (
+    PROFILE_RELATIVE / "sandbox-target/etc/apt/apt.conf.d/50-keep-tools-tree-lists"
+)
+# Without it the arm64 sync erases the amd64 tools tree's package lists and the
+# cache-only build cannot rebuild the tools tree; the file says why.
+KEEP_TOOLS_TREE_LISTS = 'APT::Get::List-Cleanup "false";'
 # FML-ADR-088: the x86-64 set without the UEFI loader, with Debian's arm64
 # kernel and the Pi firmware package.
 APPROVED_PROFILE_DIRECT_PACKAGES = (
@@ -475,6 +481,22 @@ def _validate_profile(root: Path, errors: list[str]) -> None:
     ):
         if line not in postinst:
             errors.append(f"{PROFILE} firmware configuration shall write {line}")
+
+    apt_conf = root / PROFILE_APT_CONF_RELATIVE
+    try:
+        conf_entries = {entry.name for entry in apt_conf.parent.iterdir()}
+        conf_lines = [
+            line.strip()
+            for line in apt_conf.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.strip().startswith("//")
+        ]
+    except OSError:
+        conf_entries, conf_lines = set(), []
+    if conf_entries != {apt_conf.name} or conf_lines != [KEEP_TOOLS_TREE_LISTS]:
+        errors.append(
+            f"{PROFILE} sandbox apt.conf.d shall hold only {apt_conf.name}, "
+            f"setting {KEEP_TOOLS_TREE_LISTS}"
+        )
 
     direct = set(
         _active_lines(root / PROFILE_MANIFEST_RELATIVE / "direct-packages.list", errors)

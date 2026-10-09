@@ -28,7 +28,10 @@ acceptance run.
 The first arm64 build found an `FML-ADR-081` defect: the tools-tree lock lacked
 `systemd-boot` and `systemd-boot-tools`, which mkosi installs in every Debian
 tools tree. The x86-64 build could not notice, because both are also x86-64
-target packages. The lock now carries them (456 packages).
+target packages. The lock now carries them (456 packages). Its first isolated
+build found a second: mkosi 25.3 keeps one APT lists directory for the amd64
+tools tree and the arm64 image, and the image's sync erased the tools tree's
+lists; the profile's sandbox now turns off APT's list cleanup.
 
 ### Ran the image's reproducibility sequence in CI
 

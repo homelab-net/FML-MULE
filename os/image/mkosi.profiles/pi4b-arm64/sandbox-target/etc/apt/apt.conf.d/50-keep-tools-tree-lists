@@ -1,0 +1,17 @@
+// FML-ADR-081 cache-only build of the pi4b-arm64 profile (FML-ADR-088).
+//
+// apt-get(8), apt 3.0.3 (the tools-tree lock's apt): "--list-cleanup: This
+// option is on by default; use --no-list-cleanup to turn it off. When it is
+// on, apt-get will automatically manage the contents of /var/lib/apt/lists to
+// ensure that obsolete files are erased. ... Configuration Item:
+// APT::Get::List-Cleanup."
+//
+// mkosi 25.3 gives the amd64 tools tree and this arm64 image one package
+// cache (__init__.py, finalize_default_tools) and one lists directory in it
+// (installer/apt.py, subdir() is "apt"). The image syncs second, with
+// APT::Architectures=arm64, and with the default here apt erases the tools
+// tree's amd64 lists as obsolete. The network-isolated build then cannot
+// install the tools tree: "E: Unable to locate package base-files" (CI,
+// 2026-10-09). Omit this line and that failure returns. The lists never reach
+// the image: they live in the package cache, not under the image root.
+APT::Get::List-Cleanup "false";

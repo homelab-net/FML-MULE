@@ -189,6 +189,9 @@ inputs.
 its own package cache, and needs a registered qemu-aarch64 binfmt handler with
 the `F` flag (Debian `qemu-user-binfmt`); it records the host's `qemu-user`
 version in `host-emulator.txt`, as `FML-ADR-088` requires. The reproducibility
-command with the profile runs the three builds and compares them, and boots
-nothing: x86-64 QEMU cannot boot the Pi image and `FML-ADR-088` does not accept
+command with the profile runs the three builds and compares them; the
+profile's sandbox keeps the amd64 tools tree's package lists through its arm64
+metadata sync (`mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/apt.conf.d/`),
+so the network-isolated build rebuilds the tools tree from the cache as the
+x86-64 one does. It boots nothing: x86-64 QEMU cannot boot the Pi image and `FML-ADR-088` does not accept
 a QEMU boot in place of the board.
