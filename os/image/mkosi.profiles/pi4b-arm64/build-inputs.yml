@@ -1,0 +1,37 @@
+---
+# FML-ADR-088 inputs for the pi4b-arm64 profile. The builder, snapshot, tools
+# tree, SBOM and runtime policy are the base image's (os/image/build-inputs.yml)
+# and are not repeated; this file records only what the profile changes.
+schema_version: "1.0"
+governing_decision: FML-ADR-088
+profile: pi4b-arm64
+distribution:
+  architecture: arm64
+  debian_architecture: arm64
+  components: [main, non-free-firmware]
+package_policy:
+  direct_intent: os/image/manifest/pi4b-arm64/direct-packages.list
+  target_lock: os/image/manifest/pi4b-arm64/target-lock.json
+  tools_tree_lock: os/image/manifest/tools-tree-lock.json
+output:
+  image_id: mule-development-pi4b
+  seed_name: https://feral-mule.invalid/FML-ADR-088/pi4b-development-image
+  seed: ffd54b38-cb96-56e2-bdde-2b37c1bdec53
+  bootable: false
+  bootloader: none
+firmware:
+  package: raspi-firmware
+  root_label: mule-root
+  consoles: "tty0 ttyS1,115200"
+  cma: "0"
+  # The six boot files FML-ADR-088 requires are checked by
+  # tools/validate-image-root.py, called from os/image/mkosi.finalize.
+cross_build:
+  # FML-ADR-088: "The host's qemu-user version shall be recorded with each
+  # build's provenance, since it is outside the tools-tree lock."
+  host_emulator_package: qemu-user
+  record_version: true
+acceptance:
+  # FML-ADR-088: "A QEMU boot shall not stand in for acceptance". The
+  # acceptance run is bench card BC-1 on a physical Pi 4B.
+  qemu_boot_is_acceptance: false

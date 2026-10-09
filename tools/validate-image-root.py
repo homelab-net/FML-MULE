@@ -197,13 +197,35 @@ def _has_spdx_choice(licenses: object) -> bool:
     return False
 
 
+def _boot_file_defects(root: Path, patterns: list[str]) -> list[str]:
+    """Return one defect for each boot-file pattern with no non-empty match.
+
+    FML-ADR-088: "The image validation shall fail if /boot/firmware lacks
+    vmlinuz-*, initrd.img-*, bcm2711-rpi-4-b.dtb, start4.elf, config.txt or
+    cmdline.txt." raspi-firmware's hook exits 0 when it finds no initrd and
+    writes nothing, so a build can succeed without them.
+    """
+    firmware = root / "boot/firmware"
+    defects = []
+    for pattern in patterns:
+        matches = [
+            path
+            for path in firmware.glob(pattern)
+            if path.is_file() and path.stat().st_size > 0
+        ]
+        if not matches:
+            defects.append(f"/boot/firmware lacks a non-empty {pattern}")
+    return defects
+
+
 def validate(
     root: Path,
     lock_path: Path,
     sbom_path: Path,
+    required_boot_files: list[str] | None = None,
 ) -> tuple[list[str], list[dict[str, str]]]:
     """Return built-root defects and normalized-licence exceptions."""
-    errors: list[str] = []
+    errors: list[str] = _boot_file_defects(root, required_boot_files or [])
     lock = _read_json(lock_path, "target lock", errors)
     sbom = _read_json(sbom_path, "CycloneDX SBOM", errors)
     packages = lock.get("packages")
@@ -284,11 +306,19 @@ def main() -> int:
     parser.add_argument("--lock", required=True, type=Path)
     parser.add_argument("--sbom", required=True, type=Path)
     parser.add_argument("--write-exceptions", required=True, type=Path)
+    parser.add_argument(
+        "--require-boot-file",
+        action="append",
+        default=[],
+        metavar="PATTERN",
+        help="a glob under /boot/firmware that shall match a non-empty file",
+    )
     arguments = parser.parse_args()
     errors, exceptions = validate(
         arguments.root.resolve(),
         arguments.lock.resolve(),
         arguments.sbom.resolve(),
+        arguments.require_boot_file,
     )
     report = {
         "schema_version": "1.0",

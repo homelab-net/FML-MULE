@@ -3,6 +3,8 @@
 
 Usage:
     tools/validate-image.py [REPOSITORY_ROOT]
+
+Validates the x86-64 base image and the FML-ADR-088 pi4b-arm64 profile.
 """
 
 from __future__ import annotations
@@ -107,6 +109,18 @@ TOOLS_SOURCES_RELATIVE = Path(
     "os/image/sandbox-tools/etc/apt/sources.list.d/mkosi.sources"
 )
 
+PROFILE = "pi4b-arm64"  # FML-ADR-088
+PROFILE_RELATIVE = Path("os/image/mkosi.profiles") / PROFILE
+PROFILE_MANIFEST_RELATIVE = Path("os/image/manifest") / PROFILE
+PROFILE_SOURCES_RELATIVE = (
+    PROFILE_RELATIVE / "sandbox-target/etc/apt/sources.list.d/mkosi.sources"
+)
+# FML-ADR-088: the x86-64 set without the UEFI loader, with Debian's arm64
+# kernel and the Pi firmware package.
+APPROVED_PROFILE_DIRECT_PACKAGES = (
+    APPROVED_DIRECT_PACKAGES - {"linux-image-amd64", "systemd-boot", "systemd-boot-efi"}
+) | {"linux-image-arm64", "raspi-firmware"}
+
 
 def _read_yaml(path: Path, errors: list[str]) -> dict[str, Any] | None:
     """Read one YAML mapping or append a stable diagnostic."""
@@ -191,7 +205,9 @@ def _deb822_sources(path: Path, role: str, errors: list[str]) -> list[dict[str, 
     return stanzas
 
 
-def _read_lock(path: Path, role: str, errors: list[str]) -> list[dict[str, str]]:
+def _read_lock(
+    path: Path, role: str, errors: list[str], architecture: str = "amd64"
+) -> list[dict[str, str]]:
     """Validate one generated package lock and return its package records."""
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -221,8 +237,10 @@ def _read_lock(path: Path, role: str, errors: list[str]) -> list[dict[str, str]]
             continue
         rendered = {key: str(value) for key, value in package.items()}
         names.append(rendered["name"])
-        if rendered["architecture"] not in {"amd64", "all"}:
-            errors.append(f"{role} lock package architecture shall be amd64 or all")
+        if rendered["architecture"] not in {architecture, "all"}:
+            errors.append(
+                f"{role} lock package architecture shall be {architecture} or all"
+            )
         if rendered["suite"] not in {
             "trixie",
             "trixie-security",
@@ -243,30 +261,43 @@ def _read_lock(path: Path, role: str, errors: list[str]) -> list[dict[str, str]]
     return validated
 
 
-def _validate_sources(root: Path, errors: list[str]) -> None:
-    """Require role-scoped, same-time Debian snapshot sources."""
-    main = f"https://snapshot.debian.org/archive/debian/{SELECTED_SNAPSHOT}"
-    security = (
-        f"https://snapshot.debian.org/archive/debian-security/{SELECTED_SNAPSHOT}"
-    )
+def _snapshot_stanzas(components: str) -> list[dict[str, str]]:
+    """Return the signed trixie and security snapshot stanzas."""
     common = {
         "Enabled": "yes",
         "Types": "deb",
-        "Components": "main",
+        "Components": components,
         "Signed-By": "/usr/share/keyrings/debian-archive-keyring.gpg",
         "Check-Valid-Until": "no",
     }
-    target_expected = [
-        common | {"URIs": main, "Suites": "trixie"},
-        common | {"URIs": security, "Suites": "trixie-security"},
+    return [
+        common
+        | {
+            "URIs": f"https://snapshot.debian.org/archive/debian/{SELECTED_SNAPSHOT}",
+            "Suites": "trixie",
+        },
+        common
+        | {
+            "URIs": (
+                "https://snapshot.debian.org/archive/debian-security/"
+                f"{SELECTED_SNAPSHOT}"
+            ),
+            "Suites": "trixie-security",
+        },
     ]
+
+
+def _validate_sources(root: Path, errors: list[str]) -> None:
+    """Require role-scoped, same-time Debian snapshot sources."""
+    target_expected = _snapshot_stanzas("main")
     tools_expected = [
         *target_expected,
-        common | {"URIs": main, "Suites": "trixie-backports"},
+        target_expected[0] | {"Suites": "trixie-backports"},
     ]
     for role, relative in (
         ("target", TARGET_SOURCES_RELATIVE),
         ("tools-tree", TOOLS_SOURCES_RELATIVE),
+        (f"{PROFILE} target", PROFILE_SOURCES_RELATIVE),
     ):
         governed = root / relative
         source_parts = governed.parent
@@ -292,6 +323,16 @@ def _validate_sources(root: Path, errors: list[str]) -> None:
         errors.append(
             "tools-tree snapshot sources shall be exactly signed trixie, security, "
             "and builder-only backports"
+        )
+    # FML-ADR-088: "The target repositories shall enable the non-free-firmware
+    # component, because raspi-firmware lives there."
+    profile = _deb822_sources(
+        root / PROFILE_SOURCES_RELATIVE, f"{PROFILE} target", errors
+    )
+    if profile != _snapshot_stanzas("main non-free-firmware"):
+        errors.append(
+            f"{PROFILE} target snapshot sources shall be exactly signed trixie and "
+            "security with main and non-free-firmware"
         )
 
 
@@ -322,6 +363,144 @@ def _expect_config(
         errors.append(
             f"mkosi [{section}] {key} does not match build-inputs.yml: "
             f"expected {rendered}, got {actual}"
+        )
+
+
+def _assignments(path: Path, errors: list[str]) -> list[tuple[str, str, str]]:
+    """Return every mkosi assignment in order, repeats included.
+
+    ConfigParser keeps only the last of repeated keys, and a profile's list
+    settings depend on the empty assignment that precedes the value.
+    """
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"cannot read mkosi configuration: {path}: {exc}")
+        return []
+    section = ""
+    found: list[tuple[str, str, str]] = []
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+        elif "=" in line and section:
+            key, value = line.split("=", maxsplit=1)
+            found.append((section, key.strip(), value.strip()))
+        else:
+            errors.append(f"mkosi configuration has unsupported syntax: {path}")
+    return found
+
+
+def _validate_profile(root: Path, errors: list[str]) -> None:
+    """Validate the FML-ADR-088 pi4b-arm64 profile inputs."""
+    document = _read_yaml(root / PROFILE_RELATIVE / "build-inputs.yml", errors)
+    if document is None:
+        return
+    prefix = f"{PROFILE} build inputs"
+    for key, expected in {
+        "schema_version": "1.0",
+        "governing_decision": "FML-ADR-088",
+        "profile": PROFILE,
+    }.items():
+        if document.get(key) != expected:
+            errors.append(f"{prefix} {key} shall be {expected}")
+    if document.get("distribution") != {
+        "architecture": "arm64",
+        "debian_architecture": "arm64",
+        "components": ["main", "non-free-firmware"],
+    }:
+        errors.append(f"{prefix} distribution shall be arm64 with non-free-firmware")
+    if document.get("package_policy") != {
+        "direct_intent": str(PROFILE_MANIFEST_RELATIVE / "direct-packages.list"),
+        "target_lock": str(PROFILE_MANIFEST_RELATIVE / "target-lock.json"),
+        "tools_tree_lock": str(TOOLS_LOCK_RELATIVE),
+    }:
+        errors.append(f"{prefix} package_policy shall name the profile manifest")
+    output = document.get("output")
+    output = output if isinstance(output, dict) else {}
+    seed = output.get("seed")
+    if seed != str(uuid.uuid5(uuid.NAMESPACE_URL, str(output.get("seed_name")))):
+        errors.append(f"{prefix} output.seed shall be UUIDv5 of output.seed_name")
+    if output.get("image_id") in {None, SELECTED_OUTPUT["image_id"]}:
+        errors.append(f"{prefix} output.image_id shall differ from the base image")
+    # FML-ADR-088: "No UEFI bootloader shall be installed: Bootable=no."
+    if output.get("bootable") is not False or output.get("bootloader") != "none":
+        errors.append(f"{prefix} output shall be Bootable=no with no bootloader")
+    acceptance = document.get("acceptance")
+    if acceptance != {"qemu_boot_is_acceptance": False}:
+        errors.append(f"{prefix} shall not accept a QEMU boot as acceptance")
+    firmware = document.get("firmware")
+    firmware = firmware if isinstance(firmware, dict) else {}
+
+    expected_assignments = [
+        ("Distribution", "Architecture", "arm64"),
+        ("Output", "ImageId", str(output.get("image_id"))),
+        ("Output", "Seed", str(seed)),
+        ("Content", "Bootable", "no"),
+        ("Content", "Bootloader", "none"),
+        ("Content", "KernelCommandLine", ""),
+        ("Build", "Environment", ""),
+        (
+            "Build",
+            "Environment",
+            f'SYSTEMD_REPART_MKFS_OPTIONS_EXT4="-E hash_seed={seed}"',
+        ),
+        ("Build", "SandboxTrees", ""),
+        ("Build", "SandboxTrees", "sandbox-target"),
+    ]
+    if _assignments(root / PROFILE_RELATIVE / "mkosi.conf", errors) != (
+        expected_assignments
+    ):
+        errors.append(
+            f"{PROFILE} mkosi.conf shall assign exactly the governed profile "
+            "settings, emptying each list setting before setting it"
+        )
+
+    # The root label is written in two places the build cannot cross-check:
+    # the partition definition and the cmdline.txt root= the firmware hook
+    # writes from /etc/default/raspi-firmware.
+    label = firmware.get("root_label")
+    repart = _active_lines(
+        root / PROFILE_RELATIVE / "mkosi.repart/10-root.conf", errors
+    )
+    if f"Label={label}" not in repart:
+        errors.append(f"{PROFILE} root partition shall carry label {label}")
+    postinst = _active_lines(root / PROFILE_RELATIVE / "mkosi.postinst.chroot", errors)
+    for line in (
+        f"ROOTPART=LABEL={label}",
+        f'CONSOLES="{firmware.get("consoles")}"',
+        f"CMA={firmware.get('cma')}",
+    ):
+        if line not in postinst:
+            errors.append(f"{PROFILE} firmware configuration shall write {line}")
+
+    direct = set(
+        _active_lines(root / PROFILE_MANIFEST_RELATIVE / "direct-packages.list", errors)
+    )
+    if direct != APPROVED_PROFILE_DIRECT_PACKAGES:
+        errors.append(
+            f"{PROFILE} direct target packages shall match the owner-approved set"
+        )
+    packages = _read_lock(
+        root / PROFILE_MANIFEST_RELATIVE / "target-lock.json",
+        "target",
+        errors,
+        architecture="arm64",
+    )
+    names = {package["name"] for package in packages}
+    if not APPROVED_PROFILE_DIRECT_PACKAGES.issubset(names):
+        errors.append(f"{PROFILE} target lock shall contain every direct package")
+    for prohibited in ("apt", "debsbom", "systemd-boot"):
+        if prohibited in names:
+            errors.append(f"{PROFILE} target lock prohibits {prohibited}")
+    if any(package["suite"] == "trixie-backports" for package in packages):
+        errors.append(f"{PROFILE} target lock prohibits trixie-backports")
+    lines = _active_lines(root / PROFILE_MANIFEST_RELATIVE / "packages.list", errors)
+    if lines != [f"{package['name']}={package['version']}" for package in packages]:
+        errors.append(
+            f"{PROFILE} packages.list shall be generated exactly from its lock"
         )
 
 
@@ -571,6 +750,7 @@ def validate_repository(root: Path) -> list[str]:
         errors.append(
             "tools-tree-packages.list shall be generated exactly from its lock"
         )
+    _validate_profile(root, errors)
 
     return errors
 

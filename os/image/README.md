@@ -10,6 +10,13 @@ boundary. `build-inputs.yml` governs the builder, snapshot, package, and SBOM
 policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
+`FML-ADR-088` adds the Raspberry Pi 4B development image as the `pi4b-arm64`
+mkosi profile in `mkosi.profiles/pi4b-arm64/`: the same builder, snapshot and
+tools tree, an arm64 target closure of its own in `manifest/pi4b-arm64/`, no
+UEFI loader, and a FAT firmware partition written by Debian's
+`raspi-firmware`. It is cross-built on an x86-64 host under qemu-user. The
+profile has not met a Pi; bench card BC-1 is its acceptance run.
+
 The exact resolver inputs contain a 118-package target closure and a separate
 454-package mkosi tools-tree closure. GAP-09C exercised the earlier 97/440
 foundation in two clean networked builds and one externally isolated
@@ -83,8 +90,9 @@ the equipment exists. See `os/README.md`.
 
 Pinned package manifests separate human-reviewed direct intent from generated
 exact target and tools-tree closures. See `manifest/README.md` for each file.
-The development kernel meta-package is selected for this x86-64 article only;
-`TBR-LINUX-01` still owns the production compatibility set.
+The development kernel meta-packages are selected for the x86-64 and Pi 4B
+development articles only; `TBR-LINUX-01` still owns the production
+compatibility set.
 
 The pinning rule is in the file's header comment and is repeated here because
 it is the rule most likely to be broken by someone in a hurry:
@@ -150,6 +158,8 @@ tools/build-image.sh --check
 sudo tools/build-image.sh --populate-cache
 sudo tools/build-image.sh --offline
 sudo tools/verify-image-reproducibility.sh
+sudo tools/build-image.sh --populate-cache --profile pi4b-arm64
+sudo tools/verify-image-reproducibility.sh --profile pi4b-arm64
 ```
 
 The first command is safe on a contributor machine. The other modes require the
@@ -167,3 +177,11 @@ boot emulated without KVM needs, and `FML_IMAGE_EVIDENCE_ROOT` moves the run's
 builds and logs off the checkout, to a disk with room for three tools trees.
 `.github/workflows/image.yml` runs this command in CI on changes to the image's
 inputs.
+
+`--profile pi4b-arm64` builds the Pi image into `out/image-pi4b-arm64/` from
+its own package cache, and needs a registered qemu-aarch64 binfmt handler with
+the `F` flag (Debian `qemu-user-binfmt`); it records the host's `qemu-user`
+version in `host-emulator.txt`, as `FML-ADR-088` requires. The reproducibility
+command with the profile runs the three builds and compares them, and boots
+nothing: x86-64 QEMU cannot boot the Pi image and `FML-ADR-088` does not accept
+a QEMU boot in place of the board.

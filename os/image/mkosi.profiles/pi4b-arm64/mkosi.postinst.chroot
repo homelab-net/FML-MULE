@@ -1,0 +1,51 @@
+#!/bin/sh
+# Configure raspi-firmware for the Pi 4B and regenerate /boot/firmware.
+#
+# FML-ADR-088. mkosi v25.3 runs a ".chroot" post-installation script inside
+# the image after the packages are installed, so this runs the image's own
+# arm64 shell and kernel hook (under qemu-user on an x86-64 build host).
+#
+# raspi-firmware's kernel hook ran once during package installation, before
+# this configuration existed, and its "auto" values then describe the build
+# host, not the Pi: ROOTPART defaults to `findmnt ... /` of the build root,
+# CONSOLES="auto" probes /dev on the builder, and CMA=64M is only dropped when
+# /sys/firmware/devicetree/base/model reads as a Pi 4. The package's own
+# comment: "specifying CMA as with earlier models renders it unbootable".
+# So the values are written here and the hook is run again.
+
+set -eu
+
+# The hook sources this file ("Load user configuration").
+#   ROOTPART: pasted verbatim into cmdline.txt as root=; LABEL=mule-root is the
+#     ext4 label mkosi.repart/10-root.conf assigns, and initramfs-tools'
+#     resolve_device accepts LABEL=.
+#   CONSOLES: "for console in $CONSOLES ... console=${console}". The values are
+#     what the hook's own probing writes on an arm64 Pi 4: tty0, and "ttyS1 is
+#     used in arm64 (RPi families 3, 4)".
+#   CMA=0: the hook then writes no cma= at all.
+cat >/etc/default/raspi-firmware <<'CONF'
+# Written by the pi4b-arm64 image profile (FML-ADR-088). Do not derive these
+# from the build host; see os/image/mkosi.profiles/pi4b-arm64/.
+ROOTPART=LABEL=mule-root
+CONSOLES="tty0 ttyS1,115200"
+CMA=0
+CONF
+
+# The hook appends this file to cmdline.txt ("post_cmdline=$(cat
+# $cmdline_custom)"). The x86-64 profile's non-console parameters, so both
+# images boot to the same target without asking for first-boot settings.
+printf '%s\n' \
+  'systemd.unit=multi-user.target systemd.show_status=yes systemd.firstboot=no' \
+  >/etc/default/raspi-extra-cmdline
+
+# The hook only acts on "configure" ("eval set -- \"$DEB_MAINT_PARAMS\"").
+DEB_MAINT_PARAMS=configure /etc/kernel/postinst.d/z50-raspi-firmware
+
+# The hook exits 0 without writing anything when it finds no initrd, so its
+# exit status proves nothing. tools/validate-image-root.py checks the files.
+for required in config.txt cmdline.txt start4.elf bcm2711-rpi-4-b.dtb; do
+  [ -s "/boot/firmware/$required" ] || {
+    printf 'raspi-firmware did not produce /boot/firmware/%s\n' "$required" >&2
+    exit 1
+  }
+done
