@@ -14,6 +14,14 @@ this program needs them visible:
 
 ## Unreleased
 
+### Ran the image's reproducibility sequence in CI
+
+`image.yml` now runs `tools/verify-image-reproducibility.sh` unchanged: two
+clean networked builds, one network-isolated build, identical raw images, and
+a QEMU boot with no guest network. The script gained two optional settings,
+`FML_IMAGE_BOOT_TIMEOUT` (default 180 s) and `FML_IMAGE_EVIDENCE_ROOT`
+(default `out/`), so an emulated boot and a larger scratch disk need no edit.
+
 ### Built and booted the image in CI
 
 `.github/workflows/image.yml` builds the x86-64 development image and boots it

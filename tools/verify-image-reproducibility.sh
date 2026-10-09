@@ -2,6 +2,14 @@
 # Execute the FML-ADR-081 three-build and QEMU acceptance sequence.
 #
 # Usage: tools/verify-image-reproducibility.sh
+#
+# Environment, both optional:
+#   FML_IMAGE_BOOT_TIMEOUT   seconds the QEMU boot may run (default 180). A boot
+#                            emulated without KVM needs longer: 1500 s was used
+#                            on 2026-10-05, when TCG reached multi-user.target.
+#   FML_IMAGE_EVIDENCE_ROOT  directory for the run's builds, caches and logs
+#                            (default out/ in the checkout). Three builds with
+#                            their tools trees need several GiB.
 
 set -eu
 
@@ -14,8 +22,17 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 IMAGE_DIR="$ROOT/os/image"
 INPUTS="$IMAGE_DIR/build-inputs.yml"
 OUTPUT_NAME=mule-development.raw
-mkdir -p "$ROOT/out"
-EVIDENCE_DIR=$(mktemp -d "$ROOT/out/gap09c.XXXXXX")
+BOOT_TIMEOUT=${FML_IMAGE_BOOT_TIMEOUT:-180}
+case "$BOOT_TIMEOUT" in
+  '' | *[!0-9]*)
+    printf 'FML_IMAGE_BOOT_TIMEOUT must be whole seconds, not "%s".\n' \
+      "$BOOT_TIMEOUT" >&2
+    exit 2
+    ;;
+esac
+EVIDENCE_ROOT=${FML_IMAGE_EVIDENCE_ROOT:-$ROOT/out}
+mkdir -p "$EVIDENCE_ROOT"
+EVIDENCE_DIR=$(mktemp -d "$EVIDENCE_ROOT/gap09c.XXXXXX")
 
 [ "$(id -u)" -eq 0 ] || {
   printf '%s\n' 'Image reproducibility verification requires root.' >&2
@@ -97,7 +114,7 @@ set +e
 # standard input/output. Debian 13 lacks the newer systemd-pty-forward helper
 # needed by mkosi's read-only mode, so /dev/null enforces the same no-input
 # acceptance boundary without adding an unavailable host binary.
-timeout 180 "$mkosi_bin" \
+timeout "$BOOT_TIMEOUT" "$mkosi_bin" \
   --directory "$IMAGE_DIR" \
   --output-directory "$isolated_output" \
   --output mule-development \

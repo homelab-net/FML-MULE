@@ -161,4 +161,9 @@ is not in APT's archive cache. The reproducibility command creates two fresh
 networked output/cache pairs, then gives one authenticated populated cache to a
 fresh network-isolated output. `FML_IMAGE_OUTPUT_DIR` and
 `FML_IMAGE_PACKAGE_CACHE` are internal orchestration overrides used to keep
-those three build states separate.
+those three build states separate. Two settings are for the operator:
+`FML_IMAGE_BOOT_TIMEOUT` raises the QEMU bound from its 180 s default, which a
+boot emulated without KVM needs, and `FML_IMAGE_EVIDENCE_ROOT` moves the run's
+builds and logs off the checkout, to a disk with room for three tools trees.
+`.github/workflows/image.yml` runs this command in CI on changes to the image's
+inputs.
