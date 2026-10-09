@@ -132,11 +132,35 @@ jobs:
                 FML_IMAGE_EVIDENCE_ROOT=/work/evidence \
                 tools/verify-image-reproducibility.sh
 
+              # Every field the BC-0 card asks a result record to carry, so
+              # the record can be written from this log alone; Actions logs
+              # and artifacts expire, the committed record does not.
               run=$(ls -d /work/evidence/gap09c.*)
               cat "$run/raw-image-sha256.txt"
+              sha256sum "$run/networked-1-mule-development.sbom.cdx.json" \
+                "$run/networked-1-mule-development.license-exceptions.json"
+              printf "SBOM components: "
+              python3 -c "import json, sys; print(len(json.load(open(sys.argv[1]))[sys.argv[2]]))" \
+                "$run/networked-1-mule-development.sbom.cdx.json" components
+              grep -F "Reached target multi-user.target" \
+                "$run/qemu-no-network.log"
               grep -F "[FAILED]" "$run/qemu-no-network.log" ||
                 echo "no failed units"
+              printf "Debian %s, kernel %s\n" \
+                "$(cat /etc/debian_version)" "$(uname -r)"
+              dpkg-query -W mkosi
             '
+
+      # The container runs as root and verify-image-reproducibility.sh makes
+      # its run directory with mktemp -d (GNU coreutils: "Files are created
+      # u+rw, and directories u+rwx, minus umask restrictions"), so only root
+      # can enter it. The upload step runs as the runner user and failed on
+      # that directory with EACCES on 2026-10-09 after a passing sequence.
+      # Omit this step and the evidence is lost while the job reports a
+      # failure the image did not cause.
+      - name: Let the runner read the evidence
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" /mnt/fml-image
 
       - name: Keep the evidence
         if: always()
