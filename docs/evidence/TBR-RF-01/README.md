@@ -14,9 +14,13 @@ an artifact's presence is not owner acceptance.
 - [2026-09-14-voice-data-contention-hwsim.md][artifact-2]
 - [Physical infrastructure-WiFi trial][wifi-trial], shared evidence for the
   Linux/radio boundary; not selected 802.11s qualification.
+- [2026-10-10-awus036acm-one-hop-mesh-card.md][card-1], a bench card, not a
+  result: one-hop 802.11s, SAE and batman-adv between the two Pi 4Bs on the two
+  ALFA AWUS036ACM adapters. Not yet run.
 
 [artifact-1]: 2026-09-14-mesh-multihop-latency-hwsim.md
 [artifact-2]: 2026-09-14-voice-data-contention-hwsim.md
+[card-1]: 2026-10-10-awus036acm-one-hop-mesh-card.md
 [wifi-trial]: ../TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
 
 This directory exists before the work does, deliberately. The closure gate is

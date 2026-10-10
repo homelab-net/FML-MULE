@@ -75,6 +75,11 @@ Run the existing procedures on real radios instead of `mac80211_hwsim`.
 decided `batman-adv` config (`bridge_loop_avoidance`, `batctl interface add`).
 **Evidence:** `docs/evidence/TBR-RF-01/`.
 
+The two AWUS036ACM adapters arrive ahead of any HaLow radio, so sub-step 1 has a
+card of its own for them:
+`docs/evidence/TBR-RF-01/2026-10-10-awus036acm-one-hop-mesh-card.md`. It runs
+on the Pi 4Bs' existing operating system and does not replace the HaLow run.
+
 ## Step 3 -- Meshtastic / LoRa (`FML-ADR-026`)
 
 1. Identify the RAK's serial device by driver, not by guessing `/dev/ttyACM*`
