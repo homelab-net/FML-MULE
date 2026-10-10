@@ -88,7 +88,11 @@ an artifact that publishes one while disclaiming the geometry. Separation,
 orientation and ambient conditions cannot be reconstructed afterwards. Write
 these down first, for each node:
 
-- date, time and who ran the card;
+- date, time, and who ran the card, in the `**Taken by:**` form the existing
+  records use. Name only someone already public in this repository as a
+  contributor, such as the trade's named owner, or give a role. No other
+  person's name goes in: `SECURITY.md`'s publication rule keeps out who
+  participates;
 - `grep PRETTY_NAME /etc/os-release` and `uname -r`;
 - `dpkg-query -W iw wpasupplicant batctl firmware-mediatek` (after step 1);
 - `iw reg get`: the country the kernel applies. The region profile's
@@ -158,8 +162,24 @@ belongs to `TBR-LINUX-01`'s driver question.
 
 ## Step 4: take the adapter from the network manager and pick a channel
 
-1. If NetworkManager is running (`systemctl is-active NetworkManager`), run
-   `nmcli device set "$IF" managed no`. Record which manager was running.
+1. Record whether NetworkManager runs and whether it already manages the
+   adapter, then take it only if it does:
+
+   ```sh
+   systemctl is-active NetworkManager
+   nmcli --version
+   NM_BEFORE=$(nmcli -g GENERAL.STATE device show "$IF")
+   echo "NM_BEFORE=$NM_BEFORE"
+   ```
+
+   If NetworkManager is active and `NM_BEFORE` does not read
+   `10 (unmanaged)`, run `nmcli device set "$IF" managed no` and record that
+   step 4 changed it. If the adapter was already unmanaged, by a keyfile, a
+   udev rule or anything else, change nothing, and step 8 changes nothing
+   back. The nmcli manual: "The managed property accepts a --permanent option
+   to persist the managed state to disk, and not only in runtime." Without
+   `--permanent`, the change here lasts only until NetworkManager restarts or
+   step 8 reverses it. The card uses neither `--permanent` nor `reset`.
 2. Count the networks on the three non-overlapping 2.4 GHz channels, without
    recording any names:
 
@@ -267,7 +287,19 @@ channel or the configuration, never routing.
    }
    ```
 
-   This is `test/bench/keyed-mesh.sh`'s configuration.
+   This is `test/bench/keyed-mesh.sh`'s configuration. Each line decides
+   whether the run is a keyed 802.11s experiment at all, so none may be
+   trimmed. From hostap `hostap_2_10`, the release Debian trixie ships as
+   `wpasupplicant` `2:2.10-24`:
+
+   | Line | Upstream | Default, and what omitting it does |
+   | --- | --- | --- |
+   | `ssid="fml-bench-mesh"` | `wpa_supplicant.conf`: "ssid: SSID (mandatory)". In mesh mode it is the mesh ID: `mesh.c` copies it to `conf->meshid`. | No default. `mesh.c` refuses to join: `if (!ssid \|\| !ssid->ssid \|\| !ssid->ssid_len \|\| !ssid->frequency \|\| ...` returns `-ENOENT`. |
+   | `mode=5` | `config_ssid.h`: `WPAS_MODE_MESH = 5,`. The reference `wpa_supplicant.conf` lists modes 0 to 2 only. | `0`: "infrastructure (Managed) mode, i.e., associate with an AP (default)". Omitted, the supplicant looks for an access point and never forms a mesh. |
+   | `frequency=<$FREQ>` | `wpa_supplicant.c`: "Initial frequency for IBSS/mesh". | No default for mesh. The same `mesh.c` check refuses to join without it. |
+   | `key_mgmt=SAE` | `wpa_supplicant.conf`: "SAE = Simultaneous authentication of equals". `mesh.c`: `if (ssid->key_mgmt & WPA_KEY_MGMT_SAE) conf->security \|= MESH_CONF_SEC_AUTH \| MESH_CONF_SEC_AMPE; else conf->security \|= MESH_CONF_SEC_NONE;` | "If not set, this defaults to: WPA-PSK WPA-EAP". In mesh mode anything without SAE takes the `else`: an **open** mesh, with no error. This is the line whose loss would silently turn step 6 into step 5. |
+   | `sae_password="..."` | `wpa_supplicant.conf`: "sae_password: SAE password". | "By default, the passphrase from the psk parameter is used if this separate parameter is not used". With neither set there is no credential, and the negative control cannot pass for the right reason. |
+
 3. On each node:
 
    ```sh
@@ -417,9 +449,12 @@ supplicant running, or with a credential in `/run`.
    A stop before step 7 leaves less to undo, so `ip link del` may find no
    `bat0` and there may be no PID file; that is expected. The supplicant is
    stopped only by the PID it wrote, never by name, so nothing else on the node
-   is touched. Then `nmcli device set "$IF" managed yes`
-   if step 4 changed it, and confirm with `iw dev "$IF" info` that the type
-   reads `managed`.
+   is touched. Then, only if step 4 recorded that it changed NetworkManager,
+   run `nmcli device set "$IF" managed yes`. If step 4 changed nothing, leave
+   NetworkManager alone: forcing `managed yes` onto an adapter it did not
+   manage before would hand it over. Confirm with `iw dev "$IF" info` that the
+   type reads `managed`, and that `nmcli -g GENERAL.STATE device show "$IF"`
+   matches `NM_BEFORE`'s managed or unmanaged state.
 
 ## What to record
 
@@ -429,6 +464,7 @@ Commit one record beside this card, named
 - everything from step 0, for both nodes;
 - each gate's outcome, and the first one that failed if any did;
 - step 3's three answers and the interface combinations block;
+- step 4's `nmcli --version`, `NM_BEFORE`, and whether step 4 changed it;
 - the MTU outcome from step 5;
 - the station-dump fields from steps 5 and 6 and the ping summary lines;
 - step 7's 30-ping summary line;
