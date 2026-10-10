@@ -272,7 +272,8 @@ channel or the configuration, never routing.
 
    ```sh
    ip link set "$IF" down
-   wpa_supplicant -i "$IF" -c /run/fml-mesh.conf -D nl80211 -B -f /run/fml-mesh.log
+   wpa_supplicant -i "$IF" -c /run/fml-mesh.conf -D nl80211 -B \
+     -P /run/fml-mesh.pid -f /run/fml-mesh.log
    ip addr add 10.60.0.$N/24 dev "$IF"
    ip link set "$IF" up
    ```
@@ -284,8 +285,19 @@ channel or the configuration, never routing.
    line alone is not success: a node that failed authentication still appears,
    in `LISTEN` (`test/bench/keyed-mesh.sh`).
 5. One ping each way, as in step 5.
-6. **Negative control.** Stop `wpa_supplicant` on **both** nodes
-   (`pkill -f "wpa_supplicant -i $IF"`). Node 1 restarts it from the same
+6. **Negative control.** Stop `wpa_supplicant` on **both** nodes by the PID
+   it wrote, and wait for that process to exit. `kill` only sends the signal,
+   and a supplicant still holding the interface would spoil the restart:
+
+   ```sh
+   pid=$(cat /run/fml-mesh.pid)
+   kill "$pid"
+   wait_for 15 sh -c "! kill -0 $pid 2>/dev/null"
+   ```
+
+   This stops the one supplicant step 3 started, by its number, rather than any
+   process whose name matches. If it is still running at 15 s, that is a stop.
+   Node 1 restarts it from the same
    file. Node 2 writes `/run/fml-mesh-wrong.conf` with a newly generated
    credential and restarts it from that file. Both use step 3's `ip link set`
    and `wpa_supplicant` lines and skip the `ip addr add`, because the address
@@ -301,8 +313,9 @@ channel or the configuration, never routing.
    It is expected to return 1. Then confirm that the station dump shows no
    `ESTAB` for node 2 and that `ping -c 3 -W 2 10.60.0.2` gets no reply. A
    shorter watch proves nothing, because a correct peer could still be
-   converging. Finally restart node 2 from `/run/fml-mesh.conf` and repeat
-   step 4, with its wait.
+   converging. Finally stop node 2's supplicant the same way, by its PID file
+   and with its wait,
+   restart it from `/run/fml-mesh.conf`, and repeat step 4, with its wait.
 
 If step 5 passed and this step fails, that is a result about SAE on this adapter
 and this kernel. Record the tail of `/run/fml-mesh.log` with addresses removed,
@@ -330,17 +343,32 @@ ip addr add 10.60.0.$N/24 dev bat0
 ip link set bat0 up
 ```
 
-`multicast_mode` does not appear in `batctl -h`, but batctl accepts it. In
-batctl `v2024.0`, `multicast_mode.c` registers it with no help text
-(`COMMAND_NAMED(SUBCOMMAND_MIF, multicast_mode, "mm", ...)`). Setting it writes
-`nla_put_u8(msg, BATADV_ATTR_MULTICAST_FORCEFLOOD_ENABLED, !data->val);`, so
-`multicast_mode 0` turns force-flooding on. That is the template's "Multicast
-optimisation OFF", and it is the spelling `.github/workflows/mesh-probe.yml`
-uses.
+The three settings after `ip link add`, read from the source rather than the
+help text. Each one's kernel default is the opposite of what the template
+decides, so omitting a line runs the option the program rejected.
 
-`bridge_loop_avoidance 0` is not optional. It defaults to on, and on this
-program's veth mesh that held every client frame for 31.5 s while every
-`batctl` table read correct (`FML-ADR-056`, and the template's comment).
+| Line | What batctl `v2024.0` sends | What the kernel does with it | Kernel default when the line is omitted |
+| --- | --- | --- | --- |
+| `bridge_loop_avoidance 0` | `bridge_loop_avoidance.c`: `nla_put_u8(msg, BATADV_ATTR_BRIDGE_LOOP_AVOIDANCE_ENABLED, data->val);` | `netlink.c`: `atomic_set(&bat_priv->bridge_loop_avoidance, !!nla_get_u8(attr));`, so `0` turns it off | On: `atomic_set(&bat_priv->bridge_loop_avoidance, 1);` |
+| `distributed_arp_table 0` | `distributed_arp_table.c`: `nla_put_u8(msg, BATADV_ATTR_DISTRIBUTED_ARP_TABLE_ENABLED, data->val);` | `netlink.c`: `atomic_set(&bat_priv->distributed_arp_table, !!nla_get_u8(attr));`, so `0` turns it off | On: `atomic_set(&bat_priv->distributed_arp_table, 1);` |
+| `multicast_mode 0` | `multicast_mode.c`: `nla_put_u8(msg, BATADV_ATTR_MULTICAST_FORCEFLOOD_ENABLED, !data->val);`, so `0` sends force-flood on | `netlink.c`: `atomic_set(&bat_priv->multicast_mode, !nla_get_u8(attr));`, so the optimisation is off | On: `atomic_set(&bat_priv->multicast_mode, 1);` |
+
+The kernel lines are from Raspberry Pi `rpi-6.18.y` `net/batman-adv/netlink.c`
+and `mesh-interface.c`. The three defaults read the same in Linux `v6.12.48`
+`soft-interface.c`. Run `batctl meshif bat0 <setting>` with no value afterwards
+and record what each reads back.
+
+`multicast_mode` does not appear in `batctl -h`, but batctl accepts it:
+`multicast_mode.c` registers it with no help text
+(`COMMAND_NAMED(SUBCOMMAND_MIF, multicast_mode, "mm", ...)`). It is the
+template's "Multicast optimisation OFF", and the spelling
+`.github/workflows/mesh-probe.yml` uses.
+
+Why each value: the template's comments give the reasons, and the bridge loop
+avoidance one is measured. Left on, it held every client frame for 31.5 s on
+this program's veth mesh while every `batctl` table read correct
+(`FML-ADR-056`). Distributed ARP is off on the template's partition argument,
+not on a measurement.
 
 Assert, in order:
 
@@ -358,22 +386,40 @@ adapter.
 
 ## Step 8: capture, then restore
 
+Every stop comes here. A gate that fails, a stop condition, or the end of step 7
+all run this step on both nodes before anything else, so the failing state is
+captured before it is torn down, and neither node is left in mesh mode, with a
+supplicant running, or with a credential in `/run`.
+
 1. On each node, from the checkout of `main`:
    `test/bench/capture-telemetry.py --label awus036acm-one-hop --out /run/capture.json`,
    then `tools/scrub-telemetry.py /run/capture.json -o /run/capture.scrubbed.json`.
    Read the scrubbed file before filing it. The scrubber does not read firmware
    strings or every SSID.
-2. Restore:
+2. Restore, only if step 4 has run. Steps 0 to 3 change nothing on the
+   adapter, and a stop there may come before `IF` holds one name, so a stop in
+   steps 0 to 3 ends at item 1. Confirm `echo "IF=$IF"` prints the adapter, and
+   define `wait_for` (the section before step 5) if the stop came in step 4:
 
    ```sh
-   ip link del bat0
-   pkill -f "wpa_supplicant -i $IF"
-   rm -f /run/fml-mesh*.conf
+   ip link del bat0 2>/dev/null
+   if [ -f /run/fml-mesh.pid ]; then
+     pid=$(cat /run/fml-mesh.pid)
+     kill "$pid"
+     wait_for 15 sh -c "! kill -0 $pid 2>/dev/null"
+   fi
+   rm -f /run/fml-mesh*.conf /run/fml-mesh.pid
+   ip addr flush dev "$IF"
    ip link set "$IF" down
    iw dev "$IF" set type managed
    ```
 
-   Then `nmcli device set "$IF" managed yes` if step 4 changed it.
+   A stop before step 7 leaves less to undo, so `ip link del` may find no
+   `bat0` and there may be no PID file; that is expected. The supplicant is
+   stopped only by the PID it wrote, never by name, so nothing else on the node
+   is touched. Then `nmcli device set "$IF" managed yes`
+   if step 4 changed it, and confirm with `iw dev "$IF" info` that the type
+   reads `managed`.
 
 ## What to record
 
@@ -399,7 +445,7 @@ section in the same change.
 
 ## Stop conditions
 
-Stop and record rather than change the procedure if: the regulatory domain is
+Stop, run step 8, and record, rather than change the procedure, if: the regulatory domain is
 not the profile's country, the firmware does not load, `mesh point` is absent,
 any gate's condition is still false at its bound, or a step needs a setting the
 template or an ADR does not give. A failure is a result worth committing.
