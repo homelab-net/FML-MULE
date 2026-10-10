@@ -127,3 +127,12 @@ def test_the_public_default_psk_and_a_firmware_version_are_allowed(
         ' "modemPreset": "LONG_FAST", "hopsAway": 0}\n'
     )
     assert checker.findings(root) == []
+
+
+def test_mac_based_interface_name_is_refused(tmp_path: Path) -> None:
+    """A name of wlx plus twelve hex digits is the MAC with its colons removed."""
+    root = _sandbox(tmp_path)
+    (root / "docs/evidence/TBR-X/iw.txt").write_text("Interface wlx00c0caaabbcc\n")
+    found = checker.findings(root)
+    assert len(found) == 1
+    assert "00:c0:ca:aa:bb:cc" in found[0]

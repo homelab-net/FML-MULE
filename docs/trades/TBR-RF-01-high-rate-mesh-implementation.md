@@ -89,6 +89,12 @@ Pi 4 nodes and the bench. The access-point star, unrecorded separation/antennas
 and short samples do not qualify selected 802.11s, RF multi-hop, throughput,
 recovery or coexistence. The trade remains open.
 
+Two ALFA AWUS036ACM adapters were bought on 2026-10-10, the first radios in the
+lab whose driver source offers `mesh point`. They are bench radios, not
+candidates. The one-hop procedure for them is
+`docs/evidence/TBR-RF-01/2026-10-10-awus036acm-one-hop-mesh-card.md`; nothing
+has been run.
+
 [wifi-trial]: ../evidence/TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
 
 ## Closure evidence

@@ -47,6 +47,10 @@ Two traps this has already fallen into, both now pinned by tests:
   reconstructs the address exactly: `fe80::dea6:32ff:fe12:3456` decodes to
   `dc:a6:32:12:34:56`, a Raspberry Pi OUI. A MAC-only check misses the leak that
   a real capture from an arm64 article would actually produce.
+- A **MAC-based interface name** (`wlx` and twelve hex digits) carries the
+  address with no colons. Debian names a USB Wi-Fi adapter that way, and the
+  AWUS036ACM bench card anticipates it. Added 2026-10-10, after Codex review on
+  PR #224 found the scrub-and-commit route would have let one through.
 
 A note for anyone documenting this: `docs/evidence/` is itself scanned, so a
 README under it cannot carry a realistic example. Writing the two addresses
@@ -135,6 +139,14 @@ def findings(root: Path) -> list[str]:
                     if scrub.is_equipment_mac(match.group(0)):
                         found.append(
                             f"{rel}:{number}: equipment MAC {match.group(0)} "
+                            f"-- scrub with tools/scrub-telemetry.py"
+                        )
+                for match in scrub.MAC_NAME_RE.finditer(line):
+                    mac = scrub.mac_name_embedded_mac(match.group("hex"))
+                    if scrub.is_equipment_mac(mac):
+                        found.append(
+                            f"{rel}:{number}: interface name {match.group(0)} "
+                            f"carries equipment MAC {mac} "
                             f"-- scrub with tools/scrub-telemetry.py"
                         )
                 for match in scrub.EUI64_RE.finditer(line):

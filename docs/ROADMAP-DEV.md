@@ -819,7 +819,11 @@ machine", so the line had been false for over a month. **Still genuinely
 missing:** no radio in the lab advertises `mesh point` as a supported interface
 mode -- the two Pi 4B `brcmfmac` radios and both bench radios all lack it
 (checked 2026-10-02), so 802.11s on real RF has no hardware to run on yet and
-the simulated association result is the ceiling until an adapter arrives.
+the simulated association result is the ceiling until an adapter arrives. On
+2026-10-10 the Program Owner reported buying two ALFA AWUS036ACM adapters
+(`mt76x2u`, whose source offers `mesh point`). Nothing has been run on them:
+`docs/evidence/TBR-RF-01/2026-10-10-awus036acm-one-hop-mesh-card.md` is the
+one-hop procedure to run when they arrive.
 
 **Do not** re-derive the `orig_interval` figures on `veth`. The question that
 parameter decides is convergence after a topology change on a lossy link, which

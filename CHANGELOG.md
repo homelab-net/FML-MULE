@@ -14,6 +14,24 @@ this program needs them visible:
 
 ## Unreleased
 
+### Added a bench card for the AWUS036ACM adapters
+
+The Program Owner bought two ALFA AWUS036ACM adapters, the first radios in the
+lab whose driver source offers `mesh point`.
+`docs/evidence/TBR-RF-01/2026-10-10-awus036acm-one-hop-mesh-card.md` is the
+procedure for them on the two Pi 4Bs: identify by driver, the adapter survey's
+three questions, an open one-hop diagnostic, a keyed SAE mesh with a
+wrong-credential control, then batman-adv configured from the template, with
+the measurement configuration recorded first. Nothing has been run. The
+roadmap's item 1.7, the hardware bring-up runbook, the `TBR-RF-01` trade and
+the `HW-01` packet's Owner disposition say so.
+
+Reviewing the card found an identifier the evidence pipeline missed: Debian
+names a USB Wi-Fi adapter `wlx` plus its MAC, with no colons for the MAC
+pattern to find. `tools/scrub-telemetry.py` now redacts such a name, including
+where it is a dictionary key, and `tools/validate-identifiers.py` refuses one in
+committed evidence.
+
 ### Added the Raspberry Pi 4B image profile
 
 `FML-ADR-088`'s `pi4b-arm64` mkosi profile: an arm64 target closure of its own,

@@ -146,4 +146,10 @@ Record real prices and received parts in a follow-up `HW-01` artifact.
 
 ## 7. Owner disposition
 
-Pending.
+Pending. On 2026-10-10 the Program Owner said option A is "not yet" ordered.
+The same day the Owner reported buying two ALFA AWUS036ACM adapters, which are
+in none of options A, B or C. They are bench radios for the 802.11s single step
+(`docs/evidence/TBR-RF-01/2026-10-10-awus036acm-one-hop-mesh-card.md`), and
+they do not change this packet's recommendation: they are not HaLow, and they
+are not the `TBR-RF-03` radio. Their price and receipt go in the follow-up
+`HW-01` artifact section 6 asks for, once they are received.
