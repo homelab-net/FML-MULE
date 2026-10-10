@@ -468,11 +468,42 @@ def _validate_profile(root: Path, errors: list[str]) -> None:
     # the partition definition and the cmdline.txt root= the firmware hook
     # writes from /etc/default/raspi-firmware.
     label = firmware.get("root_label")
-    repart = _active_lines(
-        root / PROFILE_RELATIVE / "mkosi.repart/10-root.conf", errors
-    )
+    repart_dir = root / PROFILE_RELATIVE / "mkosi.repart"
+    repart = _active_lines(repart_dir / "10-root.conf", errors)
     if f"Label={label}" not in repart:
         errors.append(f"{PROFILE} root partition shall carry label {label}")
+    elif repart != [
+        "[Partition]",
+        "Type=root",
+        "Format=ext4",
+        f"Label={label}",
+        "CopyFiles=/",
+        "Minimize=guess",
+    ]:
+        errors.append(f"{PROFILE} root partition shall be the governed ext4 root")
+    # finalize checks /boot/firmware in the build root, not the GPT, and the
+    # profile is never booted in CI, so nothing else notices a missing or
+    # altered FAT partition: the image would build, compare and not boot.
+    if _active_lines(repart_dir / "00-firmware.conf", errors) != [
+        "[Partition]",
+        "Type=esp",
+        "Format=vfat",
+        "CopyFiles=/boot/firmware:/",
+        "SizeMinBytes=512M",
+        "SizeMaxBytes=512M",
+    ]:
+        errors.append(
+            f"{PROFILE} firmware partition shall be the governed 512M FAT "
+            "partition holding /boot/firmware"
+        )
+    try:
+        repart_entries = {entry.name for entry in repart_dir.iterdir()}
+    except OSError:
+        repart_entries = set()
+    if repart_entries != {"00-firmware.conf", "10-root.conf", "README.md"}:
+        errors.append(
+            f"{PROFILE} mkosi.repart shall hold only the firmware and root partitions"
+        )
     postinst = _active_lines(root / PROFILE_RELATIVE / "mkosi.postinst.chroot", errors)
     for line in (
         f"ROOTPART=LABEL={label}",

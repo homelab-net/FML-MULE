@@ -64,6 +64,7 @@ IMAGE_FILES = (
     Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.postinst.chroot"),
     Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/00-firmware.conf"),
     Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/10-root.conf"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/README.md"),
     Path(
         "os/image/mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/sources.list.d/"
         "mkosi.sources"
@@ -830,6 +831,46 @@ def test_pi_profile_root_label_shall_agree_with_the_kernel_command_line(
 
     assert any(
         "root partition shall carry label mule-root" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+@pytest.mark.parametrize("damage", ["removed", "format", "extra"])
+def test_pi_profile_shall_keep_its_firmware_partition(
+    repository: Path, validator: ModuleType, damage: str
+) -> None:
+    """No boot in CI notices a missing FAT partition, so --check shall."""
+    repart = repository / PI_PROFILE / "mkosi.repart"
+    if damage == "removed":
+        (repart / "00-firmware.conf").unlink()
+    elif damage == "format":
+        _edit(repart / "00-firmware.conf", "Format=vfat", "Format=ext4")
+    else:
+        (repart / "20-extra.conf").write_text(
+            "[Partition]\nType=linux-generic\n", encoding="utf-8"
+        )
+
+    errors = validator.validate_repository(repository)
+    expected = (
+        "mkosi.repart shall hold only"
+        if damage == "extra"
+        else "firmware partition shall be the governed 512M FAT"
+    )
+    assert any(expected in error for error in errors), errors
+
+
+def test_pi_profile_root_partition_shall_stay_governed(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The root definition is restated from mkosi's default; keep it intact."""
+    _edit(
+        repository / PI_PROFILE / "mkosi.repart/10-root.conf",
+        "Format=ext4",
+        "Format=btrfs",
+    )
+
+    assert any(
+        "root partition shall be the governed ext4 root" in error
         for error in validator.validate_repository(repository)
     )
 

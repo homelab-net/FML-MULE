@@ -33,9 +33,12 @@ to end, the **gap** that blocks it (collected in the register below).
    image (BC-1).**
 
 1. **Build the image.** `os/image/` (mkosi, `FML-ADR-079`) produces the bootable
-   root filesystem. **Gap G1, x86 half met 2026-10-09:** the current 118/454
-   closure passed the `FML-ADR-081` sequence in CI (three identical raw images,
-   a QEMU boot to `multi-user.target`; `2026-10-09-bc0-x86-image-result.md`, `SIMULATED`). By
+   root filesystem. **Gap G1, x86 half met 2026-10-09:** the current closure
+   passed the `FML-ADR-081` sequence in CI (three identical raw images, a QEMU
+   boot to `multi-user.target`; `2026-10-09-bc0-x86-image-result.md`,
+   `SIMULATED`). That record ran with the 454-package tools-tree lock. The
+   closure is now 118/456, after #223 locked two packages mkosi was already
+   installing, and it reproduces the same raw image (`ae7608b6...`). By
    the Program Owner's 2026-10-05 decision that record stands in for running
    bench card BC-0 on the N150. **The arm64 half was met on 2026-10-09:** the
    `FML-ADR-088` `pi4b-arm64` profile cross-builds three identical images in CI
