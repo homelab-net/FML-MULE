@@ -26,6 +26,12 @@ the measurement configuration recorded first. Nothing has been run. The
 roadmap's item 1.7, the hardware bring-up runbook, the `TBR-RF-01` trade and
 the `HW-01` packet's Owner disposition say so.
 
+Reviewing the card found an identifier the evidence pipeline missed: Debian
+names a USB Wi-Fi adapter `wlx` plus its MAC, with no colons for the MAC
+pattern to find. `tools/scrub-telemetry.py` now redacts such a name, including
+where it is a dictionary key, and `tools/validate-identifiers.py` refuses one in
+committed evidence.
+
 ### Added the Raspberry Pi 4B image profile
 
 `FML-ADR-088`'s `pi4b-arm64` mkosi profile: an arm64 target closure of its own,

@@ -183,3 +183,32 @@ def test_a_four_part_firmware_version_is_not_mistaken_for_an_address() -> None:
     out = scrub.scrub_document(_doc(m='"firmwareVersion": "2.7.26.54e0d8d"'))
     assert "2.7.26.54e0d8d" in str(out)
     assert "IPV4" not in out["scrub_manifest"]["redacted"]
+
+
+def test_mac_based_interface_name_is_redacted() -> None:
+    """Debian names a USB adapter wlx plus its MAC; MAC_RE sees no colons in it."""
+    out = scrub.scrub_document(_doc(iw="Interface wlx00c0caaabbcc\n\tifindex 4"))
+    assert "00c0caaabbcc" not in str(out)
+    assert out["scrub_manifest"]["redacted"]["IFNAME"] == 1
+
+
+def test_mac_based_interface_name_as_a_key_is_redacted() -> None:
+    """A station dump keyed by interface carries the name as a key, not a value."""
+    doc = _doc()
+    doc["stations"] = {"wlx00c0caaabbcc": {"plink": "ESTAB"}}
+    out = scrub.scrub_document(doc)
+    assert "00c0caaabbcc" not in str(out)
+    assert out["stations"] == {"<IFNAME-01-REDACTED>": {"plink": "ESTAB"}}
+
+
+def test_mac_based_name_from_a_virtual_mac_is_kept() -> None:
+    """A locally administered address in a name identifies nothing, as elsewhere."""
+    out = scrub.scrub_document(_doc(iw="Interface wlx1efa23eafb69"))
+    assert "wlx1efa23eafb69" in str(out)
+    assert "IFNAME" not in out["scrub_manifest"]["redacted"]
+
+
+def test_an_ordinary_interface_name_is_kept() -> None:
+    """wlan1 and bat0 are bench topology; scrubbing them would make logs unreadable."""
+    out = scrub.scrub_document(_doc(iw="Interface wlan1\nInterface bat0"))
+    assert "wlan1" in str(out) and "bat0" in str(out)

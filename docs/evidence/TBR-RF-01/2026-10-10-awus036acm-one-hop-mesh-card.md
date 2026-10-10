@@ -135,7 +135,8 @@ Plug the adapter in, then:
    The count is exactly `1`. If it is `0` or more than `1`, stop: `IF` does not
    name one adapter, and nothing below can be trusted. A name of the form
    `wlx...` carries the adapter's hardware address, so the record calls it
-   `<adapter>`.
+   `<adapter>`. `tools/scrub-telemetry.py` redacts such a name in step 8's
+   capture, keys included, and the evidence identifier check refuses one.
 3. `dmesg | grep -i -e mt76x2u -e mt7662` shows the firmware loading with no
    error. Record the lines, minus any address.
 
@@ -406,7 +407,12 @@ Assert, in order:
 
 1. `bridge link` shows neither `bat0` nor `$IF` in any bridge (`FML-ADR-056`).
 2. `batctl meshif bat0 neighbors` lists the peer on `$IF` within 60 s:
-   `wait_for 60 sh -c 'batctl meshif bat0 neighbors | grep -q "$IF"'`.
+   `wait_for 60 sh -c 'batctl meshif bat0 neighbors -H | grep -q "$IF"'`.
+   The `-H` matters: the table's header line names the mesh's main interface,
+   `$IF` here, so without it the check passes before any neighbour exists.
+   batctl `v2024.0` `debug.c`: "-H don't show the header". With it, only
+   neighbour rows remain, and BATMAN-IV prints the interface on each row
+   (`neighbors.c`, tab written as `\t`: `printf("   %10s\t  ", ifname);`).
 3. From node 1, `ping -c 30 -i 1 -W 1 10.60.0.2`. Record the summary line
    with its loss count. One reply or more passes this assertion.
 4. From node 2, `wait_for 30 ping -c 1 -W 2 10.60.0.1` succeeds.

@@ -28,6 +28,10 @@ like an address:
   administered MAC; kept when it decodes to a virtual one.
 - **Hostnames and SSIDs.** Redacted: a deployment's names are exactly what
   `SECURITY.md` says an adversary should not learn.
+- **MAC-based interface names** -- `wlx` or `enx` and twelve hex digits, the
+  systemd name for an adapter with a fixed address. The address is in the name,
+  with no colons, and the name appears as a dictionary key as well as a value.
+  Redacted when it decodes to a universally administered MAC.
 - **RFC1918 and link-local IPv4** -- bench topology, not equipment identity, and
   redacting it would destroy the readability of every routing table. Kept.
 - **Public IPv4** -- can locate a deployment. Redacted.
@@ -64,6 +68,17 @@ MAC_RE = re.compile(
 EUI64_RE = re.compile(
     r"fe80::([0-9a-fA-F]{1,4}):([0-9a-fA-F]{1,4}ff):(fe[0-9a-fA-F]{1,2}):([0-9a-fA-F]{1,4})",
     re.IGNORECASE,
+)
+
+#: An interface name that carries its MAC. systemd.net-naming-scheme(7):
+#: "ID_NET_NAME_MAC=prefixxAABBCCDDEEFF ... This name consists of the prefix,
+#: letter x, and 12 hexadecimal digits of the MAC address." The two-character
+#: prefixes it lists are en, ib, sl, wl, ww and mc. Debian names a USB Wi-Fi
+#: adapter this way (`wlx...`), so `iw dev`, link records and any table keyed by
+#: interface carry the address with no colons for MAC_RE to find.
+MAC_NAME_RE = re.compile(
+    r"(?<![0-9A-Za-z])(?P<prefix>en|ib|sl|wl|ww|mc)x(?P<hex>[0-9a-fA-F]{12})"
+    r"(?![0-9A-Za-z])"
 )
 
 #: A dotted quad that is not part of a longer dotted or alphanumeric run. The
@@ -144,6 +159,11 @@ def eui64_embedded_mac(groups: tuple[str, ...]) -> str | None:
     return ":".join(f"{o:02x}" for o in recovered)
 
 
+def mac_name_embedded_mac(hexdigits: str) -> str:
+    """Recover the MAC a MAC-based interface name carries, as colon-hex."""
+    return ":".join(hexdigits[i : i + 2] for i in range(0, 12, 2)).lower()
+
+
 def is_private_v4(addr: str) -> bool:
     """Report whether the address is RFC1918, loopback, link-local or multicast."""
     try:
@@ -188,6 +208,12 @@ class Scrubber:
                 return match.group(0)
             return self._token("LINKLOCAL", match.group(0))
 
+        def _mac_name(match: re.Match[str]) -> str:
+            mac = mac_name_embedded_mac(match.group("hex"))
+            if not is_equipment_mac(mac):
+                return match.group(0)
+            return self._token("IFNAME", match.group(0))
+
         def _mac(match: re.Match[str]) -> str:
             found = match.group(0)
             if not is_equipment_mac(found):
@@ -210,6 +236,7 @@ class Scrubber:
             return f'"{name}": "{self._token("SECRET", raw)}"'
 
         value = EUI64_RE.sub(_eui64, value)
+        value = MAC_NAME_RE.sub(_mac_name, value)
         value = MAC_RE.sub(_mac, value)
         value = IPV4_RE.sub(_v4, value)
         value = NODE_ID_RE.sub(lambda m: self._token("NODEID", m.group(0)), value)
@@ -238,7 +265,10 @@ class Scrubber:
                 elif key in SECRET_FIELDS and value != PUBLIC_DEFAULT_PSK:
                     out[key] = self._token("SECRET", str(value))
                 else:
-                    out[key] = self.walk(value)
+                    # Keys are scrubbed too: a station dump keyed by interface
+                    # name carries a `wlx...` name as a key, not a value.
+                    name = self.text(key) if isinstance(key, str) else key
+                    out[name] = self.walk(value)
             return out
         return node
 
