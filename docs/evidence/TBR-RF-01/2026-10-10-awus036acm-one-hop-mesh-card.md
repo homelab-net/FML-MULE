@@ -242,6 +242,12 @@ iw dev "$IF" mesh join fml-bench-mesh freq "$FREQ" HT20
 ip addr add 10.60.0.$N/24 dev "$IF"
 ```
 
+`HT20` is not optional either. iw `v6.9`, the version Debian trixie ships as
+`iw 6.9-1`, documents `parse_freqchan` in `util.c`: "If the mode/channel width
+is not given the NOHT is assumed." Dropping it would run the mesh non-HT, a
+different experiment, with no error. Record the width `iw dev "$IF" info`
+reports.
+
 `1560` is the template's `hard_interface_mtu`. If the driver refuses it, record
 the error and continue at 1500. Whether a radio carries a 1560-byte frame is an
 open question the template names, so the refusal is a result.
@@ -431,7 +437,10 @@ supplicant running, or with a credential in `/run`.
 
 1. On each node, from the checkout of `main`:
    `test/bench/capture-telemetry.py --label awus036acm-one-hop --out /run/capture.json`,
-   then `tools/scrub-telemetry.py /run/capture.json -o /run/capture.scrubbed.json`.
+   then
+   `python3 tools/scrub-telemetry.py /run/capture.json -o /run/capture.scrubbed.json`.
+   The scrubber is committed without the executable bit, so it runs through
+   `python3`.
    Read the scrubbed file before filing it. The scrubber does not read firmware
    strings or every SSID.
 2. Restore, only if step 4 has run. Steps 0 to 3 change nothing on the
