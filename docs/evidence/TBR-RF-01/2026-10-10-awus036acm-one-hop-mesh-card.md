@@ -170,6 +170,32 @@ belongs to `TBR-LINUX-01`'s driver question.
    profile permits 2.4 GHz and lists channels 1, 6 and 11 as neither DFS nor
    indoor-only. This is a bench setting. `wifi.mesh_channel` stays `TBD` under
    `TBR-RF-01`. The steps below write `$FREQ`.
+4. `export IF FREQ`, so the waits below can read them.
+
+## Waiting for a condition, not for a time
+
+Peering, SAE with AMPE, and batman-adv neighbour discovery take no fixed time.
+An assertion made the moment a link comes up can fail on a healthy radio.
+`test/bench/keyed-mesh.sh` waits up to 60 seconds for authentication for that
+reason, and `test/bench/80211s-mesh.sh` polls for traffic. Steps 5 to 7 grade
+every gate through this function, defined once in each node's shell:
+
+```sh
+# wait_for SECONDS COMMAND...: rerun COMMAND every 2 s until it succeeds,
+# or return 1 once SECONDS have passed.
+wait_for() {
+  limit=$1
+  shift
+  end=$(($(date +%s) + limit))
+  until "$@"; do
+    [ "$(date +%s)" -lt "$end" ] || return 1
+    sleep 2
+  done
+}
+```
+
+A gate fails only when its condition is still false at the bound. Record the
+bound each gate used.
 
 ## Step 5: single step, open mesh, no batman-adv
 
@@ -196,9 +222,10 @@ open question the template names, so the refusal is a result.
 
 Assert, in order:
 
-1. `iw dev "$IF" station dump` lists the peer with `mesh plink: ESTAB`.
-2. From node 1, `ping -c 1 -W 2 10.60.0.2` gets one reply. From node 2,
-   `ping -c 1 -W 2 10.60.0.1` gets one reply. Both ends originate, because a
+1. The station dump lists the peer with `mesh plink: ESTAB` within 60 s:
+   `wait_for 60 sh -c 'iw dev "$IF" station dump | grep -q "mesh plink:[[:space:]]*ESTAB"'`.
+2. From node 1, `wait_for 30 ping -c 1 -W 2 10.60.0.2` succeeds. From node 2,
+   `wait_for 30 ping -c 1 -W 2 10.60.0.1` succeeds. Both ends originate, because a
    node can see its peer and send while losing everything
    (`test/bench/80211s-mesh.sh`).
 3. Record `iw dev "$IF" info` (channel, width and the reported `txpower`) and,
@@ -245,16 +272,32 @@ channel or the configuration, never routing.
    ip link set "$IF" up
    ```
 
-4. Assert that node 1's station dump for the peer reads `authenticated: yes`,
-   `authorized: yes` and `mesh plink: ESTAB`. A `Station` line alone is not
-   success: a node that failed authentication still appears, in `LISTEN`
-   (`test/bench/keyed-mesh.sh`).
+4. Wait up to 60 s for authentication, as `test/bench/keyed-mesh.sh` does:
+   `wait_for 60 sh -c 'iw dev "$IF" station dump | grep -q "authenticated:[[:space:]]*yes"'`.
+   Then assert that node 1's station dump for the peer reads
+   `authenticated: yes`, `authorized: yes` and `mesh plink: ESTAB`. A `Station`
+   line alone is not success: a node that failed authentication still appears,
+   in `LISTEN` (`test/bench/keyed-mesh.sh`).
 5. One ping each way, as in step 5.
-6. **Negative control.** Stop node 2's `wpa_supplicant`
-   (`pkill -f "wpa_supplicant -i $IF"`), write a second file with a newly
-   generated credential, start it again on that file, and confirm that node 1 shows no
-   `authenticated: yes` and no `ESTAB` for it, and that a ping fails. Then
-   restore the shared credential and confirm step 4 again.
+6. **Negative control.** Stop `wpa_supplicant` on **both** nodes
+   (`pkill -f "wpa_supplicant -i $IF"`). Node 1 restarts it from the same
+   file. Node 2 writes `/run/fml-mesh-wrong.conf` with a newly generated
+   credential and restarts it from that file. Both use step 3's `ip link set`
+   and `wpa_supplicant` lines and skip the `ip addr add`, because the address
+   is still on the interface. Restarting node 1 too clears its station table:
+   a node can keep an entry for a peer that has gone, and a stale
+   `authenticated: yes` would fail this control on a healthy radio. Then
+   watch node 1 for the full 60 s:
+
+   ```sh
+   wait_for 60 sh -c 'iw dev "$IF" station dump | grep -q "authenticated:[[:space:]]*yes"'
+   ```
+
+   It is expected to return 1. Then confirm that the station dump shows no
+   `ESTAB` for node 2 and that `ping -c 3 -W 2 10.60.0.2` gets no reply. A
+   shorter watch proves nothing, because a correct peer could still be
+   converging. Finally restart node 2 from `/run/fml-mesh.conf` and repeat
+   step 4, with its wait.
 
 If step 5 passed and this step fails, that is a result about SAE on this adapter
 and this kernel. Record the tail of `/run/fml-mesh.log` with addresses removed,
@@ -297,10 +340,11 @@ program's veth mesh that held every client frame for 31.5 s while every
 Assert, in order:
 
 1. `bridge link` shows neither `bat0` nor `$IF` in any bridge (`FML-ADR-056`).
-2. `batctl meshif bat0 neighbors` lists the peer on `$IF`.
+2. `batctl meshif bat0 neighbors` lists the peer on `$IF` within 60 s:
+   `wait_for 60 sh -c 'batctl meshif bat0 neighbors | grep -q "$IF"'`.
 3. From node 1, `ping -c 30 -i 1 -W 1 10.60.0.2`. Record the summary line
    with its loss count. One reply or more passes this assertion.
-4. From node 2, `ping -c 1 -W 2 10.60.0.1` gets one reply.
+4. From node 2, `wait_for 30 ping -c 1 -W 2 10.60.0.1` succeeds.
 5. Record `batctl meshif bat0 originators` with addresses replaced by
    `<node1>` and `<node2>`.
 
@@ -352,9 +396,10 @@ section in the same change.
 
 Stop and record rather than change the procedure if: the regulatory domain is
 not the profile's country, the firmware does not load, `mesh point` is absent,
-any gate fails, or a step needs a setting the template or an ADR does not give.
-A failure is a result worth committing. Before "cannot", "blocked" or "needs
-other hardware" goes into the record, a separate agent qualifies it (Done 7).
+any gate's condition is still false at its bound, or a step needs a setting the
+template or an ADR does not give. A failure is a result worth committing.
+Before "cannot", "blocked" or "needs other hardware" goes into the record, a
+separate agent qualifies it (Done 7).
 
 ## What a pass shows, and what it does not
 
