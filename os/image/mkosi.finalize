@@ -15,16 +15,47 @@ if [ "$BUILDROOT" = / ] || [ ! -d "$BUILDROOT/var/lib/dpkg" ]; then
   exit 1
 fi
 
-sbom_base="$OUTPUTDIR/mule-development.sbom"
+# mkosi v25.3 manual: the image identifier "is also passed via the $IMAGE_ID to
+# any build scripts invoked". Each profile's ImageId selects its lock, SBOM
+# serial number (its own Seed) and boot-file checks; an unknown identifier is
+# refused rather than validated against the x86-64 lock.
+: "${IMAGE_ID:?mkosi did not provide IMAGE_ID}"
+case "$IMAGE_ID" in
+  mule-development)
+    lock="$SRCDIR/os/image/manifest/target-lock.json"
+    serial=0cb850a0-e8dd-5310-91f3-f9db6a8a94f9
+    set --
+    ;;
+  mule-development-pi4b)
+    # FML-ADR-088: "The image validation shall fail if /boot/firmware lacks
+    # vmlinuz-*, initrd.img-*, bcm2711-rpi-4-b.dtb, start4.elf, config.txt or
+    # cmdline.txt."
+    lock="$SRCDIR/os/image/manifest/pi4b-arm64/target-lock.json"
+    serial=ffd54b38-cb96-56e2-bdde-2b37c1bdec53
+    set -- \
+      --require-boot-file 'vmlinuz-*' \
+      --require-boot-file 'initrd.img-*' \
+      --require-boot-file 'bcm2711-rpi-4-b.dtb' \
+      --require-boot-file 'start4.elf' \
+      --require-boot-file 'config.txt' \
+      --require-boot-file 'cmdline.txt'
+    ;;
+  *)
+    printf 'No provenance policy for image %s.\n' "$IMAGE_ID" >&2
+    exit 1
+    ;;
+esac
+
+sbom_base="$OUTPUTDIR/$IMAGE_ID.sbom"
 sbom="$sbom_base.cdx.json"
-exceptions="$OUTPUTDIR/mule-development.license-exceptions.json"
+exceptions="$OUTPUTDIR/$IMAGE_ID.license-exceptions.json"
 
 # debsbom v0.10.1 generate --help: "--cdx-schema-version {latest}". The
 # built-root validator below independently enforces CycloneDX 1.6.
 debsbom generate \
   --sbom-type cdx \
   --cdx-schema-version latest \
-  --cdx-serialnumber 0cb850a0-e8dd-5310-91f3-f9db6a8a94f9 \
+  --cdx-serialnumber "$serial" \
   --timestamp 2026-09-12T00:00:00+00:00 \
   --no-recommends-deps \
   --with-licenses \
@@ -37,9 +68,10 @@ python3 "$SRCDIR/tools/add-runtime-sbom.py" \
 
 python3 "$SRCDIR/tools/validate-image-root.py" \
   --root "$BUILDROOT" \
-  --lock "$SRCDIR/os/image/manifest/target-lock.json" \
+  --lock "$lock" \
   --sbom "$sbom" \
-  --write-exceptions "$exceptions"
+  --write-exceptions "$exceptions" \
+  "$@"
 
 # ldconfig's auxiliary cache and update-alternatives' build transcript record
 # per-run metadata. Neither is a runtime input; the loader's governed

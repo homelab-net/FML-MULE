@@ -2,20 +2,38 @@
 # Validate or build the FML-ADR-079 Debian development image.
 #
 # Usage: tools/build-image.sh --check | --populate-cache | --offline
+#                             [--profile pi4b-arm64]
+#
+# Without --profile this builds the x86-64 image. --profile pi4b-arm64 builds
+# the FML-ADR-088 Raspberry Pi 4B profile on an x86-64 host, which needs the
+# qemu-user aarch64 binfmt handler registered (Debian qemu-user-binfmt).
 
 set -eu
 
 usage() {
-  printf 'Usage: %s --check | --populate-cache | --offline\n' "$0" >&2
+  printf 'Usage: %s --check | --populate-cache | --offline [--profile NAME]\n' \
+    "$0" >&2
   exit 2
 }
 
-[ $# -eq 1 ] || usage
+[ $# -eq 1 ] || [ $# -eq 3 ] || usage
 mode=$1
 case "$mode" in
   --check | --populate-cache | --offline) ;;
   *) usage ;;
 esac
+profile=
+if [ $# -eq 3 ]; then
+  [ "$2" = --profile ] || usage
+  profile=$3
+  case "$profile" in
+    pi4b-arm64) ;;
+    *)
+      printf 'Unknown image profile: %s\n' "$profile" >&2
+      exit 2
+      ;;
+  esac
+fi
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 IMAGE_DIR="$ROOT/os/image"
@@ -26,12 +44,23 @@ TARGET_LOCK="$IMAGE_DIR/manifest/target-lock.json"
 TOOLS_LOCK="$IMAGE_DIR/manifest/tools-tree-lock.json"
 OUTPUT_DIR=${FML_IMAGE_OUTPUT_DIR:-"$ROOT/out/image"}
 PACKAGE_CACHE=${FML_IMAGE_PACKAGE_CACHE:-"$IMAGE_DIR/mkosi.pkgcache"}
+IDENTITY_INPUTS=$INPUTS
+if [ -n "$profile" ]; then
+  # The profile keeps the base builder, snapshot and tools tree; its target
+  # closure, cache, output and identity are its own, so the x86-64 cache
+  # validator never sees arm64 packages and the two images never collide.
+  PACKAGES="$IMAGE_DIR/manifest/$profile/packages.list"
+  TARGET_LOCK="$IMAGE_DIR/manifest/$profile/target-lock.json"
+  OUTPUT_DIR=${FML_IMAGE_OUTPUT_DIR:-"$ROOT/out/image-$profile"}
+  PACKAGE_CACHE=${FML_IMAGE_PACKAGE_CACHE:-"$IMAGE_DIR/mkosi.pkgcache.$profile"}
+  IDENTITY_INPUTS="$IMAGE_DIR/mkosi.profiles/$profile/build-inputs.yml"
+fi
 DEBSBOM_VERSION=$(sed -n 's/^  sbom_package_version: //p' "$INPUTS")
 [ -n "$DEBSBOM_VERSION" ] || {
   printf '%s\n' 'The selected debsbom version is missing from build-inputs.yml.' >&2
   exit 1
 }
-OUTPUT_BASENAME=$(sed -n 's/^  image_id: //p' "$INPUTS")
+OUTPUT_BASENAME=$(sed -n 's/^  image_id: //p' "$IDENTITY_INPUTS")
 [ -n "$OUTPUT_BASENAME" ] || {
   printf '%s\n' 'Image output identity is missing from build-inputs.yml.' >&2
   exit 1
@@ -66,6 +95,39 @@ active_tools_packages=$(
 mkosi_bin=$("$ROOT/tools/resolve-mkosi-builder.sh" "$INPUTS")
 
 mkdir -p "$OUTPUT_DIR" "$PACKAGE_CACHE"
+if [ -n "$profile" ]; then
+  # Linux binfmt-misc: a registered handler appears as an entry under the
+  # binfmt_misc mount. Without it the image's arm64 maintainer scripts cannot
+  # run on this host and the build fails part-way. Existing is not enough
+  # (Documentation/admin-guide/binfmt-misc.rst): an entry can be disabled
+  # ("Catting the file tells you the current status"), and without F "the
+  # binary" is spawned "lazily", which "doesn't work very well in the face of
+  # mount namespaces and changeroots" -- mkosi runs the image's scripts in its
+  # own mount namespace, where the interpreter path does not exist.
+  binfmt=${FML_BINFMT_MISC:-/proc/sys/fs/binfmt_misc}
+  entry="$binfmt/qemu-aarch64"
+  [ -e "$entry" ] || {
+    printf '%s\n' "No qemu-aarch64 binfmt handler under $binfmt." \
+      'Install Debian qemu-user-binfmt (it registers via systemd-binfmt).' >&2
+    exit 1
+  }
+  [ "$(sed -n 1p "$entry")" = enabled ] || {
+    printf '%s\n' "The qemu-aarch64 binfmt handler is disabled: $entry" >&2
+    exit 1
+  }
+  grep -q '^flags: .*F' "$entry" || {
+    printf '%s\n' "The qemu-aarch64 binfmt handler lacks the F flag: $entry" \
+      'Register it with F (Debian qemu-user-binfmt does).' >&2
+    exit 1
+  }
+  # FML-ADR-088: "The host's qemu-user version shall be recorded with each
+  # build's provenance, since it is outside the tools-tree lock."
+  dpkg-query -W -f '${Package} ${Version}\n' qemu-user qemu-user-binfmt \
+    >"$OUTPUT_DIR/host-emulator.txt" || {
+    printf '%s\n' 'Cannot record the host qemu-user version.' >&2
+    exit 1
+  }
+fi
 # mkosi v25.3 manual: "If not configured explicitly, the current working
 # directory is mounted to /work/src." Mount the repository so finalize can
 # run the governed built-root validator through SRCDIR.
@@ -76,6 +138,11 @@ set -- "$mkosi_bin" \
   --output "$OUTPUT_BASENAME" \
   --package-cache-dir "$PACKAGE_CACHE" \
   --force
+if [ -n "$profile" ]; then
+  # mkosi v25.3 manual: "Select the given profiles. A profile is a
+  # configuration file or directory in the mkosi.profiles/ directory."
+  set -- "$@" --profile "$profile"
+fi
 
 if [ "$mode" = --offline ]; then
   # mkosi v25.3 manual: CacheOnly=always instructs the package manager not to

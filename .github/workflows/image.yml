@@ -173,3 +173,91 @@ jobs:
             /mnt/fml-image/gap09c.*/*-mule-development.raw.sha256
             /mnt/fml-image/gap09c.*/networked-1-mule-development.sbom.cdx.json
           if-no-files-found: warn
+
+  build-pi4b-arm64:
+    name: Reproducible cross-build (pi4b-arm64)
+    runs-on: ubuntu-latest
+    # Every arm64 maintainer script runs under qemu-user emulation.
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make room for the evidence
+        run: |
+          sudo mkdir -p /mnt/fml-image
+          sudo chown "$(id -u):$(id -g)" /mnt/fml-image
+
+      # FML-ADR-088 cross-builds the profile on an x86-64 host with Debian's
+      # qemu-user-binfmt, the N150 path. Registered here from inside the
+      # container, so the emulator is the Debian package whose version the
+      # build records, not the runner's.
+      #
+      # Linux Documentation/admin-guide/binfmt-misc.rst: "the F mode opens the
+      # binary as soon as the emulation is installed and uses the opened image
+      # to spawn the emulator, meaning it is always available once installed,
+      # regardless of how the environment changes." mkosi runs the image's
+      # scripts in its own mount namespace, where the container's
+      # /usr/libexec/qemu-binfmt does not exist; without F every arm64
+      # maintainer script fails to execute. The step checks the flag rather
+      # than trusting the package's binfmt.d file to carry it.
+      - name: FML-ADR-088 profile sequence in Debian 13
+        env:
+          DEBIAN_IMAGE: >-
+            mirror.gcr.io/library/debian@sha256:9cc080028c43b27d2074d63a5f9caf7166d731494965616c1a6d2827a004585c
+        run: |
+          docker run --rm --privileged \
+            -v "$GITHUB_WORKSPACE:/work/tree" \
+            -v /mnt/fml-image:/work/evidence \
+            -w /work/tree \
+            "$DEBIAN_IMAGE" sh -euc '
+              apt-get update -qq
+              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+                --no-install-recommends mkosi=25.3-7 debian-archive-keyring \
+                ca-certificates python3 python3-yaml qemu-user-binfmt \
+                >/dev/null
+              (cd /tmp && apt-get download -qq mkosi=25.3-7)
+              export FML_MKOSI_PACKAGE_DEB=/tmp/mkosi_25.3-7_all.deb
+
+              # binfmt-misc.rst: "You can remove one entry or all entries by
+              # echoing -1 to /proc/.../the_name", so a handler the runner
+              # registered does not stand in for the Debian one.
+              misc=/proc/sys/fs/binfmt_misc
+              mountpoint -q "$misc" || mount -t binfmt_misc binfmt_misc "$misc"
+              [ ! -e "$misc/qemu-aarch64" ] || echo -1 >"$misc/qemu-aarch64"
+              sed "/^#/d; /^\$/d" /usr/lib/binfmt.d/qemu-aarch64.conf \
+                >"$misc/register"
+              cat "$misc/qemu-aarch64"
+              grep -q "^flags: .*F" "$misc/qemu-aarch64"
+
+              tools/build-image.sh --check --profile pi4b-arm64
+
+              # Two clean networked builds and one network-isolated build
+              # from the first cache, compared. No boot: FML-ADR-088 says a
+              # QEMU boot "shall not stand in for acceptance".
+              FML_IMAGE_EVIDENCE_ROOT=/work/evidence \
+                tools/verify-image-reproducibility.sh --profile pi4b-arm64
+
+              run=$(ls -d /work/evidence/pi4b-arm64.*)
+              cat "$run/raw-image-sha256.txt"
+              sha256sum \
+                "$run/networked-1-mule-development-pi4b.sbom.cdx.json" \
+                "$run/networked-1-mule-development-pi4b.license-exceptions.json"
+              cat "$run/build-networked-1/host-emulator.txt"
+            '
+
+      - name: Let the runner read the evidence
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" /mnt/fml-image
+
+      - name: Keep the evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-evidence-pi4b-arm64
+          path: |
+            /mnt/fml-image/pi4b-arm64.*/*.log
+            /mnt/fml-image/pi4b-arm64.*/raw-image-sha256.txt
+            /mnt/fml-image/pi4b-arm64.*/*.raw.sha256
+            /mnt/fml-image/pi4b-arm64.*/networked-1-mule-development-pi4b.sbom.cdx.json
+            /mnt/fml-image/pi4b-arm64.*/build-networked-1/host-emulator.txt
+          if-no-files-found: warn

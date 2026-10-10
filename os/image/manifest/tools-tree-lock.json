@@ -3839,6 +3839,15 @@
       "sha256": "ee81302a1d5b7434762b6e784a572854d4b6cf6235e33e2d104ad4e1cae71ab4"
     },
     {
+      "name": "systemd-boot",
+      "version": "257.13-1~deb13u1",
+      "architecture": "amd64",
+      "source": "systemd",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd/systemd-boot_257.13-1~deb13u1_amd64.deb",
+      "sha256": "e8ebf9c51e141b89deda2aacc08332b35f9ef00722a5e187191e08b881ed04ed"
+    },
+    {
       "name": "systemd-boot-efi-amd64-signed",
       "version": "257.13-1~deb13u1",
       "architecture": "amd64",
@@ -3846,6 +3855,15 @@
       "suite": "trixie",
       "filename": "pool/main/s/systemd-boot-efi-amd64-signed/systemd-boot-efi-amd64-signed_257.13-1~deb13u1_amd64.deb",
       "sha256": "8ecdb0b4af26105ff8c38986c3c8a261133d60ca342ff75351c1be9d1abf74cc"
+    },
+    {
+      "name": "systemd-boot-tools",
+      "version": "257.13-1~deb13u1",
+      "architecture": "amd64",
+      "source": "systemd",
+      "suite": "trixie",
+      "filename": "pool/main/s/systemd/systemd-boot-tools_257.13-1~deb13u1_amd64.deb",
+      "sha256": "8ea810011e878796fb2fef4e8cd1d51d33e98fe74e44b8657d129e0a4d2ecab1"
     },
     {
       "name": "systemd-container",

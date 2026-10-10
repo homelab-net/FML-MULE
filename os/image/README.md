@@ -10,8 +10,19 @@ boundary. `build-inputs.yml` governs the builder, snapshot, package, and SBOM
 policy; `mkosi.conf` describes the raw GPT output; and
 `tools/build-image.sh --check` validates them without root.
 
+`FML-ADR-088` adds the Raspberry Pi 4B development image as the `pi4b-arm64`
+mkosi profile in `mkosi.profiles/pi4b-arm64/`: the same builder, snapshot and
+tools tree, an arm64 target closure of its own in `manifest/pi4b-arm64/`, no
+UEFI loader, and a FAT firmware partition written by Debian's
+`raspi-firmware`. It is cross-built on an x86-64 host under qemu-user. The
+profile has not met a Pi; bench card BC-1 is its acceptance run.
+
 The exact resolver inputs contain a 118-package target closure and a separate
-454-package mkosi tools-tree closure. GAP-09C exercised the earlier 97/440
+456-package mkosi tools-tree closure. The tools tree was 454 packages until
+2026-10-09, when the first arm64 build showed that the capture of mkosi's
+tools-tree configuration had missed its `systemd-boot` drop-in: mkosi installed
+`systemd-boot` and `systemd-boot-tools` unlocked, and the x86-64 build hid it
+because both are also x86-64 target packages. GAP-09C exercised the earlier 97/440
 foundation in two clean networked builds and one externally isolated
 cache-only build; all three
 raw images, SBOMs, and licence-exception reports were byte-identical, and the
@@ -23,11 +34,14 @@ GAP-09D adds the exact Debian Python, JSON Schema and YAML runtime closure.
 The separately locked tools tree builds `fml-mule==0.0.1` without build
 isolation or dependency resolution, installs its static native oneshot and
 canonical mission schema, and extends the completed-root CycloneDX inventory
-with a hash of those installed files. This 118/454 closure earned the same
-result in CI on 2026-10-09 (`.github/workflows/image.yml`): three identical
-raw images and a boot to `multi-user.target` with no guest network, recorded
-in `docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md`. That is `SIMULATED`,
-on one runner, and says nothing about the Pi.
+with a hash of those installed files. This closure earned the same result in
+CI on 2026-10-09 (`.github/workflows/image.yml`): three identical raw images
+and a boot to `multi-user.target` with no guest network, recorded in
+`docs/evidence/findings/GAP-09H/2026-10-09-bc0-x86-image-result.md`. That run
+used the 454-package tools-tree lock. With the two added packages the lock is
+118/456, and CI reproduced the same raw image, `ae7608b6...`, because mkosi
+had been installing both all along. That is `SIMULATED`, on one runner, and
+says nothing about the Pi.
 
 ## Intended pipeline
 
@@ -86,8 +100,9 @@ the equipment exists. See `os/README.md`.
 
 Pinned package manifests separate human-reviewed direct intent from generated
 exact target and tools-tree closures. See `manifest/README.md` for each file.
-The development kernel meta-package is selected for this x86-64 article only;
-`TBR-LINUX-01` still owns the production compatibility set.
+The development kernel meta-packages are selected for the x86-64 and Pi 4B
+development articles only; `TBR-LINUX-01` still owns the production
+compatibility set.
 
 The pinning rule is in the file's header comment and is repeated here because
 it is the rule most likely to be broken by someone in a hurry:
@@ -153,6 +168,8 @@ tools/build-image.sh --check
 sudo tools/build-image.sh --populate-cache
 sudo tools/build-image.sh --offline
 sudo tools/verify-image-reproducibility.sh
+sudo tools/build-image.sh --populate-cache --profile pi4b-arm64
+sudo tools/verify-image-reproducibility.sh --profile pi4b-arm64
 ```
 
 The first command is safe on a contributor machine. The other modes require the
@@ -170,3 +187,14 @@ boot emulated without KVM needs, and `FML_IMAGE_EVIDENCE_ROOT` moves the run's
 builds and logs off the checkout, to a disk with room for three tools trees.
 `.github/workflows/image.yml` runs this command in CI on changes to the image's
 inputs.
+
+`--profile pi4b-arm64` builds the Pi image into `out/image-pi4b-arm64/` from
+its own package cache, and needs a registered qemu-aarch64 binfmt handler with
+the `F` flag (Debian `qemu-user-binfmt`); it records the host's `qemu-user`
+version in `host-emulator.txt`, as `FML-ADR-088` requires. The reproducibility
+command with the profile runs the three builds and compares them; the
+profile's sandbox keeps the amd64 tools tree's package lists through its arm64
+metadata sync (`mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/apt.conf.d/`),
+so the network-isolated build rebuilds the tools tree from the cache as the
+x86-64 one does. It boots nothing: x86-64 QEMU cannot boot the Pi image and `FML-ADR-088` does not accept
+a QEMU boot in place of the board.

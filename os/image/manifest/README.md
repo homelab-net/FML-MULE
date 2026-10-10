@@ -10,6 +10,7 @@ Machine-readable pins for everything that goes into the image.
 | `tools-tree-direct-packages.list` | Package intent captured from pinned mkosi plus `debsbom` and its required CycloneDX runtime. |
 | `tools-tree-lock.json` | Generated exact build-tools dependency closure and provenance. |
 | `tools-tree-packages.list` | Generated exact tools-tree specifications consumed by mkosi. |
+| `pi4b-arm64/` | The `FML-ADR-088` Pi 4B profile's own direct intent, arm64 target lock and package list. It shares the tools-tree files above. |
 
 The human-readable summary of the compatibility set lives in
 `os/kernel/PINS.md`. Both describe the same set, and a mismatch between them is
@@ -19,7 +20,11 @@ understand a set, and the files here are what a build consumes.
 `FML-ADR-081` selects the minimum Debian 13 x86-64 development package
 foundation. GAP-09D extends it with the approved native Python runtime. The
 target lock contains 118 packages and the separate build-tools lock contains
-454 packages at the `20260912T000000Z` snapshot boundary. These
+456 packages at the `20260912T000000Z` snapshot boundary (454 before
+`systemd-boot`, which mkosi's tools-tree configuration installs, was added to
+the captured intent on 2026-10-09). The `FML-ADR-088`
+Pi 4B profile's arm64 target lock, in `pi4b-arm64/`, contains 117 packages at
+the same boundary. These
 are resolver results, not proof that an image was built or that its installed
 set matched. Production compatibility remains `TBR-LINUX-01`.
 

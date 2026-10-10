@@ -27,6 +27,7 @@ FINALIZE_SCRIPT = REPO_ROOT / "os/image/mkosi.finalize"
 RUNTIME_SBOM_PATH = REPO_ROOT / "tools/add-runtime-sbom.py"
 DIRECT_PACKAGES = REPO_ROOT / "os/image/manifest/direct-packages.list"
 TARGET_LOCK = REPO_ROOT / "os/image/manifest/target-lock.json"
+PI_PROFILE = Path("os/image/mkosi.profiles/pi4b-arm64")
 TOOLS_TREE_LOCK = REPO_ROOT / "os/image/manifest/tools-tree-lock.json"
 TARGET_SOURCES = (
     REPO_ROOT / "os/image/sandbox-target/etc/apt/sources.list.d/mkosi.sources"
@@ -58,6 +59,23 @@ IMAGE_FILES = (
     Path("os/image/manifest/tools-tree-packages.list"),
     Path("os/image/sandbox-target/etc/apt/sources.list.d/mkosi.sources"),
     Path("os/image/sandbox-tools/etc/apt/sources.list.d/mkosi.sources"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.conf"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/build-inputs.yml"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.postinst.chroot"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/00-firmware.conf"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/10-root.conf"),
+    Path("os/image/mkosi.profiles/pi4b-arm64/mkosi.repart/README.md"),
+    Path(
+        "os/image/mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/sources.list.d/"
+        "mkosi.sources"
+    ),
+    Path(
+        "os/image/mkosi.profiles/pi4b-arm64/sandbox-target/etc/apt/apt.conf.d/"
+        "50-keep-tools-tree-lists"
+    ),
+    Path("os/image/manifest/pi4b-arm64/direct-packages.list"),
+    Path("os/image/manifest/pi4b-arm64/packages.list"),
+    Path("os/image/manifest/pi4b-arm64/target-lock.json"),
 )
 
 
@@ -189,6 +207,7 @@ done
             "BUILDROOT": str(buildroot),
             "OUTPUTDIR": str(output),
             "SRCDIR": str(source),
+            "IMAGE_ID": "mule-development",
         },
         check=False,
         capture_output=True,
@@ -348,6 +367,149 @@ def test_built_root_validator_accepts_matching_installed_content(
     errors, exceptions = _load_root_validator().validate(root, lock, sbom)
     assert errors == []
     assert exceptions == []
+
+
+def _run_finalize_for(
+    tmp_path: Path, image_id: str
+) -> tuple[subprocess.CompletedProcess[str], str, str]:
+    """Run mkosi.finalize for one image id; return debsbom and python3 argv."""
+    buildroot = tmp_path / "buildroot"
+    (buildroot / "var/lib/dpkg").mkdir(parents=True)
+    output = tmp_path / "output"
+    output.mkdir()
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    calls = tmp_path / "calls"
+    for name in ("debsbom", "python3"):
+        (fake_bin / name).write_text(
+            f'#!/bin/sh\nprintf "{name} %s\\n" "$*" >>"{calls}"\n',
+            encoding="utf-8",
+        )
+        (fake_bin / name).chmod(0o755)
+    shell = shutil.which("sh")
+    assert shell is not None
+    result = subprocess.run(  # noqa: S603
+        [shell, str(FINALIZE_SCRIPT)],
+        env=os.environ
+        | {
+            "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+            "BUILDROOT": str(buildroot),
+            "OUTPUTDIR": str(output),
+            "SRCDIR": "/src",
+            "IMAGE_ID": image_id,
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    lines = calls.read_text(encoding="utf-8").splitlines() if calls.exists() else []
+    debsbom = next((line for line in lines if line.startswith("debsbom")), "")
+    root_check = next((line for line in lines if "validate-image-root.py" in line), "")
+    return result, debsbom, root_check
+
+
+def test_finalize_keeps_the_x86_provenance_unchanged(tmp_path: Path) -> None:
+    """The x86-64 image keeps its lock, serial number and names."""
+    result, debsbom, root_check = _run_finalize_for(tmp_path, "mule-development")
+
+    assert result.returncode == 0, result.stderr
+    assert "--cdx-serialnumber 0cb850a0-e8dd-5310-91f3-f9db6a8a94f9" in debsbom
+    assert "/src/os/image/manifest/target-lock.json" in root_check
+    assert "mule-development.sbom" in debsbom
+    assert "--require-boot-file" not in root_check
+
+
+def test_finalize_gives_the_pi_image_its_own_provenance(tmp_path: Path) -> None:
+    """The Pi image uses its own lock, Seed-derived serial and boot checks."""
+    result, debsbom, root_check = _run_finalize_for(tmp_path, "mule-development-pi4b")
+
+    assert result.returncode == 0, result.stderr
+    assert "--cdx-serialnumber ffd54b38-cb96-56e2-bdde-2b37c1bdec53" in debsbom
+    assert "mule-development-pi4b.sbom" in debsbom
+    assert "/src/os/image/manifest/pi4b-arm64/target-lock.json" in root_check
+    assert root_check.count("--require-boot-file") == 6
+
+
+def test_finalize_refuses_an_image_it_has_no_policy_for(tmp_path: Path) -> None:
+    """An unknown image is not validated against the x86-64 lock."""
+    result, debsbom, _root_check = _run_finalize_for(tmp_path, "mule-other")
+
+    assert result.returncode != 0
+    assert "No provenance policy" in result.stderr
+    assert debsbom == ""
+
+
+PI_BOOT_FILES = [
+    "vmlinuz-*",
+    "initrd.img-*",
+    "bcm2711-rpi-4-b.dtb",
+    "start4.elf",
+    "config.txt",
+    "cmdline.txt",
+]
+
+
+def _populate_firmware(root: Path) -> None:
+    firmware = root / "boot/firmware"
+    firmware.mkdir(parents=True)
+    for name in (
+        "vmlinuz-6.12.107-arm64",
+        "initrd.img-6.12.107-arm64",
+        "bcm2711-rpi-4-b.dtb",
+        "start4.elf",
+        "config.txt",
+        "cmdline.txt",
+    ):
+        (firmware / name).write_text("fixture\n", encoding="utf-8")
+
+
+def test_built_root_accepts_a_complete_pi_firmware_partition(tmp_path: Path) -> None:
+    """FML-ADR-088's six boot files present: no boot-file defect."""
+    root, lock, sbom = _root_fixture(tmp_path)
+    _populate_firmware(root)
+
+    errors, _exceptions = _load_root_validator().validate(
+        root, lock, sbom, required_boot_files=PI_BOOT_FILES
+    )
+
+    assert errors == []
+
+
+@pytest.mark.parametrize("missing", ["initrd.img-6.12.107-arm64", "config.txt"])
+def test_built_root_rejects_a_pi_firmware_partition_missing_a_file(
+    tmp_path: Path, missing: str
+) -> None:
+    """The hook exits 0 when it writes nothing, so the files are checked."""
+    root, lock, sbom = _root_fixture(tmp_path)
+    _populate_firmware(root)
+    (root / "boot/firmware" / missing).unlink()
+
+    errors, _exceptions = _load_root_validator().validate(
+        root, lock, sbom, required_boot_files=PI_BOOT_FILES
+    )
+
+    assert any("/boot/firmware" in error for error in errors)
+
+
+def test_built_root_rejects_an_empty_pi_boot_file(tmp_path: Path) -> None:
+    """A zero-length file is not a boot file."""
+    root, lock, sbom = _root_fixture(tmp_path)
+    _populate_firmware(root)
+    (root / "boot/firmware/cmdline.txt").write_text("", encoding="utf-8")
+
+    errors, _exceptions = _load_root_validator().validate(
+        root, lock, sbom, required_boot_files=PI_BOOT_FILES
+    )
+
+    assert any("cmdline.txt" in error for error in errors)
+
+
+def test_finalize_requires_the_pi_boot_files_for_the_pi_image_only() -> None:
+    """The finalize script passes the six patterns for the Pi profile."""
+    text = FINALIZE_SCRIPT.read_text(encoding="utf-8")
+
+    for pattern in PI_BOOT_FILES:
+        assert f"--require-boot-file '{pattern}'" in text
 
 
 def test_built_root_validator_detects_runtime_sbom_drift(tmp_path: Path) -> None:
@@ -584,6 +746,213 @@ def test_tools_tree_lock_requires_cyclonedx_runtime(
     )
 
 
+def _edit(path: Path, old: str, new: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    assert old in text, f"{old!r} not in {path}"
+    path.write_text(text.replace(old, new), encoding="utf-8")
+
+
+def test_the_committed_pi_profile_is_valid(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The profile as committed carries no defect, so each test below isolates one."""
+    assert validator.validate_repository(repository) == []
+
+
+def test_pi_profile_list_settings_shall_be_emptied_first(
+    repository: Path, validator: ModuleType
+) -> None:
+    """Without the empty assignment the base sandbox and environment leak in."""
+    _edit(repository / PI_PROFILE / "mkosi.conf", "SandboxTrees=\n", "")
+
+    assert any(
+        "mkosi.conf shall assign exactly" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_shall_not_be_bootable(
+    repository: Path, validator: ModuleType
+) -> None:
+    """FML-ADR-088: Bootable=no is load-bearing for the firmware hook."""
+    _edit(repository / PI_PROFILE / "mkosi.conf", "Bootable=no", "Bootable=yes")
+    _edit(
+        repository / PI_PROFILE / "build-inputs.yml",
+        "bootable: false",
+        "bootable: true",
+    )
+
+    errors = validator.validate_repository(repository)
+    assert any("mkosi.conf shall assign exactly" in error for error in errors)
+    assert any("Bootable=no with no bootloader" in error for error in errors)
+
+
+def test_pi_profile_seed_shall_derive_from_its_name(
+    repository: Path, validator: ModuleType
+) -> None:
+    """A hand-typed seed is not reproducible from the recorded name."""
+    _edit(
+        repository / PI_PROFILE / "build-inputs.yml",
+        "pi4b-development-image",
+        "pi4b-other-image",
+    )
+
+    assert any(
+        "output.seed shall be UUIDv5" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_sources_shall_enable_non_free_firmware(
+    repository: Path, validator: ModuleType
+) -> None:
+    """raspi-firmware is unresolvable from main alone."""
+    sources = (
+        repository / PI_PROFILE / "sandbox-target/etc/apt/sources.list.d/mkosi.sources"
+    )
+    _edit(sources, "Components: main non-free-firmware", "Components: main")
+
+    assert any(
+        "target snapshot sources shall be exactly signed trixie and security with "
+        "main and non-free-firmware" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_root_label_shall_agree_with_the_kernel_command_line(
+    repository: Path, validator: ModuleType
+) -> None:
+    """root=LABEL= names the partition label; a mismatch cannot mount root."""
+    _edit(
+        repository / PI_PROFILE / "mkosi.repart/10-root.conf",
+        "Label=mule-root",
+        "Label=root",
+    )
+
+    assert any(
+        "root partition shall carry label mule-root" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+@pytest.mark.parametrize("damage", ["removed", "format", "extra"])
+def test_pi_profile_shall_keep_its_firmware_partition(
+    repository: Path, validator: ModuleType, damage: str
+) -> None:
+    """No boot in CI notices a missing FAT partition, so --check shall."""
+    repart = repository / PI_PROFILE / "mkosi.repart"
+    if damage == "removed":
+        (repart / "00-firmware.conf").unlink()
+    elif damage == "format":
+        _edit(repart / "00-firmware.conf", "Format=vfat", "Format=ext4")
+    else:
+        (repart / "20-extra.conf").write_text(
+            "[Partition]\nType=linux-generic\n", encoding="utf-8"
+        )
+
+    errors = validator.validate_repository(repository)
+    expected = (
+        "mkosi.repart shall hold only"
+        if damage == "extra"
+        else "firmware partition shall be the governed 512M FAT"
+    )
+    assert any(expected in error for error in errors), errors
+
+
+def test_pi_profile_root_partition_shall_stay_governed(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The root definition is restated from mkosi's default; keep it intact."""
+    _edit(
+        repository / PI_PROFILE / "mkosi.repart/10-root.conf",
+        "Format=ext4",
+        "Format=btrfs",
+    )
+
+    assert any(
+        "root partition shall be the governed ext4 root" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_firmware_values_shall_be_written(
+    repository: Path, validator: ModuleType
+) -> None:
+    """A Pi 4 boot with the build host's CMA guess is the package's own warning."""
+    _edit(repository / PI_PROFILE / "mkosi.postinst.chroot", "CMA=0", "CMA=64M")
+
+    assert any(
+        "firmware configuration shall write CMA=0" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+@pytest.mark.parametrize("damage", ["removed", "cleanup on", "extra file"])
+def test_pi_profile_shall_keep_the_tools_tree_lists(
+    repository: Path, validator: ModuleType, damage: str
+) -> None:
+    """Without the setting the isolated build cannot rebuild the tools tree."""
+    conf = (
+        repository
+        / PI_PROFILE
+        / "sandbox-target/etc/apt/apt.conf.d/50-keep-tools-tree-lists"
+    )
+    if damage == "removed":
+        conf.unlink()
+    elif damage == "cleanup on":
+        _edit(conf, '"false"', '"true"')
+    else:
+        (conf.parent / "README.md").write_text("notes\n", encoding="utf-8")
+
+    assert any(
+        "sandbox apt.conf.d shall hold only 50-keep-tools-tree-lists" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_lock_shall_be_arm64(
+    repository: Path, validator: ModuleType
+) -> None:
+    """An amd64 package cannot enter the arm64 closure."""
+    lock_path = repository / "os/image/manifest/pi4b-arm64/target-lock.json"
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    lock["packages"][0]["architecture"] = "amd64"
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+
+    assert any(
+        "lock package architecture shall be arm64 or all" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_shall_not_install_a_uefi_loader(
+    repository: Path, validator: ModuleType
+) -> None:
+    """FML-ADR-088: no UEFI bootloader on the Pi."""
+    direct = repository / "os/image/manifest/pi4b-arm64/direct-packages.list"
+    direct.write_text(
+        direct.read_text(encoding="utf-8") + "systemd-boot\n", encoding="utf-8"
+    )
+
+    assert any(
+        "pi4b-arm64 direct target packages" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
+def test_pi_profile_packages_list_shall_follow_its_lock(
+    repository: Path, validator: ModuleType
+) -> None:
+    """The build installs packages.list; it shall be the lock, exactly."""
+    packages = repository / "os/image/manifest/pi4b-arm64/packages.list"
+    _edit(packages, "raspi-firmware=", "raspi-firmware-old=")
+
+    assert any(
+        "pi4b-arm64 packages.list shall be generated exactly" in error
+        for error in validator.validate_repository(repository)
+    )
+
+
 def test_live_mirror_and_disabled_key_check_are_rejected(
     repository: Path, validator: ModuleType
 ) -> None:
@@ -694,10 +1063,13 @@ def test_approved_target_and_tools_tree_cannot_drift(
     assert "tools_tree.release shall match the target release" in errors
 
 
-def test_offline_wrapper_names_raw_artifact_and_forbids_network(
-    repository: Path, tmp_path: Path
-) -> None:
-    """The wrapper shall request one raw basename and cache-only package use."""
+def _run_build_wrapper(
+    repository: Path,
+    tmp_path: Path,
+    *arguments: str,
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run tools/build-image.sh against fake mkosi, dpkg and unshare."""
     for relative in (
         Path("tools/build-image.sh"),
         Path("tools/resolve-mkosi-builder.sh"),
@@ -715,7 +1087,12 @@ def test_offline_wrapper_names_raw_artifact_and_forbids_network(
     (fake_bin / "dpkg-query").write_text(
         """#!/bin/sh
 case "$1" in
-  -W) printf '25.3-7' ;;
+  -W)
+    case "$*" in
+      *qemu-user*) printf 'qemu-user 0.0-fixture\nqemu-user-binfmt 0.0-fixture\n' ;;
+      *) printf '25.3-7' ;;
+    esac
+    ;;
   -L) printf '%s\\n' "$FML_TEST_MKOSI_BIN" ;;
   -S) printf 'mkosi: %s\\n' "$2" ;;
   *) exit 2 ;;
@@ -791,21 +1168,32 @@ exec "$@"
 
     shell = shutil.which("sh")
     assert shell is not None
-    environment = os.environ | {
-        "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
-        "TMPDIR": str(tmp_path),
-        "FML_MKOSI_PACKAGE_DEB": str(builder_deb),
-        "FML_TEST_MKOSI_SHA256": inputs["builder"]["package_sha256"],
-        "FML_TEST_MKOSI_BIN": str(packaged_mkosi),
-    }
-    result = subprocess.run(  # noqa: S603
-        [shell, str(repository / "tools/build-image.sh"), "--offline"],
+    environment = (
+        os.environ
+        | {
+            "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+            "TMPDIR": str(tmp_path),
+            "FML_MKOSI_PACKAGE_DEB": str(builder_deb),
+            "FML_TEST_MKOSI_SHA256": inputs["builder"]["package_sha256"],
+            "FML_TEST_MKOSI_BIN": str(packaged_mkosi),
+        }
+        | (extra_env or {})
+    )
+    return subprocess.run(  # noqa: S603
+        [shell, str(repository / "tools/build-image.sh"), *arguments],
         cwd=repository,
         env=environment,
         check=False,
         capture_output=True,
         text=True,
     )
+
+
+def test_offline_wrapper_names_raw_artifact_and_forbids_network(
+    repository: Path, tmp_path: Path
+) -> None:
+    """The wrapper shall request one raw basename and cache-only package use."""
+    result = _run_build_wrapper(repository, tmp_path, "--offline")
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert not (tmp_path / "shadow-mkosi-ran").exists()
@@ -819,6 +1207,7 @@ exec "$@"
     )
     assert f"--build-sources\n{repository}\n" in arguments
     isolation = (tmp_path / "unshare-arguments.txt").read_text(encoding="utf-8")
+    packaged_mkosi = tmp_path / "package/bin/mkosi"
     assert isolation.startswith(f"--net\n--\n{packaged_mkosi}\n")
     systemd = next(
         package
@@ -831,6 +1220,130 @@ exec "$@"
     )
     assert str(repository) not in checksum
     assert checksum.rstrip().endswith("  mule-development.raw")
+
+
+def _binfmt_with_aarch64(
+    tmp_path: Path, status: str = "enabled", flags: str = "POF"
+) -> Path:
+    """Write a binfmt_misc entry as the kernel prints it (seen on 2026-10-09)."""
+    binfmt = tmp_path / "binfmt_misc"
+    binfmt.mkdir()
+    (binfmt / "qemu-aarch64").write_text(
+        f"{status}\n"
+        "interpreter /usr/libexec/qemu-binfmt/aarch64-binfmt-P\n"
+        f"flags: {flags}\n"
+        "offset 0\n",
+        encoding="utf-8",
+    )
+    return binfmt
+
+
+@pytest.mark.parametrize(
+    ("status", "flags", "message"),
+    [
+        ("disabled", "POF", "handler is disabled"),
+        ("enabled", "PO", "lacks the F flag"),
+    ],
+)
+def test_pi_profile_build_refuses_an_unusable_aarch64_handler(
+    repository: Path, tmp_path: Path, status: str, flags: str, message: str
+) -> None:
+    """A present but disabled or non-F handler fails before mkosi, not inside it."""
+    binfmt = _binfmt_with_aarch64(tmp_path, status=status, flags=flags)
+
+    result = _run_build_wrapper(
+        repository,
+        tmp_path,
+        "--populate-cache",
+        "--profile",
+        "pi4b-arm64",
+        extra_env={"FML_BINFMT_MISC": str(binfmt)},
+    )
+
+    assert result.returncode == 1
+    assert message in result.stderr
+    assert not (tmp_path / "mkosi-arguments.txt").exists()
+
+
+def test_pi_profile_build_selects_its_own_inputs_and_output(
+    repository: Path, tmp_path: Path
+) -> None:
+    """FML-ADR-088: the profile build shall not touch the x86-64 identity."""
+    profile_inputs = yaml.safe_load(
+        (repository / PI_PROFILE / "build-inputs.yml").read_text(encoding="utf-8")
+    )
+    image_id = profile_inputs["output"]["image_id"]
+    binfmt = _binfmt_with_aarch64(tmp_path)
+
+    result = _run_build_wrapper(
+        repository,
+        tmp_path,
+        "--populate-cache",
+        "--profile",
+        "pi4b-arm64",
+        extra_env={"FML_BINFMT_MISC": str(binfmt)},
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    output = repository / "out/image-pi4b-arm64"
+    assert (output / f"{image_id}.raw").is_file()
+    assert not (repository / "out/image").exists()
+    arguments = (tmp_path / "mkosi-arguments.txt").read_text(encoding="utf-8")
+    assert "--profile\npi4b-arm64\n" in arguments
+    assert f"--output\n{image_id}\n" in arguments
+    assert (
+        f"--package-cache-dir\n{repository}/os/image/mkosi.pkgcache.pi4b-arm64\n"
+        in arguments
+    )
+    pi_lock = json.loads(
+        (repository / "os/image/manifest/pi4b-arm64/target-lock.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    firmware = next(p for p in pi_lock["packages"] if p["name"] == "raspi-firmware")
+    assert f"--package\nraspi-firmware={firmware['version']}" in arguments
+    requested = (output / "requested-packages.txt").read_text(encoding="utf-8")
+    assert "linux-image-amd64=" not in requested
+    assert "linux-image-arm64=" in requested
+    assert (
+        (output / "host-emulator.txt")
+        .read_text(encoding="utf-8")
+        .startswith("qemu-user ")
+    )
+
+
+def test_pi_profile_build_refuses_a_host_without_aarch64_emulation(
+    repository: Path, tmp_path: Path
+) -> None:
+    """Without the binfmt handler the build stops before mkosi runs."""
+    empty = tmp_path / "binfmt_misc"
+    empty.mkdir()
+
+    result = _run_build_wrapper(
+        repository,
+        tmp_path,
+        "--populate-cache",
+        "--profile",
+        "pi4b-arm64",
+        extra_env={"FML_BINFMT_MISC": str(empty)},
+    )
+
+    assert result.returncode == 1
+    assert "No qemu-aarch64 binfmt handler" in result.stderr
+    assert not (tmp_path / "mkosi-arguments.txt").exists()
+
+
+def test_build_wrapper_refuses_an_unknown_profile(
+    repository: Path, tmp_path: Path
+) -> None:
+    """A misspelt profile shall not fall back to the x86-64 build."""
+    result = _run_build_wrapper(
+        repository, tmp_path, "--populate-cache", "--profile", "pi4-arm64"
+    )
+
+    assert result.returncode == 2
+    assert "Unknown image profile: pi4-arm64" in result.stderr
+    assert not (tmp_path / "mkosi-arguments.txt").exists()
 
 
 def _reproducibility_fixture(tmp_path: Path) -> tuple[Path, dict[str, str]]:
@@ -846,7 +1359,14 @@ def _reproducibility_fixture(tmp_path: Path) -> tuple[Path, dict[str, str]]:
     packaged_bin.mkdir(parents=True)
     shutil.copy2(REPRODUCIBILITY_SCRIPT, tools / REPRODUCIBILITY_SCRIPT.name)
     (tools / REPRODUCIBILITY_SCRIPT.name).chmod(0o755)
-    (image / "build-inputs.yml").write_text("fixture: true\n", encoding="utf-8")
+    (image / "build-inputs.yml").write_text(
+        "output:\n  image_id: mule-development\n", encoding="utf-8"
+    )
+    profile = image / "mkosi.profiles/pi4b-arm64"
+    profile.mkdir(parents=True)
+    (profile / "build-inputs.yml").write_text(
+        "output:\n  image_id: mule-development-pi4b\n", encoding="utf-8"
+    )
 
     (tools / "resolve-mkosi-builder.sh").write_text(
         "#!/bin/sh\nprintf '%s\\n' \"$FML_TEST_PACKAGED_MKOSI\"\n",
@@ -857,17 +1377,24 @@ def _reproducibility_fixture(tmp_path: Path) -> tuple[Path, dict[str, str]]:
 set -eu
 : "${FML_IMAGE_OUTPUT_DIR:?}"
 : "${FML_IMAGE_PACKAGE_CACHE:?}"
-printf '%s|%s|%s\n' "$FML_IMAGE_OUTPUT_DIR" "$FML_IMAGE_PACKAGE_CACHE" "$1" \
+printf '%s|%s|%s\n' "$FML_IMAGE_OUTPUT_DIR" "$FML_IMAGE_PACKAGE_CACHE" "$*" \
   >>"$FML_TEST_BUILD_CALLS"
 mkdir -p "$FML_IMAGE_OUTPUT_DIR" "$FML_IMAGE_PACKAGE_CACHE"
+if [ "${FML_TEST_BUILD_FAILS:-}" = 1 ]; then
+  seq 1 300
+  printf '%s\n' 'ERROR: the reason the build failed'
+  exit 1
+fi
+name=mule-development
+[ "${2:-}" = --profile ] && name=mule-development-pi4b
 content=identical-image
 case "${FML_TEST_DIFFER:-}:$FML_IMAGE_OUTPUT_DIR" in
   1:*networked-2) content=different-image ;;
 esac
-printf '%s\n' "$content" >"$FML_IMAGE_OUTPUT_DIR/mule-development.raw"
-printf 'fixture checksum\n' >"$FML_IMAGE_OUTPUT_DIR/mule-development.raw.sha256"
-printf '{}\n' >"$FML_IMAGE_OUTPUT_DIR/mule-development.sbom.cdx.json"
-printf '{}\n' >"$FML_IMAGE_OUTPUT_DIR/mule-development.license-exceptions.json"
+printf '%s\n' "$content" >"$FML_IMAGE_OUTPUT_DIR/$name.raw"
+printf 'fixture checksum\n' >"$FML_IMAGE_OUTPUT_DIR/$name.raw.sha256"
+printf '{}\n' >"$FML_IMAGE_OUTPUT_DIR/$name.sbom.cdx.json"
+printf '{}\n' >"$FML_IMAGE_OUTPUT_DIR/$name.license-exceptions.json"
 printf 'cached package\n' >"$FML_IMAGE_PACKAGE_CACHE/fixture.deb"
 """,
         encoding="utf-8",
@@ -917,13 +1444,13 @@ fi
 
 
 def _run_reproducibility_fixture(
-    repository: Path, environment: dict[str, str]
+    repository: Path, environment: dict[str, str], *arguments: str
 ) -> subprocess.CompletedProcess[str]:
     """Execute the fake three-build harness."""
     shell = shutil.which("sh")
     assert shell is not None
     return subprocess.run(  # noqa: S603
-        [shell, str(repository / "tools/verify-image-reproducibility.sh")],
+        [shell, str(repository / "tools/verify-image-reproducibility.sh"), *arguments],
         cwd=repository,
         env=environment,
         check=False,
@@ -1229,3 +1756,69 @@ def test_postinst_installs_the_runtime_where_it_checks_on_debian(
     assert result.returncode == 0, result.stderr
     assert (buildroot / "usr/lib/python3/dist-packages/mule/__main__.py").is_file()
     assert not (buildroot / "usr/local").exists()
+
+
+def test_reproducibility_runner_builds_the_pi_profile_without_booting_it(
+    tmp_path: Path,
+) -> None:
+    """FML-ADR-088: three profile builds compared; no QEMU boot as acceptance."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    evidence_root = tmp_path / "evidence"
+    environment["FML_IMAGE_EVIDENCE_ROOT"] = str(evidence_root)
+    result = _run_reproducibility_fixture(
+        repository, environment, "--profile", "pi4b-arm64"
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    calls = [
+        line.split("|")
+        for line in (tmp_path / "build-calls.txt")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert [call[2] for call in calls] == [
+        "--populate-cache --profile pi4b-arm64",
+        "--populate-cache --profile pi4b-arm64",
+        "--offline --profile pi4b-arm64",
+    ]
+    assert not (tmp_path / "packaged-mkosi-ran").exists()
+    (run,) = evidence_root.glob("pi4b-arm64.*")
+    assert (run / "isolated-cache-mule-development-pi4b.raw").is_file()
+    assert "Not booted" in result.stdout
+
+
+def test_reproducibility_runner_compares_the_pi_profile_builds(
+    tmp_path: Path,
+) -> None:
+    """Skipping the boot does not skip the identity comparison."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment["FML_TEST_DIFFER"] = "1"
+    result = _run_reproducibility_fixture(
+        repository, environment, "--profile", "pi4b-arm64"
+    )
+
+    assert result.returncode != 0
+    assert "Raw image identities differ" in result.stderr
+
+
+def test_reproducibility_runner_refuses_an_unknown_profile(tmp_path: Path) -> None:
+    """A misspelt profile shall not fall back to the x86-64 sequence."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    result = _run_reproducibility_fixture(
+        repository, environment, "--profile", "pi4-arm64"
+    )
+
+    assert result.returncode == 2
+    assert "Unknown image profile" in result.stderr
+    assert not (tmp_path / "build-calls.txt").exists()
+
+
+def test_reproducibility_runner_shows_why_a_build_failed(tmp_path: Path) -> None:
+    """A failed build's reason is at the end of its log; that is what is shown."""
+    repository, environment = _reproducibility_fixture(tmp_path)
+    environment["FML_TEST_BUILD_FAILS"] = "1"
+    result = _run_reproducibility_fixture(repository, environment)
+
+    assert result.returncode == 1
+    assert "ERROR: the reason the build failed" in result.stderr
+    assert "networked-1 build failed with status 1" in result.stderr
