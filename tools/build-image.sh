@@ -98,11 +98,26 @@ mkdir -p "$OUTPUT_DIR" "$PACKAGE_CACHE"
 if [ -n "$profile" ]; then
   # Linux binfmt-misc: a registered handler appears as an entry under the
   # binfmt_misc mount. Without it the image's arm64 maintainer scripts cannot
-  # run on this host and the build fails part-way.
+  # run on this host and the build fails part-way. Existing is not enough
+  # (Documentation/admin-guide/binfmt-misc.rst): an entry can be disabled
+  # ("Catting the file tells you the current status"), and without F "the
+  # binary" is spawned "lazily", which "doesn't work very well in the face of
+  # mount namespaces and changeroots" -- mkosi runs the image's scripts in its
+  # own mount namespace, where the interpreter path does not exist.
   binfmt=${FML_BINFMT_MISC:-/proc/sys/fs/binfmt_misc}
-  [ -e "$binfmt/qemu-aarch64" ] || {
+  entry="$binfmt/qemu-aarch64"
+  [ -e "$entry" ] || {
     printf '%s\n' "No qemu-aarch64 binfmt handler under $binfmt." \
       'Install Debian qemu-user-binfmt (it registers via systemd-binfmt).' >&2
+    exit 1
+  }
+  [ "$(sed -n 1p "$entry")" = enabled ] || {
+    printf '%s\n' "The qemu-aarch64 binfmt handler is disabled: $entry" >&2
+    exit 1
+  }
+  grep -q '^flags: .*F' "$entry" || {
+    printf '%s\n' "The qemu-aarch64 binfmt handler lacks the F flag: $entry" \
+      'Register it with F (Debian qemu-user-binfmt does).' >&2
     exit 1
   }
   # FML-ADR-088: "The host's qemu-user version shall be recorded with each

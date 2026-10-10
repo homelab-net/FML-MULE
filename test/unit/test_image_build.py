@@ -1181,11 +1181,47 @@ def test_offline_wrapper_names_raw_artifact_and_forbids_network(
     assert checksum.rstrip().endswith("  mule-development.raw")
 
 
-def _binfmt_with_aarch64(tmp_path: Path) -> Path:
+def _binfmt_with_aarch64(
+    tmp_path: Path, status: str = "enabled", flags: str = "POF"
+) -> Path:
+    """Write a binfmt_misc entry as the kernel prints it (seen on 2026-10-09)."""
     binfmt = tmp_path / "binfmt_misc"
     binfmt.mkdir()
-    (binfmt / "qemu-aarch64").write_text("enabled\n", encoding="utf-8")
+    (binfmt / "qemu-aarch64").write_text(
+        f"{status}\n"
+        "interpreter /usr/libexec/qemu-binfmt/aarch64-binfmt-P\n"
+        f"flags: {flags}\n"
+        "offset 0\n",
+        encoding="utf-8",
+    )
     return binfmt
+
+
+@pytest.mark.parametrize(
+    ("status", "flags", "message"),
+    [
+        ("disabled", "POF", "handler is disabled"),
+        ("enabled", "PO", "lacks the F flag"),
+    ],
+)
+def test_pi_profile_build_refuses_an_unusable_aarch64_handler(
+    repository: Path, tmp_path: Path, status: str, flags: str, message: str
+) -> None:
+    """A present but disabled or non-F handler fails before mkosi, not inside it."""
+    binfmt = _binfmt_with_aarch64(tmp_path, status=status, flags=flags)
+
+    result = _run_build_wrapper(
+        repository,
+        tmp_path,
+        "--populate-cache",
+        "--profile",
+        "pi4b-arm64",
+        extra_env={"FML_BINFMT_MISC": str(binfmt)},
+    )
+
+    assert result.returncode == 1
+    assert message in result.stderr
+    assert not (tmp_path / "mkosi-arguments.txt").exists()
 
 
 def test_pi_profile_build_selects_its_own_inputs_and_output(
