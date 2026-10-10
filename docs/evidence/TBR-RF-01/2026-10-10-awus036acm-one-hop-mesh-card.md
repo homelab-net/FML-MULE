@@ -117,17 +117,19 @@ apt cannot find it, record `apt-cache policy firmware-mediatek` and stop.
 Plug the adapter in, then:
 
 1. `lsusb -d 0e8d:7612` prints exactly one line.
-2. Find its interface by driver:
+2. Find its interface by driver, and keep the name in `IF`:
 
    ```sh
-   for d in /sys/class/net/*; do
+   IF=$(for d in /sys/class/net/*; do
      [ "$(basename "$(readlink -f "$d/device/driver")")" = mt76x2u ] &&
        basename "$d"
-   done
+   done)
+   printf '%s\n' "$IF" | grep -c .
+   PHY=phy$(cat "/sys/class/net/$IF/phy80211/index")
    ```
 
-   This prints exactly one name. The card calls it `$IF`. Then set
-   `PHY=phy$(cat /sys/class/net/$IF/phy80211/index)`. A name of the form
+   The count is exactly `1`. If it is `0` or more than `1`, stop: `IF` does not
+   name one adapter, and nothing below can be trusted. A name of the form
    `wlx...` carries the adapter's hardware address, so the record calls it
    `<adapter>`.
 3. `dmesg | grep -i -e mt76x2u -e mt7662` shows the firmware loading with no
@@ -169,8 +171,11 @@ belongs to `TBR-LINUX-01`'s driver question.
 3. Use the least occupied of 2412, 2437 and 2462 MHz, at HT20. The region
    profile permits 2.4 GHz and lists channels 1, 6 and 11 as neither DFS nor
    indoor-only. This is a bench setting. `wifi.mesh_channel` stays `TBD` under
-   `TBR-RF-01`. The steps below write `$FREQ`.
-4. `export IF FREQ`, so the waits below can read them.
+   `TBR-RF-01`. Assign the choice, for example `FREQ=2412`, on both nodes.
+4. Set `N=1` on node 1 and `N=2` on node 2. Steps 5 to 7 address the nodes as
+   `10.60.0.$N`.
+5. `export IF FREQ`, so the waits below can read them, and confirm none of the
+   three is empty: `echo "IF=$IF FREQ=$FREQ N=$N"`.
 
 ## Waiting for a condition, not for a time
 
@@ -213,7 +218,7 @@ iw dev "$IF" set type mp
 ip link set "$IF" mtu 1560
 ip link set "$IF" up
 iw dev "$IF" mesh join fml-bench-mesh freq "$FREQ" HT20
-ip addr add 10.60.0.N/24 dev "$IF"
+ip addr add 10.60.0.$N/24 dev "$IF"
 ```
 
 `1560` is the template's `hard_interface_mtu`. If the driver refuses it, record
@@ -268,7 +273,7 @@ channel or the configuration, never routing.
    ```sh
    ip link set "$IF" down
    wpa_supplicant -i "$IF" -c /run/fml-mesh.conf -D nl80211 -B -f /run/fml-mesh.log
-   ip addr add 10.60.0.N/24 dev "$IF"
+   ip addr add 10.60.0.$N/24 dev "$IF"
    ip link set "$IF" up
    ```
 
@@ -321,7 +326,7 @@ batctl meshif bat0 distributed_arp_table 0
 batctl meshif bat0 multicast_mode 0
 ip addr flush dev "$IF"
 batctl meshif bat0 interface add "$IF"
-ip addr add 10.60.0.N/24 dev bat0
+ip addr add 10.60.0.$N/24 dev bat0
 ip link set bat0 up
 ```
 
