@@ -2,13 +2,46 @@
 # Bring up one real 802.11s mesh node and join it to batman-adv, then gate on a
 # single packet. The real-radio counterpart to test/bench/80211s-mesh.sh.
 #
-# Usage: sudo test/bench/80211s-mesh-real.sh {up <octet>|gate <peer-ip>|status|down}
+# Usage: sudo test/bench/80211s-mesh-real.sh
+#            {up <octet>|gate <peer-ip>|status|peers|line-assert <n>|hops <ip>|down}
 #
 #   up <octet>      configure THIS node; bat0 takes 10.42.0.<octet>/24.
 #   gate <peer-ip>  the one-packet gate: peer established, batman sees the
 #                   hard interface, and exactly one ICMP echo crosses.
 #   status          current mesh and batman state, for evidence capture.
+#   peers           established mesh peers with signal, for positioning nodes.
+#   line-assert <n> fail unless this node sees exactly <n> established peers.
+#   hops <ip>       assert a RELAYED route exists and measure RTT to <ip>.
 #   down            full teardown; returns the radio to NetworkManager.
+#
+# STATUS OF THE LINE SUBCOMMANDS, precisely. `peers`, `line-assert` and `hops`
+# exist for Step 2's multi-hop item, which needs three mesh nodes. At the time
+# of writing this bench has exactly TWO mesh-capable radios (both MT7612U), and
+# no third candidate exists: the bench mule's phy0 does not list `mesh point`
+# under supported interface modes -- it appears only in that phy's frame-type
+# tables, which is not a mode declaration -- and it is that host's sole uplink
+# besides; its phy1 `rtl8812au` offers managed and AP only.
+#
+# What that let us exercise on a two-node mesh, and what it did not:
+#
+#   EXERCISED  `peers` against real radios; `line-assert 1` passing on an end
+#              node; `line-assert 2` failing loudly; and `hops` correctly
+#              REFUSING a flat mesh, which also confirms the originator-table
+#              parsing against real `batctl 2025.4` output.
+#   UNTESTED   the positive multi-hop path: `hops` reporting a relayed route
+#              and a two-hop RTT. Nothing with two radios can reach it.
+#
+# So the failure paths are proven and the success path is not. Treat the first
+# three-node run as debugging, not as measurement.
+#
+# WHY A LINE NEEDS ONLY THREE RADIOS HERE, NOT FOUR. `80211s-mesh.sh --line`
+# uses four because every `mac80211_hwsim` radio hears every other, so the two
+# segments must be separated by channel and the relay needs one radio per
+# channel. Real radios have propagation: put the end nodes out of each other's
+# range and one channel and one radio per node suffice. That is what
+# `line-assert` is for -- at -13 dBm, which is what two of these adapters read
+# on a bench, the end nodes hear each other perfectly well and the result is a
+# flat three-node mesh that proves nothing about relaying.
 #
 # WHY THIS EXISTS, AND WHY IT IS NOT 80211s-mesh.sh. That script proves the
 # stack on mac80211_hwsim: it runs every node as a network namespace on ONE
@@ -209,6 +242,60 @@ mesh_gate() {
   fi
 }
 
+# --- line topology support (UNEXERCISED: see the header) --------------------
+
+# Established peers only. A peer in OPN_SNT or similar is not carrying traffic,
+# and counting it would make line-assert pass on a half-formed mesh.
+peer_count_estab() {
+  iw dev "$DEV" station dump 2>/dev/null |
+    awk '/mesh plink:/ && /ESTAB/ {n++} END {print n+0}'
+}
+
+mesh_peers() {
+  printf 'mesh peers seen by %s (%s)\n' "$(hostname)" "$(cat "/sys/class/net/$DEV/address")"
+  iw dev "$DEV" station dump 2>/dev/null | awk '
+    /^Station/      { mac = $2 }
+    /signal:/       { sig = $2 }
+    /mesh plink:/   { printf "   %s  signal %s dBm  plink %s\n", mac, sig, $3 }'
+  printf '   established peers: %s\n' "$(peer_count_estab)"
+  printf '\nFor a line, the end nodes must each see 1 and the relay 2. Signal is\n'
+  printf 'the lever: move the end nodes apart until they stop seeing each other.\n'
+}
+
+# The topology assertion that must pass BEFORE any multi-hop number is taken.
+# 80211s-mesh.sh asserts the same thing on hwsim by counting node 1's peers.
+mesh_line_assert() {
+  local want=${1:-} got
+  [ -n "$want" ] || fail 'usage: line-assert <expected-established-peers>'
+  got=$(peer_count_estab)
+  printf '%s: expected %s established peer(s), found %s\n' "$(hostname)" "$want" "$got"
+  if [ "$got" -ne "$want" ]; then
+    mesh_peers
+    fail "the line is not formed: this node sees $got established peers, not $want. If it sees too many, the end nodes are still in range of each other -- separate or attenuate them. Do NOT take a multi-hop reading until this passes."
+  fi
+  printf 'LINE ASSERTION PASSED.\n'
+}
+
+# Multi-hop is proved by the originator table, not by reachability: a route
+# whose Nexthop is not the Originator itself is one batman-adv is relaying.
+mesh_hops() {
+  local far=${1:-} relayed
+  [ -n "$far" ] || fail 'usage: hops <far-node-ip>'
+
+  printf 'originator table on %s\n' "$(hostname)"
+  batctl meshif "$MESH_IF" originators 2>&1 | sed 's/^/   /'
+
+  relayed=$(batctl meshif "$MESH_IF" originators 2>/dev/null |
+    awk '/^ *\*/ { if ($2 != "" && $5 != "" && $2 != $5) n++ } END {print n+0}')
+  printf '\n   relayed routes (nexthop != originator): %s\n' "$relayed"
+  [ "$relayed" -gt 0 ] ||
+    fail 'no relayed route: every originator is its own nexthop, so this is a flat mesh and nothing is multi-hop. Re-check line-assert.'
+
+  printf '\nRTT to %s over %s\n' "$far" "$MESH_IF"
+  ping -c 20 -i 0.2 -W 5 -I "$MESH_IF" "$far" 2>&1 | tail -3 | sed 's/^/   /'
+  printf '\nMULTI-HOP CONFIRMED: %s is reached through a relay.\n' "$far"
+}
+
 mesh_down() {
   tc qdisc del dev "$MESH_IF" root >/dev/null 2>&1 || true
   ip link set "$MESH_IF" down >/dev/null 2>&1 || true
@@ -224,9 +311,12 @@ mesh_down() {
 }
 
 case "${1:-}" in
-  up)     shift; mesh_up "${1:-}" ;;
-  gate)   shift; mesh_gate "${1:-}" ;;
-  status) mesh_status ;;
-  down)   mesh_down ;;
-  *) fail 'usage: 80211s-mesh-real.sh {up <octet>|gate <peer-ip>|status|down}' ;;
+  up)          shift; mesh_up "${1:-}" ;;
+  gate)        shift; mesh_gate "${1:-}" ;;
+  status)      mesh_status ;;
+  peers)       mesh_peers ;;
+  line-assert) shift; mesh_line_assert "${1:-}" ;;
+  hops)        shift; mesh_hops "${1:-}" ;;
+  down)        mesh_down ;;
+  *) fail 'usage: 80211s-mesh-real.sh {up <octet>|gate <peer-ip>|status|peers|line-assert <n>|hops <ip>|down}' ;;
 esac
