@@ -46,6 +46,23 @@ illustrative, not a decision: `TBR-RF-01` owns the mechanism. Both modes are
 `docs/evidence/TBR-RF-01/`. It selects its radios from the `mac80211_hwsim`
 device tree under `/sys`, never by name.
 
+`80211s-mesh-real.sh` and `mesh-traffic-real.sh` are the real-radio
+counterparts, and they exist because neither script above can be pointed at
+hardware: `80211s-mesh.sh` runs every node as a namespace on one host, and
+`mesh-traffic.sh` refuses outright to move a real radio. These run once per node
+on two separate hosts. `80211s-mesh-real.sh` brings up one mesh node and gates on
+a single ICMP echo crossing -- the gate `docs/bench-hardware-bringup.md` requires
+before anything multi-node -- selecting its radio by driver and **refusing an
+`mac80211_hwsim` phy**, the inverse of the guard above, because a `SIMULATED`
+figure recorded as real-RF evidence is the one failure that would matter.
+`mesh-traffic-real.sh` ports the `contention` phases only; `latency` needs the
+three-node line that two nodes cannot form. It reports loss and jitter but
+**withholds one-way latency**, which across two hosts is a clock-offset artefact
+by `udpflow.py`'s own account, and substitutes `ping -D` RTT. It also refuses to
+print a figure when no packets arrived or when a receiver outlived its phase,
+because both look like loss and are neither. Results are `HARDWARE-VERIFIED` and
+node-local in `docs/evidence/TBR-RF-01/`.
+
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the
 routing-logic half of `TBR-NET-04` -- a client selecting a gateway (through the

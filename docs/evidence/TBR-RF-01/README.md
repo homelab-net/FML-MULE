@@ -12,6 +12,8 @@ an artifact's presence is not owner acceptance.
 
 - [2026-09-14-mesh-multihop-latency-hwsim.md][artifact-1]
 - [2026-09-14-voice-data-contention-hwsim.md][artifact-2]
+- [2026-10-11-two-node-80211s-batman-real-radio.md][artifact-3], the first
+  `HARDWARE-VERIFIED` artifact here; node-local, one hop.
 - [Physical infrastructure-WiFi trial][wifi-trial], shared evidence for the
   Linux/radio boundary; not selected 802.11s qualification.
 - [2026-10-10-awus036acm-one-hop-mesh-card.md][card-1], a bench card, not a
@@ -20,6 +22,7 @@ an artifact's presence is not owner acceptance.
 
 [artifact-1]: 2026-09-14-mesh-multihop-latency-hwsim.md
 [artifact-2]: 2026-09-14-voice-data-contention-hwsim.md
+[artifact-3]: 2026-10-11-two-node-80211s-batman-real-radio.md
 [card-1]: 2026-10-10-awus036acm-one-hop-mesh-card.md
 [wifi-trial]: ../TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
 
