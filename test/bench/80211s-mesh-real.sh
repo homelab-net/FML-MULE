@@ -54,7 +54,9 @@
 # sequence -- ported from 80211s-mesh.sh's join_mesh/join_batman, value for
 # value -- applied to one real radio on one real host, run once per node.
 #
-# WHAT A RESULT HERE IS. The first real-RF mesh datapoint in this repository:
+# WHAT A RESULT HERE IS. The first real-RF 802.11s/batman-adv datapoint in this
+# repository -- not its first real-RF result at all, which is the 2026-09-27
+# one-hop LoRa bench under docs/evidence/TBR-NET-02/, a different bearer:
 # every artifact under docs/evidence/TBR-RF-01/ before this one is SIMULATED,
 # and os/config/batman-adv.conf.template says plainly that "veth is a perfect
 # wire and nothing here has met a radio." This is a radio.

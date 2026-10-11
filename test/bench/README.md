@@ -60,8 +60,9 @@ three-node line that two nodes cannot form. It reports loss and jitter but
 **withholds one-way latency**, which across two hosts is a clock-offset artefact
 by `udpflow.py`'s own account, and substitutes `ping -D` RTT. It also refuses to
 print a figure when no packets arrived or when a receiver outlived its phase,
-because both look like loss and are neither. Results are `HARDWARE-VERIFIED` and
-node-local in `docs/evidence/TBR-RF-01/`.
+because both look like loss and are neither. Results are real RF rather than
+`SIMULATED`, but node-local, and their tier is deferred like every other
+real-hardware result here; they live in `docs/evidence/TBR-RF-01/`.
 
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the

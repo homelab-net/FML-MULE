@@ -1,8 +1,16 @@
 # Two-node 802.11s + batman-adv on real radios
 
-**Tier:** `HARDWARE-VERIFIED`, and the first artifact in this directory that is.
-Every earlier `TBR-RF-01` result is `SIMULATED`; this one met a radio. It is
-nonetheless **node-local**: no independent receiver observed the air.
+**Tier: deferred (real-hardware bench result; formal `HARDWARE-VERIFIED` held).**
+Every earlier `TBR-RF-01` artifact is `SIMULATED`; this one met a radio. The
+program nonetheless does not stamp it: `README.md` and `test/README.md` both
+still state that nothing in the repository is `HARDWARE-VERIFIED`, and flipping
+that is a deliberate program-wide posture change which must reconcile those
+surfaces, `STATUS.md`, `AGENTS.md` and the prebuilt public `site/` at once. That
+reasoning is not new here -- it is the posture
+`docs/evidence/TBR-NET-02/2026-09-27-one-lora-hop-to-a-partner-node.md` records
+for the earlier real-hardware result being held the same way. This is **not**
+`SIMULATED`: that word says nothing about physical behaviour and this was real
+RF. It is also **node-local**: no independent receiver observed the air.
 
 **Date:** 2026-10-11. **Nodes:** `pi-mule-1` and `pi-mule-2`, Raspberry Pi,
 `6.18.50+rpt-rpi-v8 aarch64`, `batman-adv 2025.4` (`batctl debian-2025.0-2`).
