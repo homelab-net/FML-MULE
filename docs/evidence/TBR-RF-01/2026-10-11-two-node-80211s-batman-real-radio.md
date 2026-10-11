@@ -141,3 +141,66 @@ latency or relay behaviour. That needs a third mesh-capable radio.
 `docs/bench-hardware-bringup.md`, the QoS mechanism stays the trade's to choose,
 and `TBR-LINUX-01` -- the sub-GHz HaLow driver question this program calls the
 dominant uncertainty -- is untouched by this hardware.
+
+## Addendum, same day: cold-boot restore, measured goodput, TAK traffic
+
+Both nodes lost power at 17:25 and rebooted. Nothing persistent had to be
+undone: `wlan1` came back `managed`, `batman-adv` was unloaded, and
+NetworkManager was managing the radio again, which is what
+`test/bench/80211s-mesh-real.sh down` aims at and what the template means by an
+input to configuration generation rather than a file edited on a node. Bringing
+the mesh back was the two `up` calls and the gate, from a cold boot.
+
+One number from that restore is worth keeping. The gate's first packet took
+**1277 ms**, with the originator table still empty when the gate read it. That
+is batman-adv route discovery on a cold mesh, not the `bridge_loop_avoidance`
+pathology, which `mesh-probe.yml` records at tens of seconds. The distinction
+matters because both look like "the first packet was slow".
+
+### Measured goodput, against the driver's own estimate
+
+A 64 MiB payload over HTTP on `bat0`, one hop:
+
+| Layer | Figure |
+| --- | --- |
+| PHY rate, both directions (no HT) | 54.0 MBit/s |
+| `iw` `expected throughput` | 29.571 Mbps |
+| **Measured TCP goodput** | **19.6 Mbps** (67108864 B in 27.344 s) |
+
+`md5` matched end to end, so this is goodput and not a partial transfer. 5293 tx
+retries, 0 tx failed.
+
+This is the first measured throughput in the repository; everything before it
+was a driver estimate. **The estimate overstates achieved goodput by about
+1.5x.** That is directly relevant to `FML-ADR-053`, which keeps BATMAN-IV partly
+because BATMAN-V needs a *usable* throughput estimate from the driver and
+whether one exists is `UNVERIFIED`. One hop on one chipset does not settle that
+question, and the gap here is not evidence of the sub-GHz driver's behaviour,
+which is what `TBR-LINUX-01` actually owns. It is one datapoint that the
+estimate and the achievable rate are not the same number.
+
+### TAK CoT and GeoChat across the mesh
+
+Run with `test/bench/tak-eud-ip.py`, synthetic EUDs over PyTAK
+(`FML-ADR-033`), into a plain CoT sink rather than OpenTAKServer, so that this
+measures the bearer and not a server's ingest.
+
+On a quiet mesh a GeoChat arrived with `senderCallsign` and the chatroom intact
+and the same `messageId` the sender queued, and a PLI arrived as `a-f-G-U-C`.
+Under the contention of the table above -- the 5 Mbit `tbf` bottleneck and a
+saturating bulk flow, with RTT at 165 ms against 0.905 ms quiet -- **all three
+of three GeoChats still arrived**, each `messageId` matching byte for byte. TAK
+chat survives the conditions that cost voice 189x its jitter.
+
+The two identities `FML-ADR-070` rests on ride here as `contact/@callsign` and
+the chatroom, so an IP-plane GeoChat and a Meshtastic `TAKPacket` carry the same
+pair; the Meshtastic half is `TBR-NET-02`'s and is not shown here.
+
+**What this addendum does not establish.** No server: no ingest, no persistence,
+no enrollment, and therefore nothing about a real ATAK or iTAK client, whose UI
+cannot be driven from a bench script at all. The bulk *receiver* failed to start
+in the contention run through an orchestration fault on the driving host, so
+there are no receive-side bulk statistics; the contention is evidenced by the RTT
+and by the bulk sender having run. And the per-message wall time of about 3.1 s
+is PyTAK process start-up plus a settle delay, **not** transit, and is not a
+latency figure.
