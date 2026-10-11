@@ -27,7 +27,11 @@
 #   EXERCISED  `peers` against real radios; `line-assert 1` passing on an end
 #              node; `line-assert 2` failing loudly; and `hops` correctly
 #              REFUSING a flat mesh, which also confirms the originator-table
-#              parsing against real `batctl 2025.4` output.
+#              parsing against real `batctl 2025.4` output. Separately, the
+#              hwsim refusal below was exercised for real: `mac80211_hwsim` was
+#              loaded, `DRIVER=mac80211_hwsim` resolved phy2 and was refused,
+#              the real radio kept working throughout, and the module was
+#              unloaded again.
 #   UNTESTED   the positive multi-hop path: `hops` reporting a relayed route
 #              and a two-hop RTT. Nothing with two radios can reach it.
 #
@@ -90,7 +94,12 @@ PREFIX=10.42.0
 #: Select the radio by DRIVER, never by name. docs/bench-hardware-bringup.md
 #: makes this a rule for every step: a fuzzy name match once grabbed the real
 #: WAN radio and broke it.
-DRIVER=mt76x2u
+#:
+#: Overridable for two reasons: another mesh-capable chipset can be driven
+#: without editing this file, and setting it to `mac80211_hwsim` is how the
+#: refusal guard below is exercised, which is otherwise unreachable on a bench
+#: that has only real radios.
+DRIVER=${DRIVER:-mt76x2u}
 #: FML-ADR-053 selects BATMAN-IV over BATMAN-V, and the template requires it be
 #: set BEFORE any interface joins the mesh.
 ROUTING_ALGO=BATMAN_IV
