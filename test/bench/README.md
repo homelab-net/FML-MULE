@@ -64,6 +64,24 @@ because both look like loss and are neither. Results are real RF rather than
 `SIMULATED`, but node-local, and their tier is deferred like every other
 real-hardware result here; they live in `docs/evidence/TBR-RF-01/`.
 
+`lora-geochat-eud.py` is a synthetic TAK EUD on the Meshtastic bearer. It sends
+and receives `FML-ADR-070`'s encoding -- the sender in `Contact.callsign`, the
+recipient in `GeoChat.to` -- as a `TAKPacket` on the ATAK plugin port. That is
+the same assertion `geochat-survival.sh` makes over a docker bridge, with a real
+radio in the path instead of a perfect wire. The EUD is this script, not ATAK,
+so it exercises the ENCODING and the bearer, never a TAK application and never
+enrollment.
+
+`listen` transmits nothing and is safe on any channel. `send` resolves channels
+by NAME rather than index, because an index silently shifts when a channel is
+added, and it **refuses index 0** unless explicitly overridden: index 0 is the
+public LongFast channel, on this bench it carries roughly eighty third-party
+nodes, and a LoRa transmission cannot be recalled. The public mesh being a
+legitimate contingency BEARER for the program is a separate question from
+whether synthetic test chatter belongs on other people's radios. One radio
+proves only that a packet was handed to it; delivery needs a second node running
+`listen`, which the bench does not yet have.
+
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the
 routing-logic half of `TBR-NET-04` -- a client selecting a gateway (through the
