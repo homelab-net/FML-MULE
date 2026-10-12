@@ -50,8 +50,17 @@ def fail(msg: str) -> None:
 
 
 def cot_time(offset: int = 0) -> str:
-    import pytak
-    return pytak.cot_time(offset) if offset else pytak.cot_time()
+    """A CoT timestamp, from the standard library only.
+
+    This deliberately does NOT call pytak.cot_time(). An earlier version did,
+    which quietly made `--transport raw` depend on PyTAK after all and defeated
+    the reason that transport exists -- it failed on the one host chosen
+    precisely because PyTAK is not installed there. The format is plain
+    ISO 8601 with milliseconds and a Zulu suffix, which is what TAK expects.
+    """
+    from datetime import datetime, timedelta, timezone
+    t = datetime.now(timezone.utc) + timedelta(seconds=offset)
+    return t.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
 
 def build_pli(callsign: str, uid: str) -> bytes:
@@ -197,8 +206,40 @@ def do_listen(args) -> int:
     return 0
 
 
+def send_raw(url: str, events: list[bytes], settle: float) -> int:
+    """Send over a plain socket, no PyTAK.
+
+    PyTAK is the preferred client (FML-ADR-033) and is what `--transport pytak`
+    uses. This exists so an EUD can be simulated on a host where installing
+    PyTAK is not wanted -- the bench mule carries the COCON stack, and a test
+    EUD there should not require adding packages to it. CoT over TCP is just
+    concatenated <event>..</event>, so a socket is a faithful transport; what is
+    lost is PyTAK's connection management and its keepalive, not the encoding.
+    """
+    scheme, _, rest = url.partition("://")
+    host, _, port_s = rest.partition(":")
+    port = int(port_s or DEFAULT_PORT)
+    if scheme not in ("tcp", "udp"):
+        fail("--transport raw understands tcp:// and udp://, not %r" % scheme)
+    if scheme == "udp":
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        for i, ev in enumerate(events):
+            s.sendto(ev, (host, port))
+            print("  sent %d/%d: %s" % (i + 1, len(events), summarise(ev)), flush=True)
+        s.close()
+    else:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(10.0)
+        s.connect((host, port))
+        for i, ev in enumerate(events):
+            s.sendall(ev)
+            print("  sent %d/%d: %s" % (i + 1, len(events), summarise(ev)), flush=True)
+        time.sleep(settle)
+        s.close()
+    return 0
+
+
 def do_send(args) -> int:
-    import pytak
     from configparser import ConfigParser
 
     sender_uid = args.uid or ("FML-EUD-" + args.from_callsign)
@@ -214,6 +255,13 @@ def do_send(args) -> int:
             events.append(build_geochat(args.from_callsign, sender_uid,
                                         args.to or "All Chat Rooms", to_uid,
                                         args.message))
+
+    print("sending %d %s event(s) to %s via %s"
+          % (args.count, args.kind, args.url, args.transport))
+    if args.transport == "raw":
+        return send_raw(args.url, events, args.settle)
+
+    import pytak
 
     class Emit(pytak.QueueWorker):  # type: ignore[misc]
         async def run(self) -> None:
@@ -237,7 +285,6 @@ def do_send(args) -> int:
         tool.add_tasks({Emit(tool.tx_queue, config)})
         await tool.run()
 
-    print("sending %d %s event(s) to %s" % (args.count, args.kind, args.url))
     asyncio.run(main())
     return 0
 
@@ -263,6 +310,9 @@ def main(argv: list[str]) -> int:
     ps.add_argument("--count", type=int, default=1)
     ps.add_argument("--interval", type=float, default=0.0)
     ps.add_argument("--settle", type=float, default=4.0)
+    ps.add_argument("--transport", choices=["pytak", "raw"], default="pytak",
+                    help="pytak is preferred (FML-ADR-033); raw needs only the "
+                         "standard library, for hosts where PyTAK is not wanted")
 
     args = p.parse_args(argv)
     return do_listen(args) if args.mode == "listen" else do_send(args)

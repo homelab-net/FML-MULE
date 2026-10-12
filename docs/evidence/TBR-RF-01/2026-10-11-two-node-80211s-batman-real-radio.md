@@ -260,3 +260,38 @@ Now fixed: the output is captured, `ping`'s status is tested, and the receive
 count is asserted as well, because `ping` can exit 0 on an error reply.
 Verified both ways on hardware -- it passes against the live peer at 2.52 ms and
 exits non-zero against an address nothing answers.
+
+## Addendum 3: five synthetic EUDs behind three hosts
+
+`test/bench/tak-eud-ip.py` gained a `--transport raw` that needs only the
+standard library, so an EUD can be simulated on a host where installing PyTAK is
+not wanted. The bench mule carries the COCON stack and a test EUD there should
+not add packages to it. PyTAK stays the default and the preferred client
+(`FML-ADR-033`); raw loses its connection management and keepalive, not the
+encoding.
+
+Five EUDs, three hosts, all into one sink, with the source address separating
+the paths rather than conflating them:
+
+| Source | Path | EUDs |
+| --- | --- | --- |
+| `10.42.0.1` | 802.11s/batman-adv mesh, PyTAK | `P1-ALPHA`, `P1-BRAVO` |
+| `10.42.0.2` | local on the sink host, raw | `P2-CHARLIE` |
+| `192.168.8.170` | **LAN, not the mesh**, raw | `BM-DELTA`, `BM-ECHO` |
+
+All five GeoChats arrived with `senderCallsign`, chatroom and `messageId`
+matching what was sent: `5 GeoChat, 0 PLI, 2 pytak keepalive, 0 unparseable`.
+
+**The bench mule is not a mesh node and its EUDs did not cross the mesh.** It
+has no mesh-capable radio -- its `rtl8812au` offers managed and AP only, and its
+`phy0` does not list `mesh point` -- so its traffic reached the sink over the
+LAN. That is a legitimate topology for a LAN or WAN-attached node, and it is
+recorded as such here precisely so the row cannot later be read as a third mesh
+node.
+
+A defect worth recording rather than quietly fixing: the raw transport did not
+work on the one host chosen because PyTAK is absent there, since the helper that
+builds CoT timestamps called `pytak.cot_time()` unconditionally. A "standard
+library only" path that imports the thing it is avoiding is not one. It now uses
+`datetime`, and the failure surfaced only by running it on the constrained host
+rather than on the two that had PyTAK installed.
