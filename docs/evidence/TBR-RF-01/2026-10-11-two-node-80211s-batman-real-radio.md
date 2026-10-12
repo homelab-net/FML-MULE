@@ -535,3 +535,97 @@ The version of that gate shipped earlier in the day tested `sed`'s exit status
 rather than `ping`'s and would have printed `GATE PASSED` over 100% packet loss,
 and the mesh-layer indicators all looked correct, so nothing else in the
 procedure would have objected. See addendum 2.
+
+## Addendum 7: CONOPS 42 gateway, and the stale-ARP cause found and fixed
+
+Phase 1 item 1 and a resolution for the defect addendum 6 reported.
+
+### Section 42, local WAN gateway: passes
+
+`[SHALL]` Any standard MULE shall be technically capable of assuming an
+authorized local WAN-gateway role.
+
+Node 1 kept its uplink, enabled forwarding, masqueraded the mesh subnet out
+`eth0`, and set `batctl gw_mode server`. Node 2 removed **all** of its own
+default routes, set `gw_mode client`, and routed through the mesh.
+
+| Check | Result |
+| --- | --- |
+| Node 2's own uplink | **0** default routes |
+| batman gateway discovery | node 1 selected: TQ 251, announced 10.0/2.0 MBit |
+| Route to off-site | `1.1.1.1 via 10.42.0.1 dev bat0` |
+| ICMP to 1.1.1.1 / 8.8.8.8 | 0% loss both |
+| DNS | resolves |
+| HTTP | **301 in 0.222 s** |
+| Gateway NAT counters | 3 masqueraded flows from `10.42.0.0/24` out `eth0`; FORWARD 12 packets `bat0→eth0`, 10 back |
+
+The NAT and FORWARD counters are the part that matters: they show the traffic
+actually traversed node 1's forwarding path from the mesh subnet, rather than the
+client finding some other route. Both nodes restored afterwards; node 1 back to
+`ip_forward=0`, no NAT rules, `gw_mode off`.
+
+**What this does not show.** Section 42 says *authorized*, and `FML-ADR-069`
+makes WAN a mesh-wide capability held by a node permitted to hold it. Nothing
+here checks permission, so this is the plumbing, not the policy. It is also one
+gateway; section 42 explicitly does not require competing multi-gateway
+operation for v1, and none was tested.
+
+### Why the stale neighbour entry never timed out
+
+Addendum 6 recorded that after a rejoin the mesh looked healthy while IP was
+100% dead, and that a manual `ip neigh flush` fixed it. What it did not
+establish is whether the entry would have recovered on its own. Measured:
+**it does not.** Over 121 seconds the entry went `STALE` to `DELAY` and then
+back to **`REACHABLE`**, still pointing at a bat0 MAC that no longer existed.
+
+The mechanism is **batman-adv's distributed ARP table**:
+
+    distributed_arp_table: enabled
+    DAT cache:  * 10.42.0.2  de:4e:7c:8e:db:ac  last-seen 3:39     <- dead MAC
+    transglobal: * fe:24:00:fa:74:39 ... via 00:c0:ca:be:28:68      <- correct MAC
+
+batman-adv **knew the new address** -- the global translation table had it -- and
+**answered ARP with the old one** from DAT. So the neighbour probe that should
+have invalidated the entry got a reply instead, which re-confirmed it as
+`REACHABLE`. The failure is self-reinforcing: the recovery mechanism is what
+keeps it broken. That is why it "fails to time out" rather than merely being
+slow.
+
+DAT entries do age, so recovery was probably coming at the DAT entry timeout
+rather than never; that bound was not measured and should not be quoted.
+
+### The resolution
+
+**Primary fix: a stable `bat0` address.** The kernel assigns `bat0` a fresh
+random MAC on every creation, which is what makes every rejoin and every reboot
+produce a stale mapping. `test/bench/80211s-mesh-real.sh` now derives one from
+the node's own radio, setting the locally-administered bit and keeping the rest:
+`00:c0:ca:be:28:67` gives `02:c0:ca:be:28:67`. Stable per node, distinct between
+nodes, cannot collide with the radio's real address, and applied while `bat0` is
+still down.
+
+**Secondary fix: announce the address.** After `bat0` comes up the node sends a
+gratuitous ARP (`arping -U`), so peers and DAT learn the mapping immediately
+instead of when something expires. This covers the cases where the address
+legitimately does change -- a first join, or a swapped radio -- for which a
+stable derivation is no help.
+
+Verified across three teardown-and-rejoin cycles:
+
+| Trial | `bat0` MAC after rejoin | IP recovery, no flush |
+| --- | --- | --- |
+| 1 | `02:c0:ca:be:28:68` unchanged | 24 s |
+| 2 | `02:c0:ca:be:28:68` unchanged | 12 s |
+| 3 | `02:c0:ca:be:28:68` unchanged | 24 s |
+
+Against the pre-fix behaviour -- dead beyond 121 s and requiring manual
+intervention -- recovery now lands inside the ordinary convergence band this
+bench already measured at 7 to 40 seconds. **The claim is that the
+self-reinforcing stale case is gone, not that recovery is fast:** three trials
+cannot bound a figure whose natural spread is already 5.5x, and addendum 5 is
+the reason not to pretend otherwise.
+
+**Not a program decision.** The field addressing plan belongs to `TBR-NET-01`,
+which may prefer an address derived from node identity over one borrowed from a
+radio that can be swapped. This is the bench fixing a bench defect in a way that
+makes the underlying problem visible to that trade.

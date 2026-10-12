@@ -212,6 +212,33 @@ mesh_up() {
 
   printf '\nbatman-adv\n'
   ip link add name "$MESH_IF" type batadv 2>/dev/null || true
+
+  # Give bat0 a STABLE address derived from this node's radio, instead of the
+  # fresh random one the kernel assigns on every creation.
+  #
+  # WHY. A random MAC per creation means that every teardown and rejoin -- and
+  # every reboot -- leaves peers holding a neighbour entry for an address that
+  # no longer exists. Observed on this bench: the mesh came back healthy by
+  # every mesh-layer measure (plink ESTAB, originator TQ 236, nexthop direct)
+  # while IP over bat0 was 100% packet loss, because the peer's cache still
+  # pointed at the previous bat0 MAC and was marked REACHABLE, so nothing
+  # retried it. See addendum 6 of docs/evidence/TBR-RF-01/2026-10-11-*.
+  #
+  # The derivation sets the locally-administered bit on the radio's own address
+  # and keeps the rest, so it is stable per node, unique between nodes, and
+  # cannot collide with the radio's real address. It must happen while bat0 is
+  # still down.
+  #
+  # NOT a program decision. The field addressing plan is TBR-NET-01's, and it
+  # may well want an identity-derived address rather than one borrowed from a
+  # radio that could be swapped. This is the bench fixing a bench defect.
+  hw=$(cat "/sys/class/net/$DEV/address")
+  stable_mac=$(printf '%02x:%s' "$(( 0x${hw%%:*} | 0x02 ))" "${hw#*:}")
+  if ip link set "$MESH_IF" address "$stable_mac" 2>/dev/null; then
+    note 'bat0 address' "$stable_mac (stable, derived from $DEV)"
+  else
+    note 'bat0 address' "$(cat "/sys/class/net/$MESH_IF/address") (RANDOM: could not set a stable one)"
+  fi
   # FML-ADR-056 disabled bridge loop avoidance and named a detector in exchange
   # (mule.loops, reading mule.mesh). Leaving it on is the config bug above.
   batctl meshif "$MESH_IF" bridge_loop_avoidance 0
@@ -225,6 +252,21 @@ mesh_up() {
   ip link set "$MESH_IF" up
   note 'hard interface' "$DEV"
   note "$MESH_IF" "$PREFIX.$octet/24"
+
+  # Announce this address unsolicited, so peers and batman-adv's distributed ARP
+  # table learn it now rather than when something eventually expires.
+  #
+  # WHY THIS IS NEEDED EVEN WITH A STABLE MAC. batman-adv's DAT answers ARP on
+  # behalf of the mesh, and it was observed answering with a DEAD bat0 MAC for
+  # over two minutes after a rejoin -- which re-confirmed the peer's neighbour
+  # entry as REACHABLE and so stopped it ever retrying. The stable address above
+  # removes the usual cause; this removes the mechanism's ability to serve a
+  # wrong answer after any address change, including a radio swap or a first
+  # join. Cheap, and it fails quietly if arping is absent.
+  if command -v arping >/dev/null 2>&1; then
+    arping -c 2 -U -I "$MESH_IF" "$PREFIX.$octet" >/dev/null 2>&1 || true
+    note 'gratuitous ARP' "announced $PREFIX.$octet on $MESH_IF"
+  fi
   note 'batctl' "$(batctl -v 2>/dev/null | head -1)"
 }
 
