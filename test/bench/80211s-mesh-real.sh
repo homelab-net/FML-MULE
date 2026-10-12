@@ -54,9 +54,7 @@
 # sequence -- ported from 80211s-mesh.sh's join_mesh/join_batman, value for
 # value -- applied to one real radio on one real host, run once per node.
 #
-# WHAT A RESULT HERE IS. The first real-RF 802.11s/batman-adv datapoint in this
-# repository -- not its first real-RF result at all, which is the 2026-09-27
-# one-hop LoRa bench under docs/evidence/TBR-NET-02/, a different bearer:
+# WHAT A RESULT HERE IS. The first real-RF mesh datapoint in this repository:
 # every artifact under docs/evidence/TBR-RF-01/ before this one is SIMULATED,
 # and os/config/batman-adv.conf.template says plainly that "veth is a perfect
 # wire and nothing here has met a radio." This is a radio.
@@ -88,6 +86,28 @@ MTU=1560
 #: AP on channel 11, and this node's own wlan0 client, so a 2.4 GHz run would
 #: measure that interference and would put the live EUD AP at risk.
 FREQ=5745
+#: Channel width for the mesh BSS, and the single most consequential value in
+#: this file for throughput. `iw ... mesh join` takes
+#: NOHT|HT20|HT40+|HT40-|80MHz and **defaults to NOHT when omitted**, which is
+#: what the first runs of this script did, inheriting the omission from
+#: 80211s-mesh.sh where it did not matter because hwsim has no PHY. NOHT caps
+#: the link at the 802.11a legacy ceiling of 54 MBit/s on a part that advertises
+#: HT20/HT40, MCS 0-15 and VHT80. Measured goodput at NOHT was 19.6 Mbps.
+#:
+#: Measured on this bench, 64 MiB over HTTP on bat0, one hop, md5 verified:
+#:
+#:   NOHT    54 MBit/s PHY, estimate  29.6 Mbps, goodput  19.6 Mbps   1.0x
+#:   HT40+  270 MBit/s PHY, estimate 143.5 Mbps, goodput  89.5 Mbps   4.6x
+#:   80MHz  780 MBit/s PHY, estimate 208.9 Mbps, goodput 114.7 Mbps   5.9x
+#:
+#: HT40+ is the default here because 80MHz buys 28% more goodput for twice the
+#: channel occupancy, and on a field MANET spectrum reuse and interference
+#: susceptibility are not free. That is a trade-off, and the trade-off is
+#: TBR-RF-01's to settle, not this script's: treat HT40+ as a BENCH DEFAULT that
+#: beats an accidental NOHT, not as a program decision. Override with WIDTH=.
+#:
+#: Both nodes must use the SAME width or they will not peer.
+WIDTH=${WIDTH:-HT40+}
 MESH_IF=bat0
 #: NOT the hwsim bench's 10.41.0.0/16: 10.41.0.1/24 is already the bench mule's
 #: EUD AP subnet, and reusing it makes this evidence ambiguous to read. The real
@@ -184,9 +204,10 @@ mesh_up() {
   iw dev "$DEV" set type mp
   ip link set "$DEV" mtu "$MTU" up
   note 'mtu' "$(cat "/sys/class/net/$DEV/mtu") (intended $MTU)"
-  iw dev "$DEV" mesh join "$MESH_ID" freq "$FREQ"
+  iw dev "$DEV" mesh join "$MESH_ID" freq "$FREQ" "$WIDTH"
   note 'mesh id' "$MESH_ID"
-  note 'frequency' "${FREQ} MHz"
+  note 'frequency' "${FREQ} MHz ${WIDTH}"
+  note 'negotiated width' "$(iw dev "$DEV" info 2>/dev/null | awk '/channel/ {$1=""; print substr($0,2)}')"
   note 'regdomain' "$(iw reg get 2>/dev/null | awk '/^country/ {print $2; exit}')"
 
   printf '\nbatman-adv\n'
@@ -246,10 +267,23 @@ mesh_gate() {
 
   printf '\nGate 3/3  one ICMP echo crosses %s\n' "$MESH_IF"
   # Exactly one packet. The point is that a packet crosses, not how fast.
-  if ping -c 1 -W 5 -I "$MESH_IF" "$peer" 2>&1 | sed 's/^/   /'; then
+  #
+  # Capture, THEN test. An earlier version wrote
+  #   if ping ... | sed 's/^/   /'; then
+  # whose exit status is sed's, not ping's, so sed always succeeded and the gate
+  # could never fail -- it printed GATE PASSED over "100% packet loss". The one
+  # check the whole runbook step rests on must be the one that cannot lie.
+  local out rc
+  out=$(ping -c 1 -W 5 -I "$MESH_IF" "$peer" 2>&1)
+  rc=$?
+  printf '%s\n' "$out" | sed 's/^/   /'
+  # Belt and braces: a zero exit AND a received packet. ping can exit 0 in
+  # corners (a host-unreachable error reply still being "a reply"), so assert
+  # the receive count too rather than trusting the status alone.
+  if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -qE '1 (packets )?received'; then
     printf '\nGATE PASSED: one packet crossed a real 802.11s + batman-adv mesh.\n'
   else
-    fail "one-packet gate failed to $peer (mesh is up but nothing crossed)"
+    fail "one-packet gate FAILED to $peer (rc=$rc). The mesh may be up while nothing crosses: check PHY, association and config, never routing."
   fi
 }
 

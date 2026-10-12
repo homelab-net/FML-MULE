@@ -204,3 +204,59 @@ there are no receive-side bulk statistics; the contention is evidenced by the RT
 and by the bulk sender having run. And the per-message wall time of about 3.1 s
 is PyTAK process start-up plus a settle delay, **not** transit, and is not a
 latency figure.
+
+## Addendum 2: the link was not optimised, and a gate that could not fail
+
+Two corrections to the figures above, one of configuration and one of method.
+
+### The 54 MBit/s cap was this bench's own doing
+
+`iw ... mesh join` takes `NOHT|HT20|HT40+|HT40-|80MHz` and **defaults to NOHT
+when the width is omitted**. `test/bench/80211s-mesh-real.sh` omitted it,
+inheriting the omission from `80211s-mesh.sh`, where it does not matter because
+`mac80211_hwsim` has no PHY. So every figure above the addendum line was taken
+on a link pinned to the 802.11a legacy ceiling, on a part that advertises
+HT20/HT40, MCS 0-15 and VHT80. The regdomain permits 40 and 80 MHz on
+149/153/157/161/165 with no `NO-HT40` or `NO-80MHZ` flag.
+
+Re-measured, 64 MiB over HTTP on `bat0`, one hop, `md5` verified each time:
+
+| Width | PHY rate | `iw` estimate | Measured goodput | vs NOHT |
+| --- | --- | --- | --- | --- |
+| NOHT | 54.0 MBit/s | 29.6 Mbps | 19.6 Mbps | 1.0x |
+| HT40+ (40 MHz) | 270.0 MBit/s, VHT-MCS 6, NSS 2 | 143.5 Mbps | **89.5 Mbps** | 4.6x |
+| 80 MHz | 780.0 MBit/s, VHT-MCS 8, NSS 2 | 208.9 Mbps | **114.7 Mbps** | 5.9x |
+
+So the "high-rate bearer came up at 54 MBit/s" finding above was a
+**configuration defect, not a chipset or 802.11s limitation**, and the sentence
+in the body questioning whether `mt76` could do better is answered: it can, by
+about six times.
+
+Two things follow that the raw ratio hides. **80 MHz buys 28% more goodput than
+HT40+ for twice the channel occupancy**, which on a field MANET trades against
+spectrum reuse and interference susceptibility rather than being free;
+`TBR-RF-01` owns that choice and this bench now defaults to HT40+ as the
+conservative improvement over an accidental NOHT, which is not the same as the
+program selecting a width. And the **driver's estimate overstates achieved
+goodput at every width** -- 1.5x, 1.6x, 1.8x, worsening as the channel widens --
+which is three datapoints on `FML-ADR-053`'s open question of whether a *usable*
+throughput estimate exists, all pointing the same way. It remains silent about
+the sub-GHz driver that `TBR-LINUX-01` actually owns.
+
+### The gate could not fail
+
+The one-packet gate was written as
+
+    if ping -c 1 -W 5 -I bat0 "$peer" | sed 's/^/   /'; then
+
+whose exit status is `sed`'s, not `ping`'s. `sed` always succeeds, so **the gate
+printed `GATE PASSED` over `100% packet loss`** when a transient rejoin was
+caught mid-route-discovery. Every gate result recorded above did show
+`1 received, 0% packet loss` in its own output, so those passes were real and
+the figures stand; what was wrong is that the check was incapable of catching a
+failure, and an assertion that cannot fail is not evidence.
+
+Now fixed: the output is captured, `ping`'s status is tested, and the receive
+count is asserted as well, because `ping` can exit 0 on an error reply.
+Verified both ways on hardware -- it passes against the live peer at 2.52 ms and
+exits non-zero against an address nothing answers.
