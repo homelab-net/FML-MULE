@@ -385,3 +385,77 @@ A loss-reporting `grep` matched fractional percentages wrongly, rendering
 "66.67% packet loss" as "6667%". The packet-loss figures in the degradation
 sweep are therefore reported as a band, 33% to 67%, rather than as the garbled
 exact values.
+
+## Addendum 5: posing the `orig_interval` question, and failing to answer it
+
+`os/config/batman-adv.conf.template` leaves `orig_interval` `TBD` and says why:
+
+> Still TBD, because the question this value actually decides is convergence
+> after a TOPOLOGY CHANGE on a lossy link, which veth cannot pose. TBR-RF-01
+> owns that.
+
+The bench can now pose it. One radio leaves the mesh and rejoins while `tc
+netem` makes the link lossy, and the clock runs from interface-up-and-joined to
+the first packet crossing. Procedure: `test/bench/80211s-mesh-real.sh` plus a
+convergence timer on one host, so that elapsed time comes from a single clock.
+
+### What was measured
+
+| Run | Link | `orig_interval` | Convergence |
+| --- | --- | --- | --- |
+| A | clean | 1000 ms | 4049 ms |
+| B | 20% egress loss | 1000 ms | 9170 ms |
+| C | 20% egress loss | 500 ms | 29322 ms |
+| D | 20% egress loss | 250 ms | 11269 ms |
+
+Read as a sweep, that says 500 ms is catastrophic and 250 ms is fine, which is
+not a believable shape. So the same condition was repeated.
+
+| Repeats, 20% loss, `orig_interval` 1000 ms |
+| --- |
+| 9170 ms, 20366 ms, 7139 ms, 39539 ms |
+
+**A 5.5x spread inside one condition**, against between-condition differences of
+roughly 3x. The variance swamps the signal.
+
+### The finding, which is a negative one
+
+**This experiment cannot distinguish `orig_interval` values, and no
+recommendation should be drawn from it.** Had runs A through D been reported as
+a sweep -- which is exactly what a single pass per value invites -- the program
+would have received "500 ms is three times worse than 1000 ms" as an ADR input,
+from noise. `orig_interval` remains `TBD`, and this addendum is the reason to
+keep it there rather than evidence for a value.
+
+What has changed is that the question is now **askable on hardware**, which it
+was not when the template was written. That is the part worth keeping.
+
+### What a valid experiment needs
+
+Recorded so the next attempt does not repeat this one:
+
+* **Many repeats per condition, order randomised.** Four samples at one setting
+  already span 7 to 40 seconds; a dozen per condition is the floor, and
+  conditions must be interleaved rather than run in blocks, because anything
+  drifting over the session otherwise lands entirely on one setting.
+* **A convergence criterion that is not first-ping-success.** `ping -c1 -W1`
+  quantises the result into one-second steps -- the attempt counts are simply
+  elapsed seconds -- and it conflates neighbour resolution with routing
+  convergence. Poll the originator table, or timestamp the first OGM accepted
+  from the returning node.
+* **Loss applied in both directions.** Here `netem` sat on one node's egress
+  only, so the link was asymmetrically lossy and OGMs were impaired in one
+  direction more than the other.
+* **Rate adaptation controlled or recorded.** The link moved between MCS rates
+  during these runs, which changes airtime per OGM independently of the
+  interval under test.
+* **A stated topology-change model.** "Radio leaves and rejoins" is one event;
+  a node moving out of range and a node losing power converge differently, and
+  section 39 names movement separately from node loss.
+
+### Why this is reported rather than quietly re-run
+
+The template's whole posture on this value is that an unmeasurable number should
+stay `TBD` instead of acquiring a plausible one. Recording four runs that look
+like a sweep and are actually noise is the specific way a deferred decision
+gets closed by accident.

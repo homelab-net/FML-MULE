@@ -64,6 +64,15 @@ decision the program deferred for want of exactly this.
 
 This is the highest-value cheap measurement available and should be done first.
 
+**Attempted 2026-10-11, and it did not answer.** Recorded in addendum 5 of the
+real-radio artifact: four repeats of a single condition spanned 7 to 40 seconds,
+a 5.5x spread against between-condition differences of about 3x, so the sweep
+across 1000/500/250 ms was noise. `orig_interval` stays `TBD`, and that
+addendum lists what a valid experiment needs -- interleaved repeats, a
+convergence criterion that is not first-ping-success, symmetric loss, and
+controlled rate adaptation. The question is now askable on hardware, which is
+the gain; it is not yet answered.
+
 Note what it is not: batman-adv's originator purge was measured at **~165 s**,
 consistent with a fixed purge timeout rather than a multiple of
 `orig_interval`. So `orig_interval` is the lever for **convergence and
