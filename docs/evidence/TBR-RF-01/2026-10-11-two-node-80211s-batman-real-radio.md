@@ -295,3 +295,93 @@ builds CoT timestamps called `pytak.cot_time()` unconditionally. A "standard
 library only" path that imports the thing it is avoiding is not one. It now uses
 `datetime`, and the failure surfaced only by running it on the constrained host
 rather than on the two that had PyTAK installed.
+
+## Addendum 4: CONOPS 41 WAN independence, and CONOPS 39 adaptive routing
+
+Both tested on the same two-node link, HT40+, same provenance as above.
+
+### Section 41, WAN independence
+
+`[SHALL]` Loss of WAN shall not remove local EUD access, the local mesh, peer
+ATAK, local S0/S1 services, or LoRa.
+
+Default routes were removed from both nodes -- **0 routes remaining**, `1.1.1.1`
+unreachable -- with a detached restorer armed so a dropped session could not
+leave a node without a route. In that state:
+
+* the **local mesh** held: `bat0` up, peer `ESTAB`, 3/3 ICMP, 0% loss;
+* **peer ATAK** held: a GeoChat and a PLI both arrived at the far node with
+  `senderCallsign`, chatroom and `messageId` intact.
+
+Routes restored afterwards, internet confirmed back, route counts matching the
+pre-test baseline exactly.
+
+**Two of five rows only, and the test was weaker than full isolation.** DNS
+still resolved throughout, because the LAN resolver is on-link and needs no
+default route. So this measured **loss of the off-site IP path**, not isolation.
+`local EUD access` had no EUD attached and `local S0/S1 services` were not
+running, so neither was observed. Taking `eth0` down would have produced a
+stronger test and would also have severed the SSH path being used to observe it,
+which is why it was not done.
+
+### Section 39, adaptive routing
+
+`[SHALL]` The network shall automatically adapt to movement, node loss,
+changing neighbours, link degradation, gateway availability, and recovery of
+better paths, without users selecting routes.
+
+**Link degradation: it adapts.** With 30% loss applied by `tc netem` on the
+*hard* interface -- so batman-adv's own OGMs are lost, not just payload --
+TQ fell monotonically **255 → 241 → 222 → 201 → 186** over 48 s, and on removal
+payload loss returned to 0% immediately while TQ began climbing back. Onset is
+faster than recovery, which is the OGM averaging window. This is **emulated
+loss, not RF degradation**, and is labelled as such.
+
+**Power control cannot degrade this link, and that is a measurement.** Dropping
+one node from 20 dBm to the driver floor of 3 dBm moved the *far* node's
+received signal from **-13 dBm to -30 dBm**, exactly the 17 dB applied, and the
+link did not care: still VHT-MCS 9, TQ 251/255, 0% loss. So the bench link
+carries **at least 17 dB of margin at this separation**, and section 39's
+degradation case cannot be posed with transmit power here. Emulated loss or real
+separation is required. Useful to know before anyone plans a range test.
+
+**Node loss is slow, in two different ways.** After one node's mesh was fully
+torn down:
+
+| Layer | Time to forget the dead node |
+| --- | --- |
+| batman-adv originator table | **~165 s** (purged between t+161 s and t+171 s) |
+| 802.11s peer entry (`station dump`) | **still present at t+302 s** |
+
+The second is explained by `mesh_plink_timeout`, which reads **1800 s**. A
+thirty-minute stale peer link is hard to reconcile with a requirement to adapt
+to node loss and changing neighbours. The first is consistent with a fixed
+purge timeout rather than a multiple of `orig_interval` (1000 ms here), so
+**faster forgetting is not simply an `orig_interval` tuning exercise** -- that
+value governs convergence and best-path adoption instead. Remediation for both
+is in `docs/bench-remediation-plan-2026-10-11.md` Phase 0.
+
+**What section 39 still has no evidence for:** movement, failover, and
+best-path selection. All three need an alternate path, and two nodes have
+exactly one. Nothing here should be read as showing the network reroutes,
+because there was nowhere to reroute to.
+
+### Three measurement faults in this addendum's own runs
+
+Recorded because each produced a plausible-looking wrong answer.
+
+`iw dev <dev> set txpower` is a **silent no-op** on this driver -- it reports
+success and the power does not change. The first degradation run therefore
+changed nothing, and would have been written up as "TQ 239 unchanged, no
+degradation observed" when the independent variable had never moved. The
+phy-level form, `iw phy <phy> set txpower`, works.
+
+The first run also measured **at the wrong end**: `station dump` reports the
+signal *received from* the peer, which depends on the peer's transmit power, so
+reducing the local node's power is invisible locally. The far node is the
+observation point.
+
+A loss-reporting `grep` matched fractional percentages wrongly, rendering
+"66.67% packet loss" as "6667%". The packet-loss figures in the degradation
+sweep are therefore reported as a band, 33% to 67%, rather than as the garbled
+exact values.
