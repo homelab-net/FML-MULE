@@ -459,3 +459,79 @@ The template's whole posture on this value is that an unmeasurable number should
 stay `TBD` instead of acquiring a plausible one. Recording four runs that look
 like a sweep and are actually noise is the specific way a deferred decision
 gets closed by accident.
+
+## Addendum 6: the plink timeout, and why L2 recovery is not IP recovery
+
+Phase 0.1 of `docs/bench-remediation-plan-2026-10-11.md`.
+
+### `mesh_plink_timeout`
+
+Addendum 4 recorded that a node whose mesh was fully torn down still appeared as
+an 802.11s peer **302 seconds later**, because the default
+`mesh_plink_timeout` is **1800 s**.
+
+Measured against a candidate value, same teardown, same observation point:
+
+| `mesh_plink_timeout` | Peer entry cleared |
+| --- | --- |
+| 1800 s (default) | still present at t+302 s |
+| 60 s | **t+111 s** |
+
+Note that 60 s does not mean 60 s: the plink state machine has its own holding
+and retry timers on top of the inactivity timeout, so the observed figure is
+roughly double the value set. Anyone tuning this should measure rather than
+assume the number means what it says.
+
+**Left at the default.** 1800 s is the mac80211 default, not an accident like
+the omitted channel width was, so changing it is a program decision and
+`TBR-RF-01` owns it. This is an input to that decision, not the decision.
+
+What this measurement cannot tell you is the cost of an aggressive timeout:
+whether a short inactivity window churns peers on a marginal link, which is the
+opposite failure and the reason the default is generous. Posing that needs a
+genuinely marginal link, and addendum 4 established that this bench has at least
+17 dB of margin at its current separation.
+
+### The finding that matters more: L2 recovery is not IP recovery
+
+After the teardown-and-rejoin cycles above, the mesh came back **healthy by
+every mesh-layer measure** -- `mesh plink: ESTAB`, one originator at TQ 236,
+nexthop direct, hard interface active -- while IP over `bat0` was **100% packet
+loss**.
+
+The cause: **`bat0` receives a new random MAC address every time it is
+created.** Across repeated rejoin cycles the peer's neighbour cache still held
+the previous one:
+
+    node1: 10.42.0.2 lladdr 1a:46:ef:99:e1:4d REACHABLE
+    node2: bat0 MAC is de:4e:7c:8e:db:ac
+
+The entry was stale and still marked `REACHABLE`, so nothing retried it.
+`ip neigh flush dev bat0` restored connectivity immediately: 0% loss, 1.280 ms
+average.
+
+Three consequences worth carrying forward.
+
+**Section 39 is affected.** A requirement to adapt to node loss and recover is
+not met by the routing layer reconverging if the IP path stays dead behind a
+stale neighbour entry. Recovery has to be judged end to end, not from
+`batctl originators`.
+
+**This is an addressing concern, not a routing one.** The remediation is a
+**stable, deterministic `bat0` MAC** derived from node identity rather than a
+fresh random one per creation. That belongs with `TBR-NET-01`, the addressing
+plan, and it would also make packet captures and translation tables comparable
+across restarts, which they currently are not.
+
+**It is partly an artefact of bench churn, and partly not.** A field node does
+not recreate `bat0` a dozen times an hour. But it does reboot, and a reboot
+produces exactly the same new-MAC-with-stale-peer-cache condition, with the
+stale side being whichever node stayed up.
+
+### The gate fix earned itself here
+
+This failure was caught by the one-packet gate returning a non-zero status.
+The version of that gate shipped earlier in the day tested `sed`'s exit status
+rather than `ping`'s and would have printed `GATE PASSED` over 100% packet loss,
+and the mesh-layer indicators all looked correct, so nothing else in the
+procedure would have objected. See addendum 2.
