@@ -155,9 +155,23 @@ assuming a firmware or driver fault.
 
 ## Phase 3 -- services and trust
 
-Sections 24-30 need OpenTAKServer actually standing; `services/tak/README.md`
-says *"Nothing is loadable yet"* and that the image has no digest until the
-`Containerfile` is built. Sections 13-18 need the enrollment path, certificates
+Sections 24-30 need OpenTAKServer actually standing. **Correction, 2026-10-14:
+one already is.** `services/tak/README.md`'s *"Nothing is loadable yet"* is true
+of this repository's own deployment path -- the image has no digest until the
+`Containerfile` is built -- but the bench mule is running an OTS stack already,
+as seven rootless podman containers (`fml-ots`, `fml-pg`, `fml-mq`,
+`fml-cot_parser`, `fml-eud_handler`, `fml-eud_ssl`, `fml-tiles`) with
+`opentakserver` listening on 8081 and `eud_handler` on 8088. An earlier draft of
+this plan said these sections needed a server stood up first; that was wrong.
+
+So sections 24-30 are **far more reachable than this plan first claimed**, with
+one condition that is not negotiable: that instance is part of the live COCON
+stack, not a test fixture. Reading from it is fine; a state, partition or
+split-brain test writes to it, and `test/bench/tak-state.sh` reproduces
+`TBR-TAK-01` by design. Either get explicit agreement to exercise the production
+instance, or stand a second OTS from the `Containerfile` on a pi, where podman
+is present and the python, postgres and rabbitmq base images are already
+cached. Sections 13-18 need the enrollment path, certificates
 and revocation. These are `P2`/`P3` in `docs/ROADMAP-DEV.md`'s own phasing and
 nothing on 2026-10-11 touched them.
 
