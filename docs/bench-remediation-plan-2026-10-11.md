@@ -91,6 +91,30 @@ susceptibility. `TBR-RF-01` owns the selection; the bench default is not it. And
 section 33's `[SHALL]` that the band be chosen before RF coexistence analysis
 (section 36) remains unsatisfied -- 5745 MHz was a bench pick.
 
+### 0.4 The bench is under-voltage, and that blocks valid measurement
+
+Found 2026-10-14 and recorded in addendum 8: both nodes report
+`vcgencmd get_throttled` = `0x50005` -- under-voltage now, throttled now --
+pinned at **600 MHz** against a nominal 1.5 GHz, with **1271** under-voltage
+events in `dmesg` on pi-mule-2 against 5 on pi-mule-1. Mesh RTT on an otherwise
+healthy link moved from 0.9 ms to 61.8 ms on that account alone.
+
+**This outranks the rest of Phase 0**, because it decides whether any number
+this bench produces means anything. Two actions:
+
+* **Fix the supply.** The 1271-against-5 split points at the node carrying two
+  USB devices; an AWUS036ACM-class radio can take a large share of a Pi's USB
+  budget on its own. A powered hub for the radios, or a supply rated for the
+  full load, with cable quality checked. `TBR-PWR-01` and CONOPS section 59.
+* **Make throttle state part of provenance.** `docs/bench-hardware-bringup.md`
+  requires kernel, radio, driver and image with every result; add
+  `vcgencmd get_throttled`, and treat a live throttle bit as invalidating the
+  run. A throttled node under-reports the radio, which is the direction that
+  makes a bearer look worse than it is and would be believed.
+
+Until both are done, **re-measurement outranks new measurement**: addenda 1
+through 7 carry numbers that cannot be proved un-throttled.
+
 ## Phase 1 -- runnable on the hardware already here
 
 Ordered by whether they produce a definite pass or fail.
