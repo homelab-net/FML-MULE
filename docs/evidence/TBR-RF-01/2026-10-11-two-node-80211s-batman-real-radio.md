@@ -629,3 +629,135 @@ the reason not to pretend otherwise.
 which may prefer an address derived from node identity over one borrowed from a
 radio that can be swapped. This is the bench fixing a bench defect in a way that
 makes the underlying problem visible to that trade.
+
+## Addendum 8: multicast measured, strict isolation, and the bench is under-voltage
+
+Three things, and the third one qualifies everything above it.
+
+### The bench is under-voltage and throttled, and provenance never recorded it
+
+Returning to the bench on 2026-10-14 after it had been left running, a packet
+over `bat0` took **290 ms** and steady state settled at **61.8 ms average**
+(41.8 / 61.8 / 78.1 min/avg/max, 0% loss) -- against **0.9 ms** measured on
+2026-10-11 on the same link. Every radio indicator looked healthy: 400 MBit/s
+VHT-MCS 9, -13 dBm, 28 tx retries, 1 failed, and `power_save` off with
+`mesh_power_mode active` on both nodes, so powersave was ruled out.
+
+The cause is power, not radio:
+
+| | pi-mule-1 | pi-mule-2 |
+| --- | --- | --- |
+| `vcgencmd get_throttled` | `0x50005` | `0x50005` |
+| under-voltage **now** (bit 0) | yes | yes |
+| **throttled now** (bit 2) | yes | yes |
+| under-voltage has occurred (bit 16) | yes | yes |
+| ARM clock | **600 MHz** | **600 MHz** |
+| core voltage | 0.86 V | 0.88 V |
+| under-voltage events in `dmesg` | 5 | **1271** |
+
+A Pi 4 runs at 1.5 GHz or above. Both nodes are pinned at **600 MHz**, roughly
+a third of nominal, by sustained under-voltage. That is enough to account for a
+60x latency increase on its own, with no radio fault involved.
+
+**This is the important part: it means the bench has a measurement-validity
+problem, not just a slow node.** The 2026-10-11 figures -- 89.5 Mbps at HT40+,
+114.7 Mbps at 80 MHz, 0.9 ms RTT, 0.172 ms jitter -- are internally consistent
+with nodes that were *not* throttled, because a node at 600 MHz cannot produce
+them. So those numbers are probably sound. **Probably is not a provenance
+record.** `docs/bench-hardware-bringup.md` requires capturing the kernel, radio,
+driver and image alongside every result; it does not mention throttle state, and
+neither did any artifact here, so no earlier measurement can be *proved*
+un-throttled after the fact.
+
+Two actions follow, and the first is not optional:
+
+* **Record `vcgencmd get_throttled` with every performance measurement**, and
+  treat a non-zero current-throttle bit as invalidating the run rather than as
+  a footnote. A throttled node under-reports the radio, which is the direction
+  that quietly makes a bearer look worse than it is.
+* **Fix the supply before re-measuring.** pi-mule-2's 1271 under-voltage events
+  against pi-mule-1's 5 points at the node carrying two USB devices (the
+  MT7612U and the T1000-E); an AWUS036ACM-class adapter alone can draw a large
+  share of a Pi's USB budget. A powered hub for the radios, or a supply rated
+  for the full load, is the remedy. This is `TBR-PWR-01` territory and CONOPS
+  section 59's concern, arriving via the back door.
+
+Everything in addenda 1 through 7 should be read as **pending confirmation on a
+node that is not power-starved.** The qualitative findings do not move -- a
+configuration defect is still a defect, a gate that cannot fail is still broken,
+and DAT answering with a dead MAC is still the cause -- but every *number*
+wants re-taking.
+
+### CONOPS 22: multicast cost, and the template's own TBD
+
+`os/config/batman-adv.conf.template` sets `multicast_mode=0`, optimisation off,
+and says of it: "A REASONED DEFAULT, NOT A MEASURED ONE. The mesh does carry
+traffic with it disabled, which is not the same as evidence that disabling it
+helps. Revisit under TBR-RF-01." Measured, 500 datagrams of 1200 bytes to a
+group with one receiver, one hop:
+
+| `multicast_mode` | Delivered | `wlan1` tx bytes for 600 KB payload | Receive span |
+| --- | --- | --- | --- |
+| **disabled** (current default) | 463/500 (92.6%) | **1,944,092 (3.24x)** | **4.08 s** |
+| **enabled** | 484/500 (96.8%) | **653,000 (1.09x)** | **0.06 s** |
+
+Optimisation enabled was better on every axis measured: about **3x less
+airtime**, slightly *better* delivery, and a receive span 68x shorter. The
+mechanism is unsurprising once stated -- 802.11 sends multicast and broadcast at
+a basic rate rather than the negotiated MCS, so flooding 600 KB serialised at
+roughly **1.2 Mbit/s**, around 70x slower than the unicast goodput measured on
+the same link.
+
+**Left at the template default of 0.** This is one hop with one receiver on a
+throttled node, and CONOPS 22's `[SHALL]` asks for multicast "under
+representative multi-hop load", which two nodes cannot pose. The number that
+would actually decide the default is how flooding scales with hop count and
+receiver count, and that needs a third node. So this is an input pointing
+against the current default, not grounds to change it; `TBR-RF-01` owns it.
+
+Also noted: `multicast_fanout` is 16 on both nodes, untouched and unmeasured.
+
+### CONOPS 41: the stricter isolation run
+
+Addendum 4's section 41 test removed only default routes, so the LAN resolver
+stayed reachable on-link and DNS kept working -- it measured loss of the
+off-site path, not isolation. Repeated with DNS and the LAN gateway blocked
+outright as well:
+
+| Condition | Verified |
+| --- | --- |
+| off-site IP | unreachable |
+| LAN gateway | blocked |
+| DNS | **fails** |
+
+Under that, on both nodes:
+
+* **S0 routing** held: `bat0` up, peer `ESTAB`, 3/3 ICMP, 0% loss.
+* **S1 peer ATAK** held: a GeoChat and a PLI arrived at the far node with
+  `senderCallsign`, chatroom and `messageId` intact (`1 GeoChat, 1 PLI, 2
+  keepalive, 0 unparseable`).
+* **The configuration plane** ran with no network at all: `python -m mule
+  --region us-915 --mission mission/examples/valid-minimal.json --check`
+  exited 0.
+
+Restored afterwards with routes, DNS and off-site reachability confirmed back
+and **no leftover firewall rules** on either node.
+
+**The `local S0 and S1 services` row of section 41 remains untested, because
+there are no such services deployed on these nodes.** `mule-runtime` is
+inactive, `chrony` is absent so section 9's "required local time functions" do
+not exist here, and the operator readout runs on the bench mule, which is not a
+mesh node. Until the runtime is deployed, that row cannot be exercised, and
+routing plus peer ATAK are the only S0/S1 examples this bench can speak to.
+
+### An incidental finding worth more than it looks
+
+The configuration renderer above exits 0 but reports that **no region profile is
+resolvable**, because `wifi.mesh_channel` and `wifi.mesh_max_eirp_dbm` are
+"supplied by `TBR-RF-01`" (with the LoRa equivalents owed by `TBR-RF-02`).
+
+So the config plane is blocked on exactly the two values this bench has been
+measuring. The channel work in addendum 2 and the transmit-power behaviour in
+addendum 4 are inputs to unblocking `os/`, not merely mesh characterisation --
+which is the most direct line yet from this bench to the program's own stated
+bottleneck.

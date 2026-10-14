@@ -25,7 +25,19 @@ hop on a bench. It does not mean the requirement is satisfied for the field, and
 | **40** Large files row | Large files → high-throughput IP | same, addendum 1 and 2 | 64 MiB, md5 verified, one hop |
 | **33** High-throughput IP bearer | `[SHALL]` capable of exploiting a higher-throughput IP path | same, addendum 2 | **one** of its six stated purposes (large file transfer). 114.7 Mbps at 80 MHz, 89.5 at HT40+. Bench range only; the propagation half is untested |
 | **21** Peer-to-peer ATAK | peer functions without a TAK Server: PLI, GeoChat, selected CoT | same, addendum 1 and 3 | synthetic EUDs, not ATAK; a plain sink, not a server |
-| **41** WAN independence | `[SHALL]` loss of WAN shall not remove local mesh, peer ATAK | same artifact, addendum 4 | two of five rows only; DNS stayed reachable on-link, so this was loss of off-site path, not isolation |
+| **41** WAN independence | `[SHALL]` loss of WAN shall not remove local mesh, peer ATAK | same artifact, addenda 4 and 8 | re-run in addendum 8 with DNS and the LAN gateway blocked too, so isolation this time, not just loss of the off-site path. Still only the local-mesh and peer-ATAK rows: `local EUD access` had no EUD, and **no S0/S1 services are deployed on these nodes** (`mule-runtime` inactive, no `chrony`), so that row cannot be exercised at all |
+| **42** Local WAN gateway | `[SHALL]` any standard MULE shall be technically capable of assuming an authorized local WAN-gateway role | same artifact, addendum 7 | plumbing only: nothing checks *authorization*, which is what section 42 and FML-ADR-069 actually require. One gateway, not competing gateways |
+
+## A caveat that applies to every number above
+
+On 2026-10-14 both bench nodes were found **under-voltage and throttled to
+600 MHz** (`vcgencmd get_throttled` = `0x50005`, 1271 under-voltage events on
+one of them), which alone moved mesh RTT from 0.9 ms to 61.8 ms. No earlier
+artifact recorded throttle state, so while the 2026-10-11 figures are internally
+consistent with un-throttled nodes -- a node at 600 MHz cannot produce
+114.7 Mbps -- none of them can be *proved* un-throttled after the fact. Treat
+every quantity in this file as pending re-measurement on a node that is not
+power-starved. See addendum 8. The qualitative findings are unaffected.
 
 ## Partially shown, and weaker than the row above suggests
 
