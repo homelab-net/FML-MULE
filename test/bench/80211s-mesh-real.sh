@@ -129,6 +129,38 @@ ROUTING_ALGO=BATMAN_IV
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 note() { printf '  %-22s %s\n' "$1" "$2"; }
 
+# Throttle state, as provenance. docs/bench-hardware-bringup.md requires the
+# kernel, radio, driver and image with every result; this belongs in that list
+# and was missing from it.
+#
+# WHY IT MATTERS MORE THAN IT LOOKS. Both bench nodes were found under-voltage
+# and pinned at 600 MHz against a nominal 1.5 GHz, which moved mesh RTT from
+# 0.9 ms to 61.8 ms on a link whose every radio indicator read healthy -- 400
+# MBit/s, -13 dBm, powersave off. A throttled node UNDER-reports the bearer,
+# which is the direction that gets believed, so a figure taken on one is worse
+# than no figure. Bits 0 and 2 are the live ones; 16 and 18 only say it has
+# happened before. See addendum 8 of the TBR-RF-01 artifact.
+throttle_state() {
+  command -v vcgencmd >/dev/null 2>&1 || { echo "unknown (no vcgencmd)"; return; }
+  local t v out=""
+  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2); v=$((t))
+  [ $((v & 0x1)) -ne 0 ] && out="$out under-voltage-now"
+  [ $((v & 0x4)) -ne 0 ] && out="$out THROTTLED-NOW"
+  [ $((v & 0x10000)) -ne 0 ] && out="$out under-voltage-occurred"
+  [ $((v & 0x40000)) -ne 0 ] && out="$out throttling-occurred"
+  [ -z "$out" ] && out=" clean"
+  printf '%s (%s MHz)%s' "$t" \
+    "$(vcgencmd measure_clock arm 2>/dev/null | cut -d= -f2 | awk '{printf "%.0f", $1/1000000}')" \
+    "$out"
+}
+
+# True when a live throttle bit is set, so a caller can refuse to measure.
+throttled_now() {
+  command -v vcgencmd >/dev/null 2>&1 || return 1
+  local v; v=$(( $(vcgencmd get_throttled 2>/dev/null | cut -d= -f2) ))
+  [ $((v & 0x1)) -ne 0 ] || [ $((v & 0x4)) -ne 0 ]
+}
+
 [ "$(id -u)" -eq 0 ] || fail 'must run as root'
 
 for tool in ip iw batctl; do
@@ -268,6 +300,12 @@ mesh_up() {
     note 'gratuitous ARP' "announced $PREFIX.$octet on $MESH_IF"
   fi
   note 'batctl' "$(batctl -v 2>/dev/null | head -1)"
+  note 'throttle' "$(throttle_state)"
+  if throttled_now; then
+    printf '\n  WARNING: this node is throttled RIGHT NOW. Connectivity checks are\n'
+    printf '  still meaningful; a PERFORMANCE figure taken here is not, and\n'
+    printf '  mesh-traffic-real.sh will refuse to run. Fix the supply first.\n'
+  fi
 }
 
 mesh_status() {
@@ -286,6 +324,7 @@ mesh_status() {
   printf '   kernel    %s\n' "$(uname -r)"
   printf '   batctl    %s\n' "$(batctl -v 2>/dev/null | head -1)"
   printf '   host      %s\n' "$(hostname)"
+  printf '   throttle  %s\n' "$(throttle_state)"
 }
 
 # The gate docs/bench-hardware-bringup.md requires before anything multi-node:

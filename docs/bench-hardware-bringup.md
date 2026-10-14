@@ -26,8 +26,17 @@ in CI, because a hosted runner has no wireless stack (`docs/dev-machine.md`).
   `bridge_loop_avoidance`). A rig left at a default is testing the option the
   program rejected.
 - **Record provenance.** Capture the kernel version (`uname -r`), the radio and
-  driver, and the image build alongside every result; fixtures go in
-  `test/fixtures/` with that metadata.
+  driver, the image build, **and `vcgencmd get_throttled`** alongside every
+  result; fixtures go in `test/fixtures/` with that metadata.
+- **A live throttle bit invalidates a performance run.** Bits 0 and 2 mean
+  under-voltage and throttling *now*; 16 and 18 only say it has happened. Both
+  bench nodes were once found pinned at 600 MHz against a nominal 1.5 GHz,
+  which moved mesh RTT from 0.9 ms to 61.8 ms while every radio indicator read
+  healthy. A throttled node **under**-reports the bearer, so the figure is
+  wrong in the believable direction and a footnote on it will not survive the
+  first time somebody quotes the number. `test/bench/mesh-traffic-real.sh`
+  refuses outright; `ALLOW_THROTTLED=1` is for characterising the degraded case
+  on purpose, which is a different experiment and says so in its own evidence.
 
 ## Prerequisites
 

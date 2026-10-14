@@ -81,6 +81,25 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 ip link show "$MESH_IF" >/dev/null 2>&1 ||
   fail "$MESH_IF does not exist; bring the mesh up first (80211s-mesh-real.sh up <octet>)"
 
+# Refuse to produce a number on a throttled node.
+#
+# This is a refusal rather than a warning on purpose. Both bench nodes were
+# found under-voltage and pinned at 600 MHz against a nominal 1.5 GHz, and that
+# alone moved mesh RTT from 0.9 ms to 61.8 ms while every radio indicator read
+# healthy. A throttled node UNDER-reports the bearer, so the figure is not
+# merely noisy, it is wrong in the believable direction: it makes the radio look
+# worse than it is and nobody questions a disappointing result. A footnote on
+# such a run gets dropped the first time someone quotes the number.
+#
+# ALLOW_THROTTLED=1 exists for deliberately characterising the degraded case,
+# which is a different experiment and should say so in its own evidence.
+if command -v vcgencmd >/dev/null 2>&1 && [ "${ALLOW_THROTTLED:-0}" != "1" ]; then
+  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2); v=$((t))
+  if [ $((v & 0x1)) -ne 0 ] || [ $((v & 0x4)) -ne 0 ]; then
+    fail "node is under-voltage or throttled now ($t, $(vcgencmd measure_clock arm 2>/dev/null | cut -d= -f2 | awk '{printf "%.0f", $1/1000000}') MHz). A performance figure taken here understates the bearer. Fix the supply, or set ALLOW_THROTTLED=1 if characterising the degraded case deliberately."
+  fi
+fi
+
 # --- qdiscs: ported from mesh-traffic.sh, minus the netns indirection --------
 
 tc_clear() { tc qdisc del dev "$MESH_IF" root >/dev/null 2>&1 || true; }
