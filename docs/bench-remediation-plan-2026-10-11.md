@@ -1,7 +1,7 @@
 # Bench remediation plan, 2026-10-11
 
 How to close the distance between what the bench has shown and what the CONOPS
-asks. `docs/conops-traceability.md` is the companion: it records the position,
+asks. `docs/verification/conops-traceability.md` is the companion: it records the position,
 this file records the route.
 
 ## The position, stated plainly

@@ -1,7 +1,10 @@
 # Two-node 802.11s + batman-adv on real radios
 
 **Tier: deferred (real-hardware bench result; formal `HARDWARE-VERIFIED` held).**
-Every earlier `TBR-RF-01` artifact is `SIMULATED`; this one met a radio. The
+Every earlier `TBR-RF-01` *result* is `SIMULATED`; this one met a radio. One
+earlier artifact there is neither a simulation nor a result --
+`2026-10-10-awus036acm-one-hop-mesh-card.md`, a bench card for this same adapter
+that had not been run; see **Relation to the one-hop card** below. The
 program nonetheless does not stamp it: `README.md` and `test/README.md` both
 still state that nothing in the repository is `HARDWARE-VERIFIED`, and flipping
 that is a deliberate program-wide posture change which must reconcile those
@@ -15,8 +18,10 @@ RF. It is also **node-local**: no independent receiver observed the air.
 **Date:** 2026-10-11. **Nodes:** `pi-mule-1` and `pi-mule-2`, Raspberry Pi,
 `6.18.50+rpt-rpi-v8 aarch64`, `batman-adv 2025.4` (`batctl debian-2025.0-2`).
 **Radios:** Alfa AWUS036ACM / MediaTek `MT7612U` (USB `0e8d:7612`), driver
-`mt76x2u`, `00:c0:ca:be:28:67` and `00:c0:ca:be:28:68`; selected by driver, not
-by name. **Configuration:** 802.11s mesh id `fml-bench-mesh` on 5745 MHz
+`mt76x2u`, two burned-in addresses under the Alfa OUI `00:c0:ca:…` differing in
+the last octet, `…:67` on node 1 and `…:68` on node 2; truncated because
+`SECURITY.md` forbids publishing what identifiers equipment carries and
+`tools/validate-identifiers.py` enforces it. Selected by driver, not by name. **Configuration:** 802.11s mesh id `fml-bench-mesh` on 5745 MHz
 (channel 149, UNII-3, non-DFS; regdomain `US: DFS-FCC`), 20 MHz, **no HT**;
 `batman-adv` `BATMAN_IV` (`FML-ADR-053`), `bridge_loop_avoidance 0`
 (`FML-ADR-056`), `multicast_mode 0`, hard-interface MTU 1560, `bat0` on
@@ -39,6 +44,26 @@ each node's own `wlan0` client: a 2.4 GHz run would have measured that
 interference and put a live AP at risk. Addressing is `10.42.0.0/24` instead of
 the bench's `10.41.0.0/16`, because `10.41.0.1/24` is already that EUD AP's
 subnet. `TBR-NET-01` still owns the field prefix; this is a bench address.
+
+### Relation to the one-hop card
+
+`2026-10-10-awus036acm-one-hop-mesh-card.md` is a bench card for this same
+adapter, written the day before this run. **This is not that card executed.** The
+card specifies the least occupied of 2412, 2437 and 2462 MHz at `HT20`; this run
+used 5745 MHz for the reason above. Different band, different width, so the two
+are independent runs on shared hardware and **the card remains unrun.**
+
+Two of the card's predictions, which it derived from kernel source rather than
+from hardware, hold here: the adapter binds the in-tree `mt76x2u`, and the
+driver offers at most two interfaces on one channel (`mt76x02u_if_comb`).
+
+A third one bites. The card passes `HT20` on the mesh join and calls it "not
+optional", citing `iw`'s `parse_freqchan` -- "If the mode/channel width is not
+given the NOHT is assumed" -- and warns that omitting it runs "a different
+experiment, with no error". `test/bench/80211s-mesh-real.sh` omitted the width
+and got exactly that: 20 MHz, no HT, a 54 MBit/s legacy rate. The card named the
+trap before this bench fell into it. See **The 54 MBit/s cap was this bench's own
+doing** below for what the width is worth once set.
 
 ## The gate
 
@@ -582,7 +607,7 @@ The mechanism is **batman-adv's distributed ARP table**:
 
     distributed_arp_table: enabled
     DAT cache:  * 10.42.0.2  de:4e:7c:8e:db:ac  last-seen 3:39     <- dead MAC
-    transglobal: * fe:24:00:fa:74:39 ... via 00:c0:ca:be:28:68      <- correct MAC
+    transglobal: * fe:24:00:fa:74:39 ... via <MAC-01-REDACTED>      <- correct MAC
 
 batman-adv **knew the new address** -- the global translation table had it -- and
 **answered ARP with the old one** from DAT. So the neighbour probe that should
@@ -599,10 +624,12 @@ rather than never; that bound was not measured and should not be quoted.
 **Primary fix: a stable `bat0` address.** The kernel assigns `bat0` a fresh
 random MAC on every creation, which is what makes every rejoin and every reboot
 produce a stale mapping. `test/bench/80211s-mesh-real.sh` now derives one from
-the node's own radio, setting the locally-administered bit and keeping the rest:
-`00:c0:ca:be:28:67` gives `02:c0:ca:be:28:67`. Stable per node, distinct between
-nodes, cannot collide with the radio's real address, and applied while `bat0` is
-still down.
+the node's own radio, setting the locally-administered bit in the first octet and
+keeping every other octet: the radio's `00:…` becomes `02:…`, which on node 1
+gives `02:c0:ca:be:28:67`. Stable per node, distinct between nodes, cannot
+collide with the radio's real address, and applied while `bat0` is still down.
+The derived address is locally administered, so it names no equipment and is
+recorded in full; the radio's own address is not.
 
 **Secondary fix: announce the address.** After `bat0` comes up the node sends a
 gratuitous ARP (`arping -U`), so peers and DAT learn the mapping immediately

@@ -3,10 +3,15 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Fifteen procedures and four helpers. No hardware measurement has been
-taken.** The helpers are `operator-view.py` and `udpflow.py`, each driven by the
-shell procedure beside it, and `capture-telemetry.py` and
-`eud-chat-id-capture.py`, which are run directly.
+**Seventeen procedures and six helpers.** Hardware measurements have been taken,
+by the two `-real` procedures below and recorded in
+`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`; the
+repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
+reasons that artifact's `Tier:` line gives. Everything else here remains
+`SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
+driven by the shell procedure beside it, and `capture-telemetry.py`,
+`eud-chat-id-capture.py`, `lora-geochat-eud.py` and `tak-eud-ip.py`, which are
+run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
