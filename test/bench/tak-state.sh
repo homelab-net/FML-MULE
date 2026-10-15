@@ -38,9 +38,35 @@
 
 set -eu
 
-PG_DIGEST="docker.io/library/postgres@sha256:485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8"
-MQ_DIGEST="docker.io/library/rabbitmq@sha256:9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920"
-PY_DIGEST="docker.io/library/python@sha256:de8ba566572ebcb35cbd10e03f5f351cad00a0d0d50a11e084f1a0fd24a0c41a"
+# Images are pinned by immutable digest per FML-ADR-029. A digest names ONE
+# platform, so a single pin silently restricts this script to one architecture:
+# the original pins were amd64, and on the arm64 Pis the image pulled, then the
+# first RUN died with `exec container process: Exec format error`. Both
+# architectures this bench owns are pinned, and the arm64 pins are the SAME
+# upstream releases as the amd64 ones -- python 3.13.15, postgres 16.15,
+# rabbitmq 3.13.7 -- so the two arches reproduce the same software rather than
+# merely the same tag.
+PG_DIGEST_amd64="docker.io/library/postgres@sha256:485935f94cc7165afa896978809c37b592dc07f0a37d2c8f645f12412d0212c8"
+MQ_DIGEST_amd64="docker.io/library/rabbitmq@sha256:9cfb7e92ae7d296aec4d1ae799e431209f7ed57d55f9c929d95667d0ccf1c920"
+PY_DIGEST_amd64="docker.io/library/python@sha256:de8ba566572ebcb35cbd10e03f5f351cad00a0d0d50a11e084f1a0fd24a0c41a"
+PG_DIGEST_arm64="docker.io/library/postgres@sha256:ac51821423566931ecf50eb51ee9201d794d8632d33a2f23432ec47ff63a0fd4"
+MQ_DIGEST_arm64="docker.io/library/rabbitmq@sha256:47c388129d4fc820f399d60d4e358c03a91617a657be024be7321be3387de819"
+PY_DIGEST_arm64="docker.io/library/python@sha256:4f72f3434c0586369059a3ccb42e31a939f5db1dbf27e66f309065ff0858fcc7"
+
+# fail() is defined below, so this guard prints for itself. Refusing an
+# unpinned architecture is deliberate: silently running the wrong one is how
+# the amd64-only pin went unnoticed.
+case $(uname -m) in
+  x86_64)  ARCH=amd64 ;;
+  aarch64) ARCH=arm64 ;;
+  *)
+    printf 'FAIL: no digests pinned for architecture %s; pin them before running\n' "$(uname -m)" >&2
+    exit 1
+    ;;
+esac
+eval "PG_DIGEST=\$PG_DIGEST_$ARCH"
+eval "MQ_DIGEST=\$MQ_DIGEST_$ARCH"
+eval "PY_DIGEST=\$PY_DIGEST_$ARCH"
 OTS_VERSION=1.7.13
 IMAGE=localhost/fml-bench-tak:$OTS_VERSION
 
@@ -80,8 +106,16 @@ RUN pip install --no-cache-dir "opentakserver==$OTS_VERSION"
 ENV OTS_DATA_FOLDER=/data
 ENTRYPOINT ["opentakserver"]
 CONTAINERFILE
-podman build --network=host -t "$IMAGE" "$WORK" >/dev/null 2>&1 ||
-  fail 'image build failed. Network is needed to reach PyPI.'
+if ! podman build --network=host -t "$IMAGE" "$WORK" >"$WORK/build.log" 2>&1; then
+  # Do not name a cause the build never reported. An architecture mismatch, a
+  # registry failure and an unreachable PyPI all arrive here and look nothing
+  # alike; the previous message asserted PyPI and sent a reader chasing the
+  # network while the real error was `Exec format error` from an amd64-only
+  # base image. Print what actually happened.
+  printf 'FAIL: image build failed. Build output follows.\n' >&2
+  tail -25 "$WORK/build.log" >&2
+  exit 1
+fi
 info "built $IMAGE"
 
 start_backing() {
