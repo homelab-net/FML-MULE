@@ -42,6 +42,12 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    # Imported for typing only. meshtastic is imported lazily inside the
+    # subcommands so that --help works on a host without the client installed.
+    from meshtastic.serial_interface import SerialInterface
 
 DEFAULT_DEV = "/dev/ttyACM0"
 DEFAULT_CHANNEL = "MULE-TEST"
@@ -49,12 +55,14 @@ DEFAULT_CHANNEL = "MULE-TEST"
 ATAK_PLUGIN = 72
 
 
-def fail(msg: str) -> "None":
+def fail(msg: str) -> None:
     print("FAIL: " + msg, file=sys.stderr)
     raise SystemExit(1)
 
 
-def resolve_channel(iface, name: str | None, index: int | None, allow_public: bool) -> int:
+def resolve_channel(
+    iface: SerialInterface, name: str | None, index: int | None, allow_public: bool
+) -> int:
     """Return a channel index, by name where possible, and never 0 by accident."""
     chans = getattr(iface.localNode, "channels", None) or []
     if index is None:
@@ -70,19 +78,23 @@ def resolve_channel(iface, name: str | None, index: int | None, allow_public: bo
             have = []
             for i, c in enumerate(chans):
                 nm = getattr(getattr(c, "settings", None), "name", "")
-                have.append(nm if nm else ("<primary>" if i == 0 else "<unused:%d>" % i))
-            fail("no channel named %r on this radio; it has: %s" % (name, ", ".join(have)))
+                have.append(nm if nm else ("<primary>" if i == 0 else f"<unused:{i}>"))
+            fail(
+                "no channel named {!r} on this radio; it has: {}".format(
+                    name, ", ".join(have)
+                )
+            )
     if index == 0 and not allow_public:
         fail(
             "channel index 0 is the PUBLIC LongFast channel and carries third-party "
-            "nodes. Use the private %s channel, or pass "
+            f"nodes. Use the private {DEFAULT_CHANNEL} channel, or pass "
             "--i-really-mean-the-public-mesh if putting test traffic on other "
-            "people's radios is genuinely intended." % DEFAULT_CHANNEL
+            "people's radios is genuinely intended."
         )
     return index
 
 
-def do_listen(args) -> int:
+def do_listen(args: argparse.Namespace) -> int:
     """Receive and decode. Transmits nothing, so it is safe on any channel."""
     from meshtastic.protobuf import atak_pb2
     from meshtastic.serial_interface import SerialInterface
@@ -90,7 +102,7 @@ def do_listen(args) -> int:
 
     seen = {"packets": 0, "tak": 0}
 
-    def on_receive(packet, interface):  # noqa: ARG001
+    def on_receive(packet: dict[str, Any], interface: SerialInterface) -> None:
         seen["packets"] += 1
         dec = packet.get("decoded") or {}
         port = dec.get("portnum")
@@ -100,49 +112,60 @@ def do_listen(args) -> int:
             tak = atak_pb2.TAKPacket()
             try:
                 tak.ParseFromString(dec.get("payload", b""))
-            except Exception as exc:  # noqa: BLE001
-                print("  [%s] ATAK_PLUGIN payload did not parse: %s" % (frm, exc))
+            except Exception as exc:
+                print(f"  [{frm}] ATAK_PLUGIN payload did not parse: {exc}")
                 return
             # The two fields FML-ADR-070 rests on, printed verbatim so a
             # byte-for-byte comparison against what was sent is possible.
-            print("  [%s] TAKPacket  Contact.callsign=%r  GeoChat.to=%r  message=%r"
-                  % (frm, tak.contact.callsign, tak.chat.to, tak.chat.message))
+            print(
+                f"  [{frm}] TAKPacket  "
+                f"Contact.callsign={tak.contact.callsign!r}  "
+                f"GeoChat.to={tak.chat.to!r}  message={tak.chat.message!r}"
+            )
         else:
             text = dec.get("text")
-            print("  [%s] %s%s" % (frm, port, (" text=%r" % text) if text else ""))
+            print("  [{}] {}{}".format(frm, port, (f" text={text!r}") if text else ""))
 
     pub.subscribe(on_receive, "meshtastic.receive")
     iface = SerialInterface(args.dev)
-    print("listening on %s for %ss (transmitting nothing)" % (args.dev, args.seconds))
+    print(f"listening on {args.dev} for {args.seconds}s (transmitting nothing)")
     try:
         time.sleep(args.seconds)
     finally:
         iface.close()
-    print("heard %d packet(s), of which %d were ATAK_PLUGIN TAKPackets"
-          % (seen["packets"], seen["tak"]))
+    print(
+        f"heard {seen['packets']} packet(s), "
+        f"of which {seen['tak']} were ATAK_PLUGIN TAKPackets"
+    )
     return 0
 
 
-def do_send(args) -> int:
+def do_send(args: argparse.Namespace) -> int:
     from meshtastic.protobuf import atak_pb2
     from meshtastic.serial_interface import SerialInterface
 
     iface = SerialInterface(args.dev)
     try:
-        idx = resolve_channel(iface, args.channel, args.ch_index, args.i_really_mean_the_public_mesh)
+        idx = resolve_channel(
+            iface, args.channel, args.ch_index, args.i_really_mean_the_public_mesh
+        )
 
         tak = atak_pb2.TAKPacket()
         tak.is_compressed = False
-        tak.contact.callsign = args.from_callsign       # sender  (FML-ADR-070)
+        tak.contact.callsign = args.from_callsign  # sender  (FML-ADR-070)
         tak.contact.device_callsign = args.from_callsign
-        tak.chat.to = args.to                           # recipient (FML-ADR-070)
+        tak.chat.to = args.to  # recipient (FML-ADR-070)
         tak.chat.message = args.message
         payload = tak.SerializeToString()
 
-        print("sending on channel index %d, ATAK plugin port %d, %d bytes"
-              % (idx, ATAK_PLUGIN, len(payload)))
-        print("  Contact.callsign=%r  GeoChat.to=%r  message=%r"
-              % (args.from_callsign, args.to, args.message))
+        print(
+            f"sending on channel index {idx}, "
+            f"ATAK plugin port {ATAK_PLUGIN}, {len(payload)} bytes"
+        )
+        print(
+            f"  Contact.callsign={args.from_callsign!r}  "
+            f"GeoChat.to={args.to!r}  message={args.message!r}"
+        )
         iface.sendData(
             payload,
             portNum=ATAK_PLUGIN,
@@ -160,8 +183,9 @@ def do_send(args) -> int:
 
 
 def main(argv: list[str]) -> int:
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = p.add_subparsers(dest="mode", required=True)
 
     pl = sub.add_parser("listen", help="receive and decode; transmits nothing")
@@ -172,14 +196,21 @@ def main(argv: list[str]) -> int:
     ps.add_argument("--dev", default=DEFAULT_DEV)
     ps.add_argument("--to", required=True, help="recipient callsign -> GeoChat.to")
     ps.add_argument("--message", required=True)
-    ps.add_argument("--from", dest="from_callsign", default="FMLEUD1",
-                    help="sender callsign -> Contact.callsign")
+    ps.add_argument(
+        "--from",
+        dest="from_callsign",
+        default="FMLEUD1",
+        help="sender callsign -> Contact.callsign",
+    )
     ps.add_argument("--channel", default=DEFAULT_CHANNEL, help="channel by NAME")
     ps.add_argument("--ch-index", type=int, default=None, help="channel by index")
     ps.add_argument("--no-ack", action="store_true")
     ps.add_argument("--settle", type=float, default=12.0)
-    ps.add_argument("--i-really-mean-the-public-mesh", action="store_true",
-                    help="permit channel index 0, the public mesh")
+    ps.add_argument(
+        "--i-really-mean-the-public-mesh",
+        action="store_true",
+        help="permit channel index 0, the public mesh",
+    )
 
     args = p.parse_args(argv)
     if args.mode == "listen":

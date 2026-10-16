@@ -21,7 +21,8 @@ RF. It is also **node-local**: no independent receiver observed the air.
 `mt76x2u`, two burned-in addresses under the Alfa OUI `00:c0:ca:…` differing in
 the last octet, `…:67` on node 1 and `…:68` on node 2; truncated because
 `SECURITY.md` forbids publishing what identifiers equipment carries and
-`tools/validate-identifiers.py` enforces it. Selected by driver, not by name. **Configuration:** 802.11s mesh id `fml-bench-mesh` on 5745 MHz
+`tools/validate-identifiers.py` enforces it. Selected by driver, not by name.
+**Configuration:** 802.11s mesh id `fml-bench-mesh` on 5745 MHz
 (channel 149, UNII-3, non-DFS; regdomain `US: DFS-FCC`), 20 MHz, **no HT**;
 `batman-adv` `BATMAN_IV` (`FML-ADR-053`), `bridge_loop_avoidance 0`
 (`FML-ADR-056`), `multicast_mode 0`, hard-interface MTU 1560, `bat0` on
