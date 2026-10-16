@@ -126,7 +126,10 @@ DRIVER=${DRIVER:-mt76x2u}
 #: set BEFORE any interface joins the mesh.
 ROUTING_ALGO=BATMAN_IV
 
-fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
 note() { printf '  %-22s %s\n' "$1" "$2"; }
 
 # Throttle state, as provenance. docs/bench-hardware-bringup.md requires the
@@ -141,9 +144,13 @@ note() { printf '  %-22s %s\n' "$1" "$2"; }
 # than no figure. Bits 0 and 2 are the live ones; 16 and 18 only say it has
 # happened before. See addendum 8 of the TBR-RF-01 artifact.
 throttle_state() {
-  command -v vcgencmd >/dev/null 2>&1 || { echo "unknown (no vcgencmd)"; return; }
+  command -v vcgencmd >/dev/null 2>&1 || {
+    echo "unknown (no vcgencmd)"
+    return
+  }
   local t v out=""
-  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2); v=$((t))
+  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)
+  v=$((t))
   [ $((v & 0x1)) -ne 0 ] && out="$out under-voltage-now"
   [ $((v & 0x4)) -ne 0 ] && out="$out THROTTLED-NOW"
   [ $((v & 0x10000)) -ne 0 ] && out="$out under-voltage-occurred"
@@ -157,7 +164,8 @@ throttle_state() {
 # True when a live throttle bit is set, so a caller can refuse to measure.
 throttled_now() {
   command -v vcgencmd >/dev/null 2>&1 || return 1
-  local v; v=$(( $(vcgencmd get_throttled 2>/dev/null | cut -d= -f2) ))
+  local v
+  v=$(($(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)))
   [ $((v & 0x1)) -ne 0 ] || [ $((v & 0x4)) -ne 0 ]
 }
 
@@ -174,7 +182,10 @@ resolve_phy() {
   for p in /sys/class/ieee80211/*; do
     [ -e "$p" ] || continue
     d=$(basename "$(readlink -f "$p/device/driver" 2>/dev/null)" 2>/dev/null) || continue
-    if [ "$d" = "$DRIVER" ]; then basename "$p"; return 0; fi
+    if [ "$d" = "$DRIVER" ]; then
+      basename "$p"
+      return 0
+    fi
   done
   return 1
 }
@@ -197,7 +208,8 @@ netdev_for_phy() {
   for n in /sys/class/net/*; do
     [ -e "$n/phy80211" ] || continue
     if [ "$(basename "$(readlink -f "$n/phy80211")")" = "$1" ]; then
-      basename "$n"; return 0
+      basename "$n"
+      return 0
     fi
   done
   return 1
@@ -213,7 +225,7 @@ mesh_up() {
   [ -n "$octet" ] || fail 'usage: up <octet>'
 
   printf 'Radio\n'
-  note 'phy'    "$PHY"
+  note 'phy' "$PHY"
   note 'device' "$DEV"
   note 'driver' "$DRIVER"
   note 'address' "$(cat "/sys/class/net/$DEV/address")"
@@ -265,7 +277,7 @@ mesh_up() {
   # may well want an identity-derived address rather than one borrowed from a
   # radio that could be swapped. This is the bench fixing a bench defect.
   hw=$(cat "/sys/class/net/$DEV/address")
-  stable_mac=$(printf '%02x:%s' "$(( 0x${hw%%:*} | 0x02 ))" "${hw#*:}")
+  stable_mac=$(printf '%02x:%s' "$((0x${hw%%:*} | 0x02))" "${hw#*:}")
   if ip link set "$MESH_IF" address "$stable_mac" 2>/dev/null; then
     note 'bat0 address' "$stable_mac (stable, derived from $DEV)"
   else
@@ -437,12 +449,24 @@ mesh_down() {
 }
 
 case "${1:-}" in
-  up)          shift; mesh_up "${1:-}" ;;
-  gate)        shift; mesh_gate "${1:-}" ;;
-  status)      mesh_status ;;
-  peers)       mesh_peers ;;
-  line-assert) shift; mesh_line_assert "${1:-}" ;;
-  hops)        shift; mesh_hops "${1:-}" ;;
-  down)        mesh_down ;;
+  up)
+    shift
+    mesh_up "${1:-}"
+    ;;
+  gate)
+    shift
+    mesh_gate "${1:-}"
+    ;;
+  status) mesh_status ;;
+  peers) mesh_peers ;;
+  line-assert)
+    shift
+    mesh_line_assert "${1:-}"
+    ;;
+  hops)
+    shift
+    mesh_hops "${1:-}"
+    ;;
+  down) mesh_down ;;
   *) fail 'usage: 80211s-mesh-real.sh {up <octet>|gate <peer-ip>|status|peers|line-assert <n>|hops <ip>|down}' ;;
 esac

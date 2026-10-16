@@ -74,7 +74,10 @@ MESH_IF=bat0
 RECV_TIMEOUT=${RECV_TIMEOUT:-10}
 FLOW=${FLOW:-$(cd "$(dirname "$0")" && pwd)/udpflow.py}
 
-fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
 
 [ "$(id -u)" -eq 0 ] || fail 'must run as root'
 [ -f "$FLOW" ] || fail "udpflow.py not found at $FLOW (set FLOW=/path/to/udpflow.py)"
@@ -94,7 +97,8 @@ ip link show "$MESH_IF" >/dev/null 2>&1 ||
 # ALLOW_THROTTLED=1 exists for deliberately characterising the degraded case,
 # which is a different experiment and should say so in its own evidence.
 if command -v vcgencmd >/dev/null 2>&1 && [ "${ALLOW_THROTTLED:-0}" != "1" ]; then
-  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2); v=$((t))
+  t=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)
+  v=$((t))
   if [ $((v & 0x1)) -ne 0 ] || [ $((v & 0x4)) -ne 0 ]; then
     fail "node is under-voltage or throttled now ($t, $(vcgencmd measure_clock arm 2>/dev/null | cut -d= -f2 | awk '{printf "%.0f", $1/1000000}') MHz). A performance figure taken here understates the bearer. Fix the supply, or set ALLOW_THROTTLED=1 if characterising the degraded case deliberately."
   fi
@@ -197,7 +201,8 @@ stop_bulk() {
 # RTT concurrent with the voice flow. This is the honest substitute for the
 # one-way latency the single-host bench could report and two nodes cannot.
 voice_and_rtt() {
-  local peer=$1; shift
+  local peer=$1
+  shift
   local pf="/tmp/fml-mesh-real.ping.$$" ppid rtt iloss
   ping -D -i 0.2 -c 45 -I "$MESH_IF" "$peer" >"$pf" 2>&1 &
   ppid=$!
@@ -213,7 +218,9 @@ voice_and_rtt() {
 
 do_send() {
   local peer=${1:-} phase=${2:-}
-  [ -n "$peer" ] && [ -n "$phase" ] || fail 'usage: send <peer-ip> <a|b|c>'
+  if [ -z "$peer" ] || [ -z "$phase" ]; then
+    fail 'usage: send <peer-ip> <a|b|c>'
+  fi
 
   case "$phase" in
     a)
@@ -242,8 +249,17 @@ do_send() {
 }
 
 case "${1:-}" in
-  recv) shift; do_recv "${1:-}" ;;
-  send) shift; do_send "${1:-}" "${2:-}" ;;
-  clear) tc_clear; printf 'qdisc cleared on %s\n' "$MESH_IF" ;;
+  recv)
+    shift
+    do_recv "${1:-}"
+    ;;
+  send)
+    shift
+    do_send "${1:-}" "${2:-}"
+    ;;
+  clear)
+    tc_clear
+    printf 'qdisc cleared on %s\n' "$MESH_IF"
+    ;;
   *) fail 'usage: mesh-traffic-real.sh {recv <a|b|c>|send <peer-ip> <a|b|c>|clear}' ;;
 esac

@@ -57,16 +57,21 @@ PY_DIGEST_arm64="docker.io/library/python@sha256:4f72f3434c0586369059a3ccb42e31a
 # unpinned architecture is deliberate: silently running the wrong one is how
 # the amd64-only pin went unnoticed.
 case $(uname -m) in
-  x86_64)  ARCH=amd64 ;;
-  aarch64) ARCH=arm64 ;;
+  x86_64)
+    PG_DIGEST=$PG_DIGEST_amd64
+    MQ_DIGEST=$MQ_DIGEST_amd64
+    PY_DIGEST=$PY_DIGEST_amd64
+    ;;
+  aarch64)
+    PG_DIGEST=$PG_DIGEST_arm64
+    MQ_DIGEST=$MQ_DIGEST_arm64
+    PY_DIGEST=$PY_DIGEST_arm64
+    ;;
   *)
     printf 'FAIL: no digests pinned for architecture %s; pin them before running\n' "$(uname -m)" >&2
     exit 1
     ;;
 esac
-eval "PG_DIGEST=\$PG_DIGEST_$ARCH"
-eval "MQ_DIGEST=\$MQ_DIGEST_$ARCH"
-eval "PY_DIGEST=\$PY_DIGEST_$ARCH"
 OTS_VERSION=1.7.13
 IMAGE=localhost/fml-bench-tak:$OTS_VERSION
 
