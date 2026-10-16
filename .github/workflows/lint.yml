@@ -113,12 +113,27 @@ jobs:
       - name: Install the shell toolchain
         run: tools/install-deps.sh --only apt,shfmt
 
+      # tools/ AND test/, discovered the same way tools/lint.sh:61 discovers
+      # them, so this job and that script cannot disagree about what a shell
+      # script is. The previous `tools/*.sh` glob left every file under test/
+      # unchecked here, which meant the bench procedures -- the ones run as
+      # root on real hardware -- were linted by the Fresh Debian install job
+      # alone, and only because tools/lint.sh looks wider than this did.
+      - name: Collect shell scripts
+        run: |
+          {
+            echo 'SHELL_FILES<<EOF'
+            find tools test -name '*.sh' -type f | sort
+            echo EOF
+          } >> "$GITHUB_ENV"
+
       - name: shellcheck
         # -x so sourced files are followed; see the note in tools/lint.sh.
-        run: shellcheck -x tools/*.sh
+        # Word splitting on $SHELL_FILES is intended: the linter takes a list.
+        run: shellcheck -x $SHELL_FILES
 
       - name: shfmt
-        run: shfmt -d -i 2 -ci tools/*.sh
+        run: shfmt -d -i 2 -ci $SHELL_FILES
 
       - name: Shell unit tests
         # These plant violations in a throwaway copy of the tree and assert
