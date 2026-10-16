@@ -3,10 +3,15 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Fifteen procedures and four helpers. No hardware measurement has been
-taken.** The helpers are `operator-view.py` and `udpflow.py`, each driven by the
-shell procedure beside it, and `capture-telemetry.py` and
-`eud-chat-id-capture.py`, which are run directly.
+**Seventeen procedures and six helpers.** Hardware measurements have been taken,
+by the two `-real` procedures below and recorded in
+`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`; the
+repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
+reasons that artifact's `Tier:` line gives. Everything else here remains
+`SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
+driven by the shell procedure beside it, and `capture-telemetry.py`,
+`eud-chat-id-capture.py`, `lora-geochat-eud.py` and `tak-eud-ip.py`, which are
+run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -45,6 +50,42 @@ illustrative, not a decision: `TBR-RF-01` owns the mechanism. Both modes are
 `SIMULATED`, advance `TBR-RF-01`, and cannot close it; results in
 `docs/evidence/TBR-RF-01/`. It selects its radios from the `mac80211_hwsim`
 device tree under `/sys`, never by name.
+
+`80211s-mesh-real.sh` and `mesh-traffic-real.sh` are the real-radio
+counterparts, and they exist because neither script above can be pointed at
+hardware: `80211s-mesh.sh` runs every node as a namespace on one host, and
+`mesh-traffic.sh` refuses outright to move a real radio. These run once per node
+on two separate hosts. `80211s-mesh-real.sh` brings up one mesh node and gates on
+a single ICMP echo crossing -- the gate `docs/bench-hardware-bringup.md` requires
+before anything multi-node -- selecting its radio by driver and **refusing an
+`mac80211_hwsim` phy**, the inverse of the guard above, because a `SIMULATED`
+figure recorded as real-RF evidence is the one failure that would matter.
+`mesh-traffic-real.sh` ports the `contention` phases only; `latency` needs the
+three-node line that two nodes cannot form. It reports loss and jitter but
+**withholds one-way latency**, which across two hosts is a clock-offset artefact
+by `udpflow.py`'s own account, and substitutes `ping -D` RTT. It also refuses to
+print a figure when no packets arrived or when a receiver outlived its phase,
+because both look like loss and are neither. Results are real RF rather than
+`SIMULATED`, but node-local, and their tier is deferred like every other
+real-hardware result here; they live in `docs/evidence/TBR-RF-01/`.
+
+`lora-geochat-eud.py` is a synthetic TAK EUD on the Meshtastic bearer. It sends
+and receives `FML-ADR-070`'s encoding -- the sender in `Contact.callsign`, the
+recipient in `GeoChat.to` -- as a `TAKPacket` on the ATAK plugin port. That is
+the same assertion `geochat-survival.sh` makes over a docker bridge, with a real
+radio in the path instead of a perfect wire. The EUD is this script, not ATAK,
+so it exercises the ENCODING and the bearer, never a TAK application and never
+enrollment.
+
+`listen` transmits nothing and is safe on any channel. `send` resolves channels
+by NAME rather than index, because an index silently shifts when a channel is
+added, and it **refuses index 0** unless explicitly overridden: index 0 is the
+public LongFast channel, on this bench it carries roughly eighty third-party
+nodes, and a LoRa transmission cannot be recalled. The public mesh being a
+legitimate contingency BEARER for the program is a separate question from
+whether synthetic test chatter belongs on other people's radios. One radio
+proves only that a packet was handed to it; delivery needs a second node running
+`listen`, which the bench does not yet have.
 
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the

@@ -118,6 +118,7 @@ A change is not done until all seven hold. Say which ones you actually ran.
 | A new check | Prove it can fail. Break something on purpose and watch it fire. **Remove every instance of what it looks for**, not one. |
 | A setting for an external tool | Read its documentation and **quote the line**, in the file, beside the setting. Record what the tool defaults to and what happens if the line is omitted. A setting whose default is the opposite of what this program needs is a silent violation waiting for someone to trim the file. |
 | A constraint you are transcribing | **Quote the source, do not paraphrase it.** A source saying an interface must be *up* does not say it must be *associated*, and a source saying a value cannot change after *interface creation* does not say after *the first member is added*. Both of those were written here as paraphrases and both were wrong in the direction that let the failure through. |
+| A claim that a capability is absent, blocked, or needs standing up | **Scan what is actually running, then prove reachability from the device that would use it.** `podman ps` and `docker ps` on every node in the bench, not just the one in front of you, and then test the port *from the consumer* rather than from the host that serves it. A README saying a component is not loadable describes this repository's deployment path; it does not describe the bench. Not machine-checkable: it needs a live bench, so it is on you. |
 | A heading, or any prose | Sentence case. No emoji. Anywhere. |
 
 ## What the evidence supports
@@ -340,9 +341,21 @@ Real, from this repository. Recognise the shape.
    answer `False` - the same claim, one field over. Four instances so far.
    Every reading a platform might be unable to provide is `T | None`.
 
-The common shape: **something looked verified because nobody asked what would
-have to break for the check to notice.** Ask it. And when you check, read the
-signal that means success, not the one that looks like it.
+6. **A capability was declared missing while it was running and reachable.**
+   `docs/bench-remediation-plan-2026-10-11.md` put CONOPS sections 24 to 30
+   behind "stand up OpenTAKServer first", citing `services/tak/README.md` saying
+   nothing is loadable yet. An OTS stack had been running on the bench mule for
+   days -- seven rootless podman containers, `opentakserver` on 8081 and
+   `eud_handler` on 8088 -- and both pis could reach all of it the whole time.
+   The README was true about this repository's deployment path and said nothing
+   about the bench. Nobody had run `podman ps`, and nobody had tested the port
+   from the node that would have consumed it.
+
+The common shape of the first five: **something looked verified because nobody
+asked what would have to break for the check to notice.** Ask it. And when you
+check, read the signal that means success, not the one that looks like it. The
+sixth is the mirror image -- something looked absent because nobody asked what
+was already running -- and it costs the same way round, in work done twice.
 
 Two of these now have machine checks, because both recurred. Coverage of
 `mule/` is held at 100% `[CI]`, since the unreachable ones were single lines in
