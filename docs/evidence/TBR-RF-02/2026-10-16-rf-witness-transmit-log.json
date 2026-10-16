@@ -1,0 +1,109 @@
+{
+  "note": "Transmit log for docs/evidence/TBR-RF-02/2026-10-16-lora-channel-rf-witness.md. Epoch seconds are UTC. skew_ms is the actual send instant minus the scheduled one. Every send used channelIndex=3 (the private MULE-TEST channel) and hopLimit=0.",
+  "runs": [
+    {
+      "run": "1-witness",
+      "span_hz": [
+        906000000,
+        908000000
+      ],
+      "capture": "2026-10-16-rf-witness-906-908-sends.csv",
+      "sends": [
+        {
+          "seq": 0,
+          "target_epoch": 1792187369,
+          "sent_utc": "2026-10-16T21:49:29.004258+00:00",
+          "skew_ms": 4.3
+        },
+        {
+          "seq": 1,
+          "target_epoch": 1792187384,
+          "sent_utc": "2026-10-16T21:49:44.000069+00:00",
+          "skew_ms": 0.1
+        },
+        {
+          "seq": 2,
+          "target_epoch": 1792187399,
+          "sent_utc": "2026-10-16T21:49:59.001616+00:00",
+          "skew_ms": 1.6
+        },
+        {
+          "seq": 3,
+          "target_epoch": 1792187414,
+          "sent_utc": "2026-10-16T21:50:14.004354+00:00",
+          "skew_ms": 4.4
+        },
+        {
+          "seq": 4,
+          "target_epoch": 1792187429,
+          "sent_utc": "2026-10-16T21:50:29.003314+00:00",
+          "skew_ms": 3.3
+        },
+        {
+          "seq": 5,
+          "target_epoch": 1792187444,
+          "sent_utc": "2026-10-16T21:50:44.001230+00:00",
+          "skew_ms": 1.2
+        },
+        {
+          "seq": 6,
+          "target_epoch": 1792187459,
+          "sent_utc": "2026-10-16T21:50:59.001841+00:00",
+          "skew_ms": 1.8
+        }
+      ]
+    },
+    {
+      "run": "2-frequency-control",
+      "span_hz": [
+        910000000,
+        912000000
+      ],
+      "capture": "2026-10-16-rf-witness-910-912-control.csv",
+      "sends": [
+        {
+          "seq": 0,
+          "target_epoch": 1792187690,
+          "sent_utc": "2026-10-16T21:54:50.000773+00:00",
+          "skew_ms": 0.8
+        },
+        {
+          "seq": 1,
+          "target_epoch": 1792187705,
+          "sent_utc": "2026-10-16T21:55:05.000371+00:00",
+          "skew_ms": 0.4
+        },
+        {
+          "seq": 2,
+          "target_epoch": 1792187720,
+          "sent_utc": "2026-10-16T21:55:20.001638+00:00",
+          "skew_ms": 1.6
+        },
+        {
+          "seq": 3,
+          "target_epoch": 1792187735,
+          "sent_utc": "2026-10-16T21:55:35.000427+00:00",
+          "skew_ms": 0.4
+        },
+        {
+          "seq": 4,
+          "target_epoch": 1792187750,
+          "sent_utc": "2026-10-16T21:55:50.003788+00:00",
+          "skew_ms": 3.8
+        },
+        {
+          "seq": 5,
+          "target_epoch": 1792187765,
+          "sent_utc": "2026-10-16T21:56:05.001518+00:00",
+          "skew_ms": 1.5
+        },
+        {
+          "seq": 6,
+          "target_epoch": 1792187780,
+          "sent_utc": "2026-10-16T21:56:20.001421+00:00",
+          "skew_ms": 1.4
+        }
+      ]
+    }
+  ]
+}

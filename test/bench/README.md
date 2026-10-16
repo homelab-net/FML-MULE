@@ -3,15 +3,17 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Seventeen procedures and six helpers.** Hardware measurements have been taken,
+**Eighteen procedures and seven helpers.** Hardware measurements have been taken,
 by the two `-real` procedures below and recorded in
-`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`; the
+`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`, and by
+the `sdr-rf-witness.sh` and `lora-tx-burst.py` pair recorded in
+`docs/evidence/TBR-RF-02/2026-10-16-lora-channel-rf-witness.md`; the
 repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
 reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
-`eud-chat-id-capture.py`, `lora-geochat-eud.py` and `tak-eud-ip.py`, which are
-run directly.
+`eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py` and
+`tak-eud-ip.py`, which are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -86,6 +88,28 @@ legitimate contingency BEARER for the program is a separate question from
 whether synthetic test chatter belongs on other people's radios. One radio
 proves only that a packet was handed to it; delivery needs a second node running
 `listen`, which the bench does not yet have.
+
+`sdr-rf-witness.sh` and `lora-tx-burst.py` are a pair, run on two different
+nodes, and they close the gap the paragraph above ends on. One radio proves a
+packet was handed to it -- so the transmitting device's own account is the only
+account, and `airUtilTx` does not improve on it, because it arrives in periodic
+telemetry rather than being observed. The witness is a receive-only RTL-SDR on a
+third node: it reports energy in a frequency span in a one-second interval, by
+an instrument that is not the device under test. Both take the same start epoch
+and align on NTP time, so neither signals the other.
+
+It is still not a delivery test, and it is a weaker claim than `listen` would
+make, not a stronger one. Energy detection recovers no payload, no addressing
+and no channel identity, so it cannot say which radio transmitted; attribution
+comes from correlating a known send schedule, never from energy alone. Two
+controls are therefore part of the procedure: the same schedule with the span
+moved several MHz away, which catches an instrument merely responding to any
+nearby transmitter, and the same span with nothing transmitting, which measures
+how often the channel lights up by itself. `rtl_power`'s dB values are
+uncalibrated and are not dBm, so they support a contrast within one capture and
+no absolute power, path-loss or sensitivity claim. Gain is pinned at the
+minimum on purpose, which makes this a local witness and leaves it deliberately
+blind to the distant traffic a spectrum survey would want to see.
 
 `wan-gateway-sharing.sh` exercises `batman-adv` gateway mode over
 `mac80211_hwsim`: two gateway-holding nodes and one WAN-less node. It records the

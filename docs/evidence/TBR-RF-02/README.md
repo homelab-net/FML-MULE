@@ -11,8 +11,18 @@
 an artifact's presence is not owner acceptance.
 
 - [2026-08-30-sx1262-usb-modem-identified.md][artifact-1]
+- [2026-10-16-lora-channel-rf-witness.md][artifact-2], with the three raw
+  `rtl_power` captures and the transmit log it cites.
 
 [artifact-1]: 2026-08-30-sx1262-usb-modem-identified.md
+[artifact-2]: 2026-10-16-lora-channel-rf-witness.md
+
+The two are complementary and neither is a coexistence result. The first
+identifies a sub-GHz modem and transmitted nothing. The second measures the
+operating channel of the other sub-GHz radio on this bench and establishes an
+independent RF witness for it, with **no HaLow radio present**. The
+coexistence measurement this trade actually turns on needs a HaLow radio
+beside a LoRa radio, and has not been taken.
 
 This directory exists before the work does, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be
