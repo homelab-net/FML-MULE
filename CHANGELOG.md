@@ -14,6 +14,31 @@ this program needs them visible:
 
 ## Unreleased
 
+### Added the EMCON avoidable-transmission class list
+
+`FML-REQ-049` binds the system not to originate a transmission the active
+posture has classed as avoidable, and nothing said which transmissions those
+are. SAD section 23 names seven suppression layers without saying what each
+suppresses.
+`docs/evidence/TBR-EMCON-01/2026-10-16-avoidable-transmission-class-list.md`
+is the list: twenty-two classes partitioned by emitter, trigger, bearer and
+controlling party, each mapped to one or more layers, including `CCR-06`'s EUD
+presence self-publish as the Closure evidence requires. It is written analysis
+against the controlling documents. No radio was involved, and it is not a
+measurement of radio silence, which CONOPS 50.12 and `FML-ADR-046` both
+forbid claiming.
+
+Every class maps to an existing layer, so the artifact proposes no new
+suppression layer and no ADR. The gaps it records are in mechanism instead:
+no decision selects how a posture is enforced, `FML-ADR-068` and
+`FML-ADR-072` require specific emitters to be gated on the `FML-ADR-046` EMCON
+state while leaving the wiring open, and SAD section 7.2 specifies that the
+Meshtastic radio continues its native mesh behaviour independently of the
+host, so no identified means reaches that emitter.
+
+`TBR-EMCON-01` stays `OPEN`. The gate is the named owner's acceptance, and
+nothing has been run.
+
 ### Added a bench card for the AWUS036ACM adapters
 
 The Program Owner bought two ALFA AWUS036ACM adapters, the first radios in the

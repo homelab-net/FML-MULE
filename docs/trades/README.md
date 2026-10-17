@@ -170,8 +170,8 @@ One no-hardware trade from the SAD register remains open:
   offline login against fakes.
 
 Three later trades are also open and need no hardware to choose a
-representation. `TBR-OBS-01` has a written comparison and no accepted
-representation. The other two have not been started. None of the CONOPS
+representation. `TBR-OBS-01` and `TBR-EMCON-01` each have a written analysis
+and no owner acceptance. The third has not been started. None of the CONOPS
 criteria they own has been run:
 
 - **`TBR-OBS-01`**, how a mission observation keeps its age, source, and
@@ -180,7 +180,12 @@ criteria they own has been run:
 - **`TBR-SENSE-01`**, how a mission profile marks a capability, and how a
   sensor task ends.
 - **`TBR-EMCON-01`**, which transmissions an EMCON posture classes as
-  avoidable. The class list is not a measurement of radio silence.
+  avoidable. The class list is not a measurement of radio silence. It is
+  written: twenty-two classes, each mapped to a SAD section 23 layer, with
+  `CCR-06`'s EUD presence self-publish included as the Closure evidence
+  requires. Every class maps to an existing layer, so it proposes no new
+  layer and no ADR; the gaps it records are in mechanism, not in the layer
+  set. Accepting it does not close the trade. The trade stays open.
 
 Two more are `partly` workable without hardware: `TBR-SEC-01`, whose analysis
 against the capture scenarios is the larger half, and `TBR-COMP-01`, whose
