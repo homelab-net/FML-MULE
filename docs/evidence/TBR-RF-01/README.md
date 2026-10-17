@@ -14,6 +14,10 @@ an artifact's presence is not owner acceptance.
 - [2026-09-14-voice-data-contention-hwsim.md][artifact-2]
 - [2026-10-11-two-node-80211s-batman-real-radio.md][artifact-3], a real-radio
   result; tier deferred, node-local, one hop.
+- [2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md][artifact-4],
+  failover and best-path selection between the 802.11s bearer and a wired
+  second bearer to the same neighbour, at two `orig_interval` values; tier
+  deferred, node-local, two nodes.
 - [Physical infrastructure-WiFi trial][wifi-trial], shared evidence for the
   Linux/radio boundary; not selected 802.11s qualification.
 - [2026-10-10-awus036acm-one-hop-mesh-card.md][card-1], a bench card, not a
@@ -23,6 +27,7 @@ an artifact's presence is not owner acceptance.
 [artifact-1]: 2026-09-14-mesh-multihop-latency-hwsim.md
 [artifact-2]: 2026-09-14-voice-data-contention-hwsim.md
 [artifact-3]: 2026-10-11-two-node-80211s-batman-real-radio.md
+[artifact-4]: 2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md
 [card-1]: 2026-10-10-awus036acm-one-hop-mesh-card.md
 [wifi-trial]: ../TBR-LINUX-01/2026-10-01-infrastructure-wifi-prototype.md
 

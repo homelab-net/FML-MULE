@@ -138,7 +138,7 @@ Ordered by whether they produce a definite pass or fail.
 
 | Acquire | Rough cost | What it unblocks |
 | --- | --- | --- |
-| **One more MT7612U / AWUS036ACM** | $30-50 | multi-hop, and with it section 22's hop-count `[SHALL]`, section 39's failover and best-path selection, `mesh-traffic.sh latency`, and an independent monitor-mode RF witness the bench currently lacks entirely |
+| **One more MT7612U / AWUS036ACM** | $30-50 | multi-hop, and with it section 22's hop-count `[SHALL]`, section 39's movement and failover around a lost relay (failover between two bearers to one neighbour is shown without it, over a wired second bearer, in `docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`), `mesh-traffic.sh latency`, and an independent monitor-mode RF witness the bench currently lacks entirely |
 | **Repair the RAK path on pi-mule-1, add a second LoRa node** | cable, ~$30 | section 35, `TBR-NET-02`'s recipient path, and real-RF GeoChat instead of the docker-bridge simulation |
 | **A HaLow radio** (Wio-WM6108 on WM1302, or MM8108 USB) | ~$100+ | section 34, and `TBR-LINUX-01`, which the program calls its dominant uncertainty and which blocks *"almost everything in `os/`"* |
 
