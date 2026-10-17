@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eighteen procedures and seven helpers.** Hardware measurements have been taken,
+**Eighteen procedures and eight helpers.** Hardware measurements have been taken,
 by the two `-real` procedures below and recorded in
 `docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`, and by
 the `sdr-rf-witness.sh` and `lora-tx-burst.py` pair recorded in
@@ -12,8 +12,8 @@ repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
 reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
-`eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py` and
-`tak-eud-ip.py`, which are run directly.
+`eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
+`tak-eud-ip.py` and `browser-login-offline.py`, which are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -188,6 +188,19 @@ reporting healthy. `FML-ADR-034` makes PostgreSQL conditional on that state
 study, so the measurement has to be reproducible by somebody other than its
 author. It needs Podman and pulls three images, so like the others it does not
 run in CI.
+
+`browser-login-offline.py` demonstrates browser-service login with no network
+for `TBR-ID-01`, every component a fake: a throwaway PKI made with the
+`openssl` CLI, a TLS ingress standing in for `FML-ADR-031` HAProxy, and an
+application doing native RBAC from role data held apart from the certificate.
+Run it inside `unshare -rn` with `--require-offline`, and it refuses to start
+unless loopback is the only interface up and a public address is unreachable,
+so "offline" is checked rather than asserted. It needs no root, no radio and no
+image, but it starts loopback servers and calls `openssl`, so it is not run in
+CI. It proves the mechanism composes with stock OpenSSL; it is not HAProxy, not
+a browser and not an EUD, and how a phone presents a client certificate is the
+measurement it cannot make. See
+`docs/evidence/TBR-ID-01/2026-10-17-offline-client-certificate-login-fakes.md`.
 
 ## What can be verified without hardware, and what cannot
 

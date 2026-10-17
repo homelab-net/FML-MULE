@@ -166,8 +166,11 @@ Three of the design-and-analysis trades that needed no hardware are now
 
 One no-hardware trade from the SAD register remains open:
 
-- **`TBR-ID-01`, browser-service identity provider.** Workflow analysis and
-  offline login against fakes.
+- **`TBR-ID-01`, browser-service identity provider.** The workflow analysis
+  is written, and ingress client-certificate login is demonstrated offline
+  against fakes. Neither selects an approach. For the catalog the program fields, the analysis finds
+  no common provider is required. Accepting that does not close the trade. The
+  trade stays open.
 
 Three later trades are also open and need no hardware to choose a
 representation. `TBR-OBS-01` and `TBR-EMCON-01` each have a written analysis
