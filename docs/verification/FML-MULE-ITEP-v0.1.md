@@ -311,8 +311,11 @@ programme.
 
 **Exit:** `TBR-TAK-01` produces a classification defensible enough for
 `TBR-HA-01` to select a mechanism against. The other items produce written
-analyses. Item 11 has a comparison and no accepted representation. Items 12
-and 13 have not been started.
+analyses. Item 11 has a comparison and no accepted representation. Item 13 has
+a written class list, also unaccepted
+(`docs/evidence/TBR-EMCON-01/2026-10-16-avoidable-transmission-class-list.md`);
+its Stage 10 criteria remain unrun, because a class list is not a measurement
+of radio silence. Item 12 has not been started.
 
 **Note:** This campaign can begin today, by one person, with no budget. That it
 has not begun is a programme fact worth recording.
