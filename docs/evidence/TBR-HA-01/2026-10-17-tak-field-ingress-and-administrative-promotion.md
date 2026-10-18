@@ -144,6 +144,33 @@ state is not an acceptable backend"*, measured: a port-level health check would
 have called it ready. A registry has to ask the service whether it can serve,
 not whether its port is open.
 
+### A demoted server keeps serving the clients that bypass the ingress
+
+The soak client and WinTAK reached `pi-mule-1`'s server by address, not through
+`tak.field`. They stayed connected through every trial, and that is the
+problem. Counting the probe sender's reports that reached the soak client in
+each window after a promotion:
+
+| Authority after the trial | Windows | Probe reports reaching the address-pinned client |
+| --- | --- | --- |
+| `a`, the server it was pinned to | 8 | **47 to 58** per window of about a minute |
+| `b` | 8 | **0** in every window |
+
+While `b` was authoritative there were two live islands: the `tak.field`
+clients on `b`, and the address-pinned clients on the demoted `a`, each
+accepting traffic and neither seeing the other. Demotion is an ingress state; the
+demoted server is never told and keeps serving anyone who reaches it directly.
+That is the *"uncontrolled competing authoritative stateful services"* CONOPS 29
+forbids, reached through a path the ingress does not control. Two conclusions
+follow, neither implemented here:
+
+- **Every EUD has to reach TAK through `tak.field`.** A client configured with a
+  server's address does not follow promotion, which is what CONOPS 25 already
+  requires; this measures what violating it costs.
+- **A demoted server has to be fenced, not only unrouted.** Promotion has to stop
+  the old authority accepting clients by any path, or a partition heals into
+  divergent databases.
+
 ### Process death is slower than partition
 
 Stopping this server's five JVMs took about twelve seconds, and clients lost
@@ -173,7 +200,7 @@ while it shuts down. A real failure gives no such notice.
 | 26 state classes | common trust shown; mission-critical state **not moved** |
 | 27 recovery | administrative, **cold class only**: 2.2 to 4.8 s partition, 10 to 11 s process death, 15 s into a not-ready standby. The synchronized 60-second objective is **not measured** |
 | 28 authoritative indication | **absent**; recorded as a gap |
-| 29 no competing authority | held: one backend enabled at a time, health checks never move traffic |
+| 29 no competing authority | held **through the ingress** only: one backend enabled at a time, health checks never move traffic; **violated for address-pinned clients**, who stayed on the demoted server as a second island |
 | 30 administrative promotion | **mechanism shown**, scripted |
 | 31 service-host burden | see `docs/evidence/TBR-COMP-01/2026-10-17-official-tak-server-on-a-pi-4.md` |
 

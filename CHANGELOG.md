@@ -28,7 +28,11 @@ authoritative backend received traffic; and administrative promotion restored
 service with no client change in 2.2 to 4.8 s after a partition (eleven trials)
 and 10 to 11 s after a process stop. A just-restarted backend passed a port
 check thirteen seconds before it relayed anything, which is `FML-ADR-049`'s
-"alive is not ready" measured. No state moves, so every figure is the cold
+"alive is not ready" measured. And a demoted server is never told: clients that
+reached it by address stayed on it as a second island, seeing none of the
+tak.field clients, which is CONOPS 29's competing authority reached around the
+ingress, so a demoted server needs fencing, not only unrouting. No state moves,
+so every figure is the cold
 recovery class; CONOPS 28's authority indication is absent; automatic
 promotion was not attempted. `TBR-HA-01` stays `OPEN`.
 

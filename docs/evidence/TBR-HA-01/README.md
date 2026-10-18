@@ -39,7 +39,9 @@ TAK servers sharing one CA, and administrative promotion with no client change,
 2.2 to 4.8 s after a partition and 10 to 11 s after a process stop. No state
 moves, so those are the cold recovery class; CONOPS 28's authority indication
 is absent, and a just-restarted backend passed a port check thirteen seconds
-before it relayed traffic. It does not attempt automatic promotion, which is
+before it relayed traffic. Clients that reached the demoted server by address
+stayed on it as a second island, so a demoted server needs fencing. It does not
+attempt automatic promotion, which is
 this trade's question.
 
 [promotion]: 2026-10-17-tak-field-ingress-and-administrative-promotion.md
