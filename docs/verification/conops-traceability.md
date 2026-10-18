@@ -44,13 +44,13 @@ power-starved. See addendum 8. The qualitative findings are unaffected.
 | CONOPS | Shown | Not shown |
 | --- | --- | --- |
 | **39** Adaptive routing | no manual route selection; link degradation tracked (TQ 255 to 186 under 30% emulated loss) and recovered; node loss eventually detected; **failover between two bearers to one neighbour**, 4.1 to 6.0 s at the default `orig_interval` and 1.2 s at 250 ms, and recovery of the better path in 30 to 60 s, with "better" meaning loss (`TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`; the second bearer is wired) | **movement**, and **failover around a lost relay**, which need a third node. Node loss took ~165 s at the routing layer and the 802.11s peer entry did not clear at all inside 302 s |
+| **24-30** TAK hosting: stable identity, trust, continuity, promotion | one stable name, `tak.field`, through each node's ingress; one client certificate accepted by two TAK servers sharing a CA, a foreign CA refused; only the authoritative backend routed; administrative promotion restored service with **no client change** in 2.2 to 4.8 s after a partition and 10 to 11 s after a process stop (`TBR-HA-01/2026-10-17-tak-field-ingress-and-administrative-promotion.md`) | **synchronized** state and the 60 s objective, because no state moves, so every figure is the cold class; CONOPS 28's authoritative indication is absent; a demoted server is not **fenced**, so clients reaching it by address formed a second island; **automatic** promotion (`TBR-HA-01`); synthetic clients, not phones; the server is official TAK Server, not the preferred OpenTAKServer |
 | **22** Peer-to-peer scaling | 5 synthetic EUDs across 3 hosts | `[SHALL]` multicast under representative **multi-hop** load; `[SHALL]` usable network size and hop-count limits. Both need multi-hop |
 
 ## Not addressed at all
 
 Sections **13-18** (authentication, mission-scoped trust, revocation, EUD
-recovery, credential lifecycle), **24-30** (server-enhanced TAK, authoritative
-state, continuity, split-brain, promotion), **34** (HaLow IP bearer), **35**
+recovery, credential lifecycle), **34** (HaLow IP bearer), **35**
 (LoRa/Meshtastic bearer, encoding harness built but no delivery), **36** (dual
 sub-GHz chains and coexistence), **43-48** (WAN overlay, remote team, external
 VHF/UHF/HF, amateur-radio governance, interoperability, incident command),

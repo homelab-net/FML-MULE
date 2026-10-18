@@ -7,11 +7,17 @@
 **Priority:** 2 of 16 (SAD v0.31 section 30.2). **Function owner:** Platform + TAK.
 **Named owner:** Cameron Zobrist.
 
-**Current contents:** one `SIMULATED` size measurement. This trade is `OPEN`:
+**Current contents:** one `SIMULATED` size measurement of the preferred plane,
+and one measurement of an alternative TAK server on a Pi 4. This trade is `OPEN`:
 the software "size" half is now measured, but the closure gate's hardware half
 (the CM4/arm64 footprint, CPU under load, and the peak under a service-plane
 storm with the network plane co-resident) remains.
 
+- `2026-10-17-official-tak-server-on-a-pi-4.md` -- the **official TAK Server
+  5.8** on a Raspberry Pi 4 (Debian 13 arm64, 8 GB): resident memory, start-up
+  time and a two-hour soak, measured on target-class hardware while the node
+  was under-voltage. It evaluates `FML-ADR-032`'s fallback, not the preferred
+  OpenTAKServer, so it is not the size of the selected plane.
 - `2026-09-06-service-plane-steady-state-footprint.md` -- the mission-service
   plane's steady-state resident memory from the running reference deployment:
   **~650 MB**, dominated by OpenTAKServer's three processes (~536 MB) and
