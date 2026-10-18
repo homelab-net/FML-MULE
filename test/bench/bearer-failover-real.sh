@@ -42,7 +42,10 @@ set -u
 export PATH=$PATH:/usr/sbin:/sbin
 VID=3942
 DEV=eth0.$VID
-[ "$(id -u)" -eq 0 ] || { echo "FAIL: must run as root" >&2; exit 1; }
+[ "$(id -u)" -eq 0 ] || {
+  echo "FAIL: must run as root" >&2
+  exit 1
+}
 
 down() {
   for d in "$DEV" wlan1; do
@@ -57,7 +60,10 @@ down() {
 
 up() {
   secs=${1:-3600}
-  modprobe 8021q || { echo "FAIL: 8021q"; exit 1; }
+  modprobe 8021q || {
+    echo "FAIL: 8021q"
+    exit 1
+  }
   ip link show "$DEV" >/dev/null 2>&1 || ip link add link eth0 name "$DEV" type vlan id "$VID"
   ip link set "$DEV" up
   batctl meshif bat0 if add "$DEV" 2>&1
@@ -74,53 +80,79 @@ route() { # selected outgoing interface and TQ toward originator $1
 
 measure() {
   L=$1 D=$2 K=$3 TF=$4 TC=$5 TE=$6 PEER=$7 ORIG=$8
-  case "$D" in "$DEV"|wlan1) ;; *) echo "FAIL: refusing dev $D" >&2; exit 1 ;; esac
-  [ "$K" = admindown ] && [ "$D" != "$DEV" ] && { echo "FAIL: admindown only on $DEV" >&2; exit 1; }
+  case "$D" in "$DEV" | wlan1) ;; *)
+    echo "FAIL: refusing dev $D" >&2
+    exit 1
+    ;;
+  esac
+  [ "$K" = admindown ] && [ "$D" != "$DEV" ] && {
+    echo "FAIL: admindown only on $DEV" >&2
+    exit 1
+  }
   O=/tmp/m39-$L
-  rm -rf "$O"; mkdir -p "$O"
+  rm -rf "$O"
+  mkdir -p "$O"
   now() { date +%s.%N; }
   cnt() { for d in wlan1 "$DEV"; do
     echo "$1 $d tx=$(cat /sys/class/net/$d/statistics/tx_packets) rx=$(cat /sys/class/net/$d/statistics/rx_packets)"
   done >>"$O/counters"; }
-  { echo "label=$L dev=$D kind=$K t_fault=$TF t_clear=$TC t_end=$TE oi=$(batctl meshif bat0 orig_interval)"
+  {
+    echo "label=$L dev=$D kind=$K t_fault=$TF t_clear=$TC t_end=$TE oi=$(batctl meshif bat0 orig_interval)"
     echo "kernel=$(uname -r) batadv=$(modinfo -F version batman_adv)"
-    timedatectl timesync-status 2>&1 | grep -E 'Offset'; } >"$O/meta"
+    timedatectl timesync-status 2>&1 | grep -E 'Offset'
+  } >"$O/meta"
   cnt start
   ping -D -i 0.02 -W 1 "$PEER" >"$O/ping" 2>&1 &
   PP=$!
   echo "t0 $(now)" >>"$O/events"
-  end=$(( $(date +%s) + TE ))
-  ( while [ "$(date +%s)" -lt $end ]; do echo "$(now) $(route "$ORIG")"; sleep 0.1; done ) >"$O/route" &
+  end=$(($(date +%s) + TE))
+  (while [ "$(date +%s)" -lt $end ]; do
+    echo "$(now) $(route "$ORIG")"
+    sleep 0.1
+  done) >"$O/route" &
   RP=$!
-  ( while [ "$(date +%s)" -lt $end ]; do
-      echo "$(now) $(vcgencmd get_throttled) $(vcgencmd measure_clock arm)"; sleep 2
-    done ) >"$O/throttle" &
+  (while [ "$(date +%s)" -lt $end ]; do
+    echo "$(now) $(vcgencmd get_throttled) $(vcgencmd measure_clock arm)"
+    sleep 2
+  done) >"$O/throttle" &
   sleep "$TF"
   if [ "$K" != none ]; then
     case "$K" in
-      drop) tc qdisc replace dev "$D" root netem loss 100%
-            tc qdisc replace dev "$D" ingress
-            tc filter add dev "$D" parent ffff: matchall action drop ;;
+      drop)
+        tc qdisc replace dev "$D" root netem loss 100%
+        tc qdisc replace dev "$D" ingress
+        tc filter add dev "$D" parent ffff: matchall action drop
+        ;;
       loss30) tc qdisc replace dev "$D" root netem loss 30% ;;
       admindown) ip link set "$D" down ;;
     esac
-    echo "fault $(now)" >>"$O/events"; cnt fault
+    echo "fault $(now)" >>"$O/events"
+    cnt fault
   fi
-  sleep $(( TC - TF ))
+  sleep $((TC - TF))
   if [ "$K" != none ]; then
-    tc qdisc del dev "$D" root 2>/dev/null; tc qdisc del dev "$D" ingress 2>/dev/null
+    tc qdisc del dev "$D" root 2>/dev/null
+    tc qdisc del dev "$D" ingress 2>/dev/null
     ip link set "$D" up
-    echo "clear $(now)" >>"$O/events"; cnt clear
+    echo "clear $(now)" >>"$O/events"
+    cnt clear
   fi
-  wait $RP; kill $PP 2>/dev/null; wait $PP 2>/dev/null; cnt end
+  wait $RP
+  kill $PP 2>/dev/null
+  wait $PP 2>/dev/null
+  cnt end
   echo "done $O"
 }
 
 monitor() {
   O=/tmp/m39-$1-far
-  rm -rf "$O"; mkdir -p "$O"
-  end=$(( $(date +%s) + $2 ))
-  while [ "$(date +%s)" -lt $end ]; do echo "$(date +%s.%N) $(route "$3")"; sleep 0.1; done >"$O/route"
+  rm -rf "$O"
+  mkdir -p "$O"
+  end=$(($(date +%s) + $2))
+  while [ "$(date +%s)" -lt $end ]; do
+    echo "$(date +%s.%N) $(route "$3")"
+    sleep 0.1
+  done >"$O/route"
   timedatectl timesync-status 2>&1 | grep -E 'Offset' >"$O/meta"
   echo "done $O"
 }
@@ -128,7 +160,24 @@ monitor() {
 case "${1:-}" in
   up) up "${2:-3600}" ;;
   down) down ;;
-  measure) shift; [ $# -eq 8 ] || { echo "usage: measure <8 args>" >&2; exit 64; }; measure "$@" ;;
-  monitor) shift; [ $# -eq 3 ] || { echo "usage: monitor <3 args>" >&2; exit 64; }; monitor "$@" ;;
-  *) echo "usage: bearer-failover-real.sh up [secs] | down | measure ... | monitor ..." >&2; exit 64 ;;
+  measure)
+    shift
+    [ $# -eq 8 ] || {
+      echo "usage: measure <8 args>" >&2
+      exit 64
+    }
+    measure "$@"
+    ;;
+  monitor)
+    shift
+    [ $# -eq 3 ] || {
+      echo "usage: monitor <3 args>" >&2
+      exit 64
+    }
+    monitor "$@"
+    ;;
+  *)
+    echo "usage: bearer-failover-real.sh up [secs] | down | measure ... | monitor ..." >&2
+    exit 64
+    ;;
 esac
