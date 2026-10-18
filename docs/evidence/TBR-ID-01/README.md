@@ -7,10 +7,33 @@
 **Priority:** 14 of 16 (SAD v0.31 section 30.2). **Function owner:** Security/Identity.
 **Named owner:** Cameron Zobrist.
 
-**Current contents:** none. This trade is `OPEN` and no evidence has been
-produced.
+**Current contents:** two artifacts. This trade remains `OPEN`; an artifact's
+presence is not owner acceptance, and nothing here is a selection.
 
-This directory exists before the work does, deliberately. The closure gate is
+- [2026-10-17-authentication-events-with-and-without-a-common-idp.md][artifact-1]
+- [2026-10-17-offline-client-certificate-login-fakes.md][artifact-2]
+
+[artifact-1]: 2026-10-17-authentication-events-with-and-without-a-common-idp.md
+[artifact-2]: 2026-10-17-offline-client-certificate-login-fakes.md
+
+The first is written analysis: authentication events counted with and without
+a common identity provider, for the two-entry catalog the program fields and for
+the nine CONOPS section 49 classes, plus the provisioning burden per user per
+mission and the behaviour when time is not credible. For the fielded catalog it
+finds no provider is required. For the planning case it recommends, without
+selecting, ingress client-certificate authentication over a provider service,
+and names the phone measurement that should come first.
+
+The second is `SIMULATED`: that option demonstrated offline against fakes, in
+a namespace holding only loopback, 20 of 20 cases on each of 22 runs across an
+x86-64 desktop and `pi-mule-1`.
+
+Still owed for closure: the owner's decision, an ADR recording it, and offline
+login demonstrated for whatever is selected. The analysis's finding 6 also
+records that three documents cite this trade for enrollment and API-path
+questions its closure gate does not cover.
+
+This directory existed before the work did, deliberately. The closure gate is
 written in the trade file before evidence is gathered, so the result cannot be
 graded against a standard invented after seeing it.
 

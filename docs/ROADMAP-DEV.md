@@ -1369,7 +1369,9 @@ that read "identity needs its own item under Track 4."
 **State:** hardware-free design work, ready now. `TBR-ID-01`
 (`requires-hardware: no`) asks whether the browser services need a common
 identity provider; its workflow analysis -- count authentication events with and
-without one -- is already scoped in ITEP-C01 and needs no node. The decisions are
+without one -- is scoped in ITEP-C01, needed no node, and is now written, with
+ingress client-certificate login demonstrated offline against fakes
+(`docs/evidence/TBR-ID-01/`). It selects nothing. The decisions are
 `FML-ADR-037` (application-native RBAC first, OPA only when cross-application
 policy justifies it) and `FML-ADR-036` (step-ca as the preferred PKI). The
 admission decision logic exists in `mule/admission.py` but today gates only on
