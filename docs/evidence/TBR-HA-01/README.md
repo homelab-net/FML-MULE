@@ -33,6 +33,16 @@ observed rather than injected — so it narrows what an injection must establish
 and substitutes for none of it. The same record names where
 `services/quadlets/martin.container` has drifted from the deployed articles.
 
+A [two-node promotion trial][promotion] moves the service **between** hosts
+rather than restarting it on one: `tak.field` through each node's ingress, two
+TAK servers sharing one CA, and administrative promotion with no client change,
+2.2 to 4.8 s after a partition and 10 to 11 s after a process stop. No state
+moves, so those are the cold recovery class; CONOPS 28's authority indication
+is absent, and a just-restarted backend passed a port check thirteen seconds
+before it relayed traffic. It does not attempt automatic promotion, which is
+this trade's question.
+
+[promotion]: 2026-10-17-tak-field-ingress-and-administrative-promotion.md
 [supervision]: 2026-10-02-supervised-recovery-three-nodes.md
 [policy]: 2026-10-02-deployed-recovery-policy-and-repo-divergence.md
 [startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md

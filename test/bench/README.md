@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eighteen procedures and seven helpers.** Hardware measurements have been taken,
+**Twenty-one procedures and nine helpers.** Hardware measurements have been taken,
 by the two `-real` procedures below and recorded in
 `docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`, and by
 the `sdr-rf-witness.sh` and `lora-tx-burst.py` pair recorded in
@@ -12,8 +12,8 @@ repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
 reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
-`eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py` and
-`tak-eud-ip.py`, which are run directly.
+`eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
+`tak-eud-ip.py`, `tak-probe.py` and `tak-sim.py`, which are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -188,6 +188,21 @@ reporting healthy. `FML-ADR-034` makes PostgreSQL conditional on that state
 study, so the measurement has to be reproducible by somebody other than its
 author. It needs Podman and pulls three images, so like the others it does not
 run in CI.
+
+`tak-server-bench-install.sh`, `tak-field-ingress.sh` and
+`tak-failover-campaign.sh` stand up and exercise the SAD section 11 and 14 TAK
+hosting pattern on two nodes: the official TAK Server on each, either with its
+own bench CA or sharing another node's (`own-ca` or `staged-bundle`); a
+`tak.field` name resolving to each node's HAProxy ingress, which forwards to
+the one backend a registry file names; and trials of shared trust, routing and
+administrative promotion, with `tak-probe.py` as the reconnecting client and
+`tak-sim.py` as a single-session client for soaks. They are **evaluation
+tools**: `FML-ADR-032` prefers OpenTAKServer, the registry file is a stub for
+`FML-ADR-049`'s, no state moves between servers, and promotion is
+administrative because `TBR-HA-01` has selected no automatic mechanism. The
+`.deb` comes from tak.gov under its terms and is never committed. They need
+two nodes on a mesh, root and a tak.gov download, so they do not run in CI. See
+`docs/evidence/TBR-HA-01/2026-10-17-tak-field-ingress-and-administrative-promotion.md`.
 
 ## What can be verified without hardware, and what cannot
 

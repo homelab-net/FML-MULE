@@ -14,6 +14,33 @@ this program needs them visible:
 
 ## Unreleased
 
+### Exercised two-node TAK hosting, and measured the official TAK Server on a Pi 4
+
+CONOPS 25 to 30 and SAD sections 11, 12 and 14 describe one stable name,
+`tak.field`, forwarded by each MULE's ingress to whichever host is currently
+authoritative, with hosts sharing a trust anchor and promotion only when
+authority is safe. Nothing had exercised that across two hosts.
+`docs/evidence/TBR-HA-01/2026-10-17-tak-field-ingress-and-administrative-promotion.md`
+does, with the official TAK Server on both bench Pis sharing one CA, HAProxy as
+each node's ingress over the 802.11s mesh, and a registry stub. One client
+certificate was accepted by both servers and a foreign CA refused; only the
+authoritative backend received traffic; and administrative promotion restored
+service with no client change in 2.2 to 4.8 s after a partition (eleven trials)
+and 10 to 11 s after a process stop. A just-restarted backend passed a port
+check thirteen seconds before it relayed anything, which is `FML-ADR-049`'s
+"alive is not ready" measured. No state moves, so every figure is the cold
+recovery class; CONOPS 28's authority indication is absent; automatic
+promotion was not attempted. `TBR-HA-01` stays `OPEN`.
+
+`docs/evidence/TBR-COMP-01/2026-10-17-official-tak-server-on-a-pi-4.md`
+records that server's footprint, start-up and a two-hour soak on a Pi 4, and
+WinTAK 5.8 exchanging positions and GeoChat with a second client through it.
+`FML-ADR-032` still prefers OpenTAKServer; this measures its fallback.
+
+New bench procedures: `tak-server-bench-install.sh`, `tak-field-ingress.sh` and
+`tak-failover-campaign.sh`, with helpers `tak-probe.py` and `tak-sim.py`. The
+TAK Server package comes from tak.gov and is never committed.
+
 ### Added the EMCON avoidable-transmission class list
 
 `FML-REQ-049` binds the system not to originate a transmission the active
