@@ -43,7 +43,7 @@ power-starved. See addendum 8. The qualitative findings are unaffected.
 
 | CONOPS | Shown | Not shown |
 | --- | --- | --- |
-| **39** Adaptive routing | no manual route selection; link degradation tracked (TQ 255 to 186 under 30% emulated loss) and recovered; node loss eventually detected | **movement**; **failover** and **best-path selection**, which need an alternate path and therefore a third node. Node loss took ~165 s at the routing layer and the 802.11s peer entry did not clear at all inside 302 s |
+| **39** Adaptive routing | no manual route selection; link degradation tracked (TQ 255 to 186 under 30% emulated loss) and recovered; node loss eventually detected; **failover between two bearers to one neighbour**, 4.1 to 6.0 s at the default `orig_interval` and 1.2 s at 250 ms, and recovery of the better path in 30 to 60 s, with "better" meaning loss (`TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`; the second bearer is wired) | **movement**, and **failover around a lost relay**, which need a third node. Node loss took ~165 s at the routing layer and the 802.11s peer entry did not clear at all inside 302 s |
 | **22** Peer-to-peer scaling | 5 synthetic EUDs across 3 hosts | `[SHALL]` multicast under representative **multi-hop** load; `[SHALL]` usable network size and hop-count limits. Both need multi-hop |
 
 ## Not addressed at all

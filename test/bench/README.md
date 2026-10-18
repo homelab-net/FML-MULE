@@ -3,9 +3,10 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Eighteen procedures and eight helpers.** Hardware measurements have been taken,
-by the two `-real` procedures below and recorded in
-`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`, and by
+**Nineteen procedures and eight helpers.** Hardware measurements have been taken,
+by the three `-real` procedures below and recorded in
+`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md` and
+`docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`, and by
 the `sdr-rf-witness.sh` and `lora-tx-burst.py` pair recorded in
 `docs/evidence/TBR-RF-02/2026-10-16-lora-channel-rf-witness.md`; the
 repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
@@ -180,6 +181,17 @@ through docker's default-drop FORWARD chain, so the multicast `meshtasticd` uses
 does not cross a podman bridge) and the `meshtastic` client in `.venv-lora`, and
 like the others it does not run in CI here -- though `.github/workflows/lora-probe.yml`
 runs the same daemon under docker on a hosted runner.
+
+`bearer-failover-real.sh` gives the two-node 802.11s mesh a second batman-adv
+bearer, a VLAN subinterface of `eth0`, so that CONOPS section 39's failover and
+best-path selection can be posed without a third radio. It never reconfigures
+`eth0` itself, arms a restorer that removes the bearer if the session is lost,
+emulates a silent failure with `tc`, and logs a ping and each node's selected
+interface. The second bearer is wired, so it says nothing about a second
+radio's physics, and it puts tagged batman-adv frames on whatever LAN `eth0`
+reaches. Its header records an instrument defect: `ping -i 0.02` stalled on the
+throttled Pi, so outages are cross-checked against the route poll and a
+sequence-numbered probe should replace it.
 
 `tak-state.sh` reproduces the two `TBR-TAK-01` findings a decision now rests
 on: that OpenTAKServer is three processes and upstream's container runs one, and

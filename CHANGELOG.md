@@ -14,6 +14,21 @@ this program needs them visible:
 
 ## Unreleased
 
+### Measured CONOPS 39 failover between two batman-adv bearers
+
+Two nodes have one path, so failover and best-path selection had no evidence.
+`test/bench/bearer-failover-real.sh` gives the two-node 802.11s mesh a second
+batman-adv bearer, a VLAN subinterface of `eth0`, and
+`docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`
+records seven cases. A silently failed bearer cost 4.1 to 6.0 seconds of round
+trip at the default `orig_interval` and 1.2 seconds at 250 ms; losing the
+unused bearer cost nothing; the better path was re-adopted in 30 to 60 seconds
+at the default and 9 to 13 at 250 ms, with "better" meaning loss under
+`BATMAN_IV`; and at 250 ms the selection flapped between equal bearers. The
+second bearer is wired, the failure emulated, the samples small, and the ping
+probe stalled partway, so every outage is cross-checked against the route
+polls. `orig_interval` stays `TBD`.
+
 ### Added the TBR-ID-01 authentication-event count and an offline login demonstration
 
 `TBR-ID-01` asks whether the browser services need a common identity provider,
