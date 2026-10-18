@@ -3,9 +3,10 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Twenty-one procedures and nine helpers.** Hardware measurements have been taken,
-by the two `-real` procedures below and recorded in
-`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md`, and by
+**Twenty-two procedures and ten helpers.** Hardware measurements have been taken,
+by the three `-real` procedures below and recorded in
+`docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md` and
+`docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`, and by
 the `sdr-rf-witness.sh` and `lora-tx-burst.py` pair recorded in
 `docs/evidence/TBR-RF-02/2026-10-16-lora-channel-rf-witness.md`; the
 repository's formal `HARDWARE-VERIFIED` tier is nonetheless still held, for the
@@ -13,7 +14,8 @@ reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
 `eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
-`tak-eud-ip.py`, `tak-probe.py` and `tak-sim.py`, which are run directly.
+`tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py` and `tak-sim.py`, which
+are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -181,6 +183,17 @@ does not cross a podman bridge) and the `meshtastic` client in `.venv-lora`, and
 like the others it does not run in CI here -- though `.github/workflows/lora-probe.yml`
 runs the same daemon under docker on a hosted runner.
 
+`bearer-failover-real.sh` gives the two-node 802.11s mesh a second batman-adv
+bearer, a VLAN subinterface of `eth0`, so that CONOPS section 39's failover and
+best-path selection can be posed without a third radio. It never reconfigures
+`eth0` itself, arms a restorer that removes the bearer if the session is lost,
+emulates a silent failure with `tc`, and logs a ping and each node's selected
+interface. The second bearer is wired, so it says nothing about a second
+radio's physics, and it puts tagged batman-adv frames on whatever LAN `eth0`
+reaches. Its header records an instrument defect: `ping -i 0.02` stalled on the
+throttled Pi, so outages are cross-checked against the route poll and a
+sequence-numbered probe should replace it.
+
 `tak-state.sh` reproduces the two `TBR-TAK-01` findings a decision now rests
 on: that OpenTAKServer is three processes and upstream's container runs one, and
 that a database-only restore restores every row and authenticates nobody while
@@ -188,6 +201,19 @@ reporting healthy. `FML-ADR-034` makes PostgreSQL conditional on that state
 study, so the measurement has to be reproducible by somebody other than its
 author. It needs Podman and pulls three images, so like the others it does not
 run in CI.
+
+`browser-login-offline.py` demonstrates browser-service login with no network
+for `TBR-ID-01`, every component a fake: a throwaway PKI made with the
+`openssl` CLI, a TLS ingress standing in for `FML-ADR-031` HAProxy, and an
+application doing native RBAC from role data held apart from the certificate.
+Run it inside `unshare -rn` with `--require-offline`, and it refuses to start
+unless loopback is the only interface up and a public address is unreachable,
+so "offline" is checked rather than asserted. It needs no root, no radio and no
+image, but it starts loopback servers and calls `openssl`, so it is not run in
+CI. It proves the mechanism composes with stock OpenSSL; it is not HAProxy, not
+a browser and not an EUD, and how a phone presents a client certificate is the
+measurement it cannot make. See
+`docs/evidence/TBR-ID-01/2026-10-17-offline-client-certificate-login-fakes.md`.
 
 `tak-server-bench-install.sh`, `tak-field-ingress.sh` and
 `tak-failover-campaign.sh` stand up and exercise the SAD section 11 and 14 TAK

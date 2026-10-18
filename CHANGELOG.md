@@ -45,6 +45,46 @@ New bench procedures: `tak-server-bench-install.sh`, `tak-field-ingress.sh` and
 `tak-failover-campaign.sh`, with helpers `tak-probe.py` and `tak-sim.py`. The
 TAK Server package comes from tak.gov and is never committed.
 
+### Measured CONOPS 39 failover between two batman-adv bearers
+
+Two nodes have one path, so failover and best-path selection had no evidence.
+`test/bench/bearer-failover-real.sh` gives the two-node 802.11s mesh a second
+batman-adv bearer, a VLAN subinterface of `eth0`, and
+`docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`
+records seven cases. A silently failed bearer cost 4.1 to 6.0 seconds of round
+trip at the default `orig_interval` and 1.2 seconds at 250 ms; losing the
+unused bearer cost nothing; the better path was re-adopted in 30 to 60 seconds
+at the default and 9 to 13 at 250 ms, with "better" meaning loss under
+`BATMAN_IV`; and at 250 ms the selection flapped between equal bearers. The
+second bearer is wired, the failure emulated, the samples small, and the ping
+probe stalled partway, so every outage is cross-checked against the route
+polls. `orig_interval` stays `TBD`.
+
+### Added the TBR-ID-01 authentication-event count and an offline login demonstration
+
+`TBR-ID-01` asks whether the browser services need a common identity provider,
+and ITEP-C01 item 5 asks for authentication events to be counted with and
+without one.
+`docs/evidence/TBR-ID-01/2026-10-17-authentication-events-with-and-without-a-common-idp.md`
+counts them for the two-entry catalog the program fields, where it finds no
+provider is required, and for the nine CONOPS section 49 classes, comparing
+per-application login, a common provider, and ingress client-certificate
+authentication built from decisions already taken (`FML-ADR-031`, `038`, `047`
+and `087`). It states the provisioning burden per user per mission and the
+behaviour when time is not credible, and recommends without selecting. It also
+records that three documents cite this trade for enrollment and API-path
+questions its closure gate does not cover.
+
+`test/bench/browser-login-offline.py` demonstrates the ingress option against
+fakes inside a namespace holding only loopback, and refuses to run unless that
+is so. Every run was 20 of 20 as expected, 12 on an x86-64 desktop and 10 on
+`pi-mule-1`, and three deliberate defects were each caught by the one case
+meant to catch them. Running on the Pi found that Python 3.13 verifies strictly
+by default, which the fake PKI first failed. The results are
+`docs/evidence/TBR-ID-01/2026-10-17-offline-client-certificate-login-fakes.md`,
+`SIMULATED`. No phone, browser or HAProxy was involved, and the trade stays
+`OPEN`.
+
 ### Added the EMCON avoidable-transmission class list
 
 `FML-REQ-049` binds the system not to originate a transmission the active
