@@ -67,6 +67,54 @@ which is the Program Owner's decision -- so the near-term software contribution
 is the tooling that makes the eventual demonstrations legible: instrumentation,
 the deployment path, and automated evidence collection, not more architecture.
 
+### Inserted increment D-1: seamless TAK across three bench MULEs
+
+The Program Owner named this the next hardware demonstration on 2026-10-18.
+
+**What it is.** An increment inserted under the paragraph above. It does **not**
+reorder the ladder. M1 remains the pacing gate, and D-1 counts toward neither M2
+(its third node joins over an emulated VXLAN bearer, not the selected mesh) nor
+M4 (it runs on bench articles, not the image).
+
+**What it shows.** A user with iTAK or WinTAK keeps communicating, with no manual
+step, whether the MULEs are joined by IP or only by LoRa:
+
+- **Normal:** EUDs use the authoritative TAK server through `tak.field`.
+- **Partitioned:** a MULE cut off from the authority shows `NON-AUTHORITATIVE` /
+  `PARTITION`, its EUDs continue in peer ATAK, and LoRa carries chat, DMs and
+  positions between the sides. This is CONOPS 29 as written. The parameters are
+  in [the TBR-HA-01 decision packet][d1-packet].
+
+**Acceptance.** Each step is failable, counted per segment, and has its
+configuration recorded before the run.
+
+1. Each EUD enrolls from one package or QR, with no manual edits.
+2. Normal: chat, DMs and positions cross over IP, with zero gateway LoRa
+   transmissions.
+3. Partition one side: the indication is visible in TAK; peer ATAK continues;
+   chat, DMs (including replies) and positions cross LoRa with zero duplicates;
+   every loss is localised.
+4. Heal: EUDs return to the authority with no manual step, no uid holds two
+   sessions, and what peer mode could not carry is listed.
+5. No WAN on the bench path: all of the above still works.
+6. Status shows each node's mode and epoch, its EUDs, and gateway and LoRa
+   health.
+7. Clean-up: radios are back on the recorded profile, and the live server that
+   shares the bench is unchanged.
+
+**Evidence so far:**
+
+- [the gateway][d1-gw];
+- [the iTAK reply rule and a two-way DM across LoRa][d1-reply];
+- [a third node and multi-bearer chat][d1-node];
+- [why the single front was retired][d1-front].
+
+[d1-packet]: evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
+[d1-gw]: evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md
+[d1-reply]: evidence/TBR-NET-02/2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md
+[d1-node]: evidence/TBR-RF-01/2026-10-18-third-node-over-vxlan-and-multi-bearer-tak-chat.md
+[d1-front]: evidence/TBR-HA-01/2026-10-18-single-tak-field-front-on-a-live-server-retired.md
+
 ## Before you touch anything
 
 Do these three things in order. They take about fifteen minutes and they are
