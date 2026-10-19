@@ -66,19 +66,44 @@ certificates changed. Adding that root to its truststore connected it.
 | --- | --- |
 | WinTAK -> iTAK, across LoRa | 2/2 delivered, about 1.7 s |
 | A synthetic DM -> WinTAK, across LoRa | delivered (WinTAK showed it unread) |
-| **iTAK -> WinTAK, across LoRa** | **0/3. Not delivered and open.** |
+| **iTAK -> WinTAK, across LoRa** | **0/3** with the gateway minting a uid; **resolved by R4** |
 
 **On the open case.** pi-mule-1's server listed the WinTAK proxy session as a
 connected client bound to that callsign, but the gateway received none of
 iTAK's three sends. A fresh conversation did not change that, so this is not a
 stale conversation. The same iTAK -> WinTAK reply **was** delivered over IP when
 WinTAK was a direct client (see the `TBR-RF-01` record of the same date). So the
-fault is specific to this proxied contact. Its cause is not established.
+fault is specific to this proxied contact. R4 found the cause.
+
+## R4. One identity across bearers
+
+**The cause.** WinTAK had reached the iTAK client directly earlier in the
+session, under its own uid. The gateway then gave the same callsign a minted
+uid on the far side. iTAK addressed its replies to the uid it already held for
+that callsign, and no session held that uid, so nothing was delivered.
+
+**The change.** The gateway now carries the sender's own uid in
+`Contact.device_callsign`, the field OpenTAKServer's encoder fills
+(`2026-09-28-real-geochat-encoding-through-ots.md`). The far gateway reuses it.
+It mints a uid only when none was carried, when the carried one is malformed, or
+when it already belongs to a client of the far server. That last case is
+refused, because otherwise anyone holding the channel key could impersonate that
+client.
+
+**The result.**
+
+- WinTAK -> iTAK across LoRa was delivered under WinTAK's own uid.
+- **iTAK's reply was delivered to WinTAK**: about 2.0 s from gateway hand-off to
+  gateway delivery.
+- On both clients the IP exchange and the LoRa exchange with the other became
+  **one conversation**: the same contact, whichever bearer carried it.
+- The carried uid costs its length plus 2 bytes of the 231-byte payload, so a
+  long uid shortens the longest chat that fits. A message that no longer fits is
+  refused, never truncated.
 
 ## What this does not establish
 
 - That OpenTAKServer needs the same SA fields as TAK Server.
-- The cause of the iTAK -> WinTAK-by-proxy case.
 - Anything about range, airtime or duty cycle (`TBR-RF-02`).
 - Partition behaviour: the two servers were joined only by LoRa on purpose.
 

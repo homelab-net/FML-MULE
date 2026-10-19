@@ -45,7 +45,10 @@ whose SA carries `takv` and a `contact endpoint` (two such senders got replies,
 one without them was never made a contact and its reply was never sent). With
 that, a **two-way** DM crossed LoRa between an iTAK client on one node's TAK
 Server and an EUD on the other's, 4/4 out and 3/3 back, and WinTAK reached iTAK
-the same way. iTAK -> WinTAK by proxy stayed undelivered and is open.
+the same way. iTAK -> WinTAK first failed because the gateway minted a uid for
+a contact iTAK already knew by its own; carrying the sender's uid in
+`Contact.device_callsign`, as OpenTAKServer's encoder does, fixed it and made
+each user one identity across IP and LoRa.
 
 [reply]: 2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md
 

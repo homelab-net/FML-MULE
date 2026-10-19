@@ -14,6 +14,17 @@ this program needs them visible:
 
 ## Unreleased
 
+### The LoRa gateway keeps each user's own identity across bearers
+
+`test/bench/fml-lora-gw.py` now carries the sender's uid in
+`Contact.device_callsign`, the field OpenTAKServer's own encoder fills, and the
+far gateway reuses it instead of minting one. iTAK addresses a reply to the uid
+it already holds for a callsign, so a minted uid made replies to a contact it
+had met over IP undeliverable. With the real uid, iTAK -> WinTAK crossed LoRa
+and each user became one conversation across IP and LoRa
+(`docs/evidence/TBR-NET-02/2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md`).
+A carried uid that already belongs to a local client is refused.
+
 ### A LoRa gateway that is a TAK client, and a live server isolated from the bench
 
 `test/bench/fml-lora-gw.py` is a bench IP<->LoRa gateway that joins a TAK server
