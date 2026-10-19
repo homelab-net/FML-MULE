@@ -1,6 +1,6 @@
 # TBR-HA-01 decision packet: what a MULE does for its EUDs when it cannot reach a safe TAK authority
 
-**State:** `PROPOSED`. The Owner decides (section 9).
+**State:** `DECIDED` (Owner, 2026-10-18): option A accepted (section 9).
 
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-18. **Author:** Claude agent.
 
@@ -128,4 +128,7 @@ communicating when that MULE loses IP reach to the authoritative TAK server.
 
 ## 9. Owner disposition
 
-_Pending._
+**Accepted, 2026-10-18, Cameron Zobrist (Program Owner):** option A as recommended
+in section 4. It records degraded-mode service only: `TBR-HA-01` stays `OPEN`,
+its recovery mechanism stays unselected, and nothing closes. The ADR named in
+section 7 is allocated with the first bench implementation of these parameters.

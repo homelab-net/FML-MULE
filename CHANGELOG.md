@@ -18,7 +18,7 @@ this program needs them visible:
 
 `docs/ROADMAP-DEV.md` records D-1, "seamless TAK across three bench MULEs", as an
 increment inserted under the M0-M7 ladder: it does not reorder the ladder, and it
-counts toward neither M2 nor M4. A `PROPOSED` `TBR-HA-01` decision packet sets
+counts toward neither M2 nor M4. A `TBR-HA-01` decision packet, accepted by the Owner, sets
 what a MULE does for its EUDs with no safe TAK authority, following CONOPS 29 as
 written: peer ATAK plus a LoRa bridge, no local TAK server
 (`docs/evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md`).

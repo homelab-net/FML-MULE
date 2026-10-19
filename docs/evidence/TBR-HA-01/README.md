@@ -58,7 +58,7 @@ server.
 [promotion]: 2026-10-17-tak-field-ingress-and-administrative-promotion.md
 [front]: 2026-10-18-single-tak-field-front-on-a-live-server-retired.md
 
-A [decision packet][degraded] (`PROPOSED`, the Owner decides) sets what a MULE
+A [decision packet][degraded] (`DECIDED` by the Owner, 2026-10-18) sets what a MULE
 does for its EUDs when it cannot reach a safe TAK authority. It follows CONOPS 29
 as written: peer ATAK plus a LoRa bridge, with no local TAK server. It decides
 degraded-mode service only. The trade's recovery mechanism stays unselected, and
