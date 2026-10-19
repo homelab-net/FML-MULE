@@ -91,7 +91,8 @@ anything over the 231-byte payload, and opens one server session per EUD behind
 a remote node, because a server routes a direct message only to the connection
 bound to the recipient. It carries each sender's own uid in
 `Contact.device_callsign`, so a user is one identity whether reached over IP or
-LoRa, and it refuses a carried uid that already belongs to a local client. Its decisions are pinned by
+LoRa, and it refuses a carried uid that already belongs to a local client. Its
+decisions are pinned by
 `test/unit/test_fml_lora_gw.py`. It is **not** the `FML-ADR-048` gateway, which
 stays README-only under `services/gateways/`; it does not yet relay only while
 partitioned, so two of them on one server duplicate traffic. Results are in
