@@ -44,7 +44,19 @@ stayed on it as a second island, so a demoted server needs fencing. It does not
 attempt automatic promotion, which is
 this trade's question.
 
+A [single-front record][front] puts one `tak.field` front on the bench mule's
+live server, with that server and both Pis' TAK Servers behind it, and carries a
+real iTAK client and the LoRa gateway across three swaps (reconnect about 2.1 s).
+It finds that the live server's certificate does not name `tak.field`, that the
+name moves only the 8089 stream (not data packages or enrollment), that
+OpenTAKServer delivers nothing to a client before that client's own SA, and that
+a message in flight at a hard cut is lost. It was **retired the same day**: a
+single front deviates from SAD section 11.2 and `FML-ADR-049`, and it exposed a
+live server's pilot users to bench swaps. The bench is now isolated from that
+server.
+
 [promotion]: 2026-10-17-tak-field-ingress-and-administrative-promotion.md
+[front]: 2026-10-18-single-tak-field-front-on-a-live-server-retired.md
 [supervision]: 2026-10-02-supervised-recovery-three-nodes.md
 [policy]: 2026-10-02-deployed-recovery-policy-and-repo-divergence.md
 [startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md

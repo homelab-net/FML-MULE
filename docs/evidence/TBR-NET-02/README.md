@@ -27,6 +27,28 @@ gateway or RF fail-closed behavior.
 
 [three-node]: 2026-10-02-three-node-lab-boundaries.md
 
+A [gateway record][gateway] (2026-10-18) puts a bench gateway on each LoRa node as
+an ordinary TLS client of a TAK server: direct delivery 20/20 each way with
+acknowledgements, IP<->LoRa through a server and across authority swaps, and the
+intended two-MULE path delivering a **direct message** from an EUD behind one
+node to a live iTAK client behind the other. It records that a server routes a
+DM to the one connection bound to the recipient (so a gateway needs a session per
+remote EUD), that the Meshtastic firmware treats a client's `hopLimit=0` as
+unset, and that **iTAK's replies never reached the server** (open). It publishes
+no received-signal figures, for the reason the record gives, and its timings are
+provisional (throttled nodes). It is a bench instrument, not the `FML-ADR-048` gateway.
+
+[gateway]: 2026-10-18-lora-gateway-as-a-tak-client.md
+
+A [same-day follow-up][reply] finds what iTAK needs before it replies: a sender
+whose SA carries `takv` and a `contact endpoint` (two such senders got replies,
+one without them was never made a contact and its reply was never sent). With
+that, a **two-way** DM crossed LoRa between an iTAK client on one node's TAK
+Server and an EUD on the other's, 4/4 out and 3/3 back, and WinTAK reached iTAK
+the same way. iTAK -> WinTAK by proxy stayed undelivered and is open.
+
+[reply]: 2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md
+
 **This trade is `CLOSED` (2026-09-04) on `FML-ADR-070`,** accepted by the named
 owner (Cameron Zobrist). The selected encoding is upstream's `Contact.callsign`
 and `GeoChat.to`, not the one-byte index the analysis first costed; the

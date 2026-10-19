@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Twenty-two procedures and ten helpers.** Hardware measurements have been taken,
+**Twenty-three procedures and eleven helpers.** Hardware measurements have been taken,
 by the three `-real` procedures below and recorded in
 `docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md` and
 `docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`, and by
@@ -14,8 +14,8 @@ reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
 `eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
-`tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py` and `tak-sim.py`, which
-are run directly.
+`tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py`, `tak-sim.py` and
+`fml-lora-gw.py`, which are run directly.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -72,6 +72,30 @@ print a figure when no packets arrived or when a receiver outlived its phase,
 because both look like loss and are neither. Results are real RF rather than
 `SIMULATED`, but node-local, and their tier is deferred like every other
 real-hardware result here; they live in `docs/evidence/TBR-RF-01/`.
+
+`mesh-vxlan-node.sh` puts the bench mule on the batman-adv mesh as a third node
+over a unicast VXLAN tunnel to pi-mule-2, because neither of its Wi-Fi radios can
+be an 802.11s mesh point. That is an **emulated** IP-tunnel bearer, and results
+over it are labelled so. On a host that also serves other users, its guard lets
+only the bench access point's clients reach the bench TAK servers' 8089 across
+the mesh and nothing from the mesh reach the host; `mule1-down` and `pi-down`
+remove everything. Addresses come from an uncommitted `/etc/fml/mesh.env`.
+Results: `docs/evidence/TBR-RF-01/2026-10-18-third-node-over-vxlan-and-multi-bearer-tak-chat.md`.
+
+`fml-lora-gw.py` is a bench IP<->LoRa gateway that joins a TAK server as an
+ordinary TLS client (PyTAK, `FML-ADR-033`), so it follows whichever server is
+authoritative. It relays only configured rooms (default "All Chat Rooms"; a
+gateway on a server with users outside the test must name a bench-only room),
+resolves direct messages fail-closed with `mule/recipients.py`, refuses
+anything over the 231-byte payload, and opens one server session per EUD behind
+a remote node, because a server routes a direct message only to the connection
+bound to the recipient. Its decisions are pinned by
+`test/unit/test_fml_lora_gw.py`. It is **not** the `FML-ADR-048` gateway, which
+stays README-only under `services/gateways/`; it does not yet relay only while
+partitioned, so two of them on one server duplicate traffic. Results are in
+`docs/evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md`. Set the
+radio's own `lora.hop_limit`: the firmware treats a client's `hopLimit=0` as
+unset.
 
 `lora-geochat-eud.py` is a synthetic TAK EUD on the Meshtastic bearer. It sends
 and receives `FML-ADR-070`'s encoding -- the sender in `Contact.callsign`, the

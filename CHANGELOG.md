@@ -14,6 +14,29 @@ this program needs them visible:
 
 ## Unreleased
 
+### A LoRa gateway that is a TAK client, and a live server isolated from the bench
+
+`test/bench/fml-lora-gw.py` is a bench IP<->LoRa gateway that joins a TAK server
+as an ordinary TLS client, so it follows whichever server is authoritative. On
+real radios it carried direct delivery 20/20 each way, IP<->LoRa through a
+server and across authority swaps, and a direct message from an EUD behind one
+node to a live iTAK client behind the other
+(`docs/evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md`). iTAK's
+replies never reached the server; that is open. A single `tak.field` front put
+on the bench mule's live server was retired the same day, because it deviated
+from SAD section 11.2 and exposed that server's pilot users to bench swaps
+(`docs/evidence/TBR-HA-01/2026-10-18-single-tak-field-front-on-a-live-server-retired.md`).
+`mule/recipients.py` no longer calls the 2026-10-03 live-client capture owed.
+
+The same evening the open reply was resolved on TAK Server: iTAK replies only to
+a contact whose SA carries `takv` and a `contact endpoint`, and with that a
+two-way DM crossed LoRa between two MULEs
+(`docs/evidence/TBR-NET-02/2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md`).
+`test/bench/mesh-vxlan-node.sh` adds the bench mule as a third mesh node over an
+emulated VXLAN bearer, and real iTAK and WinTAK clients exchanged messages
+across a 2.4 GHz access point, that tunnel and 802.11s
+(`docs/evidence/TBR-RF-01/2026-10-18-third-node-over-vxlan-and-multi-bearer-tak-chat.md`).
+
 ### Exercised two-node TAK hosting, and measured the official TAK Server on a Pi 4
 
 CONOPS 25 to 30 and SAD sections 11, 12 and 14 describe one stable name,
