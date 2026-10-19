@@ -14,6 +14,19 @@ this program needs them visible:
 
 ## Unreleased
 
+### D-1 inserted into the roadmap, and a decision packet for partitioned service
+
+`docs/ROADMAP-DEV.md` records D-1, "seamless TAK across three bench MULEs", as an
+increment inserted under the M0-M7 ladder: it does not reorder the ladder, and it
+counts toward neither M2 nor M4. A `PROPOSED` `TBR-HA-01` decision packet sets
+what a MULE does for its EUDs with no safe TAK authority, following CONOPS 29 as
+written: peer ATAK plus a LoRa bridge, no local TAK server
+(`docs/evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md`).
+A time-boxed trial of FML-ADR-048 option 2, the TAK Meshtastic Gateway, found it
+not usable as published on the bench but fixable upstream: it transmits only on
+the primary channel, renames and so reboots the radio, and does not reconnect
+(`docs/evidence/TBR-NET-02/2026-10-18-tak-meshtastic-gateway-option-2-trial.md`).
+
 ### The LoRa gateway keeps each user's own identity across bearers
 
 `test/bench/fml-lora-gw.py` now carries the sender's uid in

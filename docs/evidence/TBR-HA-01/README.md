@@ -57,6 +57,14 @@ server.
 
 [promotion]: 2026-10-17-tak-field-ingress-and-administrative-promotion.md
 [front]: 2026-10-18-single-tak-field-front-on-a-live-server-retired.md
+
+A [decision packet][degraded] (`PROPOSED`, the Owner decides) sets what a MULE
+does for its EUDs when it cannot reach a safe TAK authority. It follows CONOPS 29
+as written: peer ATAK plus a LoRa bridge, with no local TAK server. It decides
+degraded-mode service only. The trade's recovery mechanism stays unselected, and
+the packet closes nothing.
+
+[degraded]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [supervision]: 2026-10-02-supervised-recovery-three-nodes.md
 [policy]: 2026-10-02-deployed-recovery-policy-and-repo-divergence.md
 [startup]: ../TBR-LINUX-01/2026-10-01-power-ble-followup-node-a.md

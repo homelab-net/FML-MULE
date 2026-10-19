@@ -52,6 +52,14 @@ each user one identity across IP and LoRa.
 
 [reply]: 2026-10-18-itak-reply-rule-and-two-way-dm-across-lora.md
 
+A [time-boxed trial of FML-ADR-048 option 2][tmg], the TAK Meshtastic Gateway,
+bridged a peer-mode WinTAK's position onto LoRa, carrying the client's own uid
+in `Contact.device_callsign`. As published it is not usable on the bench: it
+transmits only on the radio's primary channel, renames and so reboots the radio,
+and then never reconnects. All three are fixable upstream.
+
+[tmg]: 2026-10-18-tak-meshtastic-gateway-option-2-trial.md
+
 **This trade is `CLOSED` (2026-09-04) on `FML-ADR-070`,** accepted by the named
 owner (Cameron Zobrist). The selected encoding is upstream's `Contact.callsign`
 and `GeoChat.to`, not the one-byte index the analysis first costed; the
