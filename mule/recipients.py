@@ -22,10 +22,10 @@ left for later are **not** done here and are passed in rather than derived:
 
 - The **roster** (recipient key -> device) is a `Mapping` argument keyed by the
   identifier the bearer actually carries -- for a direct message whatever the client
-  placed in `<__chat id>` (a UID by ATAK convention, but unconfirmed until the owed
-  live-client capture -- see below), not necessarily a callsign; the callsign -> key
-  step is a separate client binding, and room fan-out is separate group routing this
-  map does not do. The
+  placed in `<__chat id>` -- a UID: a live iTAK client's DMs carry the
+  recipient's UID there (`2026-10-03-live-client-chat-id-capture.md`), not a
+  callsign; the callsign -> key step is a separate client binding, and room
+  fan-out is separate group routing this map does not do. The
   mission package has no roster field today; adding one is a schema change
   `TBR-NET-02` named and declined. Where the roster comes from was decided in
   `docs/change-requests/CCR-06-eud-roster-and-contact-seeding.md` (`ACCEPTED`
@@ -38,11 +38,11 @@ left for later are **not** done here and are passed in rather than derived:
   (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`):
   the encoder copies the client-supplied `<__chat id>` verbatim (a DM's is a UID,
   a room's is the room name), so `GeoChat.to` is not uniformly a callsign and the
-  parser must branch. What a live ATAK/iTAK client actually *places* in `<__chat
-  id>` on a DM -- a UID by ATAK convention, though a callsign is not yet ruled out --
-  still needs a live-client capture to confirm, so the roster key's shape stays
-  conditional until then. This module keys the roster by that `recipient_key`
-  whatever it turns out to be; the human-readable callsign-to-key binding is a
+  parser must branch. What a live client actually *places* in `<__chat id>` on a
+  DM was captured on 2026-10-03 for iTAK: the recipient's UID, with the
+  recipient's callsign in `<__chat chatroom>`. ATAK on Android is not yet
+  captured, so this module still keys the roster by that `recipient_key`
+  whatever its shape; the human-readable callsign-to-key binding is a
   separate client-side contact-seeding step, not this module's roster (above).
 
 It lives in `mule/` because it is a decision the node makes while running
@@ -126,13 +126,13 @@ def decide_delivery(
     """Decide delivery for a named recipient, failing closed on the unresolved.
 
     This resolves a **direct message** to a single device. `recipient_key` is
-    whatever the client placed in a DM's `<__chat id>` (`GeoChat.to`) -- a UID by ATAK
-    convention, but not yet confirmed for a live client (grounded 2026-09-28 only that
-    the encoder copies it verbatim,
-    `docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`; the
-    owed capture decides UID vs callsign). `roster` is keyed by that `recipient_key`
-    whatever its shape; the callsign-to-key step is a separate client binding, not
-    this map. A **room** `GeoChat.to` names a group, not one device, so
+    whatever the client placed in a DM's `<__chat id>` (`GeoChat.to`) -- a UID,
+    confirmed for a live iTAK client on 2026-10-03; the encoder copies it
+    verbatim
+    (`docs/evidence/TBR-NET-02/2026-09-28-real-geochat-encoding-through-ots.md`).
+    `roster` is keyed by that `recipient_key` whatever its shape; the
+    callsign-to-key step is a separate client binding, not this map. A **room**
+    `GeoChat.to` names a group, not one device, so
     room fan-out is separate group routing and does **not** go through here -- passing
     a room name would collapse it to a single EUD. Where the roster comes from was
     decided in `CCR-06`/`FML-ADR-087` (the Mission Trust Service distributes it), but
