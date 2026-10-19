@@ -302,3 +302,68 @@ def test_callsigns_that_sanitise_alike_get_distinct_uids() -> None:
     assert t.mesh_uid(NODE, "A B") != t.mesh_uid(NODE, "A_B")
     long_a, long_b = "X" * 40 + "1", "X" * 40 + "2"
     assert t.mesh_uid(NODE, long_a) != t.mesh_uid(NODE, long_b)
+
+
+# --------------------------------------------------------------- real uids
+
+
+def test_ip_side_uid_is_carried_onto_the_air() -> None:
+    out = only(tr().from_tak(pli_xml("IP1", IP_UID), 0))
+    assert isinstance(out, gw.LoraOut)
+    assert out.uid == IP_UID
+    chat = only(tr().from_tak(chat_xml("IP1", IP_UID, ROOM, ROOM, "hi"), 0))
+    assert chat.uid == IP_UID
+
+
+def test_remote_euds_keep_their_own_uid_on_this_side() -> None:
+    """One identity across bearers: no duplicate contacts, replies by real uid."""
+    t = tr()
+    m = gw.LoraIn("chat", NODE, "LORA1", to=ROOM, text="hi", uid="ANDROID-abc123")
+    out = only(t.from_lora(m))
+    assert out.via == "ANDROID-abc123"
+    ev = _parsed(out)
+    assert ev.find("detail/__chat/chatgrp").get("uid0") == "ANDROID-abc123"
+    dm = chat_xml("IP1", IP_UID, "LORA1", "ANDROID-abc123", "back to you")
+    back = only(t.from_tak(dm, 0))
+    assert (back.dest, back.to) == (NODE, "LORA1")
+
+
+def test_a_remote_claim_on_a_local_clients_uid_is_refused() -> None:
+    t = tr()
+    t.from_tak(pli_xml("IP1", IP_UID), 0)  # IP_UID is a client of this server
+    m = gw.LoraIn("chat", NODE, "LORA1", to=ROOM, text="spoof", uid=IP_UID)
+    out = only(t.from_lora(m))
+    assert out.via == t.mesh_uid(NODE, "LORA1")
+
+
+def test_a_malformed_carried_uid_falls_back_to_a_minted_one() -> None:
+    t = tr()
+    m = gw.LoraIn("chat", NODE, "LORA1", to=ROOM, text="x", uid="bad uid<>")
+    assert only(t.from_lora(m)).via == t.mesh_uid(NODE, "LORA1")
+
+
+def test_the_echo_of_a_relayed_real_uid_is_dropped() -> None:
+    t = tr()
+    t.from_lora(gw.LoraIn("pli", NODE, "LORA1", point=(1, 2, 3), uid="ANDROID-x"))
+    assert t.from_tak(pli_xml("LORA1", "ANDROID-x"), 0) == []
+
+
+def test_a_carried_uid_shrinks_the_chat_budget() -> None:
+    t = tr()
+    text = "y" * 150
+    assert isinstance(t._lora_chat("^all", "IP1", ROOM, text), gw.LoraOut)
+    long_uid = "S-1-5-21-" + "1" * 60
+    out = t._lora_chat("^all", "IP1", ROOM, text, long_uid)
+    assert isinstance(out, gw.Refused)
+
+
+def test_uid_round_trips_through_the_protobuf() -> None:
+    pytest.importorskip("meshtastic")
+    out = gw.LoraOut("chat", "^all", "IP1", ROOM, "hi", uid=IP_UID)
+    payload, _port = gw.encode(out, GW_UID)
+    packet = {
+        "decoded": {"portnum": "ATAK_PLUGIN", "payload": payload},
+        "channel": 3,
+        "fromId": NODE,
+    }
+    assert gw.decode(packet, 3, "!172ab0c8").uid == IP_UID

@@ -34,8 +34,15 @@ THE RULES IT HOLDS, and where they come from:
   addressing specification's fail-closed rule).
 - A message that does not fit the 231-byte usable payload is **refused**
   (`mule.recipients.fits_payload`, FML-ADR-070), not truncated.
+- **One identity across bearers.** The sender's real uid rides in
+  ``Contact.device_callsign``, the field OpenTAKServer's own encoder fills
+  (``TBR-NET-02/2026-09-28``), and the far gateway reuses it, so an EUD keeps the
+  same uid whether a client reaches it over IP or LoRa. A uid that already
+  belongs to a client on this gateway's own server is refused as a claim and
+  replaced by a minted one (``FMLR-<node>-<callsign>``), as is a sender that
+  carried none.
 - **Loop prevention** is by sender: anything whose sender uid is this gateway's
-  own, or a remote-EUD uid it minted (``FMLR-``), is an echo and is dropped; a
+  own, or a remote EUD's uid it relays for, is an echo and is dropped; a
   chat reaching several of its sessions is acted on once (by messageId). This
   does NOT dedupe across two gateways attached to one server: with the IP mesh
   up, two gateways would each relay the same traffic. Relaying only while a node
@@ -90,6 +97,11 @@ USABLE_BYTES = 231
 #: TAKPacket costs 10 bytes beyond its three strings, 11 or 12 once a length
 #: passes 127. 12 is the upper bound for any body inside the 231-byte budget.
 TAK_FRAMING_BYTES = 12
+#: Carrying the sender's uid in Contact.device_callsign costs its length plus a
+#: 2-byte tag and length prefix (a uid is under 128 bytes).
+UID_FRAMING_BYTES = 2
+#: What a carried uid may look like: ATAK/iTAK UUIDs, ANDROID-* ids, Windows SIDs.
+UID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@-]{0,63}")
 #: Plain Meshtastic text is sent as "CALLSIGN: body".
 TEXT_FRAMING_BYTES = 2
 QUEUE_MAX = 50
@@ -229,6 +241,7 @@ class LoraIn:
     to: str = ""  # GeoChat.to; "" for plain text
     text: str = ""
     point: tuple[float, float, float] | None = None
+    uid: str = ""  # Contact.device_callsign: the sender's own uid, if carried
 
 
 @dataclass(frozen=True)
@@ -255,6 +268,7 @@ class LoraOut:
     to: str = ""
     text: str = ""
     point: tuple[float, float, float] | None = None
+    uid: str = ""  # the IP-side sender's uid, carried in Contact.device_callsign
 
 
 @dataclass(frozen=True)
@@ -311,13 +325,34 @@ class Translator:
 
     def is_echo(self, sender_uid: str) -> bool:
         """Whether a server event came from this gateway, for itself or a node."""
-        return sender_uid == self.own_uid or sender_uid.startswith(MESH_PREFIX)
+        return (
+            sender_uid == self.own_uid
+            or sender_uid.startswith(MESH_PREFIX)
+            or sender_uid in self.mesh_eud
+        )
+
+    def remote_uid(self, m: LoraIn) -> str:
+        """Return the uid a remote EUD appears under on this side.
+
+        Its own uid when it carried a well-formed one that no client of this
+        server already holds; otherwise a minted one. Reusing a local client's
+        uid would let anyone with the channel key impersonate that client.
+        """
+        uid = m.uid
+        if (
+            uid
+            and UID_PATTERN.fullmatch(uid)
+            and uid != self.own_uid
+            and uid not in self.roster
+        ):
+            return uid
+        return self.mesh_uid(m.node, m.callsign)
 
     # LoRa -> TAK -------------------------------------------------------------
 
     def from_lora(self, m: LoraIn) -> list[Action]:
         """Decide what one accepted LoRa message becomes on the TAK side."""
-        uid = self.mesh_uid(m.node, m.callsign)
+        uid = self.remote_uid(m)
         self.mesh_eud[uid] = (m.node, m.callsign)
         if m.kind == "pli":
             if m.point is None:
@@ -388,23 +423,26 @@ class Translator:
         room, chat_id = chat.get("chatroom", ""), chat.get("id", "")
         text = rem.text.strip()
         if chat_id in self.rooms:
-            return [self._lora_chat("^all", sender, chat_id, text)]
+            return [self._lora_chat("^all", sender, chat_id, text, sender_uid)]
         remote = self.mesh_eud.get(chat_id)
         if remote is not None:  # a direct message to one EUD behind a remote MULE
             node, callsign = remote
-            return [self._lora_chat(node, sender, callsign, text)]
+            return [self._lora_chat(node, sender, callsign, text, sender_uid)]
         return [Refused(f"chat for {room!r} is not for the mesh")]
 
-    def _lora_chat(self, dest: str, sender: str, to: str, text: str) -> Action:
+    def _lora_chat(
+        self, dest: str, sender: str, to: str, text: str, uid: str = ""
+    ) -> Action:
         if self.lora_format == "text":
             budget = LoraPayloadBudget(USABLE_BYTES, TEXT_FRAMING_BYTES)
             if not fits_payload(text, sender, "", budget):
                 return Refused("message exceeds the 231-byte LoRa payload")
             return LoraOut("text", dest, sender, text=text)
-        budget = LoraPayloadBudget(USABLE_BYTES, TAK_FRAMING_BYTES)
-        if not fits_payload(text, sender, to, budget):
+        framing = TAK_FRAMING_BYTES + (UID_FRAMING_BYTES if uid else 0)
+        budget = LoraPayloadBudget(USABLE_BYTES, framing)
+        if not fits_payload(text, sender + uid, to, budget):
             return Refused("message exceeds the 231-byte LoRa payload")
-        return LoraOut("chat", dest, sender, to=to, text=text)
+        return LoraOut("chat", dest, sender, to=to, text=text, uid=uid)
 
     def _pli(
         self, ev: ET.Element, det: ET.Element, uid: str, now: float
@@ -430,7 +468,7 @@ class Translator:
         except (AttributeError, ValueError):
             return [Refused("PLI without a usable point")]
         self.last_pli[uid] = now
-        return [LoraOut("pli", "^all", callsign, point=point)]
+        return [LoraOut("pli", "^all", callsign, point=point, uid=uid)]
 
 
 # ---------------------------------------------------------------- runtime
@@ -445,6 +483,8 @@ def encode(out: LoraOut, own_uid: str) -> tuple[bytes, int]:
         return payload, portnums_pb2.PortNum.TEXT_MESSAGE_APP
     t = atak_pb2.TAKPacket()
     t.contact.callsign = out.callsign
+    if out.uid:
+        t.contact.device_callsign = out.uid
     if out.kind == "chat":
         t.chat.message = out.text
         t.chat.to = out.to
@@ -477,12 +517,13 @@ def decode(packet: dict[str, Any], channel: int, me: str) -> LoraIn | None:
     except Exception:
         return None
     cs = t.contact.callsign or node
+    uid = t.contact.device_callsign
     if t.HasField("chat"):
-        return LoraIn("chat", node, cs, to=t.chat.to, text=t.chat.message)
+        return LoraIn("chat", node, cs, to=t.chat.to, text=t.chat.message, uid=uid)
     if t.HasField("pli"):
         p = t.pli
         point = (p.latitude_i * 1e-7, p.longitude_i * 1e-7, float(p.altitude))
-        return LoraIn("pli", node, cs, point=point)
+        return LoraIn("pli", node, cs, point=point, uid=uid)
     return None
 
 
