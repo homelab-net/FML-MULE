@@ -38,6 +38,16 @@ fix is idempotent. The lifecycle regression test exercises the unpatched
 shared-state control as well as the fix. Stock CoT fields and upstream routing
 remain the interfaces.
 
+`absent_feed_packages.py` runs before OpenTAKServer is installed. Release 1.7.13
+pins `adsbxcot==6.0.4` and `aiscot==7.0.10`, and both were withdrawn from PyPI
+in October 2026, with their source repositories removed. A clean build could
+not resolve the release. Their only users are the ADS-B and AIS feed jobs,
+which pull internet data, sit outside this topology, and ship paused. The script
+installs a placeholder for each at the pinned version with a `+fml.absent` local
+label, so the pins resolve. Each placeholder raises if called, so an enabled
+feed job fails loudly. It writes no upstream code. Images built before the
+withdrawal still carry the real packages.
+
 The units share an internal Podman network, `ots.network`, and name each
 other on it: `postgresql` and `rabbitmq`. Release 1.7.13 defaults those
 dependencies to `127.0.0.1`, which is the container itself, so separate
