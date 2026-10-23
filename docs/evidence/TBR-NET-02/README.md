@@ -60,6 +60,16 @@ and then never reconnects. All three are fixable upstream.
 
 [tmg]: 2026-10-18-tak-meshtastic-gateway-option-2-trial.md
 
+A [trial of option 1][ots1] (2026-10-23) put OpenTAKServer's Meshtastic path on
+a real radio through a relay to the radio's MQTT client proxy. OTS-to-LoRa
+delivered all 28 packets, but sends room chat as bare text without its sender.
+LoRa-to-OTS converted a position into an SA under the sender's own uid, and
+converted **no** chat: an upstream `KeyError`. OTS compresses every
+`TAKPacket` string and the bench gateway does not, so the two cannot read each
+other. Like option 2, it is not usable as published, and fixable.
+
+[ots1]: 2026-10-23-opentakserver-meshtastic-option-1-trial.md
+
 **This trade is `CLOSED` (2026-09-04) on `FML-ADR-070`,** accepted by the named
 owner (Cameron Zobrist). The selected encoding is upstream's `Contact.callsign`
 and `GeoChat.to`, not the one-byte index the analysis first costed; the

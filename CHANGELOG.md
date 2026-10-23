@@ -14,6 +14,19 @@ this program needs them visible:
 
 ## Unreleased
 
+### OpenTAKServer's Meshtastic path tried on a real radio
+
+A time-boxed trial of `FML-ADR-048` option 1 relayed OpenTAKServer 1.7.13 to a
+radio's MQTT client proxy on the private bench channel. OTS-to-LoRa delivered
+every packet, but room chat leaves as bare text without its sender, and each
+chat costs three transmissions. LoRa-to-OTS turned positions into SAs under the
+sender's own uid and turned no chat into CoT, because of an upstream
+`KeyError`. OTS compresses `TAKPacket` strings and the bench gateway does not,
+so the two cannot read each other. Two stack defects were found on the way:
+socket.io's queue URL carries no broker credentials, and plain-TCP client
+delivery is broken. Like option 2, it is not usable as published, and fixable
+(`docs/evidence/TBR-NET-02/2026-10-23-opentakserver-meshtastic-option-1-trial.md`).
+
 ### D-1 inserted into the roadmap, and a decision packet for partitioned service
 
 `docs/ROADMAP-DEV.md` records D-1, "seamless TAK across three bench MULEs", as an
