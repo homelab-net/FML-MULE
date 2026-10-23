@@ -149,6 +149,7 @@ rm -rf "$src"
 mkdir -p "$src/tak" "$src/client"
 cp "$root/services/tak/Containerfile" "$root/services/tak/listen_ready.py" \
   "$root/services/tak/isolate_handler_state.py" \
+  "$root/services/tak/absent_feed_packages.py" \
   "$src/tak/"
 cp "$root/test/topology/cases/tak/Clientfile" \
   "$root/test/topology/cases/tak/send_cot.py" "$src/client/"
