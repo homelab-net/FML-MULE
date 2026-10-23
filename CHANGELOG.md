@@ -46,6 +46,14 @@ socket.io's queue URL carries no broker credentials, and plain-TCP client
 delivery is broken. Like option 2, it is not usable as published, and fixable
 (`docs/evidence/TBR-NET-02/2026-10-23-opentakserver-meshtastic-option-1-trial.md`).
 
+### The TAK image builds again after two feed packages were withdrawn
+
+OpenTAKServer 1.7.13 pins `adsbxcot` and `aiscot`, which were withdrawn from PyPI,
+so the image stopped building and the TAK cold-start check failed on every
+branch. `services/tak/absent_feed_packages.py` installs a refusing placeholder
+for each before the server. Only the paused ADS-B and AIS feed jobs, outside this
+topology, used them.
+
 ### D-1 inserted into the roadmap, and a decision packet for partitioned service
 
 `docs/ROADMAP-DEV.md` records D-1, "seamless TAK across three bench MULEs", as an
