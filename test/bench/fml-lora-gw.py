@@ -22,6 +22,16 @@ encoding: upstream's TAKPacket on the ATAK plugin port, sender in
 `Contact.callsign`, recipient in `GeoChat.to`. With ``--lora-format text`` it
 instead speaks plain Meshtastic text, so the stock Meshtastic app can be an EUD.
 
+STRING ENCODING. Upstream senders compress TAKPacket strings with Unishox2 and
+set `is_compressed`: OpenTAKServer compresses all of them, the TAK Meshtastic
+Gateway its chats. This gateway reads both forms, honouring the flag, with a
+bounded decoder (`unishox2_decode.py`) and upstream's own string limits. It
+**sends plain strings**: the TAK Meshtastic Gateway honours the flag and reads
+them. OpenTAKServer's Meshtastic path does not (it decompresses every string),
+so this gateway must not share a channel with one; a plain PLI there becomes a
+garbage contact (``TBR-NET-02/2026-10-23``). A bench-instrument choice, recorded
+in that evidence; a `services/gateways/` component would need its own ADR.
+
 THE RULES IT HOLDS, and where they come from:
 
 - Only the configured **rooms** are relayed (``--room``, repeatable). The
@@ -47,6 +57,12 @@ THE RULES IT HOLDS, and where they come from:
   does NOT dedupe across two gateways attached to one server: with the IP mesh
   up, two gateways would each relay the same traffic. Relaying only while a node
   is partitioned from the authority is the intended fix (plan S3), not built yet.
+- A uid this gateway itself put on LoRa that comes back from LoRa is an echo
+  and is refused, so a node that re-sends LoRa traffic cannot loop it.
+- Bare Meshtastic text is attributed to a TAK identity only when its node sent
+  a TAKPacket with exactly one identity in the last ATTRIBUTION_WINDOW_S;
+  otherwise it keeps the radio's name. That covers OpenTAKServer, which sends
+  a room chat as text from the sender's own node number after its PLI.
 - LoRa packets are accepted only on the named private channel, or as a direct
   message addressed to this node.
 - While the server connection is down, LoRa->TAK items are held (bounded count
@@ -80,6 +96,10 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from unishox2_decode import Unishox2Error
+from unishox2_decode import decode as unishox2_decode
+
 from mule.recipients import (
     LoraPayloadBudget,
     decide_delivery,
@@ -113,6 +133,18 @@ PROXY_TOTAL = 32
 PROXY_IDLE_S = 900.0
 PROXY_SA_REFRESH_S = 60.0
 SEEN_MESSAGE_TTL_S = 600.0
+#: Upstream's own string limits (meshtastic protobufs, atak.options max_size),
+#: applied to each decoded TAKPacket string in UTF-8 bytes.
+CALLSIGN_MAX = 120
+UID_MAX = 120
+MESSAGE_MAX = 200
+TO_MAX = 120
+#: OpenTAKServer sends a room chat as bare Meshtastic text from the sender's
+#: own per-EUD node number, just after that node's TAKPacket PLI; 4.5 s apart
+#: through the bench relay (2026-10-23). Text is attributed to that PLI's
+#: identity only within this window.
+ATTRIBUTION_WINDOW_S = 15.0
+ATTRIBUTION_MAX_NODES = 256
 
 
 def log(ev: str, **kw: Any) -> None:  # noqa: ANN401 (free-form JSON fields)
@@ -302,6 +334,9 @@ class Translator:
     mesh_eud: dict[str, tuple[str, str]] = field(default_factory=dict)
     last_pli: dict[str, float] = field(default_factory=dict)
     seen_chat: dict[str, float] = field(default_factory=dict)  # messageId -> t
+    # node -> (callsign, uid, last seen, ambiguous), from TAKPackets heard on LoRa
+    node_seen: dict[str, tuple[str, str, float, bool]] = field(default_factory=dict)
+    sent_uid: dict[str, float] = field(default_factory=dict)  # uid put on LoRa -> t
 
     def mesh_uid(self, node: str, callsign: str) -> str:
         """Return the uid this gateway mints for one EUD behind a remote MULE.
@@ -348,10 +383,54 @@ class Translator:
             return uid
         return self.mesh_uid(m.node, m.callsign)
 
+    def _learn(self, m: LoraIn, now: float) -> None:
+        """Record which identity a node's TAKPackets carry.
+
+        A node that carries more than one identity (a MULE radio relaying for
+        several EUDs, or a forged packet) is marked ambiguous and stays so until
+        evicted, so its bare text is never attributed to one of them.
+        """
+        prior = self.node_seen.pop(m.node, None)
+        ambiguous = prior is not None and (
+            prior[3] or (prior[0], prior[1]) != (m.callsign, m.uid)
+        )
+        self.node_seen[m.node] = (m.callsign, m.uid, now, ambiguous)
+        while len(self.node_seen) > ATTRIBUTION_MAX_NODES:
+            self.node_seen.pop(next(iter(self.node_seen)))  # least recently heard
+
+    def _attribute(self, m: LoraIn, now: float) -> LoraIn:
+        """Give bare Meshtastic text its sender's TAK identity, when unambiguous.
+
+        OpenTAKServer sends a room chat as plain text from the sender's own
+        per-EUD node number, just after a TAKPacket PLI from that node. Only a
+        node seen with exactly one identity, within ATTRIBUTION_WINDOW_S, is
+        attributed; anything else keeps the radio's own name.
+        """
+        seen = self.node_seen.get(m.node)
+        if seen is None or seen[3] or now - seen[2] > ATTRIBUTION_WINDOW_S:
+            return m
+        callsign, uid, _, _ = seen
+        return LoraIn("text", m.node, callsign or m.callsign, text=m.text, uid=uid)
+
+    def _sent_recently(self, uid: str, now: float) -> bool:
+        self.sent_uid = {
+            k: t for k, t in self.sent_uid.items() if now - t < SEEN_MESSAGE_TTL_S
+        }
+        return uid in self.sent_uid
+
     # LoRa -> TAK -------------------------------------------------------------
 
-    def from_lora(self, m: LoraIn) -> list[Action]:
+    def from_lora(self, m: LoraIn, now: float | None = None) -> list[Action]:
         """Decide what one accepted LoRa message becomes on the TAK side."""
+        now = time.time() if now is None else now
+        if m.kind == "text":
+            m = self._attribute(m, now)
+        else:
+            self._learn(m, now)
+        if m.uid and self._sent_recently(m.uid, now):
+            # Our own traffic coming back: another LoRa node (an OpenTAKServer
+            # Meshtastic path, say) re-sent what this gateway transmitted.
+            return [Refused("echo of a uid this gateway put on LoRa")]
         uid = self.remote_uid(m)
         self.mesh_eud[uid] = (m.node, m.callsign)
         if m.kind == "pli":
@@ -442,6 +521,8 @@ class Translator:
         budget = LoraPayloadBudget(USABLE_BYTES, framing)
         if not fits_payload(text, sender + uid, to, budget):
             return Refused("message exceeds the 231-byte LoRa payload")
+        if uid:
+            self.sent_uid[uid] = time.time()
         return LoraOut("chat", dest, sender, to=to, text=text, uid=uid)
 
     def _pli(
@@ -468,6 +549,7 @@ class Translator:
         except (AttributeError, ValueError):
             return [Refused("PLI without a usable point")]
         self.last_pli[uid] = now
+        self.sent_uid[uid] = now
         return [LoraOut("pli", "^all", callsign, point=point, uid=uid)]
 
 
@@ -496,6 +578,130 @@ def encode(out: LoraOut, own_uid: str) -> tuple[bytes, int]:
     return t.SerializeToString(), portnums_pb2.PortNum.ATAK_PLUGIN
 
 
+class WireError(ValueError):
+    """A TAKPacket this gateway will not accept; the message is the reason."""
+
+
+def _varint(buf: bytes, i: int) -> tuple[int, int]:
+    value = shift = 0
+    for _ in range(10):
+        if i >= len(buf):
+            raise WireError("truncated varint")
+        b = buf[i]
+        i += 1
+        value |= (b & 0x7F) << shift
+        if not b & 0x80:
+            return value, i
+        shift += 7
+    raise WireError("varint too long")
+
+
+def _fields(buf: bytes) -> dict[int, int | bytes]:
+    """Read one protobuf message's fields in wire order of their last occurrence.
+
+    A field seen twice keeps its last value and moves to the end, so the order
+    of the keys tells which member of a oneof was written last.
+    """
+    out: dict[int, int | bytes] = {}
+    i = 0
+    while i < len(buf):
+        key, i = _varint(buf, i)
+        num, wire = key >> 3, key & 7
+        if num == 0:
+            raise WireError("field number 0")
+        value: int | bytes
+        if wire == 0:
+            value, i = _varint(buf, i)
+        elif wire in (1, 5):
+            width = 8 if wire == 1 else 4
+            if i + width > len(buf):
+                raise WireError("truncated fixed field")
+            value, i = buf[i : i + width], i + width
+        elif wire == 2:
+            n, i = _varint(buf, i)
+            if i + n > len(buf):
+                raise WireError("truncated length-delimited field")
+            value, i = buf[i : i + n], i + n
+        else:
+            raise WireError(f"wire type {wire}")
+        out.pop(num, None)
+        out[num] = value
+    return out
+
+
+def _sub(fields: dict[int, int | bytes], num: int) -> dict[int, int | bytes]:
+    raw = fields.get(num, b"")
+    if not isinstance(raw, bytes):
+        raise WireError(f"field {num} is not a message")
+    return _fields(raw)
+
+
+def _string(raw: int | bytes, compressed: bool, limit: int) -> str:
+    """Decode one TAKPacket string, compressed or plain, within limit bytes.
+
+    Unishox2 output always begins with a 1 bit, so a string whose first byte is
+    below 0x80 is plain even in a packet flagged compressed: the TAK Meshtastic
+    Gateway leaves `GeoChat.to` uncompressed in packets it flags.
+    """
+    if not isinstance(raw, bytes):
+        raise WireError("string field is not length-delimited")
+    if compressed and raw and raw[0] >= 0x80:
+        try:
+            return unishox2_decode(raw, limit)
+        except Unishox2Error as e:
+            raise WireError(f"undecodable compressed string: {e}") from e
+    if len(raw) > limit:
+        raise WireError(f"string longer than {limit} bytes")
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise WireError("string is not UTF-8") from e
+
+
+def read_takpacket(payload: bytes) -> LoraIn | None:
+    """Parse an ATAK_PLUGIN payload into a LoraIn with no node, or None.
+
+    A minimal reader of upstream's `TAKPacket` (meshtastic `atak.proto`): only
+    the fields this gateway carries. It honours `is_compressed`, as the TAK
+    Meshtastic Gateway does, and does not use meshtastic's strict protobuf
+    parser, whose string fields reject compressed bytes. Raises WireError.
+    """
+    top = _fields(payload)
+    compressed = bool(top.get(1, 0))
+    contact = _sub(top, 2)
+    callsign = _string(contact.get(1, b""), compressed, CALLSIGN_MAX)
+    if any(not ch.isprintable() for ch in callsign):
+        raise WireError("callsign is not printable")
+    uid = _string(contact.get(2, b""), compressed, UID_MAX)
+    if uid and not UID_PATTERN.fullmatch(uid):
+        uid = ""  # not a well-formed uid: the far side mints one instead
+    # payload_variant is a oneof (pli 5, chat 6, detail 7): the last one wins.
+    order = list(top)
+    variant = max((n for n in (5, 6, 7) if n in top), key=order.index, default=None)
+    if variant == 6:
+        chat = _sub(top, 6)
+        text = _string(chat.get(1, b""), compressed, MESSAGE_MAX)
+        to = _string(chat.get(2, b""), compressed, TO_MAX)
+        return LoraIn("chat", "", callsign, to=to, text=text, uid=uid)
+    if variant == 5:
+        pli = _sub(top, 5)
+        lat_raw, lon_raw = pli.get(1, b""), pli.get(2, b"")
+        if not (isinstance(lat_raw, bytes) and isinstance(lon_raw, bytes)):
+            raise WireError("PLI coordinates are not fixed32")
+        if len(lat_raw) != 4 or len(lon_raw) != 4:
+            raise WireError("PLI without coordinates")
+        lat = int.from_bytes(lat_raw, "little", signed=True) * 1e-7
+        lon = int.from_bytes(lon_raw, "little", signed=True) * 1e-7
+        if abs(lat) > 90 or abs(lon) > 180:
+            raise WireError("PLI coordinates out of range")
+        alt = pli.get(3, 0)
+        if not isinstance(alt, int):
+            raise WireError("PLI altitude is not a varint")
+        alt = (alt & 0xFFFFFFFF) - (1 << 32) if alt & 0x80000000 else alt & 0xFFFFFFFF
+        return LoraIn("pli", "", callsign, point=(lat, lon, float(alt)), uid=uid)
+    return None
+
+
 def decode(packet: dict[str, Any], channel: int, me: str) -> LoraIn | None:
     """Turn a received Meshtastic packet into a LoraIn, or None if not accepted."""
     d = packet.get("decoded") or {}
@@ -509,22 +715,17 @@ def decode(packet: dict[str, Any], channel: int, me: str) -> LoraIn | None:
         return LoraIn("text", node, name, text=d.get("text", ""))
     if d.get("portnum") != "ATAK_PLUGIN":
         return None
-    from meshtastic.protobuf import atak_pb2
-
-    t = atak_pb2.TAKPacket()
-    try:
-        t.ParseFromString(d["payload"])
-    except Exception:
+    payload = d.get("payload")
+    if not isinstance(payload, bytes | bytearray):
         return None
-    cs = t.contact.callsign or node
-    uid = t.contact.device_callsign
-    if t.HasField("chat"):
-        return LoraIn("chat", node, cs, to=t.chat.to, text=t.chat.message, uid=uid)
-    if t.HasField("pli"):
-        p = t.pli
-        point = (p.latitude_i * 1e-7, p.longitude_i * 1e-7, float(p.altitude))
-        return LoraIn("pli", node, cs, point=point, uid=uid)
-    return None
+    try:
+        m = read_takpacket(bytes(payload))
+    except WireError as e:
+        log("lora refused", frm=node, reason=str(e))  # the reason only, no content
+        return None
+    if m is None:
+        return None
+    return LoraIn(m.kind, node, m.callsign or node, m.to, m.text, m.point, m.uid)
 
 
 @dataclass
@@ -613,8 +814,15 @@ class Gateway:
         )
 
     def lora_send(self, out: LoraOut) -> None:
-        """Put one LoraOut on the air."""
+        """Put one LoraOut on the air, if its encoded payload fits."""
         payload, port = encode(out, self.a.uid)
+        if len(payload) > USABLE_BYTES:
+            # The framing constants are a pre-check on chat only; this is the
+            # check that holds for every kind, positions included.
+            self.stats["refused"] += 1
+            reason = f"encoded payload is {len(payload)} bytes"
+            log("refused", kind=out.kind, reason=reason)
+            return
         self.iface.sendData(
             payload,
             destinationId=out.dest,
@@ -667,8 +875,10 @@ class Gateway:
         """Forward accepted LoRa messages to the server."""
         while True:
             m: LoraIn = await inbox.get()
-            log("lora->tak", kind=m.kind, sender=m.callsign, to=m.to)
             for out in self.apply(self.tr.from_lora(m), "lora"):
+                # The sender as the server sees it, after any attribution.
+                sender = out.callsign or m.callsign
+                log("lora->tak", kind=m.kind, sender=sender, to=m.to)
                 self.stats["to_tak"] += 1
                 if not (out.via and await self.proxy_send(out)):
                     await self.tak_send(out.xml)

@@ -10,7 +10,10 @@ it is absent (CI); the bench host runs it.
 from __future__ import annotations
 
 import importlib.util
+import json
+import random
 import sys
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -367,3 +370,211 @@ def test_uid_round_trips_through_the_protobuf() -> None:
         "fromId": NODE,
     }
     assert gw.decode(packet, 3, "!172ab0c8").uid == IP_UID
+
+
+# --------------------------------------------------------------- upstream TAKPackets
+
+_DATA = Path(__file__).resolve().parent / "data"
+_GOLDEN = {
+    p["name"]: p
+    for p in json.loads((_DATA / "upstream_takpackets.json").read_text("utf-8"))[
+        "packets"
+    ]
+}
+_COMPRESSED = {
+    v["text"]: bytes.fromhex(v["hex"])
+    for v in json.loads((_DATA / "unishox2_vectors.json").read_text("utf-8"))["vectors"]
+}
+
+
+def _v(n: int) -> bytes:
+    out = b""
+    while True:
+        b, n = n & 0x7F, n >> 7
+        out += bytes([b | (0x80 if n else 0)])
+        if not n:
+            return out
+
+
+def _f(num: int, data: bytes | int) -> bytes:
+    """One protobuf field: an int as a varint, bytes as length-delimited."""
+    if isinstance(data, int):
+        return _v(num << 3) + _v(data)
+    return _v(num << 3 | 2) + _v(len(data)) + data
+
+
+def _contact(callsign: bytes, uid: bytes = b"") -> bytes:
+    return _f(2, _f(1, callsign) + (_f(2, uid) if uid else b""))
+
+
+def _rx(payload: bytes) -> object:
+    packet = {
+        "decoded": {"portnum": "ATAK_PLUGIN", "payload": payload},
+        "channel": 3,
+        "fromId": NODE,
+    }
+    return gw.decode(packet, 3, "!172ab0c8")
+
+
+def test_upstream_golden_packets_decode_to_their_sender() -> None:
+    for name, p in _GOLDEN.items():
+        m = _rx(bytes.fromhex(p["payload_hex"]))
+        e = p["expect"]
+        assert m is not None, name
+        assert (m.kind, m.callsign, m.uid) == (e["kind"], e["callsign"], e["uid"]), name
+        if m.kind == "chat":
+            assert (m.text, m.to) == (e["text"], e["to"]), name
+        else:
+            assert m.point == pytest.approx((e["lat"], e["lon"], e["alt"])), name
+
+
+def test_the_gateways_own_plain_format_still_decodes_without_meshtastic() -> None:
+    chat = _f(6, _f(1, b"hi") + _f(2, ROOM.encode()))
+    m = _rx(_contact(b"IP1", IP_UID.encode()) + chat)
+    got = (m.kind, m.callsign, m.uid, m.to, m.text)
+    assert got == ("chat", "IP1", IP_UID, ROOM, "hi")
+
+
+def test_a_plain_string_that_is_not_utf8_is_refused() -> None:
+    assert _rx(_contact(b"\xff\xfe") + _f(6, _f(1, b"x") + _f(2, b"R"))) is None
+
+
+def test_a_compressed_callsign_over_the_upstream_limit_is_refused() -> None:
+    chat = _f(6, _f(1, _COMPRESSED["a"]))
+    assert _rx(_f(1, 1) + _contact(_COMPRESSED["a" * 300]) + chat) is None
+
+
+def test_a_callsign_with_control_characters_is_refused() -> None:
+    assert _rx(_contact(b"EVIL\x1b[2J") + _f(6, _f(1, b"x") + _f(2, b"R"))) is None
+
+
+def test_the_last_member_of_the_payload_oneof_wins() -> None:
+    lat, lon = (1).to_bytes(4, "little"), (2).to_bytes(4, "little")
+    pli = _f(5, b"\x0d" + lat + b"\x15" + lon)
+    chat = _f(6, _f(1, b"later") + _f(2, ROOM.encode()))
+    assert _rx(_contact(b"C") + pli + chat).kind == "chat"
+    assert _rx(_contact(b"C") + chat + pli).kind == "pli"
+
+
+def test_a_pli_outside_the_globe_is_refused() -> None:
+    lat = (95 * 10**7).to_bytes(4, "little", signed=True)
+    pli = _f(5, b"\x0d" + lat + b"\x15" + (0).to_bytes(4, "little"))
+    assert _rx(_contact(b"C") + pli) is None
+
+
+def test_random_payloads_never_raise_out_of_decode() -> None:
+    rng = random.Random(20261023)  # noqa: S311 (seeded test input, not crypto)
+    for _ in range(3000):
+        payload = bytes(rng.getrandbits(8) for _ in range(rng.randint(0, 231)))
+        m = _rx(payload)
+        assert m is None or m.kind in ("chat", "pli")
+
+
+def test_the_wire_reader_uses_the_upstream_field_numbers() -> None:
+    pytest.importorskip("meshtastic")
+    from meshtastic.protobuf import atak_pb2
+
+    def num(msg: object, name: str) -> int:
+        return msg.DESCRIPTOR.fields_by_name[name].number
+
+    t, c, g, p = atak_pb2.TAKPacket, atak_pb2.Contact, atak_pb2.GeoChat, atak_pb2.PLI
+    top = ("is_compressed", "contact", "pli", "chat", "detail")
+    assert [num(t, n) for n in top] == [1, 2, 5, 6, 7]
+    assert [num(c, n) for n in ("callsign", "device_callsign")] == [1, 2]
+    assert [num(g, n) for n in ("message", "to")] == [1, 2]
+    assert [num(p, n) for n in ("latitude_i", "longitude_i", "altitude")] == [1, 2, 3]
+
+
+# --------------------------------------------------------------- bare-text attribution
+
+
+def _pli_in(node: str, callsign: str, uid: str) -> object:
+    return gw.LoraIn("pli", node, callsign, point=(0.0, 0.0, 0.0), uid=uid)
+
+
+def _text_in(node: str = NODE, text: str = "room text") -> object:
+    return gw.LoraIn("text", node, node, text=text)
+
+
+def test_bare_text_right_after_a_pli_is_attributed_to_that_sender() -> None:
+    t = gw.Translator(GW_UID, frozenset({gw.ALL_CHAT}), "tak", 60.0)
+    t.from_lora(_pli_in(NODE, "OTS-USER", "ANDROID-ots1"), now=100.0)
+    chat = _parsed(only(t.from_lora(_text_in(), now=104.5))).find("detail/__chat")
+    assert chat.get("senderCallsign") == "OTS-USER"
+    assert chat.find("chatgrp").get("uid0") == "ANDROID-ots1"
+
+
+def test_bare_text_after_a_stale_pli_keeps_the_radio_name() -> None:
+    t = tr()
+    t.from_lora(_pli_in(NODE, "OTS-USER", "ANDROID-ots1"), now=100.0)
+    later = 100.0 + gw.ATTRIBUTION_WINDOW_S + 1
+    ev = _parsed(only(t.from_lora(_text_in(), now=later)))
+    assert ev.find("detail/__chat").get("senderCallsign") == NODE
+
+
+def test_a_node_carrying_several_identities_is_never_attributed() -> None:
+    """A MULE radio relays for up to eight EUDs; its text names none of them."""
+    t = tr()
+    t.from_lora(_pli_in(NODE, "EUD-A", "ANDROID-a"), now=100.0)
+    t.from_lora(_pli_in(NODE, "EUD-B", "ANDROID-b"), now=101.0)
+    ev = _parsed(only(t.from_lora(_text_in(), now=102.0)))
+    assert ev.find("detail/__chat").get("senderCallsign") == NODE
+
+
+def test_a_rebound_node_stays_unattributed_when_the_first_identity_returns() -> None:
+    t = tr()
+    t.from_lora(_pli_in(NODE, "EUD-A", "ANDROID-a"), now=100.0)
+    t.from_lora(_pli_in(NODE, "FORGED", "ANDROID-f"), now=101.0)
+    t.from_lora(_pli_in(NODE, "EUD-A", "ANDROID-a"), now=102.0)
+    ev = _parsed(only(t.from_lora(_text_in(), now=103.0)))
+    assert ev.find("detail/__chat").get("senderCallsign") == NODE
+
+
+def test_attributed_text_cannot_take_a_local_client_uid() -> None:
+    t = tr()
+    t.from_tak(pli_xml("IP1", IP_UID), 0.0)  # IP_UID is a client of this server
+    t.sent_uid.clear()  # isolate the claim rule from the echo rule
+    t.from_lora(_pli_in(NODE, "IP1", IP_UID), now=10_000.0)
+    out = only(t.from_lora(_text_in(), now=10_001.0))
+    assert out.via == t.mesh_uid(NODE, "IP1")
+
+
+def test_the_attribution_map_is_bounded() -> None:
+    t = tr()
+    for i in range(gw.ATTRIBUTION_MAX_NODES + 50):
+        t.from_lora(_pli_in(f"!{i:08x}", f"C{i}", f"ANDROID-{i}"), now=100.0)
+    assert len(t.node_seen) == gw.ATTRIBUTION_MAX_NODES
+    assert "!00000000" not in t.node_seen
+
+
+# --------------------------------------------------------------- loop guard
+
+
+def test_our_own_traffic_coming_back_from_lora_is_refused() -> None:
+    """An OpenTAKServer Meshtastic path on the channel re-sends what we sent."""
+    t = gw.Translator(GW_UID, frozenset({gw.ALL_CHAT}), "tak", 60.0)
+    sent = only(t.from_tak(pli_xml("IP1", IP_UID), time.time()))
+    assert isinstance(sent, gw.LoraOut)
+    back = only(t.from_lora(_pli_in("!0badf00d", "IP1", IP_UID)))
+    assert isinstance(back, gw.Refused)
+    assert "echo" in back.reason
+
+
+# --------------------------------------------------------------- encoded length
+
+
+def test_an_oversize_position_is_refused_before_transmission() -> None:
+    """The chat budget is a pre-check; the encoded payload is the real limit."""
+    pytest.importorskip("meshtastic")
+    from types import SimpleNamespace as NS
+
+    sent: list = []
+    args = NS(uid=GW_UID, room=[ROOM], lora_format="tak", pli_interval=60.0, dev="x")
+    g = gw.Gateway(args)
+    g.iface = NS(sendData=lambda *a, **k: sent.append((a, k)))
+    g.ch = 3
+    g.lora_send(gw.LoraOut("pli", "^all", "C" * 150, point=(1, 2, 3), uid="U" * 100))
+    assert sent == []
+    assert g.stats["refused"] == 1
+    g.lora_send(gw.LoraOut("pli", "^all", "IP1", point=(1, 2, 3), uid=IP_UID))
+    assert len(sent) == 1

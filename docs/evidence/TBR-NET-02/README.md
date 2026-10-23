@@ -70,6 +70,18 @@ other. Like option 2, it is not usable as published, and fixable.
 
 [ots1]: 2026-10-23-opentakserver-meshtastic-option-1-trial.md
 
+A [same-day follow-up][readup] fixes that on the bench side, with both upstreams
+unmodified. The gateway now reads compressed and plain strings, honouring the
+flag, through a bounded decoder ported from the reference Unishox2. The decoder
+matched 440 of 440 reference vectors and agreed on 20,000 random inputs, apart
+from inputs the reference encoder cannot produce. The gateway attributes
+OpenTAKServer's bare room text to its sender only when that is unambiguous. On
+real radios, 2 of 2 OpenTAKServer positions and 2 of 2 room chats reached a TAK
+server under the sender's own callsign and uid. The gateway still sends plain
+strings, so it must not share a channel with an OpenTAKServer Meshtastic path.
+
+[readup]: 2026-10-23-gateway-reads-upstream-takpackets.md
+
 **This trade is `CLOSED` (2026-09-04) on `FML-ADR-070`,** accepted by the named
 owner (Cameron Zobrist). The selected encoding is upstream's `Contact.callsign`
 and `GeoChat.to`, not the one-byte index the analysis first costed; the

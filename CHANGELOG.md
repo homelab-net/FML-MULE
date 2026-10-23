@@ -14,6 +14,25 @@ this program needs them visible:
 
 ## Unreleased
 
+### The LoRa gateway reads upstream's compressed TAKPackets
+
+`test/bench/fml-lora-gw.py` now reads `TAKPacket` strings in both of upstream's
+forms. OpenTAKServer compresses all of them with Unishox2, and the TAK
+Meshtastic Gateway its chats. The gateway honours `is_compressed` per field and
+holds each string to upstream's own limits. Decoding goes through
+`test/bench/unishox2_decode.py`, a bounded pure-Python port of the reference
+decoder; it matched the reference library on 440 vectors and on 20,000 fuzz
+inputs.
+
+Bare Meshtastic text takes a TAK identity only from a node that just sent one
+unambiguous `TAKPacket`, which is how OpenTAKServer's room chat arrives. A uid
+the gateway itself transmitted is refused if it comes back, and the payload
+limit is checked on the encoded bytes of every kind. On real radios with
+OpenTAKServer unmodified, its positions and room chats reached a TAK server
+under the sender's own identity, 2 of 2 each. The gateway still sends plain
+strings
+(`docs/evidence/TBR-NET-02/2026-10-23-gateway-reads-upstream-takpackets.md`).
+
 ### OpenTAKServer's Meshtastic path tried on a real radio
 
 A time-boxed trial of `FML-ADR-048` option 1 relayed OpenTAKServer 1.7.13 to a

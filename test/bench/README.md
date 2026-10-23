@@ -15,7 +15,8 @@ reasons that artifact's `Tier:` line gives. Everything else here remains
 driven by the shell procedure beside it, and `capture-telemetry.py`,
 `eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
 `tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py`, `tak-sim.py` and
-`fml-lora-gw.py`, which are run directly.
+`fml-lora-gw.py`, which are run directly. `unishox2_decode.py` is not run; it is
+the module `fml-lora-gw.py` imports to read compressed strings.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -91,9 +92,19 @@ anything over the 231-byte payload, and opens one server session per EUD behind
 a remote node, because a server routes a direct message only to the connection
 bound to the recipient. It carries each sender's own uid in
 `Contact.device_callsign`, so a user is one identity whether reached over IP or
-LoRa, and it refuses a carried uid that already belongs to a local client. Its
-decisions are pinned by
-`test/unit/test_fml_lora_gw.py`. It is **not** the `FML-ADR-048` gateway, which
+LoRa, and it refuses a carried uid that already belongs to a local client.
+
+It reads upstream's compressed `TAKPacket` strings as well as plain ones,
+honouring `is_compressed`, through a bounded pure-Python Unishox2 decoder
+(`unishox2_decode.py`, ported from the reference implementation) and
+upstream's own field limits. It sends plain strings. OpenTAKServer's Meshtastic
+path decompresses every string, so the gateway must not share a channel with
+one. Bare Meshtastic text is attributed to a TAK sender only when its node sent
+a `TAKPacket` with exactly one identity just before; that is how
+OpenTAKServer's room chat arrives. A uid the gateway itself put on the air is
+refused if it comes back. Its decisions are pinned by
+`test/unit/test_fml_lora_gw.py` and the decoder by
+`test/unit/test_unishox2_decode.py`. It is **not** the `FML-ADR-048` gateway, which
 stays README-only under `services/gateways/`; it does not yet relay only while
 partitioned, so two of them on one server duplicate traffic. Results are in
 `docs/evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md`. Set the

@@ -1,0 +1,23 @@
+{
+  "note": "ATAK_PLUGIN payloads from upstream senders, synthetic identities only. Provenance is in README.md.",
+  "packets": [
+    {
+      "name": "ots_pli",
+      "source": "OpenTAKServer 1.7.13 Meshtastic outgoing queue, bench capture 2026-10-23",
+      "payload_hex": "080112240a0e87c0790e0b414101a2d0682c3c97121287c0790e0b414101a2d0682c3c9683b858741a040801100a22002a0a0d204e000015204e0000",
+      "expect": {"kind": "pli", "callsign": "FML-OTS-SIM", "uid": "FML-OTS-SIM-UID", "lat": 0.002, "lon": 0.002, "alt": 0.0}
+    },
+    {
+      "name": "tmg_dm_mixed",
+      "source": "TAK Meshtastic Gateway 1.1.0 atak_pb2 + unishox2-py3 1.0.0, built as its DM path does, with chat.to as bytes",
+      "payload_hex": "080112250a0e87c0790e0b4101e43d8b41a0b0f2121387c0790e0b4101e43d8b41a0b0f25a0ee161d1220032170a06c79f65d79453120d464d4c2d5549442d414c504841",
+      "expect": {"kind": "chat", "callsign": "FML-TMG-SIM", "uid": "FML-TMG-SIM-UID", "text": "tmg dm 1", "to": "FML-UID-ALPHA"}
+    },
+    {
+      "name": "tmg_pli_plain",
+      "source": "TAK Meshtastic Gateway 1.1.0 atak_pb2, plain strings as its PLI path sends them",
+      "payload_hex": "121e0a0b464d4c2d544d472d53494d120f464d4c2d544d472d53494d2d5549442a150d204e000015e0b1ffff18f4ffffffffffffffff01",
+      "expect": {"kind": "pli", "callsign": "FML-TMG-SIM", "uid": "FML-TMG-SIM-UID", "lat": 0.002, "lon": -0.002, "alt": -12.0}
+    }
+  ]
+}
