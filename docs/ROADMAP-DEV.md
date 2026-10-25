@@ -76,8 +76,11 @@ reorder the ladder. M1 remains the pacing gate, and D-1 counts toward neither M2
 (its third node joins over an emulated VXLAN bearer, not the selected mesh) nor
 M4 (it runs on bench articles, not the image).
 
-**What it shows.** A user with iTAK or WinTAK keeps communicating, with no manual
-step, whether the MULEs are joined by IP or only by LoRa:
+**What it shows.** A user with WinTAK, or another client with a peer path, keeps
+communicating, with no manual step, whether the MULEs are joined by IP or only by
+LoRa. An iTAK user has normal service only: iTAK has no peer path, so the Owner
+scoped degraded-mode service to peer-capable clients on 2026-10-24, and a
+separate packet will decide a relay for partitioned iTAK users.
 
 - **Normal:** EUDs use the authoritative TAK server through `tak.field`.
 - **Partitioned:** a MULE cut off from the authority shows `NON-AUTHORITATIVE` /
@@ -111,7 +114,8 @@ configuration recorded before the run.
 - the upstream-first trials of `FML-ADR-048` [option 2][d1-opt2] and
   [option 1][d1-opt1], both not usable as published and fixable.
 - [the packet's smallest prototype][d1-proto]: peer mode held on WinTAK under a
-  server cut; iTAK has no peer path, so the packet returns to the Owner.
+  server cut; iTAK has no peer path, so the Owner scoped option A to clients
+  with one.
 
 [d1-packet]: evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [d1-gw]: evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md

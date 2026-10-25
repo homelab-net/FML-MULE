@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Option A is scoped to clients with a peer path
+
+The Owner disposed of the `TBR-HA-01` prototype on 2026-10-24. Option A's
+degraded-mode service covers EUDs with a peer path (WinTAK; ATAK expected). iTAK
+has none, so an iTAK user has normal service only, and a separate decision
+packet is commissioned for a per-MULE relay serving partitioned iTAK users,
+which would reverse option A's "no local TAK server" if accepted. The packet's
+section 9, its trade README and D-1 in the roadmap say so.
+
 ### Option A's smallest prototype: peer mode under a server cut
 
 A new `TBR-HA-01` record runs the decision packet's section 6 gate on real
