@@ -80,7 +80,8 @@ M4 (it runs on bench articles, not the image).
 communicating, with no manual step, whether the MULEs are joined by IP or only by
 LoRa. An iTAK user has normal service only: iTAK has no peer path, so the Owner
 scoped degraded-mode service to peer-capable clients on 2026-10-24, and a
-[separate packet][d1-relay] will decide a relay for partitioned iTAK users.
+[relay for partitioned iTAK users][d1-relay] was accepted on 2026-10-25, to be
+built only if iTAK reaches it with no manual step.
 
 - **Normal:** EUDs use the authoritative TAK server through `tak.field`.
 - **Partitioned:** a MULE cut off from the authority shows `NON-AUTHORITATIVE` /
@@ -117,7 +118,7 @@ configuration recorded before the run.
   server cut; iTAK has no peer path, so the Owner scoped option A to clients
   with one.
 - [a detection sweep][d1-sweep]: a node probe detects every silent cut with no
-  false entry; it proposes entry at 20 s and exit at 3 probes, for the Owner.
+  false entry; the Owner set entry at 20 s and exit at 3 probes.
 
 [d1-packet]: evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [d1-gw]: evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md

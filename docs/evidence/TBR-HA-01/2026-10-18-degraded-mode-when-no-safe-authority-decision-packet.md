@@ -5,8 +5,9 @@
 **Prototype (section 6), 2026-10-24:** met for WinTAK, not met for iTAK, which
 has no peer path; see
 [the prototype record](2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md).
-The Owner then scoped option A to EUDs with a peer path (section 9). The
-commissioned relay packet [awaits the Owner](2026-10-25-relay-for-partitioned-itak-users-decision-packet.md).
+The Owner then scoped option A to EUDs with a peer path (section 9), accepted
+the [relay packet](2026-10-25-relay-for-partitioned-itak-users-decision-packet.md) for partitioned
+iTAK users behind its gates, and set the entry and exit thresholds (parameter 2).
 
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-18. **Author:** Claude agent.
 
@@ -69,8 +70,10 @@ communicating when that MULE loses IP reach to the authoritative TAK server.
 2. **Detection** is an **application-level** probe of the authority over **mesh
    addresses only**: a TLS session plus an SA round trip. A port check is not
    enough; the 2026-10-17 evidence saw one pass 13 s before the server relayed.
-   - The entry threshold, exit threshold and hold time are **`TBD`, set by
-     measurement**.
+   - **Entry:** 20 s with no relayed probe. **Exit:** 3 consecutive relayed
+     probes. Both set by the Owner on 2026-10-25 from the
+     [detection sweep](2026-10-25-partition-detection-threshold-sweep.md).
+   - The hold time is **`TBD`, set by measurement** on a lossy link.
    - Transitions are **rate-limited**, because each one cuts sessions.
 3. **The indication.** The node reports `NON-AUTHORITATIVE` / `PARTITION`, and
    its gateway sends a peer chat or status event that **TAK users see**, on entry
@@ -152,3 +155,12 @@ prototype, which was met for WinTAK and not for iTAK:
 - The prototype also found that nothing sent through the server during a
   partition arrives later. Whichever path serves a partitioned user, something
   must hold and resend what has to cross the partition.
+
+**Thresholds set, 2026-10-25, Cameron Zobrist (Program Owner):** entry at 20 s
+with no relayed probe and exit at 3 consecutive relayed probes, as the
+[detection sweep](2026-10-25-partition-detection-threshold-sweep.md) proposed (parameter 2). The hold
+time stays `TBD`.
+
+**Relay packet accepted, 2026-10-25:** the [relay packet](2026-10-25-relay-for-partitioned-itak-users-decision-packet.md)
+is accepted behind its gates. Parameter 7 is amended only if those gates pass
+(that packet's section 9).

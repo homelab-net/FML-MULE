@@ -1,7 +1,8 @@
 # TBR-HA-01 decision packet: a per-MULE relay for partitioned iTAK users
 
-**State:** `AWAITING_USER_DECISION`. Commissioned by the Owner on 2026-10-24
-(section 9 of the [degraded-mode packet][degraded]).
+**State:** `DECIDED` (Owner, 2026-10-25): option B accepted behind its gates
+(section 9). Commissioned by the Owner on 2026-10-24 (section 9 of the
+[degraded-mode packet][degraded]).
 
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-25. **Author:** Claude agent.
 
@@ -145,7 +146,17 @@ users on the far side. That remains its own question.
 
 ## 9. Owner disposition
 
-*Awaiting the Owner.*
+**Accepted, 2026-10-25, Cameron Zobrist (Program Owner):** option B as
+recommended in section 4, behind the section 6 gates.
+
+- **Gate 0** (no peer setting on the iTAK build in use) and **gate 1** (iTAK
+  moves to the relay and back with no manual step) come first. If either fails,
+  the relay is not built and the scope of 2026-10-24 stands.
+- **Parameter 7** of the degraded-mode packet is amended only when both gates
+  pass, as section 7 lists.
+- **S1 or S2 is not yet ruled.** The gate 1 prototype is a bench instrument and
+  needs no ruling. The ruling, and a change request if it is S2, come before
+  anything beyond the bench.
 
 [degraded]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [prototype]: 2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md

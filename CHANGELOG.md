@@ -14,6 +14,15 @@ this program needs them visible:
 
 ## Unreleased
 
+### Option A's detection thresholds are set, and the iTAK relay is accepted
+
+The Owner set option A's partition entry at 20 s with no relayed probe and exit
+at 3 consecutive relayed probes, as the detection sweep proposed. The hold time
+stays `TBD`. The Owner also accepted the relay for partitioned iTAK users behind
+its two gates. Option A's "no local TAK server" is amended only if both gates
+pass, and whether the relay is an S1 or S2 service is ruled before anything
+leaves the bench.
+
 ### A decision packet for a relay serving partitioned iTAK users
 
 The packet the Owner commissioned on 2026-10-24 is ready for decision. It weighs
