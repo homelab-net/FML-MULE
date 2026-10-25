@@ -27,7 +27,7 @@ NAME=map.example.invalid
 # (CLAUDE.md conventions). haproxy:lts as resolved 2026-09-27.
 HAPROXY_DIGEST="docker.io/library/haproxy@sha256:07bc3cbc8fb7276e991124c24277a7c5de59a1bf4626ae2f3a30f73d6712114f"
 
-# shellcheck disable=SC2317  # invoked via the EXIT trap, not inline.
+# shellcheck disable=SC2317,SC2329  # invoked via the EXIT trap, not inline.
 cleanup() {
   podman rm -f "$MARTIN" "$HAPROXY" >/dev/null 2>&1 || true
   rm -rf "$WORK"
