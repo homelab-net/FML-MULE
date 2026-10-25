@@ -80,7 +80,7 @@ M4 (it runs on bench articles, not the image).
 communicating, with no manual step, whether the MULEs are joined by IP or only by
 LoRa. An iTAK user has normal service only: iTAK has no peer path, so the Owner
 scoped degraded-mode service to peer-capable clients on 2026-10-24, and a
-separate packet will decide a relay for partitioned iTAK users.
+[separate packet][d1-relay] will decide a relay for partitioned iTAK users.
 
 - **Normal:** EUDs use the authoritative TAK server through `tak.field`.
 - **Partitioned:** a MULE cut off from the authority shows `NON-AUTHORITATIVE` /
@@ -116,6 +116,8 @@ configuration recorded before the run.
 - [the packet's smallest prototype][d1-proto]: peer mode held on WinTAK under a
   server cut; iTAK has no peer path, so the Owner scoped option A to clients
   with one.
+- [a detection sweep][d1-sweep]: a node probe detects every silent cut with no
+  false entry; it proposes entry at 20 s and exit at 3 probes, for the Owner.
 
 [d1-packet]: evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [d1-gw]: evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md
@@ -125,6 +127,8 @@ configuration recorded before the run.
 [d1-opt2]: evidence/TBR-NET-02/2026-10-18-tak-meshtastic-gateway-option-2-trial.md
 [d1-opt1]: evidence/TBR-NET-02/2026-10-23-opentakserver-meshtastic-option-1-trial.md
 [d1-proto]: evidence/TBR-HA-01/2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md
+[d1-sweep]: evidence/TBR-HA-01/2026-10-25-partition-detection-threshold-sweep.md
+[d1-relay]: evidence/TBR-HA-01/2026-10-25-relay-for-partitioned-itak-users-decision-packet.md
 
 ## Before you touch anything
 

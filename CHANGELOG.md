@@ -14,6 +14,28 @@ this program needs them visible:
 
 ## Unreleased
 
+### A decision packet for a relay serving partitioned iTAK users
+
+The packet the Owner commissioned on 2026-10-24 is ready for decision. It weighs
+three options (no partition service for iTAK, a stateless relay on each MULE
+live only while partitioned, or a local non-authoritative TAK server) and
+recommends the relay behind two gates: confirm the iTAK build has no peer
+setting, then show iTAK moving to the relay and back with no manual step. The
+relay would amend option A's "no local TAK server", holds the service's
+certificate on every MULE, and still does not hold and resend what crosses a
+partition. Whether a stateless relay is an S1 or S2 service is the Owner's call.
+
+### Partition instruments in the bench, and a detection sweep
+
+The `TBR-HA-01` option A instruments are now in `test/bench`: the silent cut
+(`tak-partition-cut.sh`) and its no-root stand-in (`tak-blackhole-relay.py`),
+a simulated EUD on both planes, a node detection probe, a server session
+sampler, a WinTAK exporter, and two analyzers. The trial analyzer is the one
+that scored the 2026-10-24 prototype, cleaned for lint, and gives the same
+report. A new record runs a detection sweep, cuts of 5 s to 120 s replayed
+against candidate thresholds, and proposes entry at 20 s and exit at 3 relayed
+probes for the Owner to accept. The hold time stays `TBD`.
+
 ### Option A is scoped to clients with a peer path
 
 The Owner disposed of the `TBR-HA-01` prototype on 2026-10-24. Option A's

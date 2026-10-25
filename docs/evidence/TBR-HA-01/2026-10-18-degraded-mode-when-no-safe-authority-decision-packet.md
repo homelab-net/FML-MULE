@@ -5,7 +5,8 @@
 **Prototype (section 6), 2026-10-24:** met for WinTAK, not met for iTAK, which
 has no peer path; see
 [the prototype record](2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md).
-The Owner then scoped option A to EUDs with a peer path (section 9).
+The Owner then scoped option A to EUDs with a peer path (section 9). The
+commissioned relay packet [awaits the Owner](2026-10-25-relay-for-partitioned-itak-users-decision-packet.md).
 
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-18. **Author:** Claude agent.
 
