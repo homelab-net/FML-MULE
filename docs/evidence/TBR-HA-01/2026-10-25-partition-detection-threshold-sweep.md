@@ -12,9 +12,9 @@ round trip", and leaves "the entry threshold, exit threshold and hold time
 silently for 5 s to 120 s, runs a probe through every cut, and replays the
 probe's record against each candidate setting.
 
-**Proposed for the Owner's acceptance:**
+**Accepted by the Owner on 2026-10-25** (parameter 2 of the packet):
 
-| Parameter | Proposed | Measured basis |
+| Parameter | Value | Measured basis |
 | --- | --- | --- |
 | Entry | **20 s** with no relayed probe | Detected 19.5 to 19.6 s into every cut of 20 s or longer; no false entry at any threshold. A client with a 25 s stream timeout kept its session through every cut of 20 s or less. |
 | Exit | **3** consecutive relayed probes | 1.5 to 3.6 s after each lift; 1 probe exits 0.1 to 1.7 s after. |
@@ -153,8 +153,8 @@ which is what the hold time is for.
 
 ## For the Owner
 
-1. **Accept or change entry 20 s and exit 3 probes.** Once accepted, parameter 2
-   cites this record and the two values are no longer `TBD`.
+1. **Entry 20 s and exit 3 probes: accepted, 2026-10-25.** Parameter 2 cites
+   this record.
 2. **The hold time** waits on a lossy-link run.
 
 [packet]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
