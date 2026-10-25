@@ -3,8 +3,9 @@
 **State:** `DECIDED` (Owner, 2026-10-18): option A accepted (section 9).
 
 **Prototype (section 6), 2026-10-24:** met for WinTAK, not met for iTAK, which
-has no peer path. Under section 6 this packet returns to the Owner; see
+has no peer path; see
 [the prototype record](2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md).
+The Owner then scoped option A to EUDs with a peer path (section 9).
 
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-18. **Author:** Claude agent.
 
@@ -136,3 +137,17 @@ communicating when that MULE loses IP reach to the authoritative TAK server.
 in section 4. It records degraded-mode service only: `TBR-HA-01` stays `OPEN`,
 its recovery mechanism stays unselected, and nothing closes. The ADR named in
 section 7 is allocated with the first bench implementation of these parameters.
+
+**Scoped, 2026-10-24, Cameron Zobrist (Program Owner),** on the section 6
+prototype, which was met for WinTAK and not for iTAK:
+
+- Option A serves **EUDs with a peer path** (WinTAK; ATAK expected, not yet
+  shown). Parameter 5 applies to those EUDs only.
+- **iTAK has no partition service under option A.** An iTAK user keeps normal
+  service through the authority and loses service while partitioned.
+- A **separate decision packet** is commissioned for a per-MULE relay that would
+  serve partitioned iTAK users. Accepting it would reverse parameter 7 ("no
+  local TAK server is started on any node"), so it is decided on its own.
+- The prototype also found that nothing sent through the server during a
+  partition arrives later. Whichever path serves a partitioned user, something
+  must hold and resend what has to cross the partition.

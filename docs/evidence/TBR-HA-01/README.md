@@ -68,9 +68,10 @@ The packet's [smallest prototype][prototype] ran on 2026-10-24, with the server
 made unreachable by a silent cut. WinTAK kept peer chat and SA through two cuts
 and resumed its server stream within 2 s of each lift. iTAK resumed in 38 to
 49 s but has no peer path: an access-point counter saw it send no multicast at
-all. So the gate is met for WinTAK and not for iTAK, and the packet returns to
-the Owner. Nothing sent through the server during a cut arrived later, and the
-server held dead sessions, up to three for one WinTAK.
+all. So the gate is met for WinTAK and not for iTAK. The Owner then scoped
+option A to clients with a peer path and commissioned a separate packet for a
+relay serving partitioned iTAK users. Nothing sent through the server during a
+cut arrived later, and the server held dead sessions, up to three for one WinTAK.
 
 [prototype]: 2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md
 [degraded]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
