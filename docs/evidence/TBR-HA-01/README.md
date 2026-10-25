@@ -73,6 +73,15 @@ option A to clients with a peer path and commissioned a separate packet for a
 relay serving partitioned iTAK users. Nothing sent through the server during a
 cut arrived later, and the server held dead sessions, up to three for one WinTAK.
 
+A [detection sweep][sweep] on 2026-10-25 cut the server silently for 5 s to
+120 s and replayed a node probe (a TLS session and an SA round trip) against
+candidate thresholds. Every threshold detected every cut it could, with no
+false entry, so the sweep proposes entry after 20 s without a relayed probe,
+which spares the cuts a client rides out, and exit after 3 relayed probes, 1.5
+to 3.6 s after the lift. Both await the Owner. The hold time waits on a
+lossy-link run, and the sweep cut only the probe and a simulated EUD.
+
+[sweep]: 2026-10-25-partition-detection-threshold-sweep.md
 [prototype]: 2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md
 [degraded]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [supervision]: 2026-10-02-supervised-recovery-three-nodes.md

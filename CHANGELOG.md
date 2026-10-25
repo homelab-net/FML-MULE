@@ -14,6 +14,17 @@ this program needs them visible:
 
 ## Unreleased
 
+### Partition instruments in the bench, and a detection sweep
+
+The `TBR-HA-01` option A instruments are now in `test/bench`: the silent cut
+(`tak-partition-cut.sh`) and its no-root stand-in (`tak-blackhole-relay.py`),
+a simulated EUD on both planes, a node detection probe, a server session
+sampler, a WinTAK exporter, and two analyzers. The trial analyzer is the one
+that scored the 2026-10-24 prototype, cleaned for lint, and gives the same
+report. A new record runs a detection sweep, cuts of 5 s to 120 s replayed
+against candidate thresholds, and proposes entry at 20 s and exit at 3 relayed
+probes for the Owner to accept. The hold time stays `TBD`.
+
 ### Option A is scoped to clients with a peer path
 
 The Owner disposed of the `TBR-HA-01` prototype on 2026-10-24. Option A's

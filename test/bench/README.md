@@ -3,7 +3,7 @@
 Bench procedures and instrumentation notes: how a measurement is taken, with
 what, and what makes it repeatable.
 
-**Twenty-three procedures and eleven helpers.** Hardware measurements have been taken,
+**Twenty-five procedures and seventeen helpers.** Hardware measurements have been taken,
 by the three `-real` procedures below and recorded in
 `docs/evidence/TBR-RF-01/2026-10-11-two-node-80211s-batman-real-radio.md` and
 `docs/evidence/TBR-RF-01/2026-10-17-two-bearer-failover-80211s-and-wired-vlan.md`, and by
@@ -14,9 +14,11 @@ reasons that artifact's `Tier:` line gives. Everything else here remains
 `SIMULATED` or untaken. The helpers are `operator-view.py` and `udpflow.py`, each
 driven by the shell procedure beside it, and `capture-telemetry.py`,
 `eud-chat-id-capture.py`, `lora-geochat-eud.py`, `lora-tx-burst.py`,
-`tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py`, `tak-sim.py` and
-`fml-lora-gw.py`, which are run directly. `unishox2_decode.py` is not run; it is
-the module `fml-lora-gw.py` imports to read compressed strings.
+`tak-eud-ip.py`, `browser-login-offline.py`, `tak-probe.py`, `tak-sim.py`,
+`fml-lora-gw.py`, `tak-partition-eud.py`, `tak-partition-probe.py`,
+`tak-blackhole-relay.py`, `tak-partition-analyze.py`,
+`tak-partition-sweep-analyze.py` and `wintak-export.js`, which are run directly.
+`unishox2_decode.py` is not run; it is the module `fml-lora-gw.py` imports to read compressed strings.
 Two of the procedures emit
 `SIMULATED` transport numbers (below), which by rule say nothing physical, one
 serves the operator status view from the node's real readings, one induces a
@@ -267,6 +269,28 @@ administrative because `TBR-HA-01` has selected no automatic mechanism. The
 `.deb` comes from tak.gov under its terms and is never committed. They need
 two nodes on a mesh, root and a tak.gov download, so they do not run in CI. See
 `docs/evidence/TBR-HA-01/2026-10-17-tak-field-ingress-and-administrative-promotion.md`.
+
+`tak-partition-cut.sh` and its helpers run `TBR-HA-01` option A's measurements:
+whether clients carry on peer to peer when their TAK server goes silent, and how
+fast a node can tell. The cut, on the server host and as root, has nftables
+**drop** every TCP segment to or from the TAK ports on every interface except
+loopback, so a client sees a silent partition rather than a refused connection.
+Every cut lifts itself through a transient systemd timer, and each transition is
+logged with a millisecond UTC timestamp. `tak-blackhole-relay.py` is the no-root
+stand-in: a relay in front of the server that goes silent on the same schedule,
+which cuts only the clients that connect through it. `tak-partition-eud.py` is a
+simulated EUD with a TLS stream and peer-mode multicast, sending each chat on
+one named path. `tak-partition-probe.py` is the node's detection probe, an SA
+round trip with a sequence number. It differs from `tak-probe.py` on purpose:
+that probe has no silence timeout and no sequence number, so it can see neither a
+silent cut nor a lost probe. `tak-session-sample.sh` samples the server's
+sessions, and `wintak-export.js` exports WinTAK's own log and chat database
+on the WinTAK host (Node 22.5 or later). `tak-partition-analyze.py` scores a
+trial against its gate checks, and `tak-partition-sweep-analyze.py` replays a
+sweep against candidate entry and exit thresholds. They need a TAK server, real
+clients and a bench, so they do not run in CI. See
+`docs/evidence/TBR-HA-01/2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md`
+and `docs/evidence/TBR-HA-01/2026-10-25-partition-detection-threshold-sweep.md`.
 
 ## What can be verified without hardware, and what cannot
 

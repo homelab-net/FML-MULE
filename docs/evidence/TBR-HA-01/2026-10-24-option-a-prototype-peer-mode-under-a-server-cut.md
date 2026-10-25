@@ -30,7 +30,7 @@ simulated EUD, because iTAK has no peer path to test.
 | Server | Official TAK Server 5.8 on `pi-mule-2`, TLS stream on 8089 |
 | Network | One LAN segment: a consumer access point with client isolation off and IGMP snooping off, bridging Wi-Fi and wired ports. The best case for multicast. |
 | Peer settings | TAK defaults: SA on `239.2.3.1:6969`, GeoChat on `224.10.10.1:17012` |
-| Instruments | Bench scripts kept outside the repository for this run (they land in `test/bench` separately): the cut, a simulated EUD, a server session sampler, a WinTAK log and chat-database exporter, and an analyzer whose gate checks were written before the run |
+| Instruments | Bench scripts kept outside the repository for this run, since added to `test/bench`: the cut (`tak-partition-cut.sh`), a simulated EUD (`tak-partition-eud.py`), a server session sampler (`tak-session-sample.sh`), a WinTAK log and chat-database exporter (`wintak-export.js`), and an analyzer whose gate checks were written before the run (`tak-partition-analyze.py`) |
 
 ## How the cut was made
 
@@ -154,7 +154,7 @@ the scored run above replaced it. It agrees with the scored run.
 - **What WinTAK did with the simulated EUD's SA.** WinTAK keeps no SA log.
 - **Detection thresholds.** The packet leaves entry, exit and hold `TBD, set by
   measurement`; these client timings inform them but are not node-probe
-  measurements.
+  measurements. The [detection sweep][sweep] measures entry and exit.
 
 ## For the Owner
 
@@ -174,3 +174,4 @@ across a partition, or users lose it without being told.
 
 [packet]: 2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [front]: 2026-10-18-single-tak-field-front-on-a-live-server-retired.md
+[sweep]: 2026-10-25-partition-detection-threshold-sweep.md
