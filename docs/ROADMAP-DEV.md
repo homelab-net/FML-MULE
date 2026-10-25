@@ -110,6 +110,8 @@ configuration recorded before the run.
 - [why the single front was retired][d1-front];
 - the upstream-first trials of `FML-ADR-048` [option 2][d1-opt2] and
   [option 1][d1-opt1], both not usable as published and fixable.
+- [the packet's smallest prototype][d1-proto]: peer mode held on WinTAK under a
+  server cut; iTAK has no peer path, so the packet returns to the Owner.
 
 [d1-packet]: evidence/TBR-HA-01/2026-10-18-degraded-mode-when-no-safe-authority-decision-packet.md
 [d1-gw]: evidence/TBR-NET-02/2026-10-18-lora-gateway-as-a-tak-client.md
@@ -118,6 +120,7 @@ configuration recorded before the run.
 [d1-front]: evidence/TBR-HA-01/2026-10-18-single-tak-field-front-on-a-live-server-retired.md
 [d1-opt2]: evidence/TBR-NET-02/2026-10-18-tak-meshtastic-gateway-option-2-trial.md
 [d1-opt1]: evidence/TBR-NET-02/2026-10-23-opentakserver-meshtastic-option-1-trial.md
+[d1-proto]: evidence/TBR-HA-01/2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md
 
 ## Before you touch anything
 

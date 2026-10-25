@@ -14,6 +14,18 @@ this program needs them visible:
 
 ## Unreleased
 
+### Option A's smallest prototype: peer mode under a server cut
+
+A new `TBR-HA-01` record runs the decision packet's section 6 gate on real
+clients. TAK Server 5.8 was made unreachable by a silent nftables drop that
+lifted itself, twice, while a simulated EUD, a control client on the server
+side and the operator traded chats on named paths. WinTAK kept peer chat (13 of
+13) and SA through both cuts and resumed its stream within 2 s of each lift.
+iTAK resumed in 38 to 49 s but sent no multicast at all, counted at the access
+point, so the gate is met for WinTAK and not for iTAK, and the packet returns to
+the Owner. Nothing sent through the server during a cut arrived later, and the
+server held dead sessions, three at once for one WinTAK.
+
 ### The LoRa gateway reads upstream's compressed TAKPackets
 
 `test/bench/fml-lora-gw.py` now reads `TAKPacket` strings in both of upstream's

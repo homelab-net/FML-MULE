@@ -2,6 +2,10 @@
 
 **State:** `DECIDED` (Owner, 2026-10-18): option A accepted (section 9).
 
+**Prototype (section 6), 2026-10-24:** met for WinTAK, not met for iTAK, which
+has no peer path. Under section 6 this packet returns to the Owner; see
+[the prototype record](2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md).
+
 **Trade:** `TBR-HA-01`. **Prepared:** 2026-10-18. **Author:** Claude agent.
 
 **Scope note:**
