@@ -80,7 +80,7 @@ M4 (it runs on bench articles, not the image).
 communicating, with no manual step, whether the MULEs are joined by IP or only by
 LoRa. An iTAK user has normal service only: iTAK has no peer path, so the Owner
 scoped degraded-mode service to peer-capable clients on 2026-10-24, and a
-separate packet will decide a relay for partitioned iTAK users.
+[separate packet][d1-relay] will decide a relay for partitioned iTAK users.
 
 - **Normal:** EUDs use the authoritative TAK server through `tak.field`.
 - **Partitioned:** a MULE cut off from the authority shows `NON-AUTHORITATIVE` /
@@ -128,6 +128,7 @@ configuration recorded before the run.
 [d1-opt1]: evidence/TBR-NET-02/2026-10-23-opentakserver-meshtastic-option-1-trial.md
 [d1-proto]: evidence/TBR-HA-01/2026-10-24-option-a-prototype-peer-mode-under-a-server-cut.md
 [d1-sweep]: evidence/TBR-HA-01/2026-10-25-partition-detection-threshold-sweep.md
+[d1-relay]: evidence/TBR-HA-01/2026-10-25-relay-for-partitioned-itak-users-decision-packet.md
 
 ## Before you touch anything
 

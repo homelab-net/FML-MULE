@@ -14,6 +14,17 @@ this program needs them visible:
 
 ## Unreleased
 
+### A decision packet for a relay serving partitioned iTAK users
+
+The packet the Owner commissioned on 2026-10-24 is ready for decision. It weighs
+three options (no partition service for iTAK, a stateless relay on each MULE
+live only while partitioned, or a local non-authoritative TAK server) and
+recommends the relay behind two gates: confirm the iTAK build has no peer
+setting, then show iTAK moving to the relay and back with no manual step. The
+relay would amend option A's "no local TAK server", holds the service's
+certificate on every MULE, and still does not hold and resend what crosses a
+partition. Whether a stateless relay is an S1 or S2 service is the Owner's call.
+
 ### Partition instruments in the bench, and a detection sweep
 
 The `TBR-HA-01` option A instruments are now in `test/bench`: the silent cut
